@@ -106,7 +106,7 @@ These two functions let us catch (and rethrow) exceptions in the ReaderT monad.
 > catchReaderT m h = shakeReaderT $ \sinker -> Control.Exception.catch (sinker m) (sinker . h)
 
 
-Useful utility function.
+Useful utility function, for SQL weenies.
 
 > ifNull :: Maybe a -> a -> a
 > ifNull value subst = maybe subst id value
