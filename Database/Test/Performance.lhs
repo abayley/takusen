@@ -113,3 +113,4 @@ if you use the lazy version of result. Bummer.
 
 > cursorLargeResultSetPrefetch sess = runSession sess $ do
 >   cursorHelper "prefetch-1000" prefetch1000 4
+

@@ -42,3 +42,4 @@ We should add tests to shift data between databases, too.
 > logonOracle = do
 >   [ user, pswd, dbname ] <- getArgs
 >   Oracle.connect user pswd dbname
+

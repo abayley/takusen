@@ -249,7 +249,7 @@ i.e. open and fetch all rows, close after last row.
 >     --
 >     return ()
 
-!Goal: ensure exception raised when too many rows
+|Goal: ensure exception raised when too many rows
 fetched from cursor.
  
 This test will raise an exception, as it tries to
