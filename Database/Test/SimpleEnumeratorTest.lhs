@@ -52,46 +52,76 @@ Demonstrates possible usage.
 -- test
 --------------------------------------------------------------------
 
+An auxiliary, convenient function, to be used if the body
+of the iteratee is pure.
+
+> go:: (Monad m) => DB.IterAct m a
+> go = return . Right
 
 
 > selectS0 = do
 >   r <- DB.doQuery "select dummy from dual where dummy = 'a'" iter []
 >   liftIO $ putStrLn (show r)
 >   where
->     iter :: String -> DB.IterAct [String]
->     iter c1 acc = Right $ c1:acc
+>     -- To illustrate that the full signature is not necessary as long
+>     -- as some type information (e.g., (c1::String)) is provided --
+>     -- or enough context for the compiler to figure that out.
+>     --iter :: (Monad m) => String -> IterAct m [String]
+>     iter (c1::String) acc = go $ c1:acc
+
+The following test illustrates doing IO in the iteratee itself. The seed
+is unit.
+
+> selectS01 = do
+>   r <- DB.doQuery "select 'hello1', 'hello2', null from dual" iter ()
+>   liftIO $ putStrLn $ "selectS01: " ++ (show r)
+>   where
+>     -- Here, it's better to avaoid the signature and specify
+>     -- types of the arguments specifically so we do not have to
+>     -- figure out which exactly Monad we're operating in.
+>     -- We let the compiler figure out the right monad from
+>     -- the context (that is, from the Session)
+>     --iter :: String -> DB.IterAct  (ReaderT Query DB.SessionQuery) ()
+>     iter (c1::String) () = do
+>                   liftIO$ putStrLn $ "In Iteratee: " ++ c1
+>                   go ()
 
 
 > selectS1 = do
 >   r <- DB.doQuery "select 'hello1' from dual union select 'hello2' from dual union select 'hello3' from dual" iter []
->   liftIO $ putStrLn (show r)
+>   liftIO $ putStrLn $ "selectS1: " ++(show r)
 >   where
->     iter :: String -> DB.IterAct [String]
->     iter c1 acc = if c1 == "hello2" then Left (c1:acc) else Right (c1:acc)
+>     -- This is the example of enough context being provided so that
+>     -- no signature for the iteratee is necessary.
+>     --iter :: (Monad m) => String -> DB.IterAct m [String]
+>     iter c1 acc = if c1 == "hello2" then return$ Left (c1:acc)
+>                                     else go (c1:acc)
 
 
 > selectF1I1 = do
 >   r <- DB.doQuery "select 4841.3403490431, -22340234 from dual union select 33311.32332, 23789234 from dual" iter []
->   liftIO $ putStrLn (show r)
+>   liftIO $ putStrLn $ "selectF1I1: " ++ (show r)
 >   where
->     iter :: Double -> Int -> DB.IterAct [(Double, Int)]
->     iter c1 c2 acc = Right $ (c1, c2):acc
+>     iter :: (Monad m) => Double -> Int -> DB.IterAct m [(Double, Int)]
+>     iter c1 c2 acc = go $ (c1, c2):acc
 
 
 > selectS3 = do
 >   r <- DB.doQuery "select 'hello1', 'hello2', null from dual" iter []
->   liftIO $ putStrLn (show r)
+>   liftIO $ putStrLn $ "selectS3: " ++ (show r)
 >   where
->     iter :: String -> String -> Maybe String -> DB.IterAct [(String, String, String)]
->     iter c1 c2 c3 acc = Right $ (c1, c2, DB.ifNull c3 "<NULL>"):acc
+>     iter :: (Monad m) => String -> String -> Maybe String
+>                          -> DB.IterAct m [(String, String, String)]
+>     iter c1 c2 c3 acc = go $ (c1, c2, DB.ifNull c3 "<NULL>"):acc
 
 
 > selectS2I1 = do
 >   r <- DB.doQuery "select 'hello1', 'hello2', null from dual" iter []
 >   liftIO $ putStrLn (show r)
 >   where
->     iter :: String -> String -> Maybe Int -> DB.IterAct [(String, String, Int)]
->     iter c1 c2 c3 acc = Right $ (c1, c2, DB.ifNull c3 (-(1))):acc
+>     iter :: (Monad m) => String -> String -> Maybe Int
+>                          -> DB.IterAct m [(String, String, Int)]
+>     iter c1 c2 c3 acc = go $ (c1, c2, DB.ifNull c3 (-(1))):acc
 
 
 
@@ -99,8 +129,8 @@ Demonstrates possible usage.
 >   r <- DB.doQuery qry iter []
 >   liftIO $ putStrLn ("[ " ++ (concat (intersperse "\n, " (map showCt r))) ++ " ]")
 >   where
->     iter :: CalendarTime -> DB.IterAct [CalendarTime]
->     iter c1 acc = Right $ c1:acc
+>     iter :: (Monad m) => CalendarTime -> DB.IterAct m [CalendarTime]
+>     iter c1 acc = go $ c1:acc
 >     qry =       "select to_date('+9999-12-31', 'syyyy-mm-dd') from dual"
 >       ++ " union select to_date('+0001-01-01', 'syyyy-mm-dd') from dual"
 >       ++ " union select to_date('-0001-01-01', 'syyyy-mm-dd') from dual"
@@ -116,8 +146,8 @@ Demonstrates possible usage.
 >   r <- DB.doQuery "select sysdate from dual" iter []
 >   liftIO $ putStrLn ("[ " ++ (concat (intersperse "\n, " (map showCt r))) ++ " ]")
 >   where
->     iter :: CalendarTime -> DB.IterAct [CalendarTime]
->     iter c1 acc = Right $ c1:acc
+>     iter :: (Monad m) => CalendarTime -> DB.IterAct m [CalendarTime]
+>     iter c1 acc = go $ c1:acc
 
 
 
@@ -125,8 +155,8 @@ Demonstrates possible usage.
 > selectCursor = do
 >   let
 >     query = "select 1 from dual union select 2 from dual union select 3 from dual"
->     iter :: Int -> DB.IterAct [Int]
->     iter i acc = Right $ i:acc
+>     iter :: (Monad m) => Int -> DB.IterAct m [Int]
+>     iter i acc = go $ i:acc
 >   c <- DB.openCursor query iter []
 >   DB.withCursorBracket c $ do
 >     liftIO $ putStrLn "cursor opened"
@@ -170,8 +200,11 @@ Demonstrates possible usage.
 > selectExhaustCursor = do
 >   let
 >     query = "select 1 from dual union select 2 from dual"
->     iter :: Maybe Int -> DB.IterAct [Int]
->     iter i acc = Right $ (DB.ifNull i (-(1))):acc
+>     -- Agai, here we demonstrate the use of a local argument
+>     -- type annotation rather than the complete signature.
+>     -- Let the compiler figure out the monad and the seed type.
+>     --iter :: (Maybe m) => Maybe Int -> DB.IterAct m [Int]
+>     iter (i::Maybe Int) acc = go $ (DB.ifNull i (-(1))):acc
 >   c <- DB.openCursor query iter []
 >   DB.withCursorBracket c $ do
 >       _ <- DB.cursorNext c
@@ -194,8 +227,8 @@ Demonstrates possible usage.
 >       ++ " union select 2 from dual"
 >       ++ " union select 3 from dual"
 >       ++ " union select to_number(null) from dual"
->     iter :: Int -> DB.IterAct [Int]
->     iter c1 acc = Right $ c1:acc
+>     iter :: (Monad m) => Int -> DB.IterAct m [Int]
+>     iter c1 acc = go $ c1:acc
 
 
 955 - object exists with same name
@@ -235,6 +268,7 @@ Demonstrates possible usage.
 >     putStrLn "\nselectTests:"
 >     DB.runSession ( do
 >         selectS0
+>         selectS01
 >         selectS1
 >         selectF1I1
 >         selectS3

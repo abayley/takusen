@@ -78,7 +78,7 @@ so I put the instructions in there.
 > type BufferHint = (BufferSize, DBColumnType)
 > type Position = Int
 > type IterResult seedType = Either seedType seedType
-> type IterAct seedType = seedType -> IterResult seedType
+> type IterAct m seedType = seedType -> m (IterResult seedType)
 > type QueryText = String
 > type ColNum = Int
 > type RowNum = Int
@@ -198,29 +198,40 @@ It passes anything else up.
 The implementations (instances) are below,
 as they're not DBMS specific.
 
-> class QueryIteratee iterType seedType | iterType -> seedType where
+> class (MonadIO m) => QueryIteratee m iterType seedType |
+>                      iterType -> seedType, iterType -> m where
 >   iterApply ::
->     (MonadIO m, Buffer m bufferType) =>
+>     (Buffer m bufferType) =>
 >     [bufferType] -> seedType -> iterType -> m (IterResult seedType)
 >   allocBuffers ::
->     (MonadIO m, Buffer m bufferType) =>
+>     (Buffer m bufferType) =>
 >     iterType -> Position -> m [bufferType]
 
 |This instance of the class is the terminating case
 i.e. where the iteratee function has one argument left.
 The argument is applied, and the result returned.
 
-> instance (DBType a) =>
->   QueryIteratee (a -> seedType -> IterResult seedType) seedType where
+*> instance (DBType a, MonadIO m) =>
+*>   QueryIteratee m (a -> seedType -> IterResult seedType) seedType where
+*>   iterApply [buf] seed fn = do
+*>     v <- fetchCol buf
+*>     return (fn v seed)
+*>   allocBuffers _ n = sequence [allocBufferFor (undefined::a) n]
+
+|When the iteratee operates in a monad, we should use the following
+instance:
+
+> instance (DBType a, MonadIO m) =>
+>   QueryIteratee m (a -> seedType -> m (IterResult seedType)) seedType where
 >   iterApply [buf] seed fn = do
 >     v <- fetchCol buf
->     return (fn v seed)
+>     fn v seed
 >   allocBuffers _ n = sequence [allocBufferFor (undefined::a) n]
 
 |This instance of the class implements the initial and continuation cases.
 
-> instance (QueryIteratee iterType' seedType, DBType a) =>
->   QueryIteratee (a -> iterType') seedType where
+> instance (QueryIteratee m iterType' seedType, DBType a) =>
+>   QueryIteratee m (a -> iterType') seedType where
 >   iterApply (buffer:moreBuffers) seed fn = do
 >     v <- fetchCol buffer
 >     iterApply moreBuffers seed (fn v)
@@ -260,15 +271,15 @@ Will work for any type, as you pass the fetch function in the fetcher arg.
 
 > class (MonadIO ms) => MonadQuery m ms q | m -> ms, ms -> q, ms q -> m where
 >   doQuery ::
->     (QueryIteratee iterType seedType) =>
+>     (QueryIteratee m iterType seedType) =>
 >     QueryText -> iterType -> seedType -> ms seedType
 >   getQuery:: m q
 >   makeQuery:: QueryText -> ms q
 >   doQuery1Maker::
->     (QueryIteratee iterType seedType) =>
+>     (QueryIteratee m iterType seedType) =>
 >     QueryText -> iterType -> ms (CFoldLeft iterType ms seedType,ms ())
 >   openCursor :: 
->     (QueryIteratee iterType seedType) =>
+>     (QueryIteratee m iterType seedType) =>
 >     QueryText -> iterType -> seedType -> ms (DBCursor ms seedType)
 >   fetch1 :: m Bool
 
@@ -369,7 +380,7 @@ depend on any DBMS implementation details.
 >   , MonadIO (t m)
 >   , MonadQuery (t m) ms q
 >   , Buffer (t m) bufferType
->   , QueryIteratee iterType seedType
+>   , QueryIteratee (t m) iterType seedType
 >   , MonadTrans t
 >   ) =>
 >      t m a
