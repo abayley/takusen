@@ -86,7 +86,7 @@ so I put the instructions in there.
 
 
 --------------------------------------------------------------------
--- Exceptions and handlers
+-- ** Exceptions and handlers
 --------------------------------------------------------------------
 
 If we can't derive Typeable then the following code should do the trick:
@@ -144,14 +144,8 @@ It passes anything else up.
 > catchReaderT m h = shakeReaderT $ \sinker -> Control.Exception.catch (sinker m) (sinker . h)
 
 
-|Useful utility function, for SQL weenies.
-
-> ifNull :: Maybe a -> a -> a
-> ifNull value subst = maybe subst id value
-
-
 --------------------------------------------------------------------
--- Session monad.
+-- ** Session monad.
 --------------------------------------------------------------------
 
 
@@ -170,7 +164,7 @@ It passes anything else up.
 
 
 --------------------------------------------------------------------
--- Buffers and QueryIteratee.
+-- ** Buffers and QueryIteratee.
 --------------------------------------------------------------------
 
 |A type class for Buffers.
@@ -211,22 +205,13 @@ as they're not DBMS specific.
 i.e. where the iteratee function has one argument left.
 The argument is applied, and the result returned.
 
-*> instance (DBType a, MonadIO m) =>
-*>   QueryIteratee m (a -> seedType -> IterResult seedType) seedType where
-*>   iterApply [buf] seed fn = do
-*>     v <- fetchCol buf
-*>     return (fn v seed)
-*>   allocBuffers _ n = sequence [allocBufferFor (undefined::a) n]
-
-|When the iteratee operates in a monad, we should use the following
-instance:
-
 > instance (DBType a, MonadIO m) =>
 >   QueryIteratee m (a -> seedType -> m (IterResult seedType)) seedType where
 >   iterApply [buf] seed fn = do
 >     v <- fetchCol buf
 >     fn v seed
 >   allocBuffers _ n = sequence [allocBufferFor (undefined::a) n]
+
 
 |This instance of the class implements the initial and continuation cases.
 
@@ -241,25 +226,9 @@ instance:
 >     return (buffer:moreBuffers)
 
 
-|Used by instances of DBType to throw an exception
-when a null (Nothing) is returned.
-Will work for any type, as you pass the fetch function in the fetcher arg.
-
-> throwIfDBNull :: (DBType a, Buffer m bufferType) =>
->   bufferType -> (bufferType -> m (Maybe a)) -> m a
-> throwIfDBNull buffer fetcher = do
->   v <- fetcher buffer
->   case v of
->     Nothing -> do
->       row <- currentRowNum
->       col <- columnPosition buffer
->       throwDB (DBUnexpectedNull row col)
->     Just m -> return m
-
-
 
 --------------------------------------------------------------------
--- A Query monad and cursors.
+-- ** A Query monad and cursors.
 --------------------------------------------------------------------
 
 
@@ -371,6 +340,10 @@ Propagates exceptions after closing cursor.
 
 
 
+--------------------------------------------------------------------
+-- ** Misc.
+--------------------------------------------------------------------
+
 |Polymorphic over m.
 Not needed by programmer but moved into this module because it doesn't
 depend on any DBMS implementation details.
@@ -402,3 +375,30 @@ depend on any DBMS implementation details.
 >         return seed
 >     v <- fetch1
 >     handle seedVal v
+
+
+
+|Used by instances of DBType to throw an exception
+when a null (Nothing) is returned.
+Will work for any type, as you pass the fetch action in the fetcher arg.
+
+> throwIfDBNull :: (DBType a, Buffer m bufferType) =>
+>   bufferType  -- ^ Buffer.
+>   -> (bufferType -> m (Maybe a))  -- ^ Action to get (fetch) value from buffer; this is applied to buffer.
+>   -> m a  -- ^ If the value in the buffer is not null, it is returned.
+> throwIfDBNull buffer fetcher = do
+>   v <- fetcher buffer
+>   case v of
+>     Nothing -> do
+>       row <- currentRowNum
+>       col <- columnPosition buffer
+>       throwDB (DBUnexpectedNull row col)
+>     Just m -> return m
+
+
+|Useful utility function, for SQL weenies.
+
+> ifNull :: Maybe a  -- ^ Nullable value
+>   -> a  -- ^ value to substitute if parm 1 null
+>   -> a
+> ifNull value subst = maybe subst id value

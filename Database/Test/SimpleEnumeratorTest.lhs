@@ -23,7 +23,6 @@ Demonstrates possible usage.
 > import System.Environment (getArgs)
 > import System.Time  -- CalendarTime
 > import Data.List (intersperse)
-> --import qualified Database.Oracle.Test.OCIFunctions as TestOci
 
 
 > zeroPad :: Int -> Int -> String
@@ -76,7 +75,7 @@ is unit.
 >   r <- DB.doQuery "select 'hello1', 'hello2', null from dual" iter ()
 >   liftIO $ putStrLn $ "selectS01: " ++ (show r)
 >   where
->     -- Here, it's better to avaoid the signature and specify
+>     -- Here, it's better to avoid the signature and specify
 >     -- types of the arguments specifically so we do not have to
 >     -- figure out which exactly Monad we're operating in.
 >     -- We let the compiler figure out the right monad from
@@ -131,6 +130,7 @@ is unit.
 >   where
 >     iter :: (Monad m) => CalendarTime -> DB.IterAct m [CalendarTime]
 >     iter c1 acc = go $ c1:acc
+>     -- test Oracle date boundary cases
 >     qry =       "select to_date('+9999-12-31', 'syyyy-mm-dd') from dual"
 >       ++ " union select to_date('+0001-01-01', 'syyyy-mm-dd') from dual"
 >       ++ " union select to_date('-0001-01-01', 'syyyy-mm-dd') from dual"

@@ -8,7 +8,7 @@ Stability   :  experimental
 Portability :  non-portable
  
 Defines the concrete implemenation of the "Database.Enumerator" interfaces.
-"Database.Enumerator" plus "Database.Oracle.Enumerator" should be all
+"Database.Enumerator" and "Database.Oracle.Enumerator" should be all
 you need to import in order to do simple Oracle database stuff.
  
 If you want to use the real Oracle OCI implementation

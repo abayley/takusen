@@ -9,27 +9,22 @@ Portability :  non-portable
  
 Contains CInt equivalents of the #defines in the oci library headers.
 This is not a complete set; just enough to get the Haskell libraries working.
+This also might not be particularly portable, but I don't think Oracle are going
+to change these in a hurry (that would break compiled programs).
 
 
 > module Database.Oracle.OCIConstants where
 
-
-
 > import Foreign.C.Types
 
 
-
----------------------------------------------------------------------------------
--- Foreign #defines
----------------------------------------------------------------------------------
-
-Used all over the place:
+** Used all over the place:
 
 > oci_DEFAULT :: CInt
 > oci_DEFAULT = 0
 
 
-Handle types:
+** Handle types:
 
 > oci_HTYPE_ENV :: CInt
 > oci_HTYPE_ENV = 1
@@ -53,7 +48,7 @@ Handle types:
 > oci_HTYPE_TRANS = 10
 
 
-Error code types:
+** Error code types:
 
 > oci_SUCCESS :: CInt
 > oci_SUCCESS = 0
@@ -76,7 +71,7 @@ Error code types:
 
 
 
-Attribute types:
+** Attribute types:
 
 > oci_ATTR_ENV :: CInt
 > oci_ATTR_ENV = 5
@@ -91,14 +86,14 @@ Attribute types:
 
 
 
-Syntax types (i.e. does the DBMS understand v7 or v8 syntax, etc):
+** Syntax types (i.e. does the DBMS understand v7 or v8 syntax, etc):
 
 > oci_NTV_SYNTAX :: CInt
 > oci_NTV_SYNTAX = 1
 
 
 
-Scrollable Cursor Options:
+** Scrollable Cursor Options:
 
 > oci_FETCH_NEXT :: CInt
 > oci_FETCH_NEXT = 2
@@ -118,7 +113,7 @@ Scrollable Cursor Options:
 
 
 
-OCI datatypes:
+** OCI datatypes:
 
 > oci_SQLT_CHR :: CInt
 > oci_SQLT_CHR = 1
@@ -159,7 +154,8 @@ OCI datatypes:
 
 
 
-Transaction types; parameters for ociTransStart.
+**Transaction types; parameters for ociTransStart.
+
 There are more than this, but they're related to complicated transaction-management stuff
 in the OCI libraries that I don't understand.
 These should be sufficient to support the simple transaction model

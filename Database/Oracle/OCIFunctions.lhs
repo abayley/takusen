@@ -189,7 +189,7 @@ If we can't derive Typeable then the following code should do the trick:
 >   | otherwise = "OCI_ERROR - " ++ desc
 
 
-|Given the two parts of an OCIExcpetion (the error number and text)
+|Given the two parts of an 'OCIException' (the error number and text)
 get the actual error message from the DBMS and construct an error message
 from all of these pieces.
 
@@ -200,7 +200,9 @@ from all of these pieces.
 
 
 
-|We have two format functions: one takes the EnvHandle, and one takes the ErrorHandle.
+|We have two format functions: 'formatEnvMsg' takes the 'EnvHandle',
+'formatErrorMsg' takes the 'ErrorHandle'.
+They're just type-safe wrappers for 'formatMsgCommon'.
 
 > formatMsgCommon :: OCIException -> OCIHandle -> CInt -> IO (Int, String)
 > formatMsgCommon (OCIException e m) h handleType = do
@@ -219,10 +221,21 @@ from all of these pieces.
 
 
 
-The testForError functions are the only places where OCIException is thrown,
-so if you want to change/embellish it, your changes will be localised here.
+|The testForError functions are the only places where OCIException is thrown,
+so if you want to change or embellish it, your changes will be localised here.
 These functions factor out common error handling code
 from the OCI wrapper functions that follow.
+ 
+Typically an OCI wrapper function would look like:
+ 
+ > handleAlloc handleType env = alloca ptr -> do
+ >   rc <- ociHandleAlloc env ptr handleType 0 nullPtr
+ >   if rc < 0
+ >     then throwOCI (OCIException rc msg)
+ >     else return ()
+ 
+where the code from @if rc < 0@ onwards was identical.
+'testForError' replaces the code from @if rc < 0 ...@ onwards.
 
 > testForError :: CInt -> String -> a -> IO a
 > testForError rc msg retval = do
@@ -230,6 +243,12 @@ from the OCI wrapper functions that follow.
 >     then throwOCI (OCIException rc msg)
 >     else return retval
 
+
+|Like 'testForError' but when the value you want to return
+is at the end of a pointer.
+Either there was an error, in which case the pointer probably isn't valid,
+or there is something at the end of the pointer to return.
+See 'dbLogon' and 'getHandleAttr' for example usage.
 
 > testForErrorWithPtr :: Storable a => CInt -> String -> Ptr a -> IO a
 > testForErrorWithPtr rc msg retval = do
@@ -260,12 +279,6 @@ from the OCI wrapper functions that follow.
 
 
 
-> setAttrHandle_deleteme :: ErrorHandle -> OCIHandle -> CInt -> BufferPtr -> CInt -> IO ()
-> setAttrHandle_deleteme err ocihandle handleType handleAttr attrType = do
->   -- need to cast handleAttr::OCIHandle to BufferPtr
->   rc <- ociAttrSet ocihandle handleType (castPtr handleAttr) 0 attrType err
->   testForError rc "setAttrHandle" ()
-
 > setHandleAttr :: ErrorHandle -> OCIHandle -> CInt -> Ptr a -> CInt -> IO ()
 > setHandleAttr err ocihandle handleType handleAttr attrType = do
 >   rc <- ociAttrSet ocihandle handleType (castPtr handleAttr) 0 attrType err
@@ -293,9 +306,11 @@ Deref'ing it returns that value immediately, rather than a Ptr to that value.
 -- ** Connecting and detaching
 ---------------------------------------------------------------------------------
 
-The OCI Logon function doesn't behave as you'd expect when the password is due to expire.
-ociLogon returns oci_SUCCESS_WITH_INFO, but the handle returned is not valid.
-In this case we have to change oci_SUCCESS_WITH_INFO to oci_ERROR,
+|The OCI Logon function doesn't behave as you'd expect when the password is due to expire.
+'ociLogon' returns 'Database.Oracle.OCIConstants.oci_SUCCESS_WITH_INFO',
+but the 'ConnHandle' returned is not valid.
+In this case we have to change 'Database.Oracle.OCIConstants.oci_SUCCESS_WITH_INFO'
+to 'Database.Oracle.OCIConstants.oci_ERROR',
 so that the error handling code will catch it and abort. 
 I don't know why the handle returned isn't valid,
 as the logon process should be able to complete successfully in this case.
@@ -377,10 +392,20 @@ You can have more than one session per connection, but I haven't implemented it 
 -- ** Issuing queries
 ---------------------------------------------------------------------------------
 
-|With the OCI you must prepare your statement (just a String),
-execute it (this sends it to the DBMS for parsing etc),
-allocate a buffer for each column,
-then call fetch for each row.
+|With the OCI you do queries with these steps:
+ 
+ * prepare your statement (it's just a String) - no communication with DBMS
+ 
+ * execute it (this sends it to the DBMS for parsing etc)
+ 
+ * allocate result set buffers by calling 'defineByPos' for each column
+ 
+ * call fetch for each row.
+ 
+ * call 'handleFree' for the 'StmtHandle'
+   (I assume this is the approved way of terminating the query;
+   the OCI docs aren't explicit about this.)
+
 
 > stmtPrepare :: ErrorHandle -> StmtHandle -> String -> IO ()
 > stmtPrepare err stmt sqltext = do
@@ -405,11 +430,16 @@ then call fetch for each row.
  * the size of the returned data (int16)
  
 It's the caller's responsibility to free the memory after they're done with it
-(by calling 'Foreign.Marshall.Alloc.free' on bufferptr/nullindptr/retsizeptr).
+(by calling 'Foreign.Marshall.Alloc.free' on bufferptr, nullindptr, and retsizeptr).
 The caller will also have to cast the data in bufferptr to the expected type
 (using 'Foreign.Ptr.castPtr').
 
-> defineByPos :: ErrorHandle -> StmtHandle -> Int -> Int -> CInt -> IO ColumnInfo
+> defineByPos :: ErrorHandle
+>   -> StmtHandle
+>   -> Int   -- ^ Position
+>   -> Int   -- ^ Buffer size in bytes
+>   -> CInt  -- ^ SQL Datatype (from "Database.Oracle.OCIConstants")
+>   -> IO ColumnInfo  -- ^ tuple: (DefnHandle, Ptr to buffer, Ptr to null indicator, Ptr to size of value in buffer)
 > defineByPos err stmt posn bufsize sqldatatype = do
 >   bufferptr <- mallocBytes bufsize
 >   nullindptr <- malloc
