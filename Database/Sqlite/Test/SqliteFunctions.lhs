@@ -29,7 +29,7 @@ Portability :  non-portable
 >   [_, _, n] <- getArgs
 >   return n
 
-
+> runTest :: IO ()
 > runTest = do
 >   dbname <- getDbName
 >   testOpen dbname

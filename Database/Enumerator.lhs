@@ -66,12 +66,10 @@ Additional reading:
 >     , DBCursor(..),  QueryResourceUsage(..)
 >     , MonadQuery(..)
 >     , defaultResourceUsage
->     , doQuery, doQueryBind
->     , doQueryTuned
->     , withCursor, withCursorBind
->     , withCursorTuned
->     , withTransaction
+>     , doQuery, doQueryBind, doQueryTuned
 >     , cursorIsEOF, cursorCurrent, cursorNext, cursorClose
+>     , withCursor, withCursorBind, withCursorTuned
+>     , withTransaction
 >
 >     -- * Misc.
 >     , throwIfDBNull, ifNull, result, result'
@@ -315,7 +313,7 @@ class MonadQuery implements the database-independent interface to
 query object. The class provides the interface between low-level layer
 and the middle layer (enumerators) of Takusen. An implementor of a
 database-specific layer must provide an instance of MonadQuery.
-The class MonadQuery is not visible and usable by the end-user.
+The class MonadQuery is not intended for use by the end-user.
 
 > class (MonadIO ms) => MonadQuery m ms q b
 >     | m -> ms, ms -> q, ms -> m, ms -> b
@@ -344,7 +342,11 @@ Resource usage settings are implementation dependent.
 >   , MonadSession (ReaderT r IO) mb r
 >   , QueryIteratee m i s b
 >   , DBType Int m b
->   ) => QueryText -> i -> s -> ReaderT r IO s
+>   ) =>
+>      QueryText  -- ^ query string
+>   -> i  -- ^ iteratee function
+>   -> s  -- ^ seed value
+>   -> ReaderT r IO s
 >
 > -- We must give the empty list a concrete type, or rather,
 > -- a type that is an instance of DBType.
@@ -356,6 +358,7 @@ Resource usage settings are implementation dependent.
 > doQuery sql iteratee seed = doQueryBind sql ([]::[Int]) iteratee seed
 
 
+
 |Adds bind action.
 
 > doQueryBind ::
@@ -363,10 +366,14 @@ Resource usage settings are implementation dependent.
 >   , MonadSession (ReaderT r IO) mb r
 >   , QueryIteratee m i s b
 >   , DBType a m b
->   ) => QueryText -> [a] -> i -> s -> ReaderT r IO s
+>   ) =>
+>      QueryText  -- ^ query string
+>   -> [a]  -- ^ bind values
+>   -> i  -- ^ iteratee function
+>   -> s  -- ^ seed value
+>   -> ReaderT r IO s
 >
 > doQueryBind sql = doQueryTuned defaultResourceUsage sql
-
 
 
 |Version of doQuery which gives you a bit more control over how 
@@ -381,7 +388,13 @@ to doQueryMaker (which it not exposed by the module).
 >   , MonadSession (ReaderT r IO) mb r
 >   , QueryIteratee m i s b
 >   , DBType a m b
->   ) => QueryResourceUsage -> QueryText -> [a] -> i -> s -> ReaderT r IO s
+>   ) =>
+>      QueryResourceUsage  -- ^ resource usage tuning
+>   -> QueryText  -- ^ query string
+>   -> [a]  -- ^ bind values
+>   -> i  -- ^ iteratee function
+>   -> s  -- ^ seed value
+>   -> ReaderT r IO s
 >
 > doQueryTuned resourceUsage sqltext bindvals iteratee seed = do
 >     (lFoldLeft, finalizer) <- doQueryMaker sqltext bindvals iteratee resourceUsage
@@ -390,6 +403,8 @@ to doQueryMaker (which it not exposed by the module).
 >         finalizer
 >         liftIO $ throwIO e
 >       )
+
+
 
 |This is the auxiliary function.
 

@@ -48,7 +48,7 @@ So if we know that a dual table will always be present
 (and containing a single row) then we can use the same
 sql statements for all DBMS's.
 
-> --makeFixture :: (MonadSession m IO s) => s -> IO ()
+> makeFixture :: (MonadSession m IO s) => s -> IO ()
 > makeFixture sess = do
 >   execDrop sess "drop table tdual"
 >   execDDL_ sess "create table tdual (dummy varchar(1) primary key)"
@@ -63,13 +63,11 @@ sql statements for all DBMS's.
 >   execDDL_ sess $ "insert into " ++ testTable ++ " (id, v) values (3, '3')"
 >   runSession sess commit
 
-> --destroyFixture :: (MonadSession m IO s) => s -> IO ()
 > destroyFixture sess = do
 >   execDDL_ sess "drop table tdual"
 >   execDDL_ sess $ "drop table " ++ testTable
 
 
-> --execDDL_ :: (MonadSession m IO s) => s -> String -> IO ()
 > execDDL_ sess sql =
 >   catchDB (runSession sess (executeDDL sql)) (reportError sql)
 
@@ -79,7 +77,6 @@ Use this (execDrop) when it's likely to raise an error.
 >   catchDB (runSession sess (executeDDL sql)) (\e -> return undefined)
 
 
-> reportError :: String -> DBException -> IO ()
 > reportError sql (DBError e m) = do
 >   putStrLn m
 >   putStrLn ("  " ++ sql)
@@ -87,8 +84,6 @@ Use this (execDrop) when it's likely to raise an error.
 >   putStrLn $ "Unexpected null in row " ++ (show r) ++ ", column " ++ (show c) ++ "."
 > reportError sql (DBNoData) = putStrLn "Fetch: no more data."
 
-> --makeTests :: MonadSession m IO s
-> --  => s -> [s -> Assertion] -> [Test]
 > makeTests sess list = map (\f -> TestCase (f sess)) list
 
 > testList (dateFn::(Int64 -> String)) =
@@ -309,12 +304,10 @@ the exception is not raised.
 
 
 
-> --insertTable :: (Monad m, MonadSession m IO s) => Int -> String -> m ()
 > insertTable n s = do
 >   executeDML $ "insert into " ++ testTable ++ " (id, v) values (" ++ (show n) ++ ", '" ++ s ++ "')"
 >   return ()
 
-> --updateTable :: (Monad m, MonadSession m IO s) => Int -> String -> m ()
 > updateTable n s = do
 >   executeDML $ "update " ++ testTable ++ " set v = '" ++ s ++ "' where id = " ++ (show n)
 >   return ()
@@ -344,7 +337,6 @@ the exception is not raised.
 >   let
 >     iter (c1::Int) (c2::String) acc = result $ (c1, c2):acc
 >     query = "select id, v from " ++ testTable ++ " order by id desc"
->   --actual <- doQueryTuned defaultResourceUsage query ([]::[Int]) iter []
 >   actual <- doQuery query iter []
 >   liftIO $ assertEqual "checkContents" expect actual
 

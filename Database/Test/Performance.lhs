@@ -14,7 +14,7 @@ Performance tests. Currently just tests large result sets.
 > {-# OPTIONS -fallow-overlapping-instances #-}
 > {-# OPTIONS -fno-monomorphism-restriction #-}
 
-> module Database.Test.Performance where
+> module Database.Test.Performance (runTests) where
 
 > import Database.Enumerator
 > import qualified Database.Test.Enumerator as DBTest

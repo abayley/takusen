@@ -72,7 +72,7 @@ because they never throw exceptions.
 -- ** Sessions
 --------------------------------------------------------------------
 
-|We don't need much in an Sqlite Session record.
+We don't need much in an Sqlite Session record.
 Session objects are created by 'connect'.
 
 > data Session = Session { dbHandle :: DBHandle }

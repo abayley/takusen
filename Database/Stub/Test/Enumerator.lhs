@@ -8,13 +8,14 @@ Stability   :  experimental
 Portability :  non-portable
  
 Simple test harness for Stub.
-Stub can't share the tests for "real" backends because it
+Stub can't share the tests for \"real\" backends because it
 returns a somewhat contrived result set.
  
 
-> {-# OPTIONS -fglasgow-exts -fallow-overlapping-instances #-}
+> {-# OPTIONS -fglasgow-exts #-}
+> {-# OPTIONS -fallow-overlapping-instances #-}
 
-> module Database.Stub.Test.Enumerator where -- (runTest) where
+> module Database.Stub.Test.Enumerator (runTest) where
 
 > import Database.Enumerator
 > import Database.Stub.Enumerator
@@ -33,10 +34,8 @@ returns a somewhat contrived result set.
 >   ) basicDBExceptionReporter
 
 
-> makeTests :: Session -> [Session -> Assertion] -> [Test]
 > makeTests sess = map (\f -> TestCase (f sess))
 
-> testList :: [Session -> IO ()]
 > testList =
 >   [ selectString, selectIterIO, selectFloatInt
 >   , selectStringNullInt, selectDatetime
