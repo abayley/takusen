@@ -57,34 +57,34 @@ Simple wrappers for Sqlite functions (FFI).
 > cStrLen = fromIntegral . snd
 
 
-> foreign import ccall "sqlite3_open" sqliteOpen
+> foreign import ccall "sqlite.h sqlite3_open" sqliteOpen
 >   :: CString -> Ptr DBHandle -> IO CInt
 
-> foreign import ccall "sqlite3_close" sqliteClose
+> foreign import ccall "sqlite.h sqlite3_close" sqliteClose
 >   :: DBHandle -> IO CInt
 
-> foreign import ccall "sqlite3_prepare" sqlitePrepare
+> foreign import ccall "sqlite.h sqlite3_prepare" sqlitePrepare
 >   :: DBHandle -> CString -> CInt -> Ptr StmtHandle -> Ptr CString -> IO CInt
 
-> foreign import ccall "sqlite3_exec" sqliteExec
+> foreign import ccall "sqlite.h sqlite3_exec" sqliteExec
 >   :: DBHandle -> CString -> SqliteCallback a -> Ptr a -> Ptr CString -> IO CInt
 
-> foreign import ccall "sqlite3_step" sqliteStep
+> foreign import ccall "sqlite.h sqlite3_step" sqliteStep
 >   :: StmtHandle -> IO CInt
 
-> foreign import ccall "sqlite3_finalize" sqliteFinalise
+> foreign import ccall "sqlite.h sqlite3_finalize" sqliteFinalise
 >   :: StmtHandle -> IO CInt
 
-> foreign import ccall "sqlite3_changes" sqliteChanges
+> foreign import ccall "sqlite.h sqlite3_changes" sqliteChanges
 >   :: DBHandle -> IO CInt
 
-> foreign import ccall "sqlite3_free" sqliteFree
+> foreign import ccall "sqlite.h sqlite3_free" sqliteFree
 >   :: Ptr a -> IO ()
 
-> foreign import ccall "sqlite3_errcode" sqliteErrcode
+> foreign import ccall "sqlite.h sqlite3_errcode" sqliteErrcode
 >   :: DBHandle -> IO CInt
 
-> foreign import ccall "sqlite3_errmsg" sqliteErrmsg
+> foreign import ccall "sqlite.h sqlite3_errmsg" sqliteErrmsg
 >   :: DBHandle -> IO CString
 
 column_bytes tells us how big a value is in the result set.
@@ -94,25 +94,25 @@ column_bytes tells us how big a value is in the result set.
  * For ints and doubles the size of the result after conversion to string is returned
    (well, we already know how many bytes the raw value requires, don't we?)
 
-> foreign import ccall "sqlite3_column_bytes" sqliteColumnBytes
+> foreign import ccall "sqlite.h sqlite3_column_bytes" sqliteColumnBytes
 >   :: StmtHandle -> CInt -> IO Int
 
-> foreign import ccall "sqlite3_column_blob" sqliteColumnBlob
+> foreign import ccall "sqlite.h sqlite3_column_blob" sqliteColumnBlob
 >   :: StmtHandle -> CInt -> IO (Ptr a)
 
-> foreign import ccall "sqlite3_column_double" sqliteColumnDouble
+> foreign import ccall "sqlite.h sqlite3_column_double" sqliteColumnDouble
 >   :: StmtHandle -> CInt -> IO CDouble
 
-> foreign import ccall "sqlite3_column_int" sqliteColumnInt
+> foreign import ccall "sqlite.h sqlite3_column_int" sqliteColumnInt
 >   :: StmtHandle -> CInt -> IO CInt
 
-> foreign import ccall "sqlite3_column_int64" sqliteColumnInt64
+> foreign import ccall "sqlite.h sqlite3_column_int64" sqliteColumnInt64
 >   :: StmtHandle -> CInt -> IO CLLong
 
-> foreign import ccall "sqlite3_column_text" sqliteColumnText
+> foreign import ccall "sqlite.h sqlite3_column_text" sqliteColumnText
 >   :: StmtHandle -> CInt -> IO CString
 
-> foreign import ccall "sqlite3_column_text16" sqliteColumnText16
+> foreign import ccall "sqlite.h sqlite3_column_text16" sqliteColumnText16
 >   :: StmtHandle -> CInt -> IO (Ptr a)
 
 
