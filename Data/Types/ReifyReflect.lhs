@@ -32,6 +32,8 @@
 >   where reflectNum _ = (reflectNum (undefined::s)) - 1
 
 
+| reifyIntegral takes as the reflect function as its second argument.
+
 > reifyIntegral :: Integral a => a -> (forall s. ReflectNum s => s -> w) -> w
 > reifyIntegral i k = case quotRem i 2 of
 >   (0,  0) -> k (undefined::Zero)
@@ -65,25 +67,7 @@
 > data Store s a
 
 
--- | In the IO Monad. This merely avoids the use of unsafePerformIO,
--- but the price is the inconvenience of being stuck in the IO Monad.
-
-> class ReflectStorableIO s where reflectStorableIO :: Storable a => s a -> IO a
-
-> instance ReflectNums s => ReflectStorableIO (Store s) where
->   reflectStorableIO _ = alloca $ \p -> do
->     pokeArray (castPtr p) bytes
->     peek p
->     where bytes = reflectNums (undefined::s) :: [Byte]
-
-> reifyStorableIO :: Storable a => a -> (forall s. ReflectStorableIO s => s a -> IO w) -> IO w
-> reifyStorableIO a k = do
->   bytes <- with a (peekArray (sizeOf a) . castPtr)
->   reifyIntegrals (bytes :: [Byte]) (\(_::s) ->
->     k (undefined::(Store s a)))
-
-
--- | And now, the "pure" version, using unsafePerformIO.
+| The "pure" version, using unsafePerformIO.
 
 > class ReflectStorable s where reflectStorable :: Storable a => s a -> a
 
@@ -100,13 +84,31 @@
 >     k (undefined::(Store s a)))
 
 
+| In the IO Monad. This merely avoids the use of unsafePerformIO,
+but the price is the inconvenience of being stuck in the IO Monad.
+
+> class ReflectStorableIO s where reflectStorableIO :: Storable a => s a -> IO a
+
+> instance ReflectNums s => ReflectStorableIO (Store s) where
+>   reflectStorableIO _ = alloca $ \p -> do
+>     pokeArray (castPtr p) bytes
+>     peek p
+>     where bytes = reflectNums (undefined::s) :: [Byte]
+
+> reifyStorableIO :: Storable a => a -> (forall s. ReflectStorableIO s => s a -> IO w) -> IO w
+> reifyStorableIO a k = do
+>   bytes <- with a (peekArray (sizeOf a) . castPtr)
+>   reifyIntegrals (bytes :: [Byte]) (\(_::s) ->
+>     k (undefined::(Store s a)))
+
+
 
 ---------- Any value ----------
 
 
 > data Stable (s:: * -> *) a
 
--- | "Pure" relfect, using unsafePerformIO.
+| "Pure" reflect, using unsafePerformIO.
 
 > class Reflect s a | s -> a where reflect :: s -> a
 
@@ -126,7 +128,7 @@
 
 
 
--- | Reflect in the IO monad. Inconvenient, but avoids use of unsafePerformIO.
+| Reflect in the IO monad. Inconvenient, but avoids use of unsafePerformIO.
 
 > class ReflectIO s a | s -> a where reflectIO :: s -> IO a
 

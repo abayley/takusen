@@ -18,6 +18,14 @@ vfour = undefined :: Twice (Twice (Succ Zero))
 prop_reflectNumRoundTrip :: Int -> Bool
 prop_reflectNumRoundTrip i = reifyIntegral i reflectNum == i
 
+prop_reflectNumRoundTrip2 :: Int -> Bool
+prop_reflectNumRoundTrip2 i =
+  let
+    v = reifyIntegral i
+    r1 = v reflectNum
+    r2 = v reflectNum
+  in (r1 + r2) == (2 * i)
+
 prop_reflectNumZero = reflectNum vzero == (0::Int)
 prop_reflectNumOne = reflectNum vone == (1::Int)
 prop_reflectNumTwo = reflectNum vtwo == (2::Int)
@@ -37,8 +45,11 @@ prop_reflectStorableRoundTrip s = reifyStorable s reflectStorable == s
 -- | How do I test this with QuickCheck?
 reflectStorableIORoundTrip :: Double -> IO Bool
 reflectStorableIORoundTrip d = do
-  r <- reifyStorableIO d reflectStorableIO
-  return (r == d)
+  -- test reflecting the same value twice
+  let v = reifyStorableIO d
+  r1 <- v reflectStorableIO
+  r2 <- v reflectStorableIO
+  return (r2 == d && r1 == d)
 
 testReflectStorableIORoundTrip :: Double -> IO ()
 testReflectStorableIORoundTrip d = do
@@ -62,13 +73,21 @@ data NotStorable = NS1 | NS2 | NS3
   deriving (Eq, Show)
 
 prop_reflectRoundTrip :: Int -> Bool
-prop_reflectRoundTrip i = reify i reflect == i
+prop_reflectRoundTrip i =
+  let
+    v = reify i
+    r1 = v reflect
+    r2 = v reflect
+  in (r1 == i && r2 == i)
 
 
 reflectIORoundTrip :: NotStorable -> IO Bool
 reflectIORoundTrip d = do
-  r <- reifyIO d reflectIO
-  return (r == d)
+  -- test reflecting the same value twice
+  let v = reifyIO d
+  r1 <- v reflectIO
+  r2 <- v reflectIO
+  return (r1 == d && r2 == d)
 
 testReflectIORoundTrip :: NotStorable -> IO ()
 testReflectIORoundTrip d = do
@@ -88,6 +107,7 @@ testReflectIORoundTrips =
 
 runTests = do
   QC.quickCheck prop_reflectNumRoundTrip
+  QC.quickCheck prop_reflectNumRoundTrip2
   QC.quickCheck prop_reflectNumZero
   QC.quickCheck prop_reflectNumOne
   QC.quickCheck prop_reflectNumTwo
