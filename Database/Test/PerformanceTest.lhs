@@ -14,13 +14,8 @@ Performance tests. Currently just tests large result sets.
 
 > module Database.Test.PerformanceTest (runPerformanceTest) where
 
-> import qualified Database.Oracle.Enumerator as DB
 > import Database.Oracle.Enumerator
 > import System.Environment (getArgs)
-
-
-> result :: (Monad m) => DB.IterAct m a
-> result = return . Right
 
 
 
@@ -50,36 +45,40 @@ and 2^16 blows out the standard 1M stack. Bummer.
 >   ++ ", ( select 13 from dual union select 0 from dual)"
 >   ++ ", ( select 14 from dual union select 0 from dual)"
 >   ++ ", ( select 15 from dual union select 0 from dual)"
-> --  ++ ", ( select 16 from dual union select 0 from dual)"
+>   ++ ", ( select 16 from dual union select 0 from dual)"
+>   -- ++ ", ( select 17 from dual union select 0 from dual)"
+>   -- ++ ", ( select 18 from dual union select 0 from dual)"
+>   -- ++ ", ( select 19 from dual union select 0 from dual)"
+>   -- ++ ", ( select 20 from dual union select 0 from dual)"
 
 
-> selectLargeResultSet :: DB.SessionQuery
+> selectLargeResultSet :: SessionQuery
 > selectLargeResultSet = do
->   r <- DB.doQuery manyRows iter 0
+>   r <- doQuery manyRows iter 0
 >   liftIO $ putStrLn (show r)
 >   where
->     --iter :: (Monad m) => Int -> DB.IterAct m Int
->     iter (_:: Maybe Int) (c2::Int) = result (1 + c2)
+>     --iter :: (Monad m) => Int -> IterAct m Int
+>     iter (_:: Maybe Int) (counter::Int) = result' (1 + counter)
 
 
-> largeResultSet :: DB.Session -> IO ()
-> largeResultSet sess = DB.catchDB ( do
+> largeResultSet :: Session -> IO ()
+> largeResultSet sess = catchDB ( do
 >     putStrLn "\nlargeResultSet:"
->     DB.runSession ( do
+>     runSession ( do
 >         selectLargeResultSet
 >       ) sess
->   ) DB.basicDBExceptionReporter
+>   ) basicDBExceptionReporter
 
 
-> allTests :: DB.Session -> IO ()
+> allTests :: Session -> IO ()
 > allTests sess = do
 >   largeResultSet sess
 
 
 > runPerformanceTest :: IO ()
-> runPerformanceTest = DB.catchDB ( do
+> runPerformanceTest = catchDB ( do
 >     [ user, pswd, dbname ] <- getArgs
->     sess <- DB.connect user pswd dbname
+>     sess <- connect user pswd dbname
 >     allTests sess
->     DB.disconnect sess
->   ) DB.basicDBExceptionReporter
+>     disconnect sess
+>   ) basicDBExceptionReporter
