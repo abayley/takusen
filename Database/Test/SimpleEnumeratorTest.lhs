@@ -3,7 +3,7 @@ Module      :  Database.Test.SimpleEnumeratorTest
 Copyright   :  (c) 2004 Oleg Kiselyov, Alistair Bayley
 License     :  BSD-style
 Maintainers :  oleg@pobox.com, alistair@abayley.org
-Stability   :  unstable
+Stability   :  experimental
 Portability :  non-portable
 
 Simple test harness. Would like to write proper HUnit or Quickcheck tests in future.

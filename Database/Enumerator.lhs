@@ -4,7 +4,7 @@ Module      :  Database.Enumerator
 Copyright   :  (c) 2004 Oleg Kiselyov, Alistair Bayley
 License     :  BSD-style
 Maintainers :  oleg@pobox.com, alistair@abayley.org
-Stability   :  unstable
+Stability   :  experimental
 Portability :  non-portable
 
 Abstract database interface, providing a left-fold enumerator
