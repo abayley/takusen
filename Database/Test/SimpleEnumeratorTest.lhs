@@ -23,7 +23,7 @@ Demonstrates possible usage.
 > import System.Environment (getArgs)
 > import System.Time  -- CalendarTime
 > import Data.List (intersperse)
-> import qualified Database.Oracle.Test.OCIFunctions as TestOci
+> --import qualified Database.Oracle.Test.OCIFunctions as TestOci
 
 
 > zeroPad :: Int -> Int -> String
