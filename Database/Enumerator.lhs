@@ -66,15 +66,16 @@ Additional reading:
 >     , DBCursor(..),  QueryResourceUsage(..)
 >     , MonadQuery(..)
 >     , defaultResourceUsage
->     , doQuery, doQueryTuned, doQueryBind
->     , withCursorBracket, withCursorBracketTuned
+>     , doQuery, doQueryBind
+>     , doQueryTuned
+>     , withCursor, withCursorBind
+>     , withCursorTuned
 >     , withTransaction
->     -- do we need to export these? Maybe not...
 >     , cursorIsEOF, cursorCurrent, cursorNext, cursorClose
 >
 >     -- * Misc.
 >     , throwIfDBNull, ifNull, result, result'
->     , liftIO
+>     , liftIO, throwIO
 >   ) where
 
 > import System.Time (CalendarTime)
@@ -114,6 +115,7 @@ e.g. "Database.Oracle.OCIEnumerator"
 > type ColNum = Int
 > type RowNum = Int
 
+> type SessionQuery s a = ReaderT s IO a
 
 
 --------------------------------------------------------------------
@@ -196,7 +198,6 @@ database-specific) code and the high-level, database-independent code.
 The methods of the class MonadSession are visible (and highly useful)
 to the user. They are also used internally.
 
-
 > class (MonadIO mb) => MonadSession m mb s | m -> mb, m -> s, mb s -> m where
 >   runSession :: s -> m a -> mb a
 >   getSession :: m s
@@ -209,6 +210,11 @@ to the user. They are also used internally.
 >   executeDDL :: QueryText -> m ()
 >   -- PL/SQL blocks? Not in generic interface. ODBC can execute procedures; maybe later...
 >   --executeProc :: QueryText -> m ()
+
+
+> -- This might be useful
+> type MSess s = ReaderT s IO
+
 
 
 --------------------------------------------------------------------
@@ -236,7 +242,7 @@ A database-specific library must provide a set of instances for DBType.
 > class DBType a m b | m -> b where
 >   allocBufferFor :: a -> Position -> m b
 >   fetchCol :: b -> m a
->   bind :: Position -> a -> m ()
+>   bindPos :: Position -> a -> m ()
 
 
 |The class QueryIteratee is not for the end user. It provides the
@@ -289,9 +295,9 @@ We use a record to (hopefully) make it easy to add other tuning parameters later
 
 
 
-> type CollEnumerator iter m seed = iter -> seed -> m seed
-> type Self           iter m seed = iter -> seed -> m seed
-> type CFoldLeft      iter m seed = Self iter m seed -> CollEnumerator iter m seed
+> type CollEnumerator i m s = i -> s -> m s
+> type Self           i m s = i -> s -> m s
+> type CFoldLeft      i m s = Self i m s -> CollEnumerator i m s
 
 |A DBCursor is an IORef-mutable-pair @(a, Maybe f)@, where @a@ is the result-set so far,
 and @f@ is a function that fetches and returns the next row (when applied to True),
@@ -333,13 +339,32 @@ No bind action, default resource usage.
 Resource usage settings are implementation dependent.
 (For the Oracle OCI, we only cache one row.)
 
-> -- The argument x here is just to avoid the monomorphism restriction.
-> doQuery sql = doQueryTuned defaultResourceUsage sql (return ())
+> doQuery ::
+>   ( MonadQuery m (ReaderT r IO) q b
+>   , MonadSession (ReaderT r IO) mb r
+>   , QueryIteratee m i s b
+>   , DBType Int m b
+>   ) => QueryText -> i -> s -> ReaderT r IO s
+>
+> -- We must give the empty list a concrete type, or rather,
+> -- a type that is an instance of DBType.
+> -- It doesn't matter what type it has, as the list is empty
+> -- (it just contains bind values, and here there are none).
+> -- If we don't give it a type, then the type checker will
+> -- be unable (in user code) to resolve the empty list
+> -- to one of the DBType instances, which it must be.
+> doQuery sql iteratee seed = doQueryBind sql ([]::[Int]) iteratee seed
 
 
 |Adds bind action.
 
-> -- The argument x here is just to avoid the monomorphism restriction.
+> doQueryBind ::
+>   ( MonadQuery m (ReaderT r IO) q b
+>   , MonadSession (ReaderT r IO) mb r
+>   , QueryIteratee m i s b
+>   , DBType a m b
+>   ) => QueryText -> [a] -> i -> s -> ReaderT r IO s
+>
 > doQueryBind sql = doQueryTuned defaultResourceUsage sql
 
 
@@ -349,10 +374,17 @@ rows are fetched.
 At the moment we only support specifying the numbers of rows prefetched 
 (cached).
 doQuery is essentially the result of applying lfold_nonrec_to_rec
-to doQueryMaker.
+to doQueryMaker (which it not exposed by the module).
 
-> doQueryTuned resourceUsage sqltext bindAction iteratee seed = do
->     (lFoldLeft, finalizer) <- doQueryMaker sqltext iteratee resourceUsage bindAction
+> doQueryTuned ::
+>   ( MonadQuery m (ReaderT r IO) q b
+>   , MonadSession (ReaderT r IO) mb r
+>   , QueryIteratee m i s b
+>   , DBType a m b
+>   ) => QueryResourceUsage -> QueryText -> [a] -> i -> s -> ReaderT r IO s
+>
+> doQueryTuned resourceUsage sqltext bindvals iteratee seed = do
+>     (lFoldLeft, finalizer) <- doQueryMaker sqltext bindvals iteratee resourceUsage
 >     catchReaderT (fix lFoldLeft iteratee seed)
 >       (\e -> do
 >         finalizer
@@ -361,9 +393,17 @@ to doQueryMaker.
 
 |This is the auxiliary function.
 
-> doQueryMaker sqltext (iteratee::iteratee) resourceUsage bindAction = do
+> doQueryMaker ::
+>   ( MonadSession ms mb r
+>   , MonadQuery m ms q b
+>   , QueryIteratee m i s b
+>   , DBType a m b
+>   ) => QueryText -> [a] -> i -> QueryResourceUsage ->
+>        ms ((i -> s -> ms s) -> i -> s -> ms s, ms ())
+> doQueryMaker sqltext bindvals iteratee resourceUsage = do
 >     sess <- getSession
 >     query <- makeQuery sqltext resourceUsage
+>     let bindAction = sequence_ $ map (\(p, v) -> bindPos p v) (zip [1..] bindvals)
 >     runQuery bindAction query
 >     let inQuery m = runQuery m query
 >     buffers <- inQuery $ allocBuffers iteratee 1
@@ -371,7 +411,7 @@ to doQueryMaker.
 >       finaliser = do
 >         inQuery $ mapM_ freeBuffer buffers
 >         destroyQuery query
->       hFoldLeft self (iteratee::iteratee) initialSeed = do
+>       hFoldLeft self iteratee initialSeed = do
 >         let
 >           handle seed True = (inQuery (iterApply buffers seed iteratee)) 
 >             >>= handleIter
@@ -383,24 +423,11 @@ to doQueryMaker.
 
 
 
-Cursor stuff. First, a few auxiliary functions (not seen by the user)
+Cursor stuff. First, an auxiliary function, not seen by the user.
 
-|Open a cursor with default resource usage settings.
-The argument x here is just to avoid the monomorphism restriction.
-This function is not exposed; use withCursorBracket instead.
-
-> openCursor sqltext = openCursorBind sqltext (return ())
-
-|Version which lets you tune resource usage.
-This is like lfold_nonrec_to_stream lfold'
-from the fold-stream.lhs paper.
-
-> openCursorBind sqltext bindAction iteratee seed =
->   openCursorTuned defaultResourceUsage sqltext bindAction iteratee seed
-
-> openCursorTuned resourceUsage sqltext bindAction iteratee seed = do
+> openCursorTuned resourceUsage sqltext bindvals iteratee seed = do
 >     ref <- liftIO$ newIORef (seed,Nothing)
->     (lFoldLeft, finalizer) <- doQueryMaker sqltext iteratee resourceUsage bindAction
+>     (lFoldLeft, finalizer) <- doQueryMaker sqltext bindvals iteratee resourceUsage
 >     let update v = liftIO $ modifyIORef ref (\ (_, f) -> (v, f))
 >     let
 >       close finalseed = do
@@ -431,13 +458,13 @@ Cursors are automatically closed and freed when:
  
  * the query result-set is exhausted.
 
-|To make life easier, we've created a 'withCursorBracket' function,
+|To make life easier, we've created a 'withCursor' function,
 which will clean up if an error (exception) occurs,
 or the code exits early.
-You can nest them to interleaving, if you desire:
+You can nest them to get interleaving, if you desire:
  
- >  withCursorBracket query1 iter1 [] $ \c1 -> do
- >    withCursorBracket query2 iter2 [] $ \c2 -> do
+ >  withCursor query1 iter1 [] $ \c1 -> do
+ >    withCursor query2 iter2 [] $ \c2 -> do
  >      r1 <- cursorCurrent c1
  >      r2 <- cursorCurrent c2
  >      ...
@@ -474,42 +501,55 @@ You can nest them to interleaving, if you desire:
 |Ensures cursor resource is properly tidied up in exceptional cases.
 Propagates exceptions after closing cursor.
 
-> withCursorBracket ::
->  ( MonadQuery m (ReaderT r IO) q b
->  , MonadSession (ReaderT r IO) mb s
->  , QueryIteratee m iterType seedType b
+> withCursor ::
+>   ( MonadQuery m (ReaderT r IO) q b
+>   , MonadSession (ReaderT r IO) mb r
+>   , QueryIteratee m i s b
+>   , DBType Int m b
 >  ) =>
->   QueryText  -- ^ query string
->   -> iterType  -- ^ iteratee function
->   -> seedType  -- ^ seed value
->   -> (DBCursor (ReaderT r IO) seedType -> ReaderT r IO a)  -- ^ action that takes a cursor
->   -> ReaderT r IO a
+>      QueryText  -- ^ query string
+>   -> i  -- ^ iteratee function
+>   -> s  -- ^ seed value
+>   -> (DBCursor (ReaderT r IO) s -> ReaderT r IO c)  -- ^ action that takes a cursor
+>   -> ReaderT r IO c
 >
-> -- The argument x here is just to avoid the monomorphism restriction.
-> withCursorBracket sqltext = withCursorBracketBind sqltext (return ())
+> withCursor sqltext = withCursorBind sqltext ([]::[Int])
 
 
-> withCursorBracketBind sqltext = withCursorBracketTuned defaultResourceUsage sqltext
+> withCursorBind ::
+>   ( MonadQuery m (ReaderT r IO) q b
+>   , MonadSession (ReaderT r IO) mb r
+>   , QueryIteratee m i s b
+>   , DBType a m b
+>  ) =>
+>      QueryText  -- ^ query string
+>   -> [a]  -- ^ bind values
+>   -> i  -- ^ iteratee function
+>   -> s  -- ^ seed value
+>   -> (DBCursor (ReaderT r IO) s -> ReaderT r IO c)  -- ^ action that takes a cursor
+>   -> ReaderT r IO c
+>
+> withCursorBind sqltext = withCursorTuned defaultResourceUsage sqltext
 
 
 |Version which lets you tune resource usage.
 
-> {-
-> withCursorBracketTuned ::
->  ( MonadQuery m (ReaderT r IO) q b
->  , MonadSession (ReaderT r IO) mb s
->  , QueryIteratee m iterType seedType b
->  ) =>
->   QueryResourceUsage  -- ^ resource usage tuning
+> withCursorTuned ::
+>   ( MonadQuery m (ReaderT r IO) q b
+>   , MonadSession (ReaderT r IO) mb r
+>   , QueryIteratee m i s b
+>   , DBType a m b
+>   ) =>
+>      QueryResourceUsage  -- ^ resource usage tuning
 >   -> QueryText  -- ^ query string
->   -> ?
->   -> iterType  -- ^ iteratee function
->   -> seedType  -- ^ seed value
->   -> (DBCursor (ReaderT r IO) seedType -> ReaderT r IO a)  -- ^ action that takes a cursor
->   -> ReaderT r IO a
-> -}
-> withCursorBracketTuned resourceUsage query bindAction iteratee seed action = do
->   cursor <- openCursorTuned resourceUsage query bindAction iteratee seed
+>   -> [a]  -- ^ bind values
+>   -> i  -- ^ iteratee function
+>   -> s  -- ^ seed value
+>   -> (DBCursor (ReaderT r IO) s -> ReaderT r IO c)  -- ^ action that takes a cursor
+>   -> ReaderT r IO c
+>
+> withCursorTuned resourceUsage query bindvals iteratee seed action = do
+>   cursor <- openCursorTuned resourceUsage query bindvals iteratee seed
 >   catchReaderT ( do
 >       v <- action cursor
 >       _ <- cursorClose cursor
@@ -524,7 +564,7 @@ Propagates exceptions after closing cursor.
 unless there was an exception, in which case rollback.
 
 > withTransaction ::
->   ( MonadSession (ReaderT r IO) mb s, MonadIO (ReaderT r IO)
+>   ( MonadSession (ReaderT r IO) mb r
 >   , MonadIO (ReaderT r IO)
 >   ) =>
 >   IsolationLevel -> ReaderT r IO a -> ReaderT r IO a
@@ -611,37 +651,37 @@ and arithmetic operations (counting, summing, etc).
 
 -- $usage_example
  
-The idea is that you import the module specific to your DBMS implementation
-e.g. "Database.Oracle.Enumerator", which re-exports the useful interface functions
-from this module. Then:
+You should always import this module (which contains all of the useful
+functions), and the DBMS-specific modules for the DBMS's you need to use.
+The DBMS-specific modules export only connect + disconnect + Session,
+where Session is a DBMS-specific type.
  
  > -- sample code, doesn't necessarily compile
  > module MyDbExample is
  >
+ > import Database.Enumerator
  > import Database.Oracle.Enumerator
  >
  > query1Iteratee :: (Monad m) => Int -> String -> Double -> IterAct m [(Int, String, Double)]
  > query1Iteratee a b c accum = result' $ (a, b, c):accum
  >
  > -- simple query, returning reversed list of rows.
- > query1 :: SessionQuery
- > query1 = do
- >   doQuery "select a, b, c from x" query1Iteratee []
+ > query1 = doQuery "select a, b, c from x" query1Iteratee []
  >
  > -- non-query actions. Use runSession to execute.
  > otherActions :: Session -> IO ()
  > otherActions session = do
- >   runSession ( do
+ >   runSession session ( do
  >       executeDDL "create table blah"
  >       executeDML "insert into blah ..."
  >       commit
- >     ) session
+ >     )
  >
  > main :: IO ()
  > main = do
  >   session <- connect "user" "password" "server"
  >   -- use runSession to execute query (it has type SessionQuery)
- >   r <- runSession query1 session
+ >   r <- runSession session query1
  >   putStrLn $ show r
  >   otherActions session
  >   disconnect session
@@ -652,10 +692,6 @@ not from this module ('Database.Enumerator').
 @Session@ is an instance of 'MonadSession',
 and to use the 'MonadSession' functions you invoke them via runSession.
  
-@SessionQuery@ is a convenient type synonym.
-It's useful if you want to give type signatures to your functions
-that do database stuff.
-
 
 -- $usage_iteratee
  
@@ -689,10 +725,10 @@ and the accumulator would simply be the count e.g.
  > counterIteratee _ i = result' $ (1 + i)
  
 The iteratee function that you pass to @doQuery@ needs type information,
-at least for the arguments if not the return type (which is determined
-by the arguments).
-There is a type synonym @IterAct@, which gives some small convenience in writing
-type signatures for iteratee functions.
+at least for the arguments if not the return type (which is typically
+determined by the type of the seed).
+There is a type synonym @IterAct@, which gives some convenience
+in writing type signatures for iteratee functions.
 
 
 -- $usage_result

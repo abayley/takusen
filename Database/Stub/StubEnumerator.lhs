@@ -21,7 +21,9 @@ See fetchIntVal.
 > {-# OPTIONS -fallow-undecidable-instances #-}
 > {-# OPTIONS -fallow-overlapping-instances #-}
 
-> module Database.Stub.StubEnumerator where
+> module Database.Stub.StubEnumerator
+>   ( Session, connect, disconnect )
+> where
 
 
 > import Database.Enumerator
@@ -179,12 +181,12 @@ so this will throw on the last row.
 >     => DBType a StubMonadQuery ColumnBuffer where
 >   allocBufferFor _ = allocBufferFor (undefined::Maybe a)
 >   fetchCol buffer = throwIfDBNull buffer fetchCol
->   bind pos val = return ()
+>   bindPos pos val = return ()
 
 > instance DBType (Maybe String) StubMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (4000, DBTypeString) n
 >   fetchCol buffer = liftIO $ bufferToString buffer
->   bind pos val = return ()
+>   bindPos pos val = return ()
 
 > instance DBType (Maybe Int) StubMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (4, DBTypeInt) n
@@ -196,17 +198,17 @@ so this will throw on the last row.
 >     if counter == throwNullIntOnRow
 >       then return Nothing
 >       else liftIO $ bufferToInt buffer
->   bind pos val = return ()
+>   bindPos pos val = return ()
 
 > instance DBType (Maybe Double) StubMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (8, DBTypeDouble) n
 >   fetchCol buffer = liftIO $ bufferToDouble buffer
->   bind pos val = return ()
+>   bindPos pos val = return ()
 
 > instance DBType (Maybe CalendarTime) StubMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (8, DBTypeDatetime) n
 >   fetchCol buffer = liftIO $ bufferToDatetime buffer
->   bind pos val = return ()
+>   bindPos pos val = return ()
 
 
 A polymorphic instance which assumes that the value is in a String column,
@@ -219,4 +221,4 @@ and uses Read to convert the String to a Haskell data value.
 >     case v of
 >       Just s -> return (Just (read s))
 >       Nothing -> return Nothing
->   bind pos val = return ()
+>   bindPos pos val = return ()

@@ -14,7 +14,9 @@ Oracle OCI implementation of Database.Enumerator.
 > {-# OPTIONS -fallow-undecidable-instances #-}
 > {-# OPTIONS -fallow-overlapping-instances #-}
 
-> module Database.Oracle.OCIEnumerator where
+> module Database.Oracle.OCIEnumerator
+>   ( Session, connect, disconnect )
+> where
 
 
 > import Database.Enumerator
@@ -566,27 +568,27 @@ type-specific non-Maybe instances e.g. String, Int, Double, etc.
 >     => DBType a OCIMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBufferFor (undefined::Maybe a) n
 >   fetchCol buffer = throwIfDBNull buffer fetchCol
->   bind pos val = return()
+>   bindPos pos val = return()
 
 > instance DBType (Maybe String) OCIMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (16000, DBTypeString) n
 >   fetchCol buffer = liftIO$ bufferToString buffer
->   bind pos val = return()
+>   bindPos pos val = return()
 
 > instance DBType (Maybe Int) OCIMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (4, DBTypeInt) n
 >   fetchCol buffer = liftIO$ bufferToInt buffer
->   bind pos val = return()
+>   bindPos pos val = return()
 
 > instance DBType (Maybe Double) OCIMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (8, DBTypeDouble) n
 >   fetchCol buffer = liftIO$ bufferToDouble buffer
->   bind pos val = return()
+>   bindPos pos val = return()
 
 > instance DBType (Maybe CalendarTime) OCIMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (8, DBTypeDatetime) n
 >   fetchCol buffer = liftIO$ bufferToDatetime buffer
->   bind pos val = return()
+>   bindPos pos val = return()
 
 
 |A polymorphic instance which assumes that the value is in a String column,
@@ -599,4 +601,4 @@ and uses Read to convert the String to a Haskell data value.
 >     case v of
 >       Just s -> return (Just (read s))
 >       Nothing -> return Nothing
->   bind pos val = return()
+>   bindPos pos val = return()

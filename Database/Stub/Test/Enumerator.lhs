@@ -14,8 +14,9 @@ returns a somewhat contrived result set.
 
 > {-# OPTIONS -fglasgow-exts -fallow-overlapping-instances #-}
 
-> module Database.Stub.Test.Enumerator (runTest) where
+> module Database.Stub.Test.Enumerator where -- (runTest) where
 
+> import Database.Enumerator
 > import Database.Stub.Enumerator
 > import System.Time  -- CalendarTime
 > import Test.HUnit
@@ -32,8 +33,10 @@ returns a somewhat contrived result set.
 >   ) basicDBExceptionReporter
 
 
+> makeTests :: Session -> [Session -> Assertion] -> [Test]
 > makeTests sess = map (\f -> TestCase (f sess))
 
+> testList :: [Session -> IO ()]
 > testList =
 >   [ selectString, selectIterIO, selectFloatInt
 >   , selectStringNullInt, selectDatetime
@@ -42,7 +45,7 @@ returns a somewhat contrived result set.
 
 
 > selectTest sess iter expect = catchDB ( do
->     actual <- runSession (doQuery "" iter []) sess
+>     actual <- runSession sess (doQuery "" iter [])
 >     liftIO $ assertEqual "" expect actual
 >   ) (\e -> return () )
 
@@ -52,7 +55,7 @@ returns a somewhat contrived result set.
 >     -- To illustrate that the full signature is not necessary as long
 >     -- as some type information (e.g., (c1::String)) is provided --
 >     -- or enough context for the compiler to figure that out.
->     --iter :: (Monad m) => String -> IterAct m [String]
+>     iter :: (Monad m) => String -> IterAct m [String]
 >     iter (c1::String) acc = result $ c1:acc
 >     expect = [ "boo", "boo", "boo" ]
 
@@ -81,8 +84,8 @@ The following test illustrates doing IO in the iteratee itself.
 
 > selectStringNullInt sess = selectTest sess iter expect
 >   where
->     iter :: (Monad m) => String -> Maybe Int
->                          -> IterAct m [(String, Int)]
+>     iter :: (Monad m) =>
+>       String -> Maybe Int -> IterAct m [(String, Int)]
 >     iter c1 c2 acc = result $ (c1, ifNull c2 (-(1))):acc
 >     expect = [ ("boo", 1), ("boo", -1), ("boo", 1) ]
 
@@ -97,11 +100,11 @@ The following test illustrates doing IO in the iteratee itself.
 
 
 
-> selectCursor sess = runSess sess $ do
+> selectCursor sess = runSession sess $ do
 >   let
 >     iter :: (Monad m) => Maybe Int -> IterAct m [Int]
 >     iter i acc = result $ (ifNull i 2):acc
->   withCursorBracket "" iter [] $ \c -> do
+>   withCursor "" iter [] $ \c -> do
 >     r <- cursorCurrent c
 >     liftIO $ assertEqual "selectCursor" [1] r
 >     doneBool <- cursorIsEOF c
@@ -129,14 +132,14 @@ The following test illustrates doing IO in the iteratee itself.
 
 
 
-> selectExhaustCursor sess = catchDB ( runSess sess $ do
+> selectExhaustCursor sess = catchDB ( runSession sess $ do
 >     let
 >     -- Again, here we demonstrate the use of a local argument
 >     -- type annotation rather than the complete signature.
 >     -- Let the compiler figure out the monad and the seed type.
 >     --iter :: (Maybe m) => Maybe Int -> IterAct m [Int]
 >       iter (i::Maybe Int) acc = result $ (ifNull i (-(1))):acc
->     withCursorBracket "" iter [] $ \c -> do
+>     withCursor "" iter [] $ \c -> do
 >         cursorNext c
 >         cursorNext c
 >         cursorNext c

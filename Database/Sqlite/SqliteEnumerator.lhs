@@ -14,7 +14,9 @@ Sqlite implementation of Database.Enumerator.
 > {-# OPTIONS -fallow-undecidable-instances #-}
 > {-# OPTIONS -fallow-overlapping-instances #-}
 
-> module Database.Sqlite.SqliteEnumerator where
+> module Database.Sqlite.SqliteEnumerator
+>   ( Session, connect, disconnect )
+> where
 
 
 > import Foreign.C
@@ -71,6 +73,7 @@ because they never throw exceptions.
 --------------------------------------------------------------------
 
 |We don't need much in an Sqlite Session record.
+Session objects are created by 'connect'.
 
 > data Session = Session { dbHandle :: DBHandle }
 
@@ -82,9 +85,9 @@ because they never throw exceptions.
 > disconnect :: Session -> IO ()
 > disconnect session = convertEx $ DBAPI.closeDb (dbHandle session)
 
+> type SessionM = ReaderT Session IO
 
-
-> instance MonadSession (ReaderT Session IO) IO Session where
+> instance MonadSession SessionM IO Session where
 >   runSession = flip runReaderT
 >   getSession = ask
 >
@@ -114,10 +117,10 @@ because they never throw exceptions.
 >   }
 
 
-> type SqliteMonadQuery = ReaderT Query (ReaderT Session IO)
+> type SqliteMonadQuery = ReaderT Query SessionM
 
 
-> instance MonadQuery SqliteMonadQuery (ReaderT Session IO) Query ColumnBuffer where
+> instance MonadQuery SqliteMonadQuery SessionM Query ColumnBuffer where
 >
 >   runQuery m query = runReaderT m query
 >
@@ -249,7 +252,7 @@ as we need it to get column values.
 >     Nothing -> DBAPI.bindNull db stmt pos
 >     Just val -> stmtBind db stmt pos val
 
-> bindM pos val = do
+> bindMb pos val = do
 >     sess <- lift getSession
 >     query <- getQuery
 >     liftIO $ bindMaybe (dbHandle sess) (stmtHandle query) pos val
@@ -258,22 +261,22 @@ as we need it to get column values.
 > instance DBType (Maybe String) SqliteMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer undefined n
 >   fetchCol buffer = liftIO$ bufferToString buffer
->   bind pos val = bindM pos val
+>   bindPos = bindMb
 
 > instance DBType (Maybe Int) SqliteMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer undefined n
 >   fetchCol buffer = liftIO$ bufferToInt buffer
->   bind pos val = bindM pos val
+>   bindPos = bindMb
 
 > instance DBType (Maybe Double) SqliteMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer undefined n
 >   fetchCol buffer = liftIO$ bufferToDouble buffer
->   bind pos val = bindM pos val
+>   bindPos = bindMb
 
 > instance DBType (Maybe CalendarTime) SqliteMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer undefined n
 >   fetchCol buffer = liftIO$ bufferToDatetime buffer
->   bind pos val = bindM pos val
+>   bindPos = bindMb
 
 
 |This single polymorphic instance replaces all of the type-specific non-Maybe instances
@@ -283,7 +286,8 @@ e.g. String, Int, Double, etc.
 >     => DBType a SqliteMonadQuery ColumnBuffer where
 >   allocBufferFor _ = allocBufferFor (undefined::Maybe a)
 >   fetchCol buffer = throwIfDBNull buffer fetchCol
->   bind pos val = bind pos (Just val)
+>   bindPos pos val = bindPos pos (Just val)
+
 
 |This polymorphic instance assumes that the value is in a String column,
 and uses Read to convert the String to a Haskell data value.
@@ -292,10 +296,8 @@ and uses Read to convert the String to a Haskell data value.
 >   allocBufferFor _ n = allocBuffer undefined n
 >   fetchCol buffer = do
 >     v <- liftIO$ bufferToString buffer
->     case v of
->       Just s -> return (Just (read s))
->       Nothing -> return Nothing
->   bind pos val = do
+>     return $ maybe Nothing (Just . read) v
+>   bindPos pos val = do
 >     sess <- lift getSession
 >     query <- getQuery
 >     let justString = maybe Nothing (Just . show) val
