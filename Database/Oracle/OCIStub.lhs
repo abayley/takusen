@@ -295,7 +295,7 @@ See fetchIntVal below for use of this:
 >         freeBuffers buffers
 >         liftIO $ closeStmt sess (stmtHandle query)
 >       hFoldLeft self iteratee seedVal = 
->         inQuery $ runfetch finaliser buffers self iteratee seedVal
+>         runfetch inQuery finaliser buffers self iteratee seedVal
 >     return (hFoldLeft, inQuery finaliser)
 >
 >   -- This is like 

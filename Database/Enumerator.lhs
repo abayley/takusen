@@ -356,28 +356,27 @@ depend on any DBMS implementation details.
 >   , QueryIteratee (t m) iterType seedType
 >   , MonadTrans t
 >   ) =>
->      t m a  -- ^ finaliser
+>      (forall a. t m a -> m a) -- ^ into query
+>   ->   t m a  -- ^ finaliser
 >   -> [bufferType]  -- ^ list of buffers
 >   -> (iterType -> seedType -> m seedType)  -- ^ self i.e. function taking iteratee and seed, returning same type as seed
 >   -> iterType  -- ^ iteratee
 >   -> seedType  -- ^ seed value
->   -> t m seedType  -- ^ return value same type as seed
+>   -> m seedType  -- ^ return value same type as seed
 
-> runfetch finalizers buffers self iteratee seedVal = do
+> --runfetch = undefined
+> runfetch down finalizers buffers self iteratee seedVal = do
 >   let
->     handle seedVal True = do
->       row <- iterApply buffers seedVal iteratee
->       handleIter row
+>     handle seedVal True = (down$ iterApply buffers seedVal iteratee) >>= handleIter
 >     handle seedVal False = do
->       finalizers
+>       down$ finalizers
 >       return seedVal
->     handleIter (Right seed) = lift $ self iteratee seed
+>     handleIter (Right seed) = self iteratee seed
 >     handleIter (Left seed) = do
->       finalizers
+>       down$ finalizers
 >       return seed
->   v <- fetch1
->   handle seedVal v
-
+>   (down fetch1) >>= handle seedVal
+>--
 
 
 |Used by instances of DBType to throw an exception
