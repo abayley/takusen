@@ -12,7 +12,6 @@ Simple test harness. Would like to write proper HUnit or Quickcheck tests in fut
 Demonstrates possible usage.
 
 
-
 > {-# OPTIONS -fglasgow-exts -fallow-overlapping-instances #-}
 
 > module Database.Test.SimpleEnumeratorTest where

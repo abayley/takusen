@@ -356,25 +356,27 @@ depend on any DBMS implementation details.
 >   , QueryIteratee (t m) iterType seedType
 >   , MonadTrans t
 >   ) =>
->      t m a
->   -> [bufferType]
->   -> (iterType -> seedType -> m seedType)
->   -> (iterType -> seedType -> t m seedType)
+>      t m a  -- ^ finaliser
+>   -> [bufferType]  -- ^ list of buffers
+>   -> (iterType -> seedType -> m seedType)  -- ^ self i.e. function taking iteratee and seed, returning same type as seed
+>   -> iterType  -- ^ iteratee
+>   -> seedType  -- ^ seed value
+>   -> t m seedType  -- ^ return value same type as seed
 
 > runfetch finalizers buffers self iteratee seedVal = do
->     let
->       handle seedVal True = do
->         row <- iterApply buffers seedVal iteratee
->         handleIter row
->       handle seedVal False = do
->         finalizers
->         return seedVal
->       handleIter (Right seed) = lift $ self iteratee seed
->       handleIter (Left seed) = do
->         finalizers
->         return seed
->     v <- fetch1
->     handle seedVal v
+>   let
+>     handle seedVal True = do
+>       row <- iterApply buffers seedVal iteratee
+>       handleIter row
+>     handle seedVal False = do
+>       finalizers
+>       return seedVal
+>     handleIter (Right seed) = lift $ self iteratee seed
+>     handleIter (Left seed) = do
+>       finalizers
+>       return seed
+>   v <- fetch1
+>   handle seedVal v
 
 
 

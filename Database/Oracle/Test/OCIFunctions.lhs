@@ -91,7 +91,7 @@ Test harness for "Database.Oracle.OCIFunctions".
 >   logoff (env, err, conn)
 
 
-> allTests :: IO ()
-> allTests = do
+> runOCITests :: IO ()
+> runOCITests = do
 >   testConnect
 >   testExecute

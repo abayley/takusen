@@ -247,6 +247,16 @@ but you can't do any updates.
 -- Queries
 --------------------------------------------------------------------
 
+See makeQuery below for use of this:
+
+> numberOfRowsToPretendToFetch :: Int
+> numberOfRowsToPretendToFetch = 100000
+
+See fetchIntVal below for use of this:
+
+> throwNullIntOnRow :: Int
+> throwNullIntOnRow = 1
+
 
 
 > type OCIMonadQuery = ReaderT Query (ReaderT Session IO)
@@ -260,7 +270,7 @@ but you can't do any updates.
 >     _ <- liftIO $ execute sess stmt 0
 >     --return $ Query stmt
 >     -- Leave one counter in to ensure the fetch terminates
->     counter <- liftIO $ newIORef 5 >>= newIORef
+>     counter <- liftIO $ newIORef numberOfRowsToPretendToFetch >>= newIORef
 >     return $ Query stmt counter
 >
 >   getQuery = ask
@@ -437,7 +447,7 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 >     refCounter <- liftIO $ readIORef (fetchCounter query)
 >     counter <- liftIO $ readIORef refCounter
 >     -- last row returns null rather than 1
->     if counter == 1
+>     if counter == throwNullIntOnRow
 >       then return Nothing
 >       else liftIO $ bufferToInt buffer
 >   fetchDoubleVal buffer = liftIO $ bufferToDouble buffer

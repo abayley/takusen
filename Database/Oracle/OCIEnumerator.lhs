@@ -91,7 +91,7 @@ rather than ErrorHandle. Only used by getErr.
 
 
 --------------------------------------------------------------------
--- Wrappers for OCI functions, which catch and convert exceptions.
+-- ** OCI Function Wrappers
 --------------------------------------------------------------------
 
 
@@ -530,7 +530,7 @@ In Database.Oracle.OCIEnumerator:
 
 
 
-Short-circuit null test: if the buffer contains a null then return Nothing.
+|Short-circuit null test: if the buffer contains a null then return Nothing.
 Otherwise, run the IO action to extract a value from the buffer and return Just it.
 
 > maybeBufferNull :: ColumnBuffer -> IO a -> IO (Maybe a)
