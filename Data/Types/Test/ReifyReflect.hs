@@ -89,6 +89,15 @@ reflectIORoundTrip d = do
   r2 <- v reflectIO
   return (r1 == d && r2 == d)
 
+reflectIORoundTrip2 :: NotStorable -> IO Bool
+reflectIORoundTrip2 d = do
+  -- test reflecting the same value twice
+  reifyIO d (\ (_::s) ->
+                      do 
+		      r1 <- reflectIO (undefined::s)
+		      r2 <- reflectIO (undefined::s)
+		      return $ r1 == r2)
+
 testReflectIORoundTrip :: NotStorable -> IO ()
 testReflectIORoundTrip d = do
   b <- reflectIORoundTrip d
