@@ -1,27 +1,43 @@
 
+|
+Module      :  Database.Oracle.Enumerator
+Copyright   :  (c) 2004 Oleg Kiselyov, Alistair Bayley
+License     :  BSD-style
+Maintainer  :  oleg@pobox.com, alistair@abayley.org
+Stability   :  experimental
+Portability :  non-portable
+ 
+Defines the concrete implemenation of the "Database.Enumerator" interfaces.
+"Database.Enumerator" plus "Database.Oracle.Enumerator" should be all
+you need to import in order to do simple Oracle database stuff.
+ 
+If you want to use the real Oracle OCI implementation
+then uncomment OCIEnumberator and comment OCIStub.
+If you want to use the stub
+then comment OCIEnumberator and uncomment OCIStub.
+
+
 > module Database.Oracle.Enumerator
-
-Defines the concrete implemenation of the Database.Enumerator interfaces.
-This module plus Database.Enumerator should be all you need to do simple database stuff.
-
 >   (
->     -- SessionQuery is a convenient type synonym;
+>     -- *Sessions: connecting etc
+>     -- |'SessionQuery' is a convenient type synonym;
 >     -- it makes it easier to give signatures to functions doing database stuff.
->     -- Session is the type returned by connect, and used by disconnect and runSession.
+>     -- 'Session' is the type returned by connect, and used by disconnect and runSession.
 >       SessionQuery, Session
 >     , connect, disconnect
 >
->     -- MonadSession instance functions
+>     -- *'MonadSession' instance functions
 >     , runSession, beginTransaction, commit, rollback, executeDML, executeDDL
 >
->     -- MonadQuery instance functions
+>     -- *'MonadQuery' instance functions
 >     , doQuery, openCursor
 >
->     -- Export here to avoid having to import Control.Monad.Trans.
->     -- Useful/necessary if you want to do IO in a database function.
+>     -- *Utility functions
+>     -- |Export here to avoid having to import Control.Monad.Trans.
+>     -- Useful if you want to do IO in a database function.
 >     , liftIO, lift
 >
->     -- Useful with cursors. You should wrap cursor actions in catchreaderT;
+>     -- |Useful with cursors. You should wrap cursor actions in catchreaderT;
 >     -- use throwIO to rethrow exception in handler.
 >     , throwIO
 >
@@ -32,7 +48,8 @@ This module plus Database.Enumerator should be all you need to do simple databas
 > import Control.Monad.Reader (ReaderT)
 > import Control.Exception (throwIO)
 
-One or 'tother:
+
+One or t'other:
 
 > import Database.Oracle.OCIEnumerator
 > --import Database.Oracle.OCIStub

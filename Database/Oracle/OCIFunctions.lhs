@@ -1,32 +1,33 @@
-{-|
-Module      :  Database.Oracle.OCIFunctions
-Copyright   :  (c) 2004 Oleg Kiselyov, Alistair Bayley
-License     :  BSD-style
-Maintainers :  oleg@pobox.com, alistair@abayley.org
-Stability   :  experimental
-Portability :  non-portable
-
-Simple wrappers for OCI functions (FFI).
--}
 
 > {-# OPTIONS -ffi -fglasgow-exts #-}
 
-> module Database.Oracle.OCIFunctions where
 
-
+|
+Module      :  Database.Oracle.OCIFunctions
+Copyright   :  (c) 2004 Oleg Kiselyov, Alistair Bayley
+License     :  BSD-style
+Maintainer  :  oleg@pobox.com, alistair@abayley.org
+Stability   :  experimental
+Portability :  non-portable
+ 
+Simple wrappers for OCI functions (FFI).
+ 
 The functions in this file are simple wrappers for OCI functions.
-The wrappers add error detection and exceptions.
-All functions in this module raise OCIExceptions.
-The next layer up traps these and turns them into DBExceptions.
-
-Note that OCIExceptions DO NOT contain the error number and text
-returned by getOCIErrorMsg.
-It is the job of the next layer (module) up to catch the OCIException
-and then call getOCIErrorMsg to get the actual error details.
-The OCIException simply contains the error number returned by
+The wrappers add error detection and exceptions;
+functions in this module raise 'OCIException'.
+The next layer up traps these and turns them into 'Database.Enumerator.DBException'.
+ 
+Note that 'OCIException' /does not/ contain the error number and text
+returned by 'getOCIErrorMsg'.
+It is the job of the next layer (module) up to catch the 'OCIException'
+and then call 'getOCIErrorMsg' to get the actual error details.
+The 'OCIException' simply contains the error number returned by
 the OCI call, and some text identifying the wrapper function.
-See formatErrorCodeDesc for the set of possible values for the OCI error numbers.
+See 'formatErrorCodeDesc' for the set of possible values for the OCI error numbers.
 
+
+
+> module Database.Oracle.OCIFunctions where
 
 
 > import Database.Oracle.OCIConstants
@@ -38,11 +39,15 @@ See formatErrorCodeDesc for the set of possible values for the OCI error numbers
 
 
 
- - Each handle type has its own data type, to prevent stupid errors
+
+|
+ * Each handle type has its own data type, to prevent stupid errors
    i.e. using the wrong handle at the wrong time.
- - In GHC you can simply say "data EnvStruct" i.e. there's no need for " = EnvStruct".
+ 
+ * In GHC you can simply say @data OCIStruct@ i.e. there's no need for @= OCIStruct@.
    I've decided to be more portable, as it doesn't cost much.
- - Use castPtr if you need to convert handles (say OCIHandle to more specific type, or vice versa).
+ 
+ * Use castPtr if you need to convert handles (say 'OCIHandle' to a more specific type, or vice versa).
 
 > data OCIStruct = OCIStruct
 > type OCIHandle = Ptr OCIStruct  -- generic Handle for OCI functions that return Handles
@@ -70,15 +75,18 @@ See formatErrorCodeDesc for the set of possible values for the OCI error numbers
 > type ColumnInfo = (DefnHandle, BufferPtr, Ptr CShort, Ptr CShort)
 
 
+|Low-level, OCI library errors.
 
 > data OCIException = OCIException CInt String
 >   deriving (Typeable, Show)
 
 If we can't derive Typeable then the following code should do the trick:
 
-ociExceptionTc :: TyCon
-ociExceptionTc = mkTyCon "Database.Oracle.OCIFunctions.OCIException"
-instance Typeable OCIException where typeOf _ = mkAppTy ociExceptionTc []
+ > data OCIException = OCIException CInt String
+ > ociExceptionTc :: TyCon
+ > ociExceptionTc = mkTyCon "Database.Oracle.OCIFunctions.OCIException"
+ > instance Typeable OCIException where typeOf _ = mkAppTy ociExceptionTc []
+
 
 > catchOCI :: IO a -> (OCIException -> IO a) -> IO a
 > catchOCI = catchDyn
@@ -103,7 +111,7 @@ instance Typeable OCIException where typeOf _ = mkAppTy ociExceptionTc []
 
 
 ---------------------------------------------------------------------------------
--- Foreign OCI functions
+-- ** Foreign OCI functions
 ---------------------------------------------------------------------------------
 
 
@@ -138,14 +146,16 @@ instance Typeable OCIException where typeOf _ = mkAppTy ociExceptionTc []
 > foreign import ccall "oci.h OCIStmtExecute" ociStmtExecute :: ConnHandle -> StmtHandle -> ErrorHandle -> CInt -> CInt -> OCIHandle -> OCIHandle -> CInt -> IO CInt
 > foreign import ccall "oci.h OCIStmtFetch" ociStmtFetch :: StmtHandle -> ErrorHandle -> CInt -> CShort -> CInt -> IO CInt
 
-Coming soon...
-
-foreign import ccall "oci.h OCIBindByPos" ociBindByPos ...
+|Coming soon...
+ 
+ > foreign import ccall "oci.h OCIBindByPos" ociBindByPos ...
 
 
 ---------------------------------------------------------------------------------
--- OCI error reporting
+-- ** OCI error reporting
 ---------------------------------------------------------------------------------
+
+|This is just an auxiliary function for getOCIErrorMsg.
 
 > getOCIErrorMsg2 :: OCIHandle -> CInt -> Ptr CInt -> CString -> CInt -> IO (CInt, String)
 > getOCIErrorMsg2 ocihandle handleType errCodePtr errMsgBuf maxErrMsgLen = do
@@ -161,12 +171,9 @@ foreign import ccall "oci.h OCIBindByPos" ociBindByPos ...
 > getOCIErrorMsg :: OCIHandle -> CInt -> IO (CInt, String)
 > getOCIErrorMsg ocihandle handleType = do
 >   let stringBufferLen = 1000
->   errMsg <- mallocBytes stringBufferLen
->   errCode <- malloc
->   e <- getOCIErrorMsg2 ocihandle handleType errCode errMsg (mkCInt stringBufferLen)
->   free errMsg
->   free errCode
->   return e
+>   allocaBytes stringBufferLen $ \errMsg ->
+>     alloca $ \errCode ->
+>     getOCIErrorMsg2 ocihandle handleType errCode errMsg (mkCInt stringBufferLen)
 
 
 > formatErrorCodeDesc :: CInt -> String -> String
@@ -182,6 +189,10 @@ foreign import ccall "oci.h OCIBindByPos" ociBindByPos ...
 >   | otherwise = "OCI_ERROR - " ++ desc
 
 
+|Given the two parts of an OCIExcpetion (the error number and text)
+get the actual error message from the DBMS and construct an error message
+from all of these pieces.
+
 > formatOCIMsg :: CInt -> String -> OCIHandle -> CInt -> IO (Int, String)
 > formatOCIMsg e m ocihandle handleType = do
 >   (err, msg) <- getOCIErrorMsg ocihandle handleType
@@ -189,7 +200,7 @@ foreign import ccall "oci.h OCIBindByPos" ociBindByPos ...
 
 
 
-We have two format functions: one takes the EnvHandle, and one takes the ErrorHandle.
+|We have two format functions: one takes the EnvHandle, and one takes the ErrorHandle.
 
 > formatMsgCommon :: OCIException -> OCIHandle -> CInt -> IO (Int, String)
 > formatMsgCommon (OCIException e m) h handleType = do
@@ -208,7 +219,7 @@ We have two format functions: one takes the EnvHandle, and one takes the ErrorHa
 
 
 
-The testForError functions are the only places where OCIExcpetion is thrown,
+The testForError functions are the only places where OCIException is thrown,
 so if you want to change/embellish it, your changes will be localised here.
 These functions factor out common error handling code
 from the OCI wrapper functions that follow.
@@ -228,7 +239,7 @@ from the OCI wrapper functions that follow.
 
 
 ---------------------------------------------------------------------------------
--- Allocating Handles (i.e. creating OCI data structures, and memory management)
+-- ** Allocating Handles (i.e. creating OCI data structures, and memory management)
 ---------------------------------------------------------------------------------
 
 
@@ -244,8 +255,8 @@ from the OCI wrapper functions that follow.
 
 > handleFree :: CInt -> OCIHandle -> IO ()
 > handleFree handleType ptr = do
->	rc <- ociHandleFree ptr handleType
->	testForError rc "free handle" ()
+>    rc <- ociHandleFree ptr handleType
+>    testForError rc "free handle" ()
 
 
 
@@ -274,12 +285,12 @@ Deref'ing it returns that value immediately, rather than a Ptr to that value.
 
 > getParam :: ErrorHandle -> StmtHandle -> Int -> IO ParamHandle
 > getParam err stmt posn = alloca $ \ptr -> do
->     rc <- ociParamGet (castPtr stmt) oci_HTYPE_STMT err ptr (mkCInt posn)
->     testForErrorWithPtr rc "getParam" (castPtr ptr)
+>   rc <- ociParamGet (castPtr stmt) oci_HTYPE_STMT err ptr (mkCInt posn)
+>   testForErrorWithPtr rc "getParam" (castPtr ptr)
      
 
 ---------------------------------------------------------------------------------
--- Connecting and detaching
+-- ** Connecting and detaching
 ---------------------------------------------------------------------------------
 
 The OCI Logon function doesn't behave as you'd expect when the password is due to expire.
@@ -291,10 +302,10 @@ as the logon process should be able to complete successfully in this case.
 
 
 > dbLogon :: String -> String -> String -> EnvHandle -> ErrorHandle -> IO ConnHandle
-> dbLogon user pswd db env err = do
->   userC <- newCStringLen user
->   pswdC <- newCStringLen pswd
->   dbC <- newCStringLen db
+> dbLogon user pswd db env err =
+>   withCStringLen user $ \userC ->
+>   withCStringLen pswd $ \pswdC ->
+>   withCStringLen db   $ \dbC ->
 >   alloca $ \conn -> do
 >     rc <- ociLogon env err conn (cStr userC) (cStrLen userC) (cStr pswdC) (cStrLen pswdC) (cStr dbC) (cStrLen dbC)
 >     case () of
@@ -328,16 +339,8 @@ as the logon process should be able to complete successfully in this case.
 >   testForError rc "server attach" ()
 
 
-Having established a connection (Service Context), now get the Session.
+|Having established a connection (Service Context), now get the Session.
 You can have more than one session per connection, but I haven't implemented it yet.
-
- getSession :: ErrorHandle -> ConnHandle -> IO SessHandle
- getSession err conn = alloca $ \sess -> do
-   rc <- ociAttrGet (castPtr conn) oci_HTYPE_SVCCTX (castPtr sess) nullPtr oci_ATTR_SESSION err
-   testForErrorWithPtr rc "create session" sess
-
-Alternative definition for getSession
-(but any exception raised will contain "getAttrHandle" rather than "create session"):
 
 > getSession :: ErrorHandle -> ConnHandle -> IO SessHandle
 > getSession err conn = liftM castPtr (getHandleAttr err (castPtr conn) oci_HTYPE_SVCCTX oci_ATTR_SESSION)
@@ -351,7 +354,7 @@ Alternative definition for getSession
 
 
 ---------------------------------------------------------------------------------
--- Transactions
+-- ** Transactions
 ---------------------------------------------------------------------------------
 
 > beginTrans :: ErrorHandle -> ConnHandle -> CInt -> IO ()
@@ -371,9 +374,13 @@ Alternative definition for getSession
 
 
 ---------------------------------------------------------------------------------
--- Issuing queries
+-- ** Issuing queries
 ---------------------------------------------------------------------------------
 
+|With the OCI you must prepare your statement (just a String),
+execute it (this sends it to the DBMS for parsing etc),
+allocate a buffer for each column,
+then call fetch for each row.
 
 > stmtPrepare :: ErrorHandle -> StmtHandle -> String -> IO ()
 > stmtPrepare err stmt sqltext = do
@@ -382,14 +389,25 @@ Alternative definition for getSession
 >   testForError rc "stmtPrepare" ()
 
 
-defineByPos allocates memory for:
- - the result (you have to say how big with bufsize).
- - the null indicator (int16)
- - the size of the returned data (int16)
+> stmtExecute :: ErrorHandle -> ConnHandle -> StmtHandle -> Int -> IO ()
+> stmtExecute err conn stmt iterations = do
+>   rc <- ociStmtExecute conn stmt err (mkCInt iterations) 0 nullPtr nullPtr oci_DEFAULT
+>   testForError rc "stmtExecute" ()
+
+
+
+|defineByPos allocates memory for:
+ 
+ * the result (you have to say how big with bufsize).
+ 
+ * the null indicator (int16)
+ 
+ * the size of the returned data (int16)
+ 
 It's the caller's responsibility to free the memory after they're done with it
-(by calling Foreign.Marshall.Alloc.free on bufferptr/nullindptr/retsizeptr).
+(by calling 'Foreign.Marshall.Alloc.free' on bufferptr/nullindptr/retsizeptr).
 The caller will also have to cast the data in bufferptr to the expected type
-(using Foreign.Ptr.castPtr).
+(using 'Foreign.Ptr.castPtr').
 
 > defineByPos :: ErrorHandle -> StmtHandle -> Int -> Int -> CInt -> IO ColumnInfo
 > defineByPos err stmt posn bufsize sqldatatype = do
@@ -407,13 +425,6 @@ The caller will also have to cast the data in bufferptr to the expected type
 >       free retsizeptr
 >       testForError rc "" (nullPtr, nullPtr, nullPtr, nullPtr)
 >     else return (defn, bufferptr, nullindptr, retsizeptr)
-
-
-
-> stmtExecute :: ErrorHandle -> ConnHandle -> StmtHandle -> Int -> IO ()
-> stmtExecute err conn stmt iterations = do
->   rc <- ociStmtExecute conn stmt err (mkCInt iterations) 0 nullPtr nullPtr oci_DEFAULT
->   testForError rc "stmtExecute" ()
 
 
 > stmtFetch :: ErrorHandle -> StmtHandle -> IO CInt

@@ -1,3 +1,15 @@
+
+|
+Module      :  Database.Oracle.Test.OCIFunctions
+Copyright   :  (c) 2004 Oleg Kiselyov, Alistair Bayley
+License     :  BSD-style
+Maintainer  :  oleg@pobox.com, alistair@abayley.org
+Stability   :  experimental
+Portability :  non-portable
+ 
+Test harness for "Database.Oracle.OCIFunctions".
+
+
 > {-# OPTIONS -ffi -fglasgow-exts #-}
 
 > module Database.Oracle.Test.OCIFunctions where

@@ -1,7 +1,18 @@
-> module Database.Oracle.OCIConstants where
 
+|
+Module      :  Database.Oracle.OCIConstants
+Copyright   :  (c) 2004 Oleg Kiselyov, Alistair Bayley
+License     :  BSD-style
+Maintainer  :  oleg@pobox.com, alistair@abayley.org
+Stability   :  experimental
+Portability :  non-portable
+ 
 Contains CInt equivalents of the #defines in the oci library headers.
 This is not a complete set; just enough to get the Haskell libraries working.
+
+
+> module Database.Oracle.OCIConstants where
+
 
 
 > import Foreign.C.Types

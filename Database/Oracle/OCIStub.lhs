@@ -1,19 +1,20 @@
-{-|
+
+|
 Module      :  Database.Enumerator.OCIStub
 Copyright   :  (c) 2004 Oleg Kiselyov, Alistair Bayley
 License     :  BSD-style
-Maintainers :  oleg@pobox.com, alistair@abayley.org
+Maintainer  :  oleg@pobox.com, alistair@abayley.org
 Stability   :  experimental
 Portability :  non-portable
-
+ 
 Stub Oracle OCI implementation of Database.Enumerator.
-Good for people who can't/won't install Oracle,
+Good for people who can't or won't install Oracle,
 so that they can try out the Enumerator interface.
-
+ 
 Currently last last row of any fetch will have a null in its Int columns
 (this makes it easier to test handling of nulls and DBUnexpectedNull).
 See fetchIntVal.
--}
+
 
 
 > {-# OPTIONS -fglasgow-exts -fallow-overlapping-instances #-}

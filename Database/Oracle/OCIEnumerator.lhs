@@ -1,13 +1,14 @@
-{-|
+
+|
 Module      :  Database.Enumerator.OCIEnumerator
 Copyright   :  (c) 2004 Oleg Kiselyov, Alistair Bayley
 License     :  BSD-style
-Maintainers :  oleg@pobox.com, alistair@abayley.org
+Maintainer  :  oleg@pobox.com, alistair@abayley.org
 Stability   :  experimental
 Portability :  non-portable
-
+ 
 Oracle OCI implementation of Database.Enumerator.
--}
+
 
 > {-# OPTIONS -fglasgow-exts #-}
 
@@ -35,7 +36,7 @@ Oracle OCI implementation of Database.Enumerator.
 
 
 --------------------------------------------------------------------
--- Error handling
+-- ** Error handling
 --------------------------------------------------------------------
 
 
@@ -308,7 +309,7 @@ there's no equivalent for ReadUncommitted.
 
 
 --------------------------------------------------------------------
--- Sessions
+-- ** Sessions
 --------------------------------------------------------------------
 
 
@@ -381,7 +382,7 @@ handleFree env
 
 
 --------------------------------------------------------------------
--- Queries
+-- ** Queries
 --------------------------------------------------------------------
 
 
@@ -456,7 +457,7 @@ handleFree env
 
 
 --------------------------------------------------------------------
--- result-set data buffers implementation
+-- ** Result-set data buffers implementation
 --------------------------------------------------------------------
 
 If you need to add new database types, then you must:
@@ -552,7 +553,7 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 >     return val
 
 
-Oracle's excess-something-or-other encoding for years:
+| Oracle's excess-something-or-other encoding for years.
 
 > makeYear :: Int -> Int -> Int
 > makeYear c100 y100 =
