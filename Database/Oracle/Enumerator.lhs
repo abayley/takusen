@@ -24,8 +24,16 @@ then comment OCIEnumberator and uncomment OCIStub.
 >       DBColumnType(..), IsolationLevel(..), IterAct, DBException(..)
 >     , catchDB, throwDB, basicDBExceptionReporter, catchDBError, ignoreDBError
 >     , shakeReaderT, catchReaderT
->     , cursorIsEOF, cursorCurrent, cursorNext, cursorClose, withCursorBracket
+>     , cursorIsEOF, cursorCurrent, cursorNext, cursorClose
+>     , withCursorBracket, withCursorBracketTuned
 >     , ifNull, result, result'
+>
+>     -- **'MonadSession' instance functions
+>     , runSession, beginTransaction, commit, rollback, executeDML, executeDDL
+>
+>     -- **'MonadQuery' instance functions
+>     , DBCursor, MonadQuery, QueryResourceUsage(..)
+>     , doQuery, doQueryTuned, openCursor, openCursorTuned
 >
 >     -- *Sessions: connecting etc
 >     -- |'SessionQuery' is a convenient type synonym;
@@ -33,12 +41,6 @@ then comment OCIEnumberator and uncomment OCIStub.
 >     -- 'Session' is the type returned by connect, and used by disconnect and runSession.
 >     , SessionQuery, Session
 >     , connect, disconnect
->
->     -- *'MonadSession' instance functions
->     , runSession, beginTransaction, commit, rollback, executeDML, executeDDL
->
->     -- *'MonadQuery' instance functions
->     , doQuery, openCursor
 >
 >     -- *Utility functions
 >     -- |Export here to avoid having to import Control.Monad.Trans.

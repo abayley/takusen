@@ -9,6 +9,12 @@ Portability :  non-portable
  
 Simple driver module, mainly for testing.
 Import test modules and run test suites.
+ 
+This project is hosted by Haskell-libs:
+  <http://sf.net/projects/haskell-libs>
+ 
+Source code for this project is at:
+  <http://cvs.sf.net/viewcvs.py/haskell-libs/libs/takusen/>
 
 
 > module Main where

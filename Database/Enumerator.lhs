@@ -17,7 +17,8 @@ on any particular DBMS implementation.
  
 There is a stub ("Database.Oracle.OCIStub") for the Oracle OCI implementation.
 This lets you run the test cases without having a working Oracle installation.
-You need to swtich in the @OCIStub@ module, and switch out the @OCIEnumerator@ module.
+You need to switch in the "Database.Oracle.OCIStub" module,
+and switch out the "Database.Oracle.OCIEnumerator" module.
 See "Database.Oracle.Enumerator" for details.
  
 Additional reading:
@@ -29,30 +30,51 @@ Additional reading:
  * <http://www.eros-os.org/pipermail/e-lang/2004-March/009643.html>
 
 
---------- Haddock notes:
-
- - An "empty line" (as mentioned subsequently in these notes) is actually a single space on a line.
-   This results in a "-- " line in the generated .hs file,
-   which continues the comment block from Haddock's point of view.
- - The module comment must contain a empty line between Portability and the description.
- - bullet-lists:
-     - items must be preceded by an empty line.
-     - each list item must start with "*".
- - code-sections:
-     - must be preceded by an empty line.
-     - use " >" rather than @...@, because "@" allows markup translation, where " >" doesn't.
- - @inline code (monospaced font)@
- - /emphasised text/
- - link to "Another.Module".
- - link to 'SomeType' in same module.
- - link to 'Another.Module.SomeType'.
- - <http:/www.haskell.org/haddock>
-
-
-
 > {-# OPTIONS -fglasgow-exts -fallow-overlapping-instances #-}
 
-> module Database.Enumerator where
+> module Database.Enumerator
+>   (
+>     -- * Usage
+>
+>     -- $usage_example
+>
+>     -- ** Iteratee Functions
+>
+>     -- $usage_iteratee
+>
+>     -- ** result and result'
+>
+>     -- $usage_result
+>
+>       DBColumnType(..), IsolationLevel(..)
+>     , BufferSize, BufferHint, Position
+>     , IterResult, IterAct, QueryText, ColNum, RowNum
+>
+>     -- * Exceptions and handlers
+>     , DBException(..)
+>     , catchDB, throwDB, basicDBExceptionReporter, catchDBError, ignoreDBError
+>     , shakeReaderT, catchReaderT
+>
+>     -- * Session monad.
+>     , MonadSession(..)
+>     -- Do we need to export these here? They're just class function sigs.
+>     -- If we don't then Haddock moans.
+>     --, runSession, getSession, beginTransaction, commit, rollback, executeDML, executeDDL
+>
+>     -- * Buffers and QueryIteratee.
+>     , Buffer(..), DBType(..), QueryIteratee(..)
+>
+>     -- * A Query monad and cursors.
+>     , DBCursor(..), MonadQuery(..), QueryResourceUsage(..)
+>     -- Again, do we need to export class function sigs, when we already export the class?
+>     --, doQuery, doQueryTuned, openCursor, setPrefetchRowCount
+>     --, getQuery, makeQuery, doQuery1Maker, fetch1
+>     , cursorIsEOF, cursorCurrent, cursorNext, cursorClose
+>     , withCursorBracket, withCursorBracketTuned
+>
+>     -- * Misc.
+>     , runfetch, throwIfDBNull, ifNull, result, result'
+>   ) where
 
 > import System.Time (CalendarTime)
 > import Data.Dynamic (Typeable)
@@ -124,7 +146,8 @@ i.e. it doesn't propagate.
 
 > basicDBExceptionReporter :: DBException -> IO ()
 > basicDBExceptionReporter (DBError e m) = putStrLn m
-> basicDBExceptionReporter (DBUnexpectedNull r c) = putStrLn $ "Unexpected null in row " ++ (show r) ++ ", column " ++ (show c) ++ "."
+> basicDBExceptionReporter (DBUnexpectedNull r c) =
+>   putStrLn $ "Unexpected null in row " ++ (show r) ++ ", column " ++ (show c) ++ "."
 > basicDBExceptionReporter (DBNoData) = putStrLn "Fetch: no more data."
 
 |If you want to trap a specific error number, use this.
@@ -142,9 +165,8 @@ It passes anything else up.
 > ignoreDBError n action = catchDBError n action (\e -> return undefined)
 
 
-|These two functions let us catch (and rethrow) exceptions in the ReaderT monad.
-We need these because 'Control.Exception.catch' is in the IO monad,
-but /not/ MonadIO.
+|'shakeReaderT' and 'catchReaderT' let us catch (and rethrow) exceptions in the ReaderT monad.
+We need these because 'Control.Exception.catch' is in the IO monad, but /not/ MonadIO.
 
 > shakeReaderT :: ((ReaderT r m1 a1 -> m1 a1) -> m a) -> ReaderT r m a
 > shakeReaderT f = ReaderT $ \r -> f (\lm -> runReaderT lm r)
@@ -154,7 +176,7 @@ but /not/ MonadIO.
 
 
 --------------------------------------------------------------------
--- ** Session monad.
+-- ** Session monad
 --------------------------------------------------------------------
 
 
@@ -173,10 +195,10 @@ but /not/ MonadIO.
 
 
 --------------------------------------------------------------------
--- ** Buffers and QueryIteratee.
+-- ** Buffers and QueryIteratee
 --------------------------------------------------------------------
 
-|A type class for Buffers.
+|A class for Buffers types.
 
 > class (Monad m) => Buffer m bufferType | m -> bufferType where
 >   allocBuffer :: BufferHint -> Position -> m bufferType
@@ -222,7 +244,7 @@ The argument is applied, and the result returned.
 >   allocBuffers _ n = sequence [allocBufferFor (undefined::a) n]
 
 
-|This instance of the class implements the initial and continuation cases.
+|This instance of the class implements the starting and continuation cases.
 
 > instance (QueryIteratee m iterType' seedType, DBType a) =>
 >   QueryIteratee m (a -> iterType') seedType where
@@ -237,59 +259,86 @@ The argument is applied, and the result returned.
 
 
 --------------------------------------------------------------------
--- ** A Query monad and cursors.
+-- ** A Query monad and cursors
 --------------------------------------------------------------------
+
+|At present the only resource tuning we support is the number of rows
+prefetched by the FFI library.
+We use a record to make it easy to add other tuning parameters later.
+
+> data QueryResourceUsage = QueryResourceUsage { prefetchRowCount :: Int }
 
 
 > type CollEnumerator iter m seed = iter -> seed -> m seed
 > type Self           iter m seed = iter -> seed -> m seed
 > type CFoldLeft      iter m seed = Self iter m seed -> CollEnumerator iter m seed
 
+|A DBCursor is an IORef-mutable-pair @(a, Maybe f)@, where @a@ is the result-set so far,
+and @f@ is a function that fetches and returns the next row (when applied to True),
+or closes the cursor (when applied to False).
+If @Maybe@ f is @Nothing@, then the result-set has been exhausted
+(or the iteratee function terminated early),
+and the cursor has already been closed.
+ 
 > newtype DBCursor ms a = DBCursor (IORef (a, Maybe (Bool-> ms (DBCursor ms a))))
 
 > class (MonadIO ms) => MonadQuery m ms q | m -> ms, ms -> q, ms q -> m where
+>   -- |Uses default resource usage settings, which are implementation dependent.
+>   -- (For the Oracle OCI, we only cache one row.)
 >   doQuery ::
 >     (QueryIteratee m iterType seedType) =>
 >     QueryText -> iterType -> seedType -> ms seedType
->   getQuery:: m q
->   makeQuery:: QueryText -> ms q
->   doQuery1Maker::
+>   -- |Version of doQuery which gives you a bit more control over how rows are fetched.
+>   -- At the moment we only support specifying the numbers of rows prefetched (cached).
+>   doQueryTuned ::
 >     (QueryIteratee m iterType seedType) =>
->     QueryText -> iterType -> ms (CFoldLeft iterType ms seedType,ms ())
+>     QueryText -> iterType -> seedType -> QueryResourceUsage -> ms seedType
+>   -- |Open a cursor with default resource usage settings.
 >   openCursor :: 
 >     (QueryIteratee m iterType seedType) =>
 >     QueryText -> iterType -> seedType -> ms (DBCursor ms seedType)
+>   -- |Version which lets you tune resource usage.
+>   openCursorTuned :: 
+>     (QueryIteratee m iterType seedType) =>
+>     QueryText -> iterType -> seedType -> QueryResourceUsage -> ms (DBCursor ms seedType)
+>   -- the following aren't really part of the interface the user employs
+>   getQuery:: m q
+>   makeQuery:: QueryText -> QueryResourceUsage -> ms q
+>   doQuery1Maker::
+>     (QueryIteratee m iterType seedType) =>
+>     QueryText -> iterType -> QueryResourceUsage -> ms (CFoldLeft iterType ms seedType,ms ())
 >   fetch1 :: m Bool
 
 
 |Returns True or False. Cursors are automatically closed and freed when:
  
- * the iteratee returns Left a
+ * the iteratee returns @Left a@
  
- * the collection (fetch) is exhausted.
+ * the query result-set is exhausted.
 
 |The only situations in which the user-programmer
 must explicitly close the cursor are:
  
  * when they want to terminate the fetch early
-   i.e. before the collection is exhuasted and before the iteratee returns Left
+   i.e. before the collection is exhuasted and before the iteratee returns @Left@
  
  * when an exception (any sort of exception) is raised. For example:
  
- >  c <- openCursor query iter []
+ >  c <- openCursor query iteratee []
  >  catchReaderT
  >    ( do
- >      r <- cursorCurrent c
- >      ...
- >      cursorClose c
+ >      <do stuff with the cursor ...>
+ >      _ <- cursorClose c
  >      return something
  >    ) ( e\ -> do
- >      cursorClose c
+ >      _ <- cursorClose c
  >      liftIO $ throwIO e
  >    )
 
-|To make life easier, we've created a withCursorBracket function:
-
+|To make life easier, we've created a 'withCursorBracket' function,
+which is exactly the code above.
+You can nest them to get the interleaving you desire:
+ 
  >  withCursorBracket query1 iter1 [] $ \c1 -> do
  >    withCursorBracket query2 iter2 [] $ \c2 -> do
  >      r1 <- cursorCurrent c1
@@ -313,7 +362,7 @@ must explicitly close the cursor are:
 >   (v, _) <- liftIO $ readIORef ref
 >   return v
 
-|Returns the latest cursor.
+|Advance the cursor. Returns the cursor.
 
 > cursorNext :: (MonadIO ms) => DBCursor ms a -> ms (DBCursor ms a)
 > cursorNext (DBCursor ref) = do
@@ -323,7 +372,7 @@ must explicitly close the cursor are:
 >     Nothing -> throwDB DBNoData
 >     Just f -> f True
 
-|Returns the latest cursor.
+|Returns the cursor.
 
 > cursorClose :: (MonadIO ms) => DBCursor ms a -> ms (DBCursor ms a)
 > cursorClose c@(DBCursor ref) = do
@@ -337,7 +386,7 @@ must explicitly close the cursor are:
 | Ensures cursor resource is properly tidied up in exceptional cases.
 Propagates exceptions after closing cursor.
 
-> withCursorBracket :: (MonadQuery m (ReaderT r IO) q, QueryIteratee m iterType seedType	) =>
+> withCursorBracket :: (MonadQuery m (ReaderT r IO) q, QueryIteratee m iterType seedType) =>
 >   QueryText  -- ^ query string
 >   -> iterType  -- ^ iteratee function
 >   -> seedType  -- ^ seed value
@@ -355,12 +404,33 @@ Propagates exceptions after closing cursor.
 >     )
 
 
+| Version which lets you tune resource usage.
+
+> withCursorBracketTuned :: (MonadQuery m (ReaderT r IO) q, QueryIteratee m iterType seedType) =>
+>   QueryText  -- ^ query string
+>   -> iterType  -- ^ iteratee function
+>   -> seedType  -- ^ seed value
+>   -> QueryResourceUsage  -- ^ resource usage tuning
+>   -> (DBCursor (ReaderT r IO) seedType -> ReaderT r IO a)  -- ^ action that takes a cursor
+>   -> ReaderT r IO a
+> withCursorBracketTuned query iteratee seed resourceUsage action = do
+>   cursor <- openCursorTuned query iteratee seed resourceUsage
+>   catchReaderT ( do
+>       v <- action cursor
+>       _ <- cursorClose cursor
+>       return v
+>     ) (\e -> do
+>       _ <- cursorClose cursor
+>       liftIO $ throwIO e
+>     )
+
+
 --------------------------------------------------------------------
 -- ** Misc.
 --------------------------------------------------------------------
 
 |Polymorphic over m.
-Not needed by programmer but moved into this module because it doesn't
+Not needed by library user but moved into this module because it doesn't
 depend on any DBMS implementation details.
 
 > runfetch ::
@@ -379,13 +449,13 @@ depend on any DBMS implementation details.
 >   -> seedType  -- ^ seed value
 >   -> m seedType  -- ^ return value same type as seed
 
-> runfetch down finalizers buffers self iteratee seedVal = do
+> runfetch down finalizers buffers self iteratee initialSeed = do
 >   let
->     handle seedVal True = (down (iterApply buffers seedVal iteratee)) >>= handleIter
->     handle seedVal False = (down finalizers) >> return seedVal
+>     handle seed True = (down (iterApply buffers seed iteratee)) >>= handleIter
+>     handle seed False = (down finalizers) >> return seed
 >     handleIter (Right seed) = self iteratee seed
 >     handleIter (Left seed) = (down finalizers) >> return seed
->   (down fetch1) >>= handle seedVal
+>   (down fetch1) >>= handle initialSeed
 
 
 |Used by instances of DBType to throw an exception
@@ -408,8 +478,8 @@ Will work for any type, as you pass the fetch action in the fetcher arg.
 
 |Useful utility function, for SQL weenies.
 
-> ifNull :: Maybe a  -- ^ Nullable value
->   -> a  -- ^ value to substitute if parm-1 null
+> ifNull :: Maybe a  -- ^ nullable value
+>   -> a  -- ^ value to substitute if first parameter is null
 >   -> a
 > ifNull value subst = maybe subst id value
 
@@ -430,3 +500,168 @@ it will exhaust the standard 1M GHC stack.
 
 > result' :: (Monad m) => IterAct m a
 > result' x = return (Right $! x)
+
+
+
+
+
+
+
+
+
+
+
+ 
+--------------------------------------------------------------------
+-- Usage notes
+--------------------------------------------------------------------
+
+
+-- $usage_example
+ 
+The idea is that you import the module specific to your DBMS implementation
+e.g. "Database.Oracle.Enumerator", which re-exports the useful interface functions
+from this module. Then:
+ 
+ > -- sample code, doesn't necessarily compile
+ > module MyDbExample is
+ >
+ > import Database.Oracle.Enumerator
+ >
+ > query1Iteratee :: (Monad m) => Int -> String -> Double -> IterAct m [(Int, String, Double)]
+ > query1Iteratee a b c accum = result' $ (a, b, c):accum
+ >
+ > query1 :: SessionQuery
+ > query1 = do
+ >   doQuery "select a, b, c from x" iteratee []
+ >
+ > otherActions :: Session -> IO ()
+ > otherActions session = do
+ >   runSession ( do
+ >       executeDDL "create table blah"
+ >       executeDML "insert into blah ..."
+ >       commit
+ >     ) session
+ >
+ > main :: IO ()
+ > main = do
+ >   session <- connect "user" "password" "server"
+ >   runSession query1 session
+ >   otherActions session
+ >   disconnect session
+ 
+@Session@ is an opaque type returned by the connect function.
+@connect@ is only exported by the DBMS-specific module,
+not from this module ('Database.Enumerator').
+@Session@ is an instance of 'MonadSession',
+and to use the 'MonadSession' functions you invoke them via runSession.
+ 
+@SessionQuery@ is a convenient type synonym.
+It's useful if you want to give type signatures to your functions
+that do database stuff.
+
+
+-- $usage_iteratee
+ 
+@doQuery@ takes an iteratee function, of n arguments.
+Argument n is the accumulator (or seed).
+For each row that is returned by the query,
+the iteratee function is called with the data from that row in
+arguments 1 to n-1, and the current accumulated value in the argument n.
+ 
+The iteratee function returns the next value of the accumulator,
+wrapped in an 'Data.Either.Either'.
+If the 'Data.Either.Either' value is @Left@, then the query will terminate,
+with the new value of the accumulator\/seed returned.
+If the value is @Right@, then the query will continue, with the next row
+begin fed to the iteratee function, along with the new accumulator\/seed.
+ 
+In the example above, @query1Iteratee@ simply conses the new row (as a tuple)
+to the front of the accumulator. The initial seed passed to doQuery was an empty list.
+Consing the rows to the front of the list results in a list that is the result set
+with the rows in reverse order.
+ 
+The iteratee function exists in the 'MonadQuery' monad,
+so if you want to do IO in it you must use 'Control.Monad.Trans.liftIO'
+( @liftIO $ putStrLn "boo"@ ) to lift the IO action into 'MonadQuery'.
+ 
+The iteratee function is not restricted to just constructing lists.
+For example, a simple counter function would ignore its arguments,
+and the accumulator would simply be a number e.g.
+ 
+ > counterIteratee :: (Monad m) => Int -> IterAct m Int
+ > counterIteratee _ i = result' $ (1 + i)
+ 
+The iteratee function that you pass to @doQuery@ needs type information,
+at least for the arguments if not the return type (which is determined
+by the arguments).
+There is a type synonym @IterAct@, which gives some small convenience in writing
+type signatures for iteratee functions.
+
+
+-- $usage_result
+ 
+The 'result' (lazy) and 'result\'' (strict) functions are another convenient shorthand
+for returning values from iteratee functions. The return type from an interatee is actually
+@Either seed seed@, where you return @Right@ if you want processing to continue,
+or @Left@ if you want processing to stop before the result-set is exhausted.
+The common case is:
+ 
+ > query1Iteratee a b c accum = return (Right ((a, b, c):accum))
+ 
+which we can write as @result $ (a, b, c):accum)@.
+ 
+We have lazy and strict versions of @result@. The strict version is almost certainly
+the one you want to use. If you come across a case where the lazy function is useful,
+please tell us about it. The lazy function tends to exhaust the stack for large result-sets,
+whereas the strict function does not.
+ 
+If you use the lazy function and you have stack\/memory problems, do some profiling.
+With GHC:
+ 
+ * ensure the iteratee is a top-level function so that it has its own cost-centre
+ 
+ * compile with @-prof -auto-all@
+ 
+ * run with @+RTS -p -hr -RTS@
+ 
+ * run @hp2ps@ over the resulting @.hp@ file to get a @.ps@ document; take a look at it
+ 
+You'll probably find that the lazy iteratee is consuming all of the stack with lazy thunks,
+which is why we recommend the strict function.
+
+
+
+
+--------------------------------------------------------------------
+-- Haddock notes:
+--------------------------------------------------------------------
+
+The best way (that I've found) to get a decent introductory/explanatory
+section for the module is to break the explanation into named chunks,
+put the named chunks at the end, and reference them in the export list.
+
+You can write the introduction inline, as part of the module description,
+but Haddock has no way to make headings. If you make an explicit export-list,
+you can use the "-- *", "-- **", etc, syntax to give section headings.
+
+(Note: if you don't use an explicit export list, then Haddock will use "-- *" etc
+comments to make headings. The headings will appear in the docs in the the locations
+as they do in the source, as do functions, data types, etc.)
+
+ - An "empty line" (as mentioned subsequently in these notes) is actually a single space on a line.
+   This results in a "-- " line in the generated .hs file,
+   which continues the comment block from Haddock's point of view.
+ - The module comment must contain a empty line between "Portability: ..." and the description.
+ - bullet-lists:
+     - items must be preceded by an empty line.
+     - each list item must start with "*".
+ - code-sections:
+     - must be preceded by an empty line.
+     - use " >" rather than @...@, because "@" allows markup translation, where " >" doesn't.
+ - @inline code (monospaced font)@
+ - /emphasised text/
+ - link to "Another.Module".
+ - link to 'SomeType' in same module.
+ - link to 'Another.Module.SomeType'.
+ - <http:/www.haskell.org/haddock>

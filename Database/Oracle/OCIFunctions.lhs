@@ -421,16 +421,18 @@ You can have more than one session per connection, but I haven't implemented it 
 
 
 
-|defineByPos allocates memory for:
+|defineByPos allocates memory for a single column value.
+The allocated components are:
  
- * the result (you have to say how big with bufsize).
+ * the result (i.e. value) - you have to say how big with bufsize.
  
  * the null indicator (int16)
  
  * the size of the returned data (int16)
  
-It's the caller's responsibility to free the memory after they're done with it
-(by calling 'Foreign.Marshall.Alloc.free' on bufferptr, nullindptr, and retsizeptr).
+Previously it was the caller's responsibility to free the memory after they're done with it.
+Now we use 'Foreign.ForeignPtr.mallocForeignPtr', so manual memory management is hopefully
+a thing of the past.
 The caller will also have to cast the data in bufferptr to the expected type
 (using 'Foreign.Ptr.castPtr').
 

@@ -16,7 +16,8 @@ Performance tests. Currently just tests large result sets.
 
 > import Database.Oracle.Enumerator
 > import System.Environment (getArgs)
-
+> import Control.Monad
+> import System.Time
 
 
 2 ^ 16 = 65536
@@ -60,17 +61,40 @@ if you use the lazy version of result. Bummer.
 > --rowCounter _ i = result (1 + i)  -- lazy
 
 
+> prefetch1 = QueryResourceUsage 1
+> prefetch1000 = QueryResourceUsage 1000
+
 > selectLargeResultSet :: SessionQuery
 > selectLargeResultSet = do
->   r <- doQuery manyRows rowCounter 0
+>   ct1 <- liftIO getClockTime
+>   r <- doQueryTuned manyRows rowCounter 0 prefetch1000
+>   ct2 <- liftIO getClockTime
+>   liftIO $ putStr "largeResultSet:"
 >   liftIO $ putStrLn (show r)
+>   liftIO $ putStr "selectLargeResultSet timing: "
+>   liftIO $ putStrLn $ timeDiffToString $ diffClockTimes ct2 ct1
+
+> cursorHelper :: String -> QueryResourceUsage -> SessionQuery
+> cursorHelper msg resourceUsage = do
+>   withCursorBracketTuned manyRows rowCounter 0 resourceUsage $ \c -> do
+>     ct1 <- liftIO getClockTime
+>     replicateM_ 100000 (do _ <- cursorNext c; return())
+>     ct2 <- liftIO getClockTime
+>     liftIO $ putStr $ "cursorLargeResultSet " ++ msg ++ " timing: "
+>     liftIO $ putStrLn $ timeDiffToString $ diffClockTimes ct2 ct1
+
+> cursorLargeResultSet :: SessionQuery
+> cursorLargeResultSet = do
+>   cursorHelper "no-prefetch" prefetch1
+>   cursorHelper "prefetch-1000" prefetch1000
+
 
 
 > largeResultSet :: Session -> IO ()
 > largeResultSet sess = catchDB ( do
->     putStrLn "\nlargeResultSet:"
 >     runSession ( do
 >         selectLargeResultSet
+>         cursorLargeResultSet
 >       ) sess
 >   ) basicDBExceptionReporter
 
@@ -84,6 +108,7 @@ if you use the lazy version of result. Bummer.
 > runPerformanceTest = catchDB ( do
 >     [ user, pswd, dbname ] <- getArgs
 >     sess <- connect user pswd dbname
+>     putStrLn "-- Performance Tests"
 >     allTests sess
 >     disconnect sess
 >   ) basicDBExceptionReporter

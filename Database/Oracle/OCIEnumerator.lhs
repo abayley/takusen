@@ -23,6 +23,7 @@ Oracle OCI implementation of Database.Enumerator.
 > import Foreign.C
 > import Foreign.C.Types
 > import Foreign.Marshal
+> import Foreign.Marshal.Utils (with)
 > import Control.Monad
 > import Control.Monad.State
 > import Control.Exception (throwIO)
@@ -100,7 +101,10 @@ rather than ErrorHandle. Only used by getErr.
 >   , connHandle :: ConnHandle
 >   }
 
-> data Query = Query { stmtHandle :: StmtHandle }
+> data Query = Query
+>   { stmtHandle :: StmtHandle
+>   , queryResourceUsage :: QueryResourceUsage
+>   }
 
 
 Reports and ignores any errors when freeing handles.
@@ -239,8 +243,7 @@ there's no equivalent for ReadUncommitted.
 > setPrefetchCount session stmt count = do
 >   let err = errorHandle session
 >   catchOCI ( do
->       alloca $ \countPtr -> do
->         poke countPtr (OCI.mkCInt count)
+>       with count $ \countPtr -> do
 >         OCI.setHandleAttr err (castPtr stmt) oci_HTYPE_STMT countPtr oci_ATTR_PREFETCH_ROWS
 >     ) (\ociexc -> do
 >       convertAndRethrow err ociexc (closeStmt session stmt)
@@ -252,7 +255,7 @@ there's no equivalent for ReadUncommitted.
 >   let err = errorHandle session
 >   catchOCI ( do
 >       OCI.stmtPrepare err stmt sql
->       setPrefetchCount session stmt 1000
+>       --setPrefetchCount session stmt 1000
 >     ) (\ociexc -> do
 >       convertAndRethrow err ociexc (closeStmt session stmt)
 >     )
@@ -397,34 +400,68 @@ handleFree env
 -- ** Queries
 --------------------------------------------------------------------
 
+> defaultResourceUsage :: QueryResourceUsage
+> defaultResourceUsage = QueryResourceUsage 1
 
 
 > type OCIMonadQuery = ReaderT Query (ReaderT Session IO)
 
 > instance MonadQuery OCIMonadQuery (ReaderT Session IO) Query where
 >
->   makeQuery sqltext = do
->     sess <- getSession
->     stmt <- liftIO $ getStmt sess
->     liftIO $ prepare sess stmt sqltext
->     _ <- liftIO $ execute sess stmt 0
->     return $ Query stmt
->
->   getQuery = ask
->
 >   -- so, doQuery is essentially the result of applying lfold_nonrec_to_rec
 >   -- to doQuery1Maker
->   doQuery sqltext iteratee seedVal = do
->     (lFoldLeft, finalizer) <- doQuery1Maker sqltext iteratee
->     catchReaderT (fix lFoldLeft iteratee seedVal)
+>   doQuery sqltext iteratee seed =
+>     doQueryTuned sqltext iteratee seed defaultResourceUsage
+>
+>   doQueryTuned sqltext iteratee seed resourceUsage = do
+>     (lFoldLeft, finalizer) <- doQuery1Maker sqltext iteratee resourceUsage
+>     catchReaderT (fix lFoldLeft iteratee seed)
 >       (\e -> do
 >         finalizer
 >         liftIO $ throwIO e
 >       )
 >
->   doQuery1Maker sqltext iteratee = do
+>   openCursor sqltext iteratee seed =
+>     openCursorTuned sqltext iteratee seed defaultResourceUsage
+>
+>   -- This is like 
+>   -- lfold_nonrec_to_stream lfold' =
+>   -- from the fold-stream.lhs paper:
+>   openCursorTuned sqltext iteratee seed resourceUsage = do
+>     ref <- liftIO$ newIORef (seed, Nothing)
+>     (lFoldLeft, finalizer) <- doQuery1Maker sqltext iteratee resourceUsage
+>     let update v = liftIO $ modifyIORef ref (\ (_, f) -> (v, f))
+>     let
+>       close finalseed = do
+>         liftIO$ modifyIORef ref (\_ -> (finalseed, Nothing))
+>         finalizer
+>         return $ DBCursor ref
+>     let
+>       k' fni seed' = 
+>         let
+>           k fni' seed'' = do
+>             let k'' flag = if flag then k' fni' seed'' else close seed''
+>             liftIO$ modifyIORef ref (\_->(seed'', Just k''))
+>             return seed''
+>         in do
+>           liftIO$ modifyIORef ref (\_ -> (seed', Nothing))
+>           do {lFoldLeft k fni seed' >>= update}
+>           return $ DBCursor ref
+>     k' iteratee seed
+>
+>   getQuery = ask
+>
+>   makeQuery sqltext resourceUsage = do
 >     sess <- getSession
->     query <- makeQuery sqltext
+>     stmt <- liftIO $ getStmt sess
+>     liftIO $ prepare sess stmt sqltext
+>     liftIO $ setPrefetchCount sess stmt (prefetchRowCount resourceUsage)
+>     _ <- liftIO $ execute sess stmt 0
+>     return $ Query stmt resourceUsage
+>
+>   doQuery1Maker sqltext iteratee resourceUsage = do
+>     sess <- getSession
+>     query <- makeQuery sqltext resourceUsage
 >     let inQuery m = runReaderT m query
 >     buffers <- inQuery $ allocBuffers iteratee 1
 >     let
@@ -433,36 +470,12 @@ handleFree env
 >         runfetch inQuery finaliser buffers self iteratee seedVal
 >     return (hFoldLeft, inQuery finaliser)
 >
->   -- This is like 
->   -- lfold_nonrec_to_stream lfold' =
->   -- from the fold-stream.lhs paper:
->   openCursor sqltext iteratee seedVal = do
->     ref <- liftIO$ newIORef (seedVal,Nothing)
->     (lFoldLeft, finalizer) <- doQuery1Maker sqltext iteratee
->     let update v = liftIO $ modifyIORef ref (\ (_, f) -> (v, f))
->     let
->       close seed = do
->         liftIO$ modifyIORef ref (\_ -> (seed,Nothing))
->         finalizer
->         return $ DBCursor ref
->     let
->       k' fni seed = 
->         let
->           k fni seed = do
->             let k'' flag = if flag then k' fni seed else close seed
->             liftIO$ modifyIORef ref (\_->(seed, Just k''))
->             return seed
->         in do
->           liftIO$ modifyIORef ref (\_ -> (seed, Nothing))
->           do {lFoldLeft k fni seed >>= update}
->           return $ DBCursor ref
->     k' iteratee seedVal
->
 >   fetch1 = do
 >     query <- getQuery
 >     sess <- lift getSession
 >     rc <- liftIO $ fetchRow sess query
 >     if rc == oci_NO_DATA then return False else return True
+
 
 
 
@@ -560,7 +573,6 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 >     -- Given a column buffer, extract a string of variable length
 >     -- (you have to terminate it yourself).
 >     withForeignPtr (bufferFPtr buffer) $ \bufferPtr ->
->     withForeignPtr (nullIndFPtr buffer) $ \nullIndPtr ->
 >     withForeignPtr (retSizeFPtr buffer) $ \retSizePtr -> do
 >       retsize <- liftM cShort2Int (peek retSizePtr)
 >       pokeByteOff (castPtr bufferPtr) retsize nullByte
@@ -654,7 +666,7 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 >   fetchIntVal buffer = liftIO $ bufferToInt buffer
 >   fetchDoubleVal buffer = liftIO $ bufferToDouble buffer
 >   fetchDatetimeVal buffer = liftIO $ bufferToDatetime buffer
->   freeBuffer buffer = return ()
+>   freeBuffer _ = return ()
 
 
 > freeBuffers :: (MonadIO m, Buffer m a) => [a] -> m ()

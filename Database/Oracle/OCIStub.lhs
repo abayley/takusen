@@ -191,6 +191,9 @@ but you can't do any updates.
 > closeStmt :: Session -> StmtHandle -> IO ()
 > closeStmt session stmt = return ()
 
+> setPrefetchCount :: Session -> StmtHandle -> Int -> IO ()
+> setPrefetchCount session stmt count = return ()
+
 > prepare :: Session -> StmtHandle -> String -> IO ()
 > prepare session stmt sql = return ()
 
@@ -250,7 +253,7 @@ but you can't do any updates.
 See makeQuery below for use of this:
 
 > numberOfRowsToPretendToFetch :: Int
-> numberOfRowsToPretendToFetch = 10000
+> numberOfRowsToPretendToFetch = 10
 
 See fetchIntVal below for use of this:
 
@@ -258,36 +261,71 @@ See fetchIntVal below for use of this:
 > throwNullIntOnRow = 1
 
 
+> defaultResourceUsage :: QueryResourceUsage
+> defaultResourceUsage = QueryResourceUsage 100
+
 
 > type OCIMonadQuery = ReaderT Query (ReaderT Session IO)
 
 > instance MonadQuery OCIMonadQuery (ReaderT Session IO) Query where
 >
->   makeQuery sqltext = do
+>   -- so, doQuery is essentially the result of applying lfold_nonrec_to_rec
+>   -- to doQuery1Maker
+>   doQuery sqltext iteratee seed =
+>     doQueryTuned sqltext iteratee seed defaultResourceUsage
+>
+>   doQueryTuned sqltext iteratee seed resourceUsage = do
+>     (lFoldLeft, finalizer) <- doQuery1Maker sqltext iteratee resourceUsage
+>     catchReaderT (fix lFoldLeft iteratee seed)
+>       (\e -> do
+>         finalizer
+>         liftIO $ throwIO e
+>       )
+>
+>   openCursor sqltext iteratee seed =
+>     openCursorTuned sqltext iteratee seed defaultResourceUsage
+>
+>   -- This is like 
+>   -- lfold_nonrec_to_stream lfold' =
+>   -- from the fold-stream.lhs paper:
+>   openCursorTuned sqltext iteratee seed resourceUsage = do
+>     ref <- liftIO$ newIORef (seed,Nothing)
+>     (lFoldLeft, finalizer) <- doQuery1Maker sqltext iteratee resourceUsage
+>     let update v = liftIO $ modifyIORef ref (\ (_, f) -> (v, f))
+>     let
+>       close finalseed = do
+>         liftIO$ modifyIORef ref (\_ -> (finalseed, Nothing))
+>         finalizer
+>         return $ DBCursor ref
+>     let
+>       k' fni seed' = 
+>         let
+>           k fni' seed'' = do
+>             let k'' flag = if flag then k' fni' seed'' else close seed''
+>             liftIO$ modifyIORef ref (\_->(seed'', Just k''))
+>             return seed''
+>         in do
+>           liftIO$ modifyIORef ref (\_ -> (seed', Nothing))
+>           do {lFoldLeft k fni seed' >>= update}
+>           return $ DBCursor ref
+>     k' iteratee seed
+>
+>   getQuery = ask
+>
+>   makeQuery sqltext resourceUsage = do
 >     sess <- getSession
 >     stmt <- liftIO $ getStmt sess
 >     liftIO $ prepare sess stmt sqltext
+>     liftIO $ setPrefetchCount sess stmt (prefetchRowCount resourceUsage)
 >     _ <- liftIO $ execute sess stmt 0
 >     --return $ Query stmt
 >     -- Leave one counter in to ensure the fetch terminates
 >     counter <- liftIO $ newIORef numberOfRowsToPretendToFetch >>= newIORef
 >     return $ Query stmt counter
 >
->   getQuery = ask
->
->   -- so, doQuery is essentially the result of applying lfold_nonrec_to_rec
->   -- to doQuery1Maker
->   doQuery sqltext iteratee seedVal = do
->     (lFoldLeft, finalizer) <- doQuery1Maker sqltext iteratee
->     catchReaderT (fix lFoldLeft iteratee seedVal)
->       (\e -> do
->         finalizer
->         liftIO $ throwIO e
->       )
->
->   doQuery1Maker sqltext iteratee = do
+>   doQuery1Maker sqltext iteratee resourceUsage = do
 >     sess <- getSession
->     query <- makeQuery sqltext
+>     query <- makeQuery sqltext resourceUsage
 >     let inQuery m = runReaderT m query
 >     buffers <- inQuery $ allocBuffers iteratee 1
 >     let
@@ -297,31 +335,6 @@ See fetchIntVal below for use of this:
 >       hFoldLeft self iteratee seedVal = 
 >         runfetch inQuery finaliser buffers self iteratee seedVal
 >     return (hFoldLeft, inQuery finaliser)
->
->   -- This is like 
->   -- lfold_nonrec_to_stream lfold' =
->   -- from the fold-stream.lhs paper:
->   openCursor sqltext iteratee seedVal = do
->     ref <- liftIO$ newIORef (seedVal,Nothing)
->     (lFoldLeft, finalizer) <- doQuery1Maker sqltext iteratee
->     let update v = liftIO $ modifyIORef ref (\ (_, f) -> (v, f))
->     let
->       close seed = do
->         liftIO$ modifyIORef ref (\_ -> (seed,Nothing))
->         finalizer
->         return $ DBCursor ref
->     let
->       k' fni seed = 
->         let
->           k fni seed = do
->             let k'' flag = if flag then k' fni seed else close seed
->             liftIO$ modifyIORef ref (\_->(seed,Just k''))
->             return seed
->         in do
->           liftIO$ modifyIORef ref (\_ -> (seed,Nothing))
->           do {lFoldLeft k fni seed >>= update}
->           return $ DBCursor ref
->     k' iteratee seedVal
 >
 >   fetch1 = do
 >     query <- getQuery
