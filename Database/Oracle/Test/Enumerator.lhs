@@ -1,6 +1,6 @@
 
 |
-Module      :  Database.Test.SimpleEnumeratorTest
+Module      :  Database.Oracle.Test.Enumerator
 Copyright   :  (c) 2004 Oleg Kiselyov, Alistair Bayley
 License     :  BSD-style
 Maintainer  :  oleg@pobox.com, alistair@abayley.org
@@ -11,10 +11,9 @@ Simple test harness. Would like to write proper HUnit or Quickcheck tests in fut
  
 Demonstrates possible usage.
 
-
 > {-# OPTIONS -fglasgow-exts -fallow-overlapping-instances #-}
 
-> module Database.Test.SimpleEnumeratorTest (runSimpleTest) where
+> module Database.Oracle.Test.Enumerator (runTest) where
 
 > import Database.Oracle.Enumerator
 > import System.Environment (getArgs)
@@ -45,7 +44,7 @@ Demonstrates possible usage.
 
 
 --------------------------------------------------------------------
--- test
+-- ** Select tests
 --------------------------------------------------------------------
 
 An auxiliary, convenient function, to be used if the body
@@ -222,6 +221,40 @@ is unit.
 >     iter :: (Monad m) => Int -> IterAct m [Int]
 >     iter c1 acc = result $ c1:acc
 
+> selectTests :: Session -> IO ()
+> selectTests sess = catchDB ( do
+>     putStrLn "\nselectTests:"
+>     runSession ( do
+>         selectS0
+>         selectS01
+>         selectS1
+>         selectF1I1
+>         selectS3
+>         selectS2I1
+>         selectD1
+>         selectD2
+>         selectCursor
+>       ) sess
+>   ) basicDBExceptionReporter
+
+
+> selectNullTest :: Session -> IO ()
+> selectNullTest sess = catchDB ( do
+>     putStrLn "\nselectNullTest:"
+>     runSession selectNull sess
+>   ) basicDBExceptionReporter
+
+
+> selectExhaustCursorTest :: Session -> IO ()
+> selectExhaustCursorTest sess = catchDB ( do
+>     putStrLn "\nselectExhaustCursorTest:"
+>     runSession selectExhaustCursor sess
+>   ) basicDBExceptionReporter
+
+
+--------------------------------------------------------------------
+-- ** Insert, update tests
+--------------------------------------------------------------------
 
 955 - object exists with same name
 
@@ -254,36 +287,6 @@ is unit.
 >   liftIO $ putStrLn $ "rows updated: " ++ (show rows)
 
 
-
-> selectTests :: Session -> IO ()
-> selectTests sess = catchDB ( do
->     putStrLn "\nselectTests:"
->     runSession ( do
->         selectS0
->         selectS01
->         selectS1
->         selectF1I1
->         selectS3
->         selectS2I1
->         selectD1
->         selectD2
->         selectCursor
->       ) sess
->   ) basicDBExceptionReporter
-
-
-> selectNullTest :: Session -> IO ()
-> selectNullTest sess = catchDB ( do
->     putStrLn "\nselectNullTest:"
->     runSession selectNull sess
->   ) basicDBExceptionReporter
-
-
-> selectExhaustCursorTest :: Session -> IO ()
-> selectExhaustCursorTest sess = catchDB ( do
->     putStrLn "\nselectExhaustCursorTest:"
->     runSession selectExhaustCursor sess
->   ) basicDBExceptionReporter
 
 
 > executeDDLTest :: Session -> IO ()
@@ -324,8 +327,8 @@ is unit.
 >   connect user pswd dbname
 
 
-> runSimpleTest :: IO ()
-> runSimpleTest = catchDB ( do
+> runTest :: IO ()
+> runTest = catchDB ( do
 >     sess <- argLogon
 >     allTests sess
 >     disconnect sess

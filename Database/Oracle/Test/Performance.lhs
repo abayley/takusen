@@ -1,6 +1,6 @@
 
 |
-Module      :  Database.Test.PerformanceTest
+Module      :  Database.Oracle.Test.Performance
 Copyright   :  (c) 2004 Oleg Kiselyov, Alistair Bayley
 License     :  BSD-style
 Maintainer  :  oleg@pobox.com, alistair@abayley.org
@@ -12,7 +12,7 @@ Performance tests. Currently just tests large result sets.
 
 > {-# OPTIONS -fglasgow-exts -fallow-overlapping-instances #-}
 
-> module Database.Test.PerformanceTest (runPerformanceTest) where
+> module Database.Oracle.Test.Performance (runTest) where
 
 > import Database.Oracle.Enumerator
 > import System.Environment (getArgs)
@@ -104,8 +104,8 @@ if you use the lazy version of result. Bummer.
 >   largeResultSet sess
 
 
-> runPerformanceTest :: IO ()
-> runPerformanceTest = catchDB ( do
+> runTest :: IO ()
+> runTest = catchDB ( do
 >     [ user, pswd, dbname ] <- getArgs
 >     sess <- connect user pswd dbname
 >     putStrLn "-- Performance Tests"
