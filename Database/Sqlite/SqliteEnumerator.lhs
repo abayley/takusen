@@ -118,44 +118,7 @@ because they never throw exceptions.
 
 > instance MonadQuery SqliteMonadQuery (ReaderT Session IO) Query ColumnBuffer where
 >
->   -- so, doQuery is essentially the result of applying lfold_nonrec_to_rec
->   -- to doQuery1Maker
->   doQuery = doQueryTuned defaultResourceUsage
->
->   doQueryTuned resourceUsage sqltext iteratee seed = do
->     (lFoldLeft, finalizer) <- doQuery1Maker sqltext iteratee resourceUsage
->     catchReaderT (fix lFoldLeft iteratee seed)
->       (\e -> do
->         finalizer
->         liftIO $ throwIO e
->       )
->
->   openCursor = openCursorTuned defaultResourceUsage
->
->   -- This is like 
->   -- lfold_nonrec_to_stream lfold' =
->   -- from the fold-stream.lhs paper:
->   openCursorTuned resourceUsage sqltext iteratee seed = do
->     ref <- liftIO$ newIORef (seed, Nothing)
->     (lFoldLeft, finalizer) <- doQuery1Maker sqltext iteratee resourceUsage
->     let update v = liftIO $ modifyIORef ref (\ (_, f) -> (v, f))
->     let
->       close finalseed = do
->         liftIO$ modifyIORef ref (\_ -> (finalseed, Nothing))
->         finalizer
->         return $ DBCursor ref
->     let
->       k' fni seed' = 
->         let
->           k fni' seed'' = do
->             let k'' flag = if flag then k' fni' seed'' else close seed''
->             liftIO$ modifyIORef ref (\_->(seed'', Just k''))
->             return seed''
->         in do
->           liftIO$ modifyIORef ref (\_ -> (seed', Nothing))
->           do {lFoldLeft k fni seed' >>= update}
->           return $ DBCursor ref
->     k' iteratee seed
+>   runQuery m query = runReaderT m query
 >
 >   getQuery = ask
 >
@@ -164,22 +127,16 @@ because they never throw exceptions.
 >     stmt <- liftIO $ prepareStmt (dbHandle sess) sqltext
 >     return $ Query stmt resourceUsage
 >
->   doQuery1Maker sqltext iteratee resourceUsage = do
+>   destroyQuery query = do
 >     sess <- getSession
->     query <- makeQuery sqltext resourceUsage
->     let inQuery m = runReaderT m query
->     buffers <- inQuery $ allocBuffers iteratee 1
->     let
->       finaliser = liftIO $ finaliseStmt (dbHandle sess) (stmtHandle query)
->       hFoldLeft self iteratee seedVal = 
->         runfetch inQuery finaliser buffers self iteratee seedVal
->     return (hFoldLeft, inQuery finaliser)
+>     liftIO $ finaliseStmt (dbHandle sess) (stmtHandle query)
 >
->   fetch1 = do
+>   fetch1Row = do
 >     query <- getQuery
 >     sess <- lift getSession
 >     rc <- liftIO $ fetchRow (dbHandle sess) (stmtHandle query)
->     if rc == DBAPI.sqliteDONE then return False else return True
+>     --if rc == DBAPI.sqliteDONE then return False else return True
+>     return (not (rc == DBAPI.sqliteDONE))
 >
 >   allocBuffer _ colpos = do
 >     q <- getQuery
@@ -257,6 +214,14 @@ as we need it to get column values.
 
 
 
+This single polymorphic instance replaces all of the type-specific non-Maybe instances
+e.g. String, Int, Double, etc.
+
+> instance DBType (Maybe a) SqliteMonadQuery ColumnBuffer
+>     => DBType a SqliteMonadQuery ColumnBuffer where
+>   allocBufferFor _ = allocBufferFor (undefined::Maybe a)
+>   fetchCol buffer = throwIfDBNull buffer fetchCol
+
 
 > instance DBType (Maybe String) SqliteMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer undefined n
@@ -285,12 +250,3 @@ and uses Read to convert the String to a Haskell data value.
 >     case v of
 >       Just s -> return (Just (read s))
 >       Nothing -> return Nothing
-
-
-This single polymorphic instance replaces all of the type-specific non-Maybe instances
-e.g. String, Int, Double, etc.
-
-> instance DBType (Maybe a) SqliteMonadQuery ColumnBuffer
->     => DBType a SqliteMonadQuery ColumnBuffer where
->   allocBufferFor _ = allocBufferFor (undefined::Maybe a)
->   fetchCol buffer = throwIfDBNull buffer fetchCol

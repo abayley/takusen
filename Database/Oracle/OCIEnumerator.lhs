@@ -390,44 +390,7 @@ there's no equivalent for ReadUncommitted.
 
 > instance MonadQuery OCIMonadQuery (ReaderT Session IO) Query ColumnBuffer where
 >
->   -- so, doQuery is essentially the result of applying lfold_nonrec_to_rec
->   -- to doQuery1Maker
->   doQuery = doQueryTuned defaultResourceUsage
->
->   doQueryTuned resourceUsage sqltext iteratee seed = do
->     (lFoldLeft, finalizer) <- doQuery1Maker sqltext iteratee resourceUsage
->     catchReaderT (fix lFoldLeft iteratee seed)
->       (\e -> do
->         finalizer
->         liftIO $ throwIO e
->       )
->
->   openCursor = openCursorTuned defaultResourceUsage
->
->   -- This is like 
->   -- lfold_nonrec_to_stream lfold' =
->   -- from the fold-stream.lhs paper:
->   openCursorTuned resourceUsage sqltext iteratee seed = do
->     ref <- liftIO$ newIORef (seed, Nothing)
->     (lFoldLeft, finalizer) <- doQuery1Maker sqltext iteratee resourceUsage
->     let update v = liftIO $ modifyIORef ref (\ (_, f) -> (v, f))
->     let
->       close finalseed = do
->         liftIO$ modifyIORef ref (\_ -> (finalseed, Nothing))
->         finalizer
->         return $ DBCursor ref
->     let
->       k' fni seed' = 
->         let
->           k fni' seed'' = do
->             let k'' flag = if flag then k' fni' seed'' else close seed''
->             liftIO$ modifyIORef ref (\_->(seed'', Just k''))
->             return seed''
->         in do
->           liftIO$ modifyIORef ref (\_ -> (seed', Nothing))
->           do {lFoldLeft k fni seed' >>= update}
->           return $ DBCursor ref
->     k' iteratee seed
+>   runQuery m query = runReaderT m query
 >
 >   getQuery = ask
 >
@@ -439,22 +402,16 @@ there's no equivalent for ReadUncommitted.
 >     _ <- liftIO $ execute sess stmt 0
 >     return $ Query stmt resourceUsage
 >
->   doQuery1Maker sqltext iteratee resourceUsage = do
+>   destroyQuery query = do
 >     sess <- getSession
->     query <- makeQuery sqltext resourceUsage
->     let inQuery m = runReaderT m query
->     buffers <- inQuery $ allocBuffers iteratee 1
->     let
->       finaliser = liftIO $ closeStmt sess (stmtHandle query)
->       hFoldLeft self iteratee seedVal = 
->         runfetch inQuery finaliser buffers self iteratee seedVal
->     return (hFoldLeft, inQuery finaliser)
+>     liftIO $ closeStmt sess (stmtHandle query)
 >
->   fetch1 = do
+>   fetch1Row = do
 >     query <- getQuery
 >     sess <- lift getSession
 >     rc <- liftIO $ fetchRow sess query
->     if rc == oci_NO_DATA then return False else return True
+>     --if rc == oci_NO_DATA then return False else return True
+>     return (not (rc == oci_NO_DATA))
 >
 >   allocBuffer (bufsize, buftype) colpos = do
 >     let ociBufferType = dbColumnTypeToCInt buftype
