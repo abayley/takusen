@@ -1,4 +1,4 @@
-s
+
 |
 Module      :  Database.Sqlite.Test.Enumerator
 Copyright   :  (c) 2004 Oleg Kiselyov, Alistair Bayley
@@ -275,7 +275,7 @@ The seed is unit.
 > createTable :: Session -> IO ()
 > createTable sess = catchDB ( do
 >     runSession (
->         executeDDL "create table agbtest (id integer, v varchar(10))"
+>         executeDDL "create table agbtest (id integer, v varchar(1000))"
 >       ) sess
 >   ) basicDBExceptionReporter
 
@@ -370,7 +370,6 @@ The seed is unit.
 >     selectNullTest sess
 >     selectExhaustCursorTest sess
 >     polymorphicFetchTest sess
->     return ()
 
 
 > argLogon :: IO Session
