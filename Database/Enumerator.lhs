@@ -91,9 +91,10 @@ Additional reading:
 > import Control.Monad.Reader
 
 
-|See "Database.Oracle.OCIEnumerator" for instructions on adding new types.
-You need to modify both this module and Database.Oracle.OCIEnumerator,
-so I put the instructions in there.
+|If you add a new type here, you must add an 'DBType' instance for it
+to each of the implementation modules
+e.g. "Database.Oracle.OCIEnumerator"
+, "Database.Sqlite.SqliteEnumerator"
 
 > data DBColumnType =
 >     DBTypeInt
@@ -185,16 +186,16 @@ We need these because 'Control.Exception.catch' is in the IO monad, but /not/ Mo
 -- ** Session monad
 --------------------------------------------------------------------
 
-The MonadSession class describes a database session to a particular
-database.  Oracle has its own Session object, SQLite has its own
+|The MonadSession class describes a database session to a particular
+DBMS.  Oracle has its own Session object, SQLite has its own
 session object (which maintains the connection handle to the database
 engine and other related stuff). Session objects for different databases
 normally have different types -- yet they all belong to the class MonadSession
 so we can do generic operations like `commit', `executeDDL', etc. 
 in a database-independent manner.
-
-Session objects per se are created by database connection/login functions.
-
+ 
+Session objects per se are created by database connection\/login functions.
+ 
 The class MonadSession is thus an interface between low-level (and
 database-specific) code and the high-level, database-independent code.
 The methods of the class MonadSession are visible (and highly useful)
@@ -219,7 +220,7 @@ to the user. They are also used internally.
 -- ** Buffers and QueryIteratee
 --------------------------------------------------------------------
 
-A `buffer' means a column buffer: a data structure that points to a
+|A \'buffer\' means a column buffer: a data structure that points to a
 block of memory allocated for the values of one particular
 column. Since a query normally fetches a row of several columns, we
 typically deal with a list of column buffers. Although the column data
@@ -227,32 +228,24 @@ are typed (e.g., Integer, CalendarDate, etc), column buffers hide that
 type. Think of the column buffer as Dynamics. The class DBType below
 describes marshalling functions, to fetch a typed value out of the
 `untyped' columnBuffer.
-
-Different databases (that is, different session objects) have, in
+ 
+Different DBMS's (that is, different session objects) have, in
 general, columnBuffers of different types: the type of Column Buffer
 is specific to a database. So, MonadSession uniquely determines the
 bufferType.
-
-The class DBType is not used by the end-user. It is used to tie up
-low-level database access and the enumerator.  A database-specific
-library must provide a set of instances for DBType.
-
-
-|A class of data-types that can be marshalled to-and-from the DBMS.
-This is parameterised over the buffer type too.
+ 
+The class DBType is not used by the end-user.
+It is used to tie up low-level database access and the enumerator.
+A database-specific library must provide a set of instances for DBType.
 
 > class DBType a m bufferType | m -> bufferType where
 >   allocBufferFor :: a -> Position -> m bufferType
 >   fetchCol :: bufferType -> m a
 
 
-The class QueryIteratee is not for the end user. It provides the
+|The class QueryIteratee is not for the end user. It provides the
 interface between the low- and the middle-layers of Takusen. The
 middle-layer -- enumerator -- is database-independent then.
-
-|Define the Iteratee interface as a class.
-The implementations (instances) are below,
-as they're not DBMS specific.
 
 > class (MonadIO m) => 
 >       QueryIteratee m iterType seedType bufferType |
@@ -318,16 +311,14 @@ and the cursor has already been closed.
  
 > newtype DBCursor ms a = DBCursor (IORef (a, Maybe (Bool-> ms (DBCursor ms a))))
 
-The class MonadQuery describes the class of query objects. Each
+
+|The class MonadQuery describes the class of query objects. Each
 database (that is, each Session object) has its own Query object. The
 class MonadQuery implements the database-independent interface to
 query object. The class provides the interface between low-level layer
-and the middle layer (enumerators) of teh Takusen. An implementor of a
-database-specific layer must provide an instance of MonadQuery. The
-class MonadQuery is not visible and usable by the end-user.
-
-
-
+and the middle layer (enumerators) of Takusen. An implementor of a
+database-specific layer must provide an instance of MonadQuery.
+The class MonadQuery is not visible and usable by the end-user.
 
 > class (MonadIO ms) => MonadQuery m ms q bufferType | 
 >                                  m -> ms, ms -> q, ms -> m, ms -> bufferType
@@ -348,14 +339,6 @@ end user.
 
 |Uses default resource usage settings, which are implementation dependent.
 (For the Oracle OCI, we only cache one row.)
-
-> {-
-> doQuery ::
->     (MonadQuery m ms q bufferType,
->      QueryIteratee m iterType seedType bufferType) =>
->     QueryText -> iterType -> seedType -> ms seedType
-> -}
-
 The argument x here is just to avoid the monomorphism restriction.
 
 > doQuery x = doQueryTuned defaultResourceUsage x
@@ -365,24 +348,9 @@ The argument x here is just to avoid the monomorphism restriction.
 rows are fetched.
 At the moment we only support specifying the numbers of rows prefetched 
 (cached).
+doQuery is essentially the result of applying lfold_nonrec_to_rec
+to doQueryMaker.
 
-So, doQuery is essentially the result of applying lfold_nonrec_to_rec
-to doQueryMaker
-
-> {-
-> doQueryTuned ::
->     (MonadQuery m ms q bufferType,
->      QueryIteratee m iterType seedType bufferType) =>
->     QueryResourceUsage -> QueryText -> iterType -> seedType -> ms seedType
-> -}
-> {-
-> doQueryTuned:: 
->     (MonadQuery m (ReaderT r IO) q bufferType,
->      QueryIteratee m iterType seedType bufferType,
->      MonadSession (ReaderT r IO) IO s) =>
->    QueryResourceUsage ->
->    QueryText -> iterType -> seedType -> ReaderT r IO seedType
-> -}
 > doQueryTuned resourceUsage sqltext iteratee seed = do
 >     (lFoldLeft, finalizer) <- doQueryMaker sqltext iteratee resourceUsage
 >     catchReaderT (fix lFoldLeft iteratee seed)
@@ -391,7 +359,7 @@ to doQueryMaker
 >         liftIO $ throwIO e
 >       )
 
-This is the auxiliary function.
+|This is the auxiliary function.
 
 > doQueryMaker sqltext (iteratee::iteratee) resourceUsage = do
 >     sess <- getSession
@@ -400,61 +368,31 @@ This is the auxiliary function.
 >     buffers <- inQuery $ allocBuffers iteratee 1
 >     let
 >       finaliser = do
->	  inQuery $ mapM_ freeBuffer buffers
->	  destroyQuery query
+>         inQuery $ mapM_ freeBuffer buffers
+>         destroyQuery query
 >       hFoldLeft self (iteratee::iteratee) initialSeed = do
->        let
+>         let
 >           handle seed True = (inQuery (iterApply buffers seed iteratee)) 
->		               >>= handleIter
->	    handle seed False = (finaliser) >> return seed
+>             >>= handleIter
+>           handle seed False = (finaliser) >> return seed
 >           handleIter (Right seed) = self iteratee seed
 >           handleIter (Left seed) = (finaliser) >> return seed
->        (inQuery fetch1Row) >>= handle initialSeed
+>         (inQuery fetch1Row) >>= handle initialSeed
 >     return (hFoldLeft, finaliser)
 
-Another auxiliary function, an implementation of the middle-layer
-interface.
-
-|Polymorphic over m.
-Not needed by library user but moved into this module because it doesn't
-depend on any DBMS implementation details.
-
-> {-
-> runfetch ::
->   ( Monad m
->   , MonadIO (t m)
->   , MonadQuery (t m) ms q bufferType
->   , QueryIteratee (t m) iterType seedType bufferType
->   , MonadTrans t
->   ) =>
->      (forall a. t m a -> m a) -- ^ into query
->   ->   t m a  -- ^ finaliser
->   -> [bufferType]  -- ^ list of buffers
->   -> (iterType -> seedType -> m seedType)  -- ^ self i.e. function taking iteratee and seed, returning same type as seed
->   -> iterType  -- ^ iteratee
->   -> seedType  -- ^ seed value
->   -> m seedType  -- ^ return value same type as seed
-> runfetch down finalizers buffers self iteratee initialSeed = do
->   let
->     handle seed True = (down (iterApply buffers seed iteratee)) >>= handleIter
->     handle seed False = (down finalizers) >> return seed
->     handleIter (Right seed) = self iteratee seed
->     handleIter (Left seed) = (down finalizers) >> return seed
->   (down fetch1Row) >>= handle initialSeed
-> -}
 
 
-Cursor stuff. First, a few auziliary functions (not seen by the user)
+Cursor stuff. First, a few auxiliary functions (not seen by the user)
 
-Open a cursor with default resource usage settings.
+|Open a cursor with default resource usage settings.
 The argument x here is just to avoid the monomorphism restriction.
+This function is not exposed; use withCursorBracket instead.
 
 > openCursor x = openCursorTuned defaultResourceUsage x
 
 |Version which lets you tune resource usage.
-
-This is like lfold_nonrec_to_stream lfold' =
-from the fold-stream.lhs paper:
+This is like lfold_nonrec_to_stream lfold'
+from the fold-stream.lhs paper.
 
 > openCursorTuned resourceUsage sqltext iteratee seed = do
 >     ref <- liftIO$ newIORef (seed,Nothing)
@@ -480,34 +418,17 @@ from the fold-stream.lhs paper:
 
 
 
-|Returns True or False. Cursors are automatically closed and freed when:
+|cursorIsEOF returns True or False.
+Cursors are automatically closed and freed when:
  
  * the iteratee returns @Left a@
  
  * the query result-set is exhausted.
 
-|The only situations in which the user-programmer
-must explicitly close the cursor are:
- 
- * when they want to terminate the fetch early
-   i.e. before the collection is exhausted and before the iteratee returns @Left@
- 
- * when an exception (any sort of exception) is raised. For example:
- 
- >  c <- openCursor query iteratee []
- >  catchReaderT
- >    ( do
- >      <do stuff with the cursor ...>
- >      _ <- cursorClose c
- >      return something
- >    ) ( e\ -> do
- >      _ <- cursorClose c
- >      liftIO $ throwIO e
- >    )
-
 |To make life easier, we've created a 'withCursorBracket' function,
-which is exactly the code above.
-You can nest them to get the interleaving you desire:
+which will clean up if an error (exception) occurs,
+or the code exits early.
+You can nest them to interleaving, if you desire:
  
  >  withCursorBracket query1 iter1 [] $ \c1 -> do
  >    withCursorBracket query2 iter2 [] $ \c2 -> do
@@ -553,25 +474,37 @@ You can nest them to get the interleaving you desire:
 >     Just f -> f False
 
 
-| Ensures cursor resource is properly tidied up in exceptional cases.
+|Ensures cursor resource is properly tidied up in exceptional cases.
 Propagates exceptions after closing cursor.
-The argument x here is just to avoid the monomorphism restriction.
 
+> withCursorBracket ::
+>  ( MonadQuery m (ReaderT r IO) q bufferType
+>  , MonadSession (ReaderT r IO) mb s
+>  , QueryIteratee m iterType seedType bufferType
+>  ) =>
+>   QueryText  -- ^ query string
+>   -> iterType  -- ^ iteratee function
+>   -> seedType  -- ^ seed value
+>   -> (DBCursor (ReaderT r IO) seedType -> ReaderT r IO a)  -- ^ action that takes a cursor
+>   -> ReaderT r IO a
+>
+> -- The argument x here is just to avoid the monomorphism restriction.
 > withCursorBracket x = withCursorBracketTuned defaultResourceUsage x
 
 
-| Version which lets you tune resource usage.
+|Version which lets you tune resource usage.
 
-> {-
-> withCursorBracketTuned :: (MonadQuery m (ReaderT r IO) q bufferType,
->		             QueryIteratee m iterType seedType bufferType) =>
+> withCursorBracketTuned ::
+>  ( MonadQuery m (ReaderT r IO) q bufferType
+>  , MonadSession (ReaderT r IO) mb s
+>  , QueryIteratee m iterType seedType bufferType
+>  ) =>
 >   QueryResourceUsage  -- ^ resource usage tuning
 >   -> QueryText  -- ^ query string
 >   -> iterType  -- ^ iteratee function
 >   -> seedType  -- ^ seed value
 >   -> (DBCursor (ReaderT r IO) seedType -> ReaderT r IO a)  -- ^ action that takes a cursor
 >   -> ReaderT r IO a
-> -}
 >
 > withCursorBracketTuned query iteratee seed resourceUsage action = do
 >   cursor <- openCursorTuned query iteratee seed resourceUsage
@@ -585,10 +518,15 @@ The argument x here is just to avoid the monomorphism restriction.
 >     )
 
 
-> {-
-> withTransaction :: (MonadSession (ReaderT r IO) mb s, MonadIO (ReaderT r IO)) =>
+|Perform an action as a transaction: commit afterwards,
+unless there was an exception, in which case rollback.
+
+> withTransaction ::
+>   ( MonadSession (ReaderT r IO) mb s, MonadIO (ReaderT r IO)
+>   , MonadIO (ReaderT r IO)
+>   ) =>
 >   IsolationLevel -> ReaderT r IO a -> ReaderT r IO a
-> -}
+>
 > withTransaction isolation action = do
 >     commit
 >     beginTransaction isolation
@@ -600,7 +538,7 @@ The argument x here is just to avoid the monomorphism restriction.
 >         rollback
 >         liftIO $ throwIO e
 >       )
->
+
 
 --------------------------------------------------------------------
 -- ** Misc.
