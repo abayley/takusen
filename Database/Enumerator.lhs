@@ -69,6 +69,7 @@ Additional reading:
 >     -- Again, do we need to export class function sigs, when we already export the class?
 >     --, doQuery, doQueryTuned, openCursor, setPrefetchRowCount
 >     --, getQuery, makeQuery, doQuery1Maker, fetch1
+>     , defaultResourceUsage
 >     , cursorIsEOF, cursorCurrent, cursorNext, cursorClose
 >     , withCursorBracket, withCursorBracketTuned
 >
@@ -268,6 +269,10 @@ We use a record to make it easy to add other tuning parameters later.
 
 > data QueryResourceUsage = QueryResourceUsage { prefetchRowCount :: Int }
 
+> defaultResourceUsage :: QueryResourceUsage
+> defaultResourceUsage = QueryResourceUsage 1
+
+
 
 > type CollEnumerator iter m seed = iter -> seed -> m seed
 > type Self           iter m seed = iter -> seed -> m seed
@@ -292,7 +297,7 @@ and the cursor has already been closed.
 >   -- At the moment we only support specifying the numbers of rows prefetched (cached).
 >   doQueryTuned ::
 >     (QueryIteratee m iterType seedType) =>
->     QueryText -> iterType -> seedType -> QueryResourceUsage -> ms seedType
+>     QueryResourceUsage -> QueryText -> iterType -> seedType -> ms seedType
 >   -- |Open a cursor with default resource usage settings.
 >   openCursor :: 
 >     (QueryIteratee m iterType seedType) =>
@@ -300,7 +305,7 @@ and the cursor has already been closed.
 >   -- |Version which lets you tune resource usage.
 >   openCursorTuned :: 
 >     (QueryIteratee m iterType seedType) =>
->     QueryText -> iterType -> seedType -> QueryResourceUsage -> ms (DBCursor ms seedType)
+>     QueryResourceUsage -> QueryText -> iterType -> seedType -> ms (DBCursor ms seedType)
 >   -- the following aren't really part of the interface the user employs
 >   getQuery:: m q
 >   makeQuery:: QueryText -> QueryResourceUsage -> ms q
@@ -320,7 +325,7 @@ and the cursor has already been closed.
 must explicitly close the cursor are:
  
  * when they want to terminate the fetch early
-   i.e. before the collection is exhuasted and before the iteratee returns @Left@
+   i.e. before the collection is exhausted and before the iteratee returns @Left@
  
  * when an exception (any sort of exception) is raised. For example:
  
@@ -392,25 +397,16 @@ Propagates exceptions after closing cursor.
 >   -> seedType  -- ^ seed value
 >   -> (DBCursor (ReaderT r IO) seedType -> ReaderT r IO a)  -- ^ action that takes a cursor
 >   -> ReaderT r IO a
-> withCursorBracket query iteratee seed action = do
->   cursor <- openCursor query iteratee seed
->   catchReaderT ( do
->       v <- action cursor
->       _ <- cursorClose cursor
->       return v
->     ) (\e -> do
->       _ <- cursorClose cursor
->       liftIO $ throwIO e
->     )
+> withCursorBracket = withCursorBracketTuned defaultResourceUsage
 
 
 | Version which lets you tune resource usage.
 
 > withCursorBracketTuned :: (MonadQuery m (ReaderT r IO) q, QueryIteratee m iterType seedType) =>
->   QueryText  -- ^ query string
+>   QueryResourceUsage  -- ^ resource usage tuning
+>   -> QueryText  -- ^ query string
 >   -> iterType  -- ^ iteratee function
 >   -> seedType  -- ^ seed value
->   -> QueryResourceUsage  -- ^ resource usage tuning
 >   -> (DBCursor (ReaderT r IO) seedType -> ReaderT r IO a)  -- ^ action that takes a cursor
 >   -> ReaderT r IO a
 > withCursorBracketTuned query iteratee seed resourceUsage action = do
@@ -496,7 +492,11 @@ Note that you should probably nearly always use the strict version.
 |A strict version. This is recommended unless you have a specific need for laziness,
 as the lazy version will gobble stack and heap.
 If you have a large result-set (in the order of 10-100K rows or more),
-it will exhaust the standard 1M GHC stack.
+it is likely to exhaust the standard 1M GHC stack.
+Whether or not 'result' eats memory depends on what @x@ does:
+if it's a delayed computation then it almost certainly will.
+This includes consing elements onto a list,
+and arithmetic operations (counting, summing, etc).
 
 > result' :: (Monad m) => IterAct m a
 > result' x = return (Right $! x)
@@ -511,7 +511,7 @@ it will exhaust the standard 1M GHC stack.
 
 
 
- 
+
 --------------------------------------------------------------------
 -- Usage notes
 --------------------------------------------------------------------
@@ -531,10 +531,12 @@ from this module. Then:
  > query1Iteratee :: (Monad m) => Int -> String -> Double -> IterAct m [(Int, String, Double)]
  > query1Iteratee a b c accum = result' $ (a, b, c):accum
  >
+ > -- simple query, returning reversed list of rows.
  > query1 :: SessionQuery
  > query1 = do
- >   doQuery "select a, b, c from x" iteratee []
+ >   doQuery "select a, b, c from x" query1Iteratee []
  >
+ > -- non-query actions. Use runSession to execute.
  > otherActions :: Session -> IO ()
  > otherActions session = do
  >   runSession ( do
@@ -546,7 +548,9 @@ from this module. Then:
  > main :: IO ()
  > main = do
  >   session <- connect "user" "password" "server"
- >   runSession query1 session
+ >   -- use runSession to execute query (it has type SessionQuery)
+ >   r <- runSession query1 session
+ >   putStrLn $ show r
  >   otherActions session
  >   disconnect session
  
@@ -577,13 +581,13 @@ If the value is @Right@, then the query will continue, with the next row
 begin fed to the iteratee function, along with the new accumulator\/seed.
  
 In the example above, @query1Iteratee@ simply conses the new row (as a tuple)
-to the front of the accumulator. The initial seed passed to doQuery was an empty list.
+to the front of the accumulator. The initial seed passed to @doQuery@ was an empty list.
 Consing the rows to the front of the list results in a list that is the result set
 with the rows in reverse order.
  
 The iteratee function exists in the 'MonadQuery' monad,
 so if you want to do IO in it you must use 'Control.Monad.Trans.liftIO'
-( @liftIO $ putStrLn "boo"@ ) to lift the IO action into 'MonadQuery'.
+(e.g. @liftIO $ putStrLn \"boo\"@ ) to lift the IO action into 'MonadQuery'.
  
 The iteratee function is not restricted to just constructing lists.
 For example, a simple counter function would ignore its arguments,
@@ -615,6 +619,8 @@ We have lazy and strict versions of @result@. The strict version is almost certa
 the one you want to use. If you come across a case where the lazy function is useful,
 please tell us about it. The lazy function tends to exhaust the stack for large result-sets,
 whereas the strict function does not.
+This is due to the accumulation of a large number of unevaluated thunks,
+and will happen even for simple arithmetic operations such as counting or summing.
  
 If you use the lazy function and you have stack\/memory problems, do some profiling.
 With GHC:
@@ -625,7 +631,11 @@ With GHC:
  
  * run with @+RTS -p -hr -RTS@
  
- * run @hp2ps@ over the resulting @.hp@ file to get a @.ps@ document; take a look at it
+ * run @hp2ps@ over the resulting @.hp@ file to get a @.ps@ document; take a look at it.
+   Retainer sets are listed on the RHS, and are prefixed with numbers e.g. (13)CAF, (2)SYSTEM.
+   At the bottom of the @.prof@ file you'll find the full descriptions of the retainer sets.
+   Match the number in parentheses on the @.ps@ graph with a SET in the @.prof@ file;
+   the one at the top of the @.ps@ graph is the one using the most memory.
  
 You'll probably find that the lazy iteratee is consuming all of the stack with lazy thunks,
 which is why we recommend the strict function.

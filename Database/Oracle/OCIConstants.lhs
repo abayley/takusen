@@ -10,7 +10,7 @@ Portability :  non-portable
 Contains CInt equivalents of the #defines in the oci library headers.
 This is not a complete set; just enough to get the Haskell libraries working.
 This also might not be particularly portable, but I don't think Oracle are going
-to change these in a hurry (that would break compiled programs).
+to change these in a hurry (that would break compiled programs, wouldn't it?).
 
 
 > module Database.Oracle.OCIConstants where
@@ -85,6 +85,21 @@ to change these in a hurry (that would break compiled programs).
 > oci_ATTR_ROW_COUNT = 9
 > oci_ATTR_PREFETCH_ROWS :: CInt
 > oci_ATTR_PREFETCH_ROWS = 11
+> oci_ATTR_USERNAME :: CInt
+> oci_ATTR_USERNAME = 22
+> oci_ATTR_PASSWORD :: CInt
+> oci_ATTR_PASSWORD= 23
+
+
+
+** Authentication options:
+
+> oci_CRED_RDBMS :: CInt
+> oci_CRED_RDBMS = 1
+> oci_CRED_EXT :: CInt
+> oci_CRED_EXT = 2
+> oci_CRED_PROXY :: CInt
+> oci_CRED_PROXY = 3
 
 
 

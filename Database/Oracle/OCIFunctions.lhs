@@ -62,6 +62,8 @@ See 'formatErrorCodeDesc' for the set of possible values for the OCI error numbe
 > type ErrorHandle = Ptr ErrorStruct
 > data ServerStruct = ServerStruct
 > type ServerHandle = Ptr ServerStruct
+> data UserStruct = UserStruct
+> type UserHandle = Ptr UserStruct
 > data ConnStruct = ConnStruct
 > type ConnHandle = Ptr ConnStruct  -- AKA Service Context
 > data SessStruct = SessStruct
@@ -131,6 +133,7 @@ If we can't derive Typeable then the following code should do the trick:
 > foreign import ccall "oci.h OCILogon" ociLogon
 >   :: EnvHandle -> ErrorHandle -> Ptr ConnHandle -> CString -> CInt -> CString -> CInt -> CString -> CInt -> IO CInt
 > foreign import ccall "oci.h OCILogoff" ociLogoff :: ConnHandle -> ErrorHandle -> IO CInt
+> foreign import ccall "oci.h OCISessionBegin" ociSessionBegin :: ConnHandle -> ErrorHandle -> SessHandle -> CInt -> CInt -> IO CInt
 > foreign import ccall "oci.h OCISessionEnd" ociSessionEnd :: ConnHandle -> ErrorHandle -> SessHandle -> CInt -> IO CInt
 > foreign import ccall "oci.h OCIServerAttach" ociServerAttach :: ServerHandle -> ErrorHandle -> CString -> CInt -> CInt -> IO CInt
 > foreign import ccall "oci.h OCIServerDetach" ociServerDetach :: ServerHandle -> ErrorHandle -> CInt -> IO CInt
@@ -284,6 +287,14 @@ See 'dbLogon' and 'getHandleAttr' for example usage.
 >   rc <- ociAttrSet ocihandle handleType (castPtr handleAttr) 0 attrType err
 >   testForError rc "setHandleAttr" ()
 
+
+> setHandleAttrString :: ErrorHandle -> OCIHandle -> CInt -> String -> CInt -> IO ()
+> setHandleAttrString err ocihandle handleType s attrType = do
+>   withCStringLen s $ \sC -> do
+>     rc <- ociAttrSet ocihandle handleType (castPtr (cStr sC)) (cStrLen sC) attrType err
+>     testForError rc "setHandleAttrString" ()
+
+
 ociAttrGet returns a pointer to something - maybe a handle or a chunk of memory.
 Sometimes it's a pointer to a Handle, i.e. a Ptr to a Ptr to a Struct,
 so we want to peek it to get the Handle.
@@ -359,6 +370,12 @@ You can have more than one session per connection, but I haven't implemented it 
 
 > getSession :: ErrorHandle -> ConnHandle -> IO SessHandle
 > getSession err conn = liftM castPtr (getHandleAttr err (castPtr conn) oci_HTYPE_SVCCTX oci_ATTR_SESSION)
+
+
+> sessionBegin :: ErrorHandle -> ConnHandle -> SessHandle -> CInt -> IO ()
+> sessionBegin err conn sess cred = do
+>   rc <- ociSessionBegin conn err sess cred oci_DEFAULT
+>   testForError rc "session begin" ()
 
 
 > sessionEnd :: ErrorHandle -> ConnHandle -> SessHandle -> IO ()
@@ -457,7 +474,7 @@ The caller will also have to cast the data in bufferptr to the expected type
 
 
 
-stmtFetch takes a lot of run-time
+|stmtFetch takes a lot of run-time
 because it involves a network trip to the DBMS for each call.
 
 > stmtFetch :: ErrorHandle -> StmtHandle -> IO CInt

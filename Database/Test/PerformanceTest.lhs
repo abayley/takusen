@@ -67,7 +67,7 @@ if you use the lazy version of result. Bummer.
 > selectLargeResultSet :: SessionQuery
 > selectLargeResultSet = do
 >   ct1 <- liftIO getClockTime
->   r <- doQueryTuned manyRows rowCounter 0 prefetch1000
+>   r <- doQueryTuned prefetch1000 manyRows rowCounter 0
 >   ct2 <- liftIO getClockTime
 >   liftIO $ putStr "largeResultSet:"
 >   liftIO $ putStrLn (show r)
@@ -76,7 +76,7 @@ if you use the lazy version of result. Bummer.
 
 > cursorHelper :: String -> QueryResourceUsage -> SessionQuery
 > cursorHelper msg resourceUsage = do
->   withCursorBracketTuned manyRows rowCounter 0 resourceUsage $ \c -> do
+>   withCursorBracketTuned resourceUsage manyRows rowCounter 0 $ \c -> do
 >     ct1 <- liftIO getClockTime
 >     replicateM_ 100000 (do _ <- cursorNext c; return())
 >     ct2 <- liftIO getClockTime

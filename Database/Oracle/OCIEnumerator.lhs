@@ -18,7 +18,9 @@ Oracle OCI implementation of Database.Enumerator.
 > import Database.Enumerator
 > import Database.Oracle.OCIConstants
 > import qualified Database.Oracle.OCIFunctions as OCI
-> import Database.Oracle.OCIFunctions (OCIHandle, EnvHandle, ErrorHandle, ConnHandle, StmtHandle, OCIException (..), catchOCI)
+> import Database.Oracle.OCIFunctions
+>   ( OCIHandle, EnvHandle, ErrorHandle, ServerHandle, ConnHandle, SessHandle, StmtHandle
+>   , OCIException (..), catchOCI)
 > import Foreign
 > import Foreign.C
 > import Foreign.C.Types
@@ -60,15 +62,20 @@ If there's no cleanup action required then simply pass nullAction.
 >   cleanupAction
 >   throwDB (DBError e m)
 
-
 > reportAndIgnore :: ErrorHandle -> OCIException -> IO () -> IO ()
 > reportAndIgnore err ociexc cleanupAction = do
 >   (_, m) <- OCI.formatErrorMsg ociexc err
 >   printError m
 >   cleanupAction
 
+> reportAndRethrow :: ErrorHandle -> OCIException -> IO () -> IO ()
+> reportAndRethrow err ociexc cleanupAction = do
+>   (_, m) <- OCI.formatErrorMsg ociexc err
+>   printError m
+>   OCI.throwOCI ociexc
 
-What do we do if the first handle (Environment) fails?
+
+What do we do if creating the first handle (Environment) fails?
 There's no Env- or ErrorHandle to get the error message from,
 so do the best we can by constructing a message with formatErrorCodeDesc.
 Still throws DBException.
@@ -137,10 +144,71 @@ Will catch attempts to free invalid (already freed?) handles.
 >   )
 
 
+> getServer :: EnvHandle -> ErrorHandle -> IO ServerHandle
+> getServer env err = catchOCI ( do
+>     server <- OCI.handleAlloc oci_HTYPE_SERVER (castPtr env)
+>     return (castPtr server)
+>   ) (\ociexc -> do
+>     convertAndRethrow err ociexc $ do
+>       freeHandle (castPtr err) oci_HTYPE_ERROR
+>       freeHandle (castPtr env) oci_HTYPE_ENV
+>     return nullPtr
+>   )
+
+
+> getConnection :: EnvHandle -> ErrorHandle -> IO ConnHandle
+> getConnection env err = catchOCI ( do
+>     conn <- OCI.handleAlloc oci_HTYPE_SVCCTX (castPtr env)
+>     return (castPtr conn)
+>   ) (\ociexc -> do
+>     convertAndRethrow err ociexc $ do
+>       freeHandle (castPtr err) oci_HTYPE_ERROR
+>       freeHandle (castPtr env) oci_HTYPE_ENV
+>     return nullPtr
+>   )
+
+
+> getSessionHandle :: EnvHandle -> ErrorHandle -> IO SessHandle
+> getSessionHandle env err = catchOCI ( do
+>     session <- OCI.handleAlloc oci_HTYPE_SESSION (castPtr env)
+>     return (castPtr session)
+>   ) (\ociexc -> do
+>     convertAndRethrow err ociexc $ do
+>       freeHandle (castPtr err) oci_HTYPE_ERROR
+>       freeHandle (castPtr env) oci_HTYPE_ENV
+>     return nullPtr
+>   )
+
+
+The idea with multiple logons is to first connect to the server.
+Then you create a connection and a session, set the user id details,
+and begin the session.
+When finished, you end the session,
+detach from the server, and free the handles.
+So we have one EnvHandle and one ErrorHandle (globally),
+and then one ServerHandler, one ConnHandle, and one SessHandle per session.
+At the moment we're being lazy,
+and not reusing the Env and ErrorHandles for new connections.
+
+
 > logon :: String -> String -> String -> EnvHandle -> ErrorHandle -> IO ConnHandle
 > logon user pswd dbname env err = catchOCI ( do
->     connection <- OCI.dbLogon user pswd dbname env err
->     return connection
+>     server <- getServer env err
+>     OCI.serverAttach err server dbname
+>     conn <- getConnection env err
+>     -- the connection holds a reference to the server in one of its attributes
+>     OCI.setHandleAttr err (castPtr conn) oci_HTYPE_SVCCTX (castPtr server) oci_ATTR_SERVER
+>     session <- getSessionHandle env err
+>     if (user == "")
+>       then do
+>         OCI.sessionBegin err conn session oci_CRED_EXT
+>       else do
+>         OCI.setHandleAttrString err (castPtr session) oci_HTYPE_SESSION user oci_ATTR_USERNAME
+>         OCI.setHandleAttrString err (castPtr session) oci_HTYPE_SESSION pswd oci_ATTR_PASSWORD
+>         OCI.sessionBegin err conn session oci_CRED_RDBMS
+>     -- the connection also holds a reference to the session in one of its attributes
+>     OCI.setHandleAttr err (castPtr conn) oci_HTYPE_SVCCTX (castPtr session) oci_ATTR_SESSION
+>     return conn
 >   ) (\ociexc -> do
 >     convertAndRethrow err ociexc $ do
 >       freeHandle (castPtr err) oci_HTYPE_ERROR
@@ -150,9 +218,17 @@ Will catch attempts to free invalid (already freed?) handles.
 
 
 > logoff :: ErrorHandle -> ConnHandle -> IO ()  
-> logoff err conn = catchOCI ( do
->     OCI.dbLogoff err conn
+> logoff err conn = catchOCI (do
+>     session <- OCI.getHandleAttr err (castPtr conn) oci_HTYPE_SVCCTX oci_ATTR_SESSION
+>     server <- OCI.getHandleAttr err (castPtr conn) oci_HTYPE_SVCCTX oci_ATTR_SERVER
+>     OCI.sessionEnd err conn session
+>     OCI.serverDetach err server
+>     freeHandle (castPtr session) oci_HTYPE_SESSION
+>     freeHandle (castPtr conn) oci_HTYPE_SVCCTX
+>     freeHandle (castPtr server) oci_HTYPE_SERVER
 >   ) (\ociexc -> convertAndRethrow err ociexc nullAction)
+
+
 
 
 > connect :: String -> String -> String -> IO Session
@@ -359,50 +435,9 @@ there's no equivalent for ReadUncommitted.
 
 
 
-To manage multiple sessions... don't use logon. Do this instead:
-
-env <- envCreate
-err <- getErr env
-server <- getServer env err
-serverAttach err server "database"
-conn <- getConnection env
-setAttrHandle err conn oci_HTYPE_SVCCTX server oci_ATTR_SERVER
-session <- getSession err
-setAttrString err sess oci_HTYPE_SESSION "username" oci_ATTR_USERNAME
-setAttrString err sess oci_HTYPE_SESSION "password" oci_ATTR_PASSWORD
-sessionBegin err conn session
-setAttrHandle err conn oci_HTYPE_SVCCTX session oci_ATTR_SESSION
-... do queries etc ...
-sessionEnd err conn session
-serverDetach err server
-handleFree server
-handleFree error
-handleFree env
-
-
-
- getServer :: EnvHandle -> ErrorHandle -> IO ServerHandle
- getServer envHandle errHandle = catchDyn ( do
-     serverHandle <- OCI.handleAlloc oci_HTYPE_SERVER envHandle
-     return serverHandle
-   ) (\(ociexc :: OCIException) -> do
-     convertAndRethrow errHandle ociexc $ do
-       OCI.handleFree oci_HTYPE_ERROR errHandle
-       OCI.handleFree oci_HTYPE_ENV envHandle
-     return envHandle
-   )
-
-
-
-
-
 --------------------------------------------------------------------
 -- ** Queries
 --------------------------------------------------------------------
-
-> defaultResourceUsage :: QueryResourceUsage
-> defaultResourceUsage = QueryResourceUsage 1
-
 
 > type OCIMonadQuery = ReaderT Query (ReaderT Session IO)
 
@@ -410,10 +445,9 @@ handleFree env
 >
 >   -- so, doQuery is essentially the result of applying lfold_nonrec_to_rec
 >   -- to doQuery1Maker
->   doQuery sqltext iteratee seed =
->     doQueryTuned sqltext iteratee seed defaultResourceUsage
+>   doQuery = doQueryTuned defaultResourceUsage
 >
->   doQueryTuned sqltext iteratee seed resourceUsage = do
+>   doQueryTuned resourceUsage sqltext iteratee seed = do
 >     (lFoldLeft, finalizer) <- doQuery1Maker sqltext iteratee resourceUsage
 >     catchReaderT (fix lFoldLeft iteratee seed)
 >       (\e -> do
@@ -421,13 +455,12 @@ handleFree env
 >         liftIO $ throwIO e
 >       )
 >
->   openCursor sqltext iteratee seed =
->     openCursorTuned sqltext iteratee seed defaultResourceUsage
+>   openCursor = openCursorTuned defaultResourceUsage
 >
 >   -- This is like 
 >   -- lfold_nonrec_to_stream lfold' =
 >   -- from the fold-stream.lhs paper:
->   openCursorTuned sqltext iteratee seed resourceUsage = do
+>   openCursorTuned resourceUsage sqltext iteratee seed = do
 >     ref <- liftIO$ newIORef (seed, Nothing)
 >     (lFoldLeft, finalizer) <- doQuery1Maker sqltext iteratee resourceUsage
 >     let update v = liftIO $ modifyIORef ref (\ (_, f) -> (v, f))

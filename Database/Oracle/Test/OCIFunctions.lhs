@@ -9,7 +9,7 @@ Portability :  non-portable
  
 Test harness for "Database.Oracle.OCIFunctions".
 This module depends on on "Database.Oracle.OCIFunctions".
-so it must only use functions from there.
+so it should only use functions from there (and "Database.Oracle.OCIConstants").
 
 
 > {-# OPTIONS -fglasgow-exts #-}
@@ -20,31 +20,62 @@ so it must only use functions from there.
 > import Database.Oracle.OCIFunctions (EnvHandle, ErrorHandle, ConnHandle, StmtHandle)
 > import Database.Oracle.OCIConstants
 > import Foreign.Ptr
+> import System.IO
+> import System.Environment (getArgs)
 
 
-> testUser :: String
-> testUser = "mama"
+> nullAction :: IO ()
+> nullAction = return ()
 
-> testPswd :: String
-> testPswd = "mama"
+> printError :: String -> IO ()
+> printError s = hPutStrLn stderr s
 
-> testDb :: String
-> testDb = "chronicle_dev"
+> reportAndIgnore :: ErrorHandle -> OCI.OCIException -> IO () -> IO ()
+> reportAndIgnore err ociexc cleanupAction = do
+>   (_, m) <- OCI.formatErrorMsg ociexc err
+>   printError m
+>   cleanupAction
 
 
-> logon :: IO (EnvHandle, ErrorHandle, ConnHandle)
-> logon = do
+> logon :: (String, String, String) -> IO (EnvHandle, ErrorHandle, ConnHandle)
+> logon (testUser, testPswd, testDb) = do
 >   env <- OCI.envCreate
 >   err <- OCI.handleAlloc oci_HTYPE_ERROR (castPtr env)
->   conn <- OCI.dbLogon testUser testPswd testDb env (castPtr err)
->   return (env, castPtr err, conn)
+>   OCI.catchOCI ( do
+>     server <- OCI.handleAlloc oci_HTYPE_SERVER (castPtr env)
+>     OCI.serverAttach (castPtr err) (castPtr server) testDb
+>     conn <- OCI.handleAlloc oci_HTYPE_SVCCTX (castPtr env)
+>     -- the connection holds a reference to the server in one of its attributes
+>     OCI.setHandleAttr (castPtr err) (castPtr conn) oci_HTYPE_SVCCTX (castPtr server) oci_ATTR_SERVER
+>     session <- OCI.handleAlloc oci_HTYPE_SESSION (castPtr env)
+>     if (testUser == "")
+>       then do
+>         OCI.sessionBegin (castPtr err) (castPtr conn) (castPtr session) oci_CRED_EXT
+>       else do
+>         OCI.setHandleAttrString (castPtr err) (castPtr session) oci_HTYPE_SESSION testUser oci_ATTR_USERNAME
+>         OCI.setHandleAttrString (castPtr err) (castPtr session) oci_HTYPE_SESSION testPswd oci_ATTR_PASSWORD
+>         OCI.sessionBegin (castPtr err) (castPtr conn) (castPtr session) oci_CRED_RDBMS
+>     -- the connection also holds a reference to the session in one of its attributes
+>     OCI.setHandleAttr (castPtr err) (castPtr conn) oci_HTYPE_SVCCTX (castPtr session) oci_ATTR_SESSION
+>     return (env, castPtr err, castPtr conn)
+>     ) (\ociexc -> do
+>       reportAndIgnore (castPtr err) ociexc nullAction
+>       return (nullPtr, nullPtr, nullPtr)
+>     )
 
 > logoff :: (EnvHandle, ErrorHandle, ConnHandle) -> IO ()
-> logoff (env, err, conn) = do
->   OCI.dbLogoff err conn
->   OCI.handleFree oci_HTYPE_ERROR (castPtr err)
->   OCI.handleFree oci_HTYPE_ENV (castPtr env)
->   OCI.terminate
+> logoff (env, err, conn) = OCI.catchOCI ( do
+>     session <- OCI.getHandleAttr err (castPtr conn) oci_HTYPE_SVCCTX oci_ATTR_SESSION
+>     server <- OCI.getHandleAttr err (castPtr conn) oci_HTYPE_SVCCTX oci_ATTR_SERVER
+>     OCI.sessionEnd err conn session
+>     OCI.serverDetach err server
+>     OCI.handleFree oci_HTYPE_SESSION (castPtr session)
+>     OCI.handleFree oci_HTYPE_SERVER (castPtr server)
+>     OCI.handleFree oci_HTYPE_SVCCTX (castPtr conn)
+>     OCI.handleFree oci_HTYPE_ERROR (castPtr err)
+>     OCI.handleFree oci_HTYPE_ENV (castPtr env)
+>     OCI.terminate
+>   ) (\ociexc -> reportAndIgnore (castPtr err) ociexc nullAction)
 
 
 > testCreateEnv :: IO ()
@@ -55,10 +86,10 @@ so it must only use functions from there.
 >   putStrLn "testCreateEnv done"
 
 
-> testConnect :: IO ()
-> testConnect = do
+> testConnect :: (String, String, String) -> IO ()
+> testConnect args = do
 >   putStrLn "testConnect start"
->   x <- logon
+>   x <- logon args
 >   logoff x
 >   putStrLn "testConnect done"
 
@@ -75,17 +106,17 @@ so it must only use functions from there.
 >   return (castPtr stmt)
 
 
-> testExecute :: IO ()
-> testExecute = do
->   (env, err, conn) <- logon
+> testExecute :: (String, String, String) -> IO ()
+> testExecute args = do
+>   (env, err, conn) <- logon args
 >   stmt <- getStmt env err conn "select dummy from dual"
 >   OCI.handleFree oci_HTYPE_STMT (castPtr stmt)
 >   logoff (env, err, conn)
 
 
-> testFetch :: IO ()
-> testFetch = do
->   (env, err, conn) <- logon
+> testFetch :: (String, String, String) -> IO ()
+> testFetch args = do
+>   (env, err, conn) <- logon args
 >   stmt <- getStmt env err conn "select dummy from dual"
 >   (_, buf, nullptr, sizeptr) <- OCI.defineByPos err (castPtr stmt) 1 100 oci_SQLT_CHR
 >   rc <- OCI.stmtFetch err (castPtr stmt)
@@ -94,9 +125,9 @@ so it must only use functions from there.
 
 
 
-> testFetchFail :: IO ()
-> testFetchFail = do
->   (env, err, conn) <- logon
+> testFetchFail :: (String, String, String) -> IO ()
+> testFetchFail args = do
+>   (env, err, conn) <- logon args
 >   stmt <- getStmt env err conn "select dummy, 1 from dual"
 >   (_, buf, nullptr, sizeptr) <- OCI.defineByPos err (castPtr stmt) 1 100 oci_SQLT_CHR
 >   rc <- OCI.stmtFetch err (castPtr stmt)
@@ -104,10 +135,17 @@ so it must only use functions from there.
 >   logoff (env, err, conn)
 
 
+> parseArgs :: IO (String, String, String)
+> parseArgs = do
+>    [u, p, d] <- getArgs
+>    return (u, p, d)
+
+
 > runOCITest :: IO ()
 > runOCITest = do
+>   args <- parseArgs
 >   testCreateEnv
->   testConnect
->   testExecute
->   testFetch
->   testFetchFail
+>   testConnect args
+>   testExecute args
+>   testFetch args
+>   testFetchFail args

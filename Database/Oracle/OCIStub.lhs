@@ -261,9 +261,6 @@ See fetchIntVal below for use of this:
 > throwNullIntOnRow = 1
 
 
-> defaultResourceUsage :: QueryResourceUsage
-> defaultResourceUsage = QueryResourceUsage 100
-
 
 > type OCIMonadQuery = ReaderT Query (ReaderT Session IO)
 
@@ -271,10 +268,9 @@ See fetchIntVal below for use of this:
 >
 >   -- so, doQuery is essentially the result of applying lfold_nonrec_to_rec
 >   -- to doQuery1Maker
->   doQuery sqltext iteratee seed =
->     doQueryTuned sqltext iteratee seed defaultResourceUsage
+>   doQuery = doQueryTuned defaultResourceUsage
 >
->   doQueryTuned sqltext iteratee seed resourceUsage = do
+>   doQueryTuned resourceUsage sqltext iteratee seed = do
 >     (lFoldLeft, finalizer) <- doQuery1Maker sqltext iteratee resourceUsage
 >     catchReaderT (fix lFoldLeft iteratee seed)
 >       (\e -> do
@@ -282,13 +278,12 @@ See fetchIntVal below for use of this:
 >         liftIO $ throwIO e
 >       )
 >
->   openCursor sqltext iteratee seed =
->     openCursorTuned sqltext iteratee seed defaultResourceUsage
+>   openCursor = openCursorTuned defaultResourceUsage
 >
 >   -- This is like 
 >   -- lfold_nonrec_to_stream lfold' =
 >   -- from the fold-stream.lhs paper:
->   openCursorTuned sqltext iteratee seed resourceUsage = do
+>   openCursorTuned resourceUsage sqltext iteratee seed = do
 >     ref <- liftIO$ newIORef (seed,Nothing)
 >     (lFoldLeft, finalizer) <- doQuery1Maker sqltext iteratee resourceUsage
 >     let update v = liftIO $ modifyIORef ref (\ (_, f) -> (v, f))
