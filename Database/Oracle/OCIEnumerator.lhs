@@ -204,6 +204,9 @@ and not reusing the Env and ErrorHandles for new connections.
 >         OCI.sessionBegin err conn session oci_CRED_RDBMS
 >     -- the connection also holds a reference to the session in one of its attributes
 >     OCI.setHandleAttr err (castPtr conn) oci_HTYPE_SVCCTX (castPtr session) oci_ATTR_SESSION
+>     -- and we need to create a valid transaction handle for the connection, too.
+>     trans <- OCI.handleAlloc oci_HTYPE_TRANS (castPtr env)
+>     OCI.setHandleAttr err (castPtr conn) oci_HTYPE_SVCCTX (castPtr trans) oci_ATTR_TRANS
 >     return conn
 
 
@@ -353,6 +356,7 @@ there's no equivalent for ReadUncommitted.
 >   getSession = ask
 >
 >   beginTransaction isolation = do
+>     commit
 >     sess <- ask
 >     liftIO $ beginTrans sess isolation
 >
@@ -596,7 +600,7 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 
 
 > instance DBType (Maybe String) OCIMonadQuery ColumnBuffer where
->   allocBufferFor _ n = allocBuffer (4000, DBTypeString) n
+>   allocBufferFor _ n = allocBuffer (16000, DBTypeString) n
 >   fetchCol buffer = liftIO$ bufferToString buffer
 
 > instance DBType (Maybe Int) OCIMonadQuery ColumnBuffer where
@@ -616,7 +620,7 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 and uses Read to convert the String to a Haskell data value.
 
 > instance (Show a, Read a) => DBType (Maybe a) OCIMonadQuery ColumnBuffer where
->   allocBufferFor _ n = allocBuffer undefined n
+>   allocBufferFor _ n = allocBuffer (16000, DBTypeString) n
 >   fetchCol buffer = do
 >     v <- liftIO$ bufferToString buffer
 >     case v of
@@ -629,5 +633,5 @@ e.g. String, Int, Double, etc.
 
 > instance DBType (Maybe a) OCIMonadQuery ColumnBuffer
 >     => DBType a OCIMonadQuery ColumnBuffer where
->   allocBufferFor _ = allocBufferFor (undefined::Maybe a)
+>   allocBufferFor _ n = allocBufferFor (undefined::Maybe a) n
 >   fetchCol buffer = throwIfDBNull buffer fetchCol

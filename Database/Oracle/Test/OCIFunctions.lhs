@@ -64,6 +64,9 @@ so it should only use functions from there (and "Database.Oracle.OCIConstants").
 >         OCI.sessionBegin (castPtr err) (castPtr conn) (castPtr session) oci_CRED_RDBMS
 >     -- the connection also holds a reference to the session in one of its attributes
 >     OCI.setHandleAttr (castPtr err) (castPtr conn) oci_HTYPE_SVCCTX (castPtr session) oci_ATTR_SESSION
+>     -- and we need to create a valid transaction handle for the connection, too.
+>     trans <- OCI.handleAlloc oci_HTYPE_TRANS (castPtr env)
+>     OCI.setHandleAttr (castPtr err) (castPtr conn) oci_HTYPE_SVCCTX (castPtr trans) oci_ATTR_TRANS
 >     return (env, castPtr err, castPtr conn)
 >     ) (\ociexc -> do
 >       reportAndIgnore (castPtr err) ociexc nullAction
