@@ -25,7 +25,7 @@ then comment OCIEnumberator and uncomment OCIStub.
 >     , catchDB, throwDB, basicDBExceptionReporter, catchDBError, ignoreDBError
 >     , shakeReaderT, catchReaderT
 >     , cursorIsEOF, cursorCurrent, cursorNext, cursorClose, withCursorBracket
->     , ifNull
+>     , ifNull, result, result'
 >
 >     -- *Sessions: connecting etc
 >     -- |'SessionQuery' is a convenient type synonym;
