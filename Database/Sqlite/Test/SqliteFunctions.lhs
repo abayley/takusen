@@ -171,7 +171,7 @@ Portability :  non-portable
 
 
 > getDbName = do
->   [n] <- getArgs
+>   [_, _, n] <- getArgs
 >   return n
 
 

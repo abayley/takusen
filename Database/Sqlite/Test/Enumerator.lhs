@@ -1,4 +1,4 @@
-
+s
 |
 Module      :  Database.Sqlite.Test.Enumerator
 Copyright   :  (c) 2004 Oleg Kiselyov, Alistair Bayley
@@ -343,8 +343,8 @@ The seed is unit.
 
 > argLogon :: IO Session
 > argLogon = do
->   [ dbname ] <- getArgs
->   connect "" "" dbname
+>   [ user, pswd, dbname ] <- getArgs
+>   connect user pswd dbname
 
 
 > runTest :: IO ()

@@ -105,8 +105,8 @@ if you use the lazy version of result. Bummer.
 
 > argLogon :: IO Session
 > argLogon = do
->   [ dbname ] <- getArgs
->   connect "" "" dbname
+>   [ user, pswd, dbname ] <- getArgs
+>   connect user pswd dbname
 
 > runTest :: IO ()
 > runTest = catchDB ( do
