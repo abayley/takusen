@@ -14,9 +14,9 @@ Some functions in this module are not strictly part of the Enumerator interface
 e.g. @iterApply@, @allocBuffers@.
 They are in here because they are generic i.e. they do not depend
 on any particular DBMS implementation.
--- They are a part of the middle layer -- enumerator -- which is
-database-independent.
-
+They are a part of the middle layer - enumerator -
+which is database-independent.
+ 
 There is a stub: "Database.Stub.Enumerator".
 This lets you run the test cases without having a working DBMS installation.
  
@@ -56,27 +56,21 @@ Additional reading:
 >
 >     -- * Session monad.
 >     , MonadSession(..)
->     -- Do we need to export these here? They're just class function sigs.
->     -- If we don't then Haddock moans.
->     --, runSession, getSession, beginTransaction, commit, rollback, executeDML, executeDDL
 >
->     -- * Buffers and QueryIteratee.
->     --   Are not directly used by the user: they merely provide the
+>     -- * Buffers.
+>     --   These are not directly used by the user: they merely provide the
 >     --   interface between the low and the middle layers of Takusen.
 >     , DBType(..)
->     -- , QueryIteratee(..)
 >
 >     -- * A Query monad and cursors.
 >     , DBCursor(..),  QueryResourceUsage(..)
->     -- Again, do we need to export class function sigs, when we already export the class?
->     --, openCursor, setPrefetchRowCount
->     --, getQuery, makeQuery, doQuery1Maker, 
 >     , MonadQuery(..)
 >     , defaultResourceUsage
 >     , doQuery, doQueryTuned
->     , cursorIsEOF, cursorCurrent, cursorNext, cursorClose
 >     , withCursorBracket, withCursorBracketTuned
 >     , withTransaction
+>     -- do we need to export these? Maybe not...
+>     , cursorIsEOF, cursorCurrent, cursorNext, cursorClose
 >
 >     -- * Misc.
 >     , throwIfDBNull, ifNull, result, result'
@@ -339,8 +333,14 @@ end user.
 
 |Uses default resource usage settings, which are implementation dependent.
 (For the Oracle OCI, we only cache one row.)
-The argument x here is just to avoid the monomorphism restriction.
 
+> doQuery ::
+>   ( MonadSession (Control.Monad.Reader.ReaderT r IO) mb s
+>   , Database.Enumerator.QueryIteratee m iteratee a bufferType
+>   , MonadQuery m (Control.Monad.Reader.ReaderT r IO) q bufferType
+>   ) => QueryText -> iteratee -> a -> Control.Monad.Reader.ReaderT r IO a
+>
+> -- The argument x here is just to avoid the monomorphism restriction.
 > doQuery x = doQueryTuned defaultResourceUsage x
 
 
@@ -351,6 +351,12 @@ At the moment we only support specifying the numbers of rows prefetched
 doQuery is essentially the result of applying lfold_nonrec_to_rec
 to doQueryMaker.
 
+> doQueryTuned ::
+>   ( MonadSession (Control.Monad.Reader.ReaderT r IO) mb s
+>   , Database.Enumerator.QueryIteratee m iteratee a bufferType
+>   , MonadQuery m (Control.Monad.Reader.ReaderT r IO) q bufferType
+>   ) => QueryResourceUsage -> QueryText -> iteratee -> a -> Control.Monad.Reader.ReaderT r IO a
+>
 > doQueryTuned resourceUsage sqltext iteratee seed = do
 >     (lFoldLeft, finalizer) <- doQueryMaker sqltext iteratee resourceUsage
 >     catchReaderT (fix lFoldLeft iteratee seed)
@@ -418,7 +424,9 @@ from the fold-stream.lhs paper.
 
 
 
-|cursorIsEOF returns True or False.
+|cursorIsEOF's return value tells you if there are any more rows or not.
+If you call 'cursorNext' when there are no more rows,
+a 'DBNoData' exception is thrown.
 Cursors are automatically closed and freed when:
  
  * the iteratee returns @Left a@
@@ -441,10 +449,7 @@ You can nest them to interleaving, if you desire:
 > cursorIsEOF :: (MonadIO m) => DBCursor ms a -> m Bool
 > cursorIsEOF (DBCursor ref) = do
 >   (_, maybeF) <- liftIO $ readIORef ref
->   --maybe True (const False) maybeF
->   case maybeF of
->     Nothing -> return True
->     Just f -> return False
+>   return $ maybe True (const False) maybeF
 
 |Returns the results fetched so far, processed by iteratee function.
 
@@ -453,25 +458,19 @@ You can nest them to interleaving, if you desire:
 >   (v, _) <- liftIO $ readIORef ref
 >   return v
 
-|Advance the cursor. Returns the cursor.
+|Advance the cursor. Returns the cursor. The return value is usually ignored.
 
 > cursorNext :: (MonadIO ms) => DBCursor ms a -> ms (DBCursor ms a)
 > cursorNext (DBCursor ref) = do
 >   (_, maybeF) <- liftIO $ readIORef ref
->   --maybe (throwDB DBNoData) ($ True) maybeF
->   case maybeF of
->     Nothing -> throwDB DBNoData
->     Just f -> f True
+>   maybe (throwDB DBNoData) ($ True) maybeF
 
-|Returns the cursor.
+|Returns the cursor. The return value is usually ignored.
 
 > cursorClose :: (MonadIO ms) => DBCursor ms a -> ms (DBCursor ms a)
 > cursorClose c@(DBCursor ref) = do
 >   (_, maybeF) <- liftIO $ readIORef ref
->   --maybe (return c) ($ False) maybeF
->   case maybeF of
->     Nothing -> return c
->     Just f -> f False
+>   maybe (return c) ($ False) maybeF
 
 
 |Ensures cursor resource is properly tidied up in exceptional cases.
