@@ -53,7 +53,7 @@ See 'formatErrorCodeDesc' for the set of possible values for the OCI error numbe
 > type OCIHandle = Ptr OCIStruct  -- generic Handle for OCI functions that return Handles
 > data OCIBuffer = OCIBuffer  -- generic buffer. Could hold anything: value or pointer.
 > type BufferPtr = Ptr OCIBuffer
-> type ColumnResultBuffer = BufferPtr
+> type ColumnResultBuffer = ForeignPtr OCIBuffer  -- use ForeignPtr to ensure GC'd
 
 
 > data EnvStruct = EnvStruct
@@ -72,7 +72,7 @@ See 'formatErrorCodeDesc' for the set of possible values for the OCI error numbe
 > type DefnHandle = Ptr DefnStruct
 > data ParamStruct = ParamStruct
 > type ParamHandle = Ptr ParamStruct
-> type ColumnInfo = (DefnHandle, BufferPtr, Ptr CShort, Ptr CShort)
+> type ColumnInfo = (DefnHandle, ColumnResultBuffer, ForeignPtr CShort, ForeignPtr CShort)
 
 
 |Low-level, OCI library errors.
@@ -118,7 +118,7 @@ If we can't derive Typeable then the following code should do the trick:
 > foreign import ccall "oci.h OCIEnvCreate" ociEnvCreate :: Ptr EnvHandle -> CInt -> Ptr a -> FunPtr a -> FunPtr a -> FunPtr a -> CInt -> Ptr (Ptr a) -> IO CInt
 > foreign import ccall "oci.h OCIHandleAlloc" ociHandleAlloc :: OCIHandle -> Ptr OCIHandle -> CInt -> CInt -> Ptr a -> IO CInt
 > foreign import ccall "oci.h OCIHandleFree" ociHandleFree :: OCIHandle -> CInt -> IO CInt
-> foreign import ccall "oci.h OCIErrorGet" ociErrorGet :: OCIHandle -> CInt -> CInt -> Ptr CInt -> CString -> CInt -> CInt -> IO CInt
+> foreign import ccall "oci.h OCIErrorGet" ociErrorGet :: OCIHandle -> CInt -> CString -> Ptr CInt -> CString -> CInt -> CInt -> IO CInt
 
 
 > foreign import ccall "oci.h OCIParamGet" ociParamGet :: OCIHandle -> CInt -> ErrorHandle -> Ptr OCIHandle -> CInt -> IO CInt
@@ -132,7 +132,7 @@ If we can't derive Typeable then the following code should do the trick:
 >   :: EnvHandle -> ErrorHandle -> Ptr ConnHandle -> CString -> CInt -> CString -> CInt -> CString -> CInt -> IO CInt
 > foreign import ccall "oci.h OCILogoff" ociLogoff :: ConnHandle -> ErrorHandle -> IO CInt
 > foreign import ccall "oci.h OCISessionEnd" ociSessionEnd :: ConnHandle -> ErrorHandle -> SessHandle -> CInt -> IO CInt
-> foreign import ccall "oci.h OCIServerAttach" ociServerAttach :: ServerHandle -> ErrorHandle -> CString -> CInt -> IO CInt
+> foreign import ccall "oci.h OCIServerAttach" ociServerAttach :: ServerHandle -> ErrorHandle -> CString -> CInt -> CInt -> IO CInt
 > foreign import ccall "oci.h OCIServerDetach" ociServerDetach :: ServerHandle -> ErrorHandle -> CInt -> IO CInt
 > foreign import ccall "oci.h OCITerminate" ociTerminate :: CInt -> IO CInt
 
@@ -142,7 +142,7 @@ If we can't derive Typeable then the following code should do the trick:
 
 > foreign import ccall "oci.h OCIStmtPrepare" ociStmtPrepare :: StmtHandle -> ErrorHandle -> CString -> CInt -> CInt -> CInt -> IO CInt
 > foreign import ccall "oci.h OCIDefineByPos" ociDefineByPos
->   :: StmtHandle -> Ptr DefnHandle -> ErrorHandle -> CInt -> ColumnResultBuffer -> CInt -> CShort -> Ptr CShort -> Ptr CShort -> CInt -> CInt -> IO CInt
+>   :: StmtHandle -> Ptr DefnHandle -> ErrorHandle -> CInt -> BufferPtr -> CInt -> CShort -> Ptr CShort -> Ptr CShort -> Ptr CShort -> CInt -> IO CInt
 > foreign import ccall "oci.h OCIStmtExecute" ociStmtExecute :: ConnHandle -> StmtHandle -> ErrorHandle -> CInt -> CInt -> OCIHandle -> OCIHandle -> CInt -> IO CInt
 > foreign import ccall "oci.h OCIStmtFetch" ociStmtFetch :: StmtHandle -> ErrorHandle -> CInt -> CShort -> CInt -> IO CInt
 
@@ -159,7 +159,7 @@ If we can't derive Typeable then the following code should do the trick:
 
 > getOCIErrorMsg2 :: OCIHandle -> CInt -> Ptr CInt -> CString -> CInt -> IO (CInt, String)
 > getOCIErrorMsg2 ocihandle handleType errCodePtr errMsgBuf maxErrMsgLen = do
->   rc <- ociErrorGet ocihandle 1 0 errCodePtr errMsgBuf maxErrMsgLen handleType
+>   rc <- ociErrorGet ocihandle 1 nullPtr errCodePtr errMsgBuf maxErrMsgLen handleType
 >   if rc < 0
 >     then return (0, "Error message not available.")
 >     else do
@@ -349,9 +349,9 @@ as the logon process should be able to complete successfully in this case.
 
 > serverAttach :: ErrorHandle -> ServerHandle -> String -> IO ()
 > serverAttach err server dblink = do
->   s <- newCStringLen dblink
->   rc <- ociServerAttach server err (cStr s) (cStrLen s)
->   testForError rc "server attach" ()
+>   withCStringLen dblink $ \s -> do
+>     rc <- ociServerAttach server err (cStr s) (cStrLen s) oci_DEFAULT
+>     testForError rc "server attach" ()
 
 
 |Having established a connection (Service Context), now get the Session.
@@ -409,9 +409,9 @@ You can have more than one session per connection, but I haven't implemented it 
 
 > stmtPrepare :: ErrorHandle -> StmtHandle -> String -> IO ()
 > stmtPrepare err stmt sqltext = do
->   sqltextC <- newCStringLen sqltext
->   rc <- ociStmtPrepare stmt err (cStr sqltextC) (cStrLen sqltextC) oci_NTV_SYNTAX oci_DEFAULT
->   testForError rc "stmtPrepare" ()
+>   withCStringLen sqltext $ \sqltextC -> do
+>     rc <- ociStmtPrepare stmt err (cStr sqltextC) (cStrLen sqltextC) oci_NTV_SYNTAX oci_DEFAULT
+>     testForError rc "stmtPrepare" ()
 
 
 > stmtExecute :: ErrorHandle -> ConnHandle -> StmtHandle -> Int -> IO ()
@@ -434,6 +434,7 @@ It's the caller's responsibility to free the memory after they're done with it
 The caller will also have to cast the data in bufferptr to the expected type
 (using 'Foreign.Ptr.castPtr').
 
+
 > defineByPos :: ErrorHandle
 >   -> StmtHandle
 >   -> Int   -- ^ Position
@@ -441,25 +442,32 @@ The caller will also have to cast the data in bufferptr to the expected type
 >   -> CInt  -- ^ SQL Datatype (from "Database.Oracle.OCIConstants")
 >   -> IO ColumnInfo  -- ^ tuple: (DefnHandle, Ptr to buffer, Ptr to null indicator, Ptr to size of value in buffer)
 > defineByPos err stmt posn bufsize sqldatatype = do
->   bufferptr <- mallocBytes bufsize
->   nullindptr <- malloc
->   retsizeptr <- malloc
->   defnptr <- malloc
->   rc <- ociDefineByPos stmt defnptr err (mkCInt posn) bufferptr (mkCInt bufsize) (mkCShort sqldatatype) nullindptr retsizeptr 0 oci_DEFAULT
->   defn <- peek defnptr  -- no need for caller to free defn; I think freeing the stmt handle does it.
->   free defnptr
->   if rc < 0
->     then do
->       free bufferptr
->       free nullindptr
->       free retsizeptr
->       testForError rc "" (nullPtr, nullPtr, nullPtr, nullPtr)
->     else return (defn, bufferptr, nullindptr, retsizeptr)
+>   bufferFPtr <- mallocForeignPtrBytes bufsize
+>   nullIndFPtr <- mallocForeignPtr
+>   retSizeFPtr <- mallocForeignPtr
+>   alloca $ \defnPtr ->
+>     withForeignPtr bufferFPtr $ \bufferPtr ->
+>     withForeignPtr nullIndFPtr $ \nullIndPtr ->
+>     withForeignPtr retSizeFPtr $ \retSizePtr -> do
+>     rc <- ociDefineByPos stmt defnPtr err (mkCInt posn) bufferPtr (mkCInt bufsize) (mkCShort sqldatatype) nullIndPtr retSizePtr nullPtr oci_DEFAULT
+>     defn <- peek defnPtr  -- no need for caller to free defn; I think freeing the stmt handle does it.
+>     testForError rc "defineByPos" (defn, bufferFPtr, nullIndFPtr, retSizeFPtr)
+>     --if rc < 0
+>     --  then testForError rc "defineByPos" (nullPtr, nullPtr, nullPtr, nullPtr)
+>     --  else return (defn, bufferFptr, nullindFptr, retsizeFptr)
 
+
+stmtFetch takes a lot of run-time
+because it involves a network trip to the DBMS for each call.
+
+> --stmtFetch2 :: ErrorHandle -> StmtHandle -> CShort -> IO CInt
+> --stmtFetch2 err stmt orientation =
+> --  ociStmtFetch stmt err 1 orientation oci_DEFAULT
 
 > stmtFetch :: ErrorHandle -> StmtHandle -> IO CInt
 > stmtFetch err stmt = do
 >   rc <- ociStmtFetch stmt err 1 (mkCShort oci_FETCH_NEXT) oci_DEFAULT
+>   --rc <- stmtFetch2 err stmt (mkCShort oci_FETCH_NEXT)
 >   if rc == oci_NO_DATA
 >     then return rc
 >     else testForError rc "stmtFetch" rc

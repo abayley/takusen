@@ -404,11 +404,12 @@ handleFree env
 >   -- to doQuery1Maker
 >   doQuery sqltext iteratee seedVal = do
 >     (lFoldLeft, finalizer) <- doQuery1Maker sqltext iteratee
->     catchReaderT (fix lFoldLeft iteratee seedVal)
->       (\e -> do
->         finalizer
->         liftIO $ throwIO e
->       )
+>     fix lFoldLeft iteratee seedVal
+>     --catchReaderT (fix lFoldLeft iteratee seedVal)
+>     --  (\e -> do
+>     --    finalizer
+>     --    liftIO $ throwIO e
+>     --  )
 >
 >   doQuery1Maker sqltext iteratee = do
 >     sess <- getSession
@@ -417,10 +418,10 @@ handleFree env
 >     buffers <- inQuery $ allocBuffers iteratee 1
 >     let
 >       finaliser = do
->         freeBuffers buffers
+>         --freeBuffers buffers
 >         liftIO $ closeStmt sess (stmtHandle query)
 >       hFoldLeft self iteratee seedVal = 
->         inQuery $ runfetch finaliser buffers self iteratee seedVal
+>         runfetch inQuery finaliser buffers self iteratee seedVal
 >     return (hFoldLeft, inQuery finaliser)
 >
 >   -- This is like 
@@ -506,9 +507,9 @@ In Database.Oracle.OCIEnumerator:
 
 
 > data ColumnBuffer = ColumnBuffer 
->    { bufPtr :: OCI.ColumnResultBuffer
->    , nullIndPtr :: Ptr CShort
->    , retSizePtr :: Ptr CShort
+>    { bufferFPtr :: OCI.ColumnResultBuffer
+>    , nullIndFPtr :: ForeignPtr CShort
+>    , retSizeFPtr :: ForeignPtr CShort
 >    , bufSize :: Int
 >    , colPos :: Int
 >    , bufType :: CInt
@@ -534,23 +535,28 @@ In Database.Oracle.OCIEnumerator:
 Otherwise, run the IO action to extract a value from the buffer and return Just it.
 
 > maybeBufferNull :: ColumnBuffer -> IO a -> IO (Maybe a)
-> maybeBufferNull buffer action = do
->   nullInd <- liftM cShort2Int (peek (nullIndPtr buffer))
->   if (nullInd == -1)  -- -1 == null, 0 == value
->     then return Nothing
->     else do
->       v <- action
->       return (Just v)
+> maybeBufferNull buffer action =
+>   withForeignPtr (nullIndFPtr buffer) $ \nullIndPtr -> do
+>     nullInd <- liftM cShort2Int (peek nullIndPtr)
+>     if (nullInd == -1)  -- -1 == null, 0 == value
+>       then return Nothing
+>       else do
+>         v <- action
+>         return (Just v)
 
 
 > bufferToString :: ColumnBuffer -> IO (Maybe String)
-> bufferToString buffer = maybeBufferNull buffer $ do
+> bufferToString buffer =
+>   maybeBufferNull buffer $
 >     -- Given a column buffer, extract a string of variable length
 >     -- (you have to terminate it yourself).
->     retsize <- liftM cShort2Int (peek (retSizePtr buffer))
->     pokeByteOff (castPtr (bufPtr buffer)) retsize nullByte
->     val <- peekCString (castPtr (bufPtr buffer))
->     return val
+>     withForeignPtr (bufferFPtr buffer) $ \bufferPtr ->
+>     withForeignPtr (nullIndFPtr buffer) $ \nullIndPtr ->
+>     withForeignPtr (retSizeFPtr buffer) $ \retSizePtr -> do
+>       retsize <- liftM cShort2Int (peek retSizePtr)
+>       pokeByteOff (castPtr bufferPtr) retsize nullByte
+>       val <- peekCString (castPtr bufferPtr)
+>       return val
 
 
 | Oracle's excess-something-or-other encoding for years.
@@ -563,8 +569,8 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 
 
 > bufferToDatetime :: ColumnBuffer -> IO (Maybe CalendarTime)
-> bufferToDatetime colbuf = maybeBufferNull colbuf $ do
->   let buffer = castPtr (bufPtr colbuf)
+> bufferToDatetime colbuf = maybeBufferNull colbuf $ withForeignPtr (bufferFPtr colbuf) $ \bufferPtr -> do
+>   let buffer = castPtr bufferPtr
 >   century100 <- byteToInt buffer 0
 >   year100 <- byteToInt buffer 1
 >   month <- byteToInt buffer 2
@@ -590,14 +596,19 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 
 > bufferPeekValue :: (Storable a) => ColumnBuffer -> IO a
 > bufferPeekValue buffer = do
->   v <- peek $ castPtr $ bufPtr buffer
+>   v <- withForeignPtr (bufferFPtr buffer) $ \bufferPtr -> peek $ castPtr bufferPtr
 >   return v
 
+> bufferToA :: (Storable a) => ColumnBuffer -> IO (Maybe a)
+> bufferToA buffer = maybeBufferNull buffer (bufferPeekValue buffer)
+
 > bufferToInt :: ColumnBuffer -> IO (Maybe Int)
-> bufferToInt buffer = maybeBufferNull buffer (bufferPeekValue buffer)
+> bufferToInt = bufferToA
+> --bufferToInt buffer = maybeBufferNull buffer (bufferPeekValue buffer)
 
 > bufferToDouble :: ColumnBuffer -> IO (Maybe Double)
-> bufferToDouble buffer = maybeBufferNull buffer (bufferPeekValue buffer)
+> bufferToDouble = bufferToA
+> --bufferToDouble buffer = maybeBufferNull buffer (bufferPeekValue buffer)
 
 
 > dbColumnTypeToCInt :: DBColumnType -> CInt
@@ -616,9 +627,9 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 >     sess <- lift getSession
 >     (_, buf, nullptr, sizeptr) <- liftIO $ defineCol sess query colpos bufsize ociBufferType
 >     return $ ColumnBuffer
->       { bufPtr = buf
->       , nullIndPtr = nullptr
->       , retSizePtr = sizeptr
+>       { bufferFPtr = buf
+>       , nullIndFPtr = nullptr
+>       , retSizeFPtr = sizeptr
 >       , bufSize = bufsize
 >       , colPos = colpos
 >       , bufType = ociBufferType
@@ -636,10 +647,11 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 >   fetchIntVal buffer = liftIO $ bufferToInt buffer
 >   fetchDoubleVal buffer = liftIO $ bufferToDouble buffer
 >   fetchDatetimeVal buffer = liftIO $ bufferToDatetime buffer
->   freeBuffer buffer = liftIO $ do  -- Free a single column's buffer.
->     free (bufPtr buffer)
->     free (retSizePtr buffer)
->     free (nullIndPtr buffer)
+>   freeBuffer buffer = return ()
+>   --freeBuffer buffer = liftIO $ do  -- Free a single column's buffer.
+>   --  free (bufPtr buffer)
+>   --  free (retSizePtr buffer)
+>   --  free (nullIndPtr buffer)
 
 
 > freeBuffers :: (MonadIO m, Buffer m a) => [a] -> m ()

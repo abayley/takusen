@@ -12,11 +12,9 @@ Performance tests. Currently just tests large result sets.
 
 > {-# OPTIONS -fglasgow-exts -fallow-overlapping-instances #-}
 
-> module Database.Test.PerformanceTest where
+> module Database.Test.PerformanceTest (runPerformanceTest) where
 
-> import qualified Database.Enumerator as DB
 > import qualified Database.Oracle.Enumerator as DB
-> import Database.Enumerator
 > import Database.Oracle.Enumerator
 > import System.Environment (getArgs)
 

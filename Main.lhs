@@ -14,11 +14,11 @@ Import test modules and run test suites.
 > module Main where
 
 > import Database.Test.PerformanceTest
-> --import Database.Test.SimpleEnumeratorTest
-> --import Database.Oracle.Test.OCIFunctions
+> import Database.Test.SimpleEnumeratorTest
+> import Database.Oracle.Test.OCIFunctions
 
 > main :: IO ()
 > main = do
+>   runOCITest
+>   runSimpleTest
 >   runPerformanceTest
->   --runSimpleTest
->   --runOCITests

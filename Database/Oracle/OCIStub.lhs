@@ -250,7 +250,7 @@ but you can't do any updates.
 See makeQuery below for use of this:
 
 > numberOfRowsToPretendToFetch :: Int
-> numberOfRowsToPretendToFetch = 100000
+> numberOfRowsToPretendToFetch = 10000
 
 See fetchIntVal below for use of this:
 

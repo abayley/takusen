@@ -9,8 +9,8 @@ Portability :  non-portable
  
 Defines the concrete implemenation of the "Database.Enumerator" interfaces.
 "Database.Oracle.Enumerator" should be all you need to import
-in order to do simple Oracle database stuff
-(the useful stuff from "Database.Enumerator" is re-exported).
+in order to do simple Oracle database stuff;
+the useful stuff from "Database.Enumerator" is re-exported.
  
 If you want to use the real Oracle OCI implementation
 then uncomment OCIEnumberator and comment OCIStub.

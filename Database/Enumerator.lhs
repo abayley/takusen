@@ -19,22 +19,29 @@ There is a stub ("Database.Oracle.OCIStub") for the Oracle OCI implementation.
 This lets you run the test cases without having a working Oracle installation.
 You need to swtich in the @OCIStub@ module, and switch out the @OCIEnumerator@ module.
 See "Database.Oracle.Enumerator" for details.
-
+ 
+Additional reading:
+ 
+ * <http://pobox.com/~oleg/ftp/Haskell/misc.html#fold-stream>
+ 
+ * <http://pobox.com/~oleg/ftp/papers/LL3-collections-enumerators.txt>
+ 
+ * <http://www.eros-os.org/pipermail/e-lang/2004-March/009643.html>
 
 
 --------- Haddock notes:
 
- - A "blank line" (as mentioned subsequently in these notes) is actually a single space on a line.
+ - An "empty line" (as mentioned subsequently in these notes) is actually a single space on a line.
    This results in a "-- " line in the generated .hs file,
    which continues the comment block from Haddock's point of view.
- - The module comment must contain a blank line between Portability and the description.
+ - The module comment must contain a empty line between Portability and the description.
  - bullet-lists:
      - items must be preceded by an empty line.
      - each list item must start with "*".
  - code-sections:
      - must be preceded by an empty line.
      - use " >" rather than @...@, because "@" allows markup translation, " >" doesn't.
- - @inline code@
+ - @inline code (monospaced font)@
  - /emphasised text/
  - link to "Another.Module".
  - link to 'SomeType' in same module.
@@ -136,6 +143,8 @@ It passes anything else up.
 
 
 |These two functions let us catch (and rethrow) exceptions in the ReaderT monad.
+We need these because the 'Control.Exception.catch' is in the IO monad,
+but /not/ MonadIO.
 
 > shakeReaderT :: ((ReaderT r m1 a1 -> m1 a1) -> m a) -> ReaderT r m a
 > shakeReaderT f = ReaderT $ \r -> f (\lm -> runReaderT lm r)
@@ -279,14 +288,15 @@ must explicitly close the cursor are:
  >      liftIO $ throwIO e
  >    )
 
-|To make life easier, we've created a withCursorBracket function; see below.
- 
- >  c <- openCursor query iter []
- >  withCursorBracket c $ do
- >      r <- cursorCurrent c
+|To make life easier, we've created a withCursorBracket function:
+
+ >  withCursorBracket query1 iter1 [] $ \c1 -> do
+ >    withCursorBracket query2 iter2 [] $ \c2 -> do
+ >      r1 <- cursorCurrent c1
+ >      r2 <- cursorCurrent c2
  >      ...
  >      return something
-
+ 
 
 > cursorIsEOF :: (MonadIO m) => DBCursor ms a -> m Bool
 > cursorIsEOF (DBCursor ref) = do
@@ -327,17 +337,22 @@ must explicitly close the cursor are:
 | Ensures cursor resource is properly tidied up in exceptional cases.
 Propagates exceptions after closing cursor.
 
-> withCursorBracket :: (MonadIO (ReaderT r IO)) =>
->   DBCursor (ReaderT r IO) a -> ReaderT r IO b -> ReaderT r IO b
-> withCursorBracket cursor action = catchReaderT ( do
->     v <- action
->     _ <- cursorClose cursor
->     return v
->   ) (\e -> do
->     _ <- cursorClose cursor
->     liftIO $ throwIO e
->   )
-
+> withCursorBracket :: (MonadQuery m (ReaderT r IO) q, QueryIteratee m iterType seedType	) =>
+>   QueryText  -- ^ query string
+>   -> iterType  -- ^ iteratee function
+>   -> seedType  -- ^ seed value
+>   -> (DBCursor (ReaderT r IO) seedType -> ReaderT r IO a)  -- ^ action that takes a cursor
+>   -> ReaderT r IO a
+> withCursorBracket query iteratee seed action = do
+>   cursor <- openCursor query iteratee seed
+>   catchReaderT ( do
+>       v <- action cursor
+>       _ <- cursorClose cursor
+>       return v
+>     ) (\e -> do
+>       _ <- cursorClose cursor
+>       liftIO $ throwIO e
+>     )
 
 
 --------------------------------------------------------------------
@@ -364,7 +379,6 @@ depend on any DBMS implementation details.
 >   -> seedType  -- ^ seed value
 >   -> m seedType  -- ^ return value same type as seed
 
-> --runfetch = undefined
 > runfetch down finalizers buffers self iteratee seedVal = do
 >   let
 >     handle seedVal True = (down$ iterApply buffers seedVal iteratee) >>= handleIter
@@ -376,7 +390,6 @@ depend on any DBMS implementation details.
 >       down$ finalizers
 >       return seed
 >   (down fetch1) >>= handle seedVal
->--
 
 
 |Used by instances of DBType to throw an exception
@@ -400,6 +413,6 @@ Will work for any type, as you pass the fetch action in the fetcher arg.
 |Useful utility function, for SQL weenies.
 
 > ifNull :: Maybe a  -- ^ Nullable value
->   -> a  -- ^ value to substitute if parm 1 null
+>   -> a  -- ^ value to substitute if parm-1 null
 >   -> a
 > ifNull value subst = maybe subst id value

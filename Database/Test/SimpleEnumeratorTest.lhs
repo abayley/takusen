@@ -14,9 +14,8 @@ Demonstrates possible usage.
 
 > {-# OPTIONS -fglasgow-exts -fallow-overlapping-instances #-}
 
-> module Database.Test.SimpleEnumeratorTest where
+> module Database.Test.SimpleEnumeratorTest (runSimpleTest) where
 
-> import qualified Database.Enumerator as DB
 > import qualified Database.Oracle.Enumerator as DB
 > import Database.Oracle.Enumerator (liftIO, throwIO)
 > import System.Environment (getArgs)
@@ -156,8 +155,7 @@ is unit.
 >     query = "select 1 from dual union select 2 from dual union select 3 from dual"
 >     iter :: (Monad m) => Int -> DB.IterAct m [Int]
 >     iter i acc = go $ i:acc
->   c <- DB.openCursor query iter []
->   DB.withCursorBracket c $ do
+>   DB.withCursorBracket query iter [] $ \c -> do
 >     liftIO $ putStrLn "cursor opened"
 >     r <- DB.cursorCurrent c
 >     liftIO $ putStrLn (show r)
@@ -199,13 +197,12 @@ is unit.
 > selectExhaustCursor = do
 >   let
 >     query = "select 1 from dual union select 2 from dual"
->     -- Agai, here we demonstrate the use of a local argument
+>     -- Again, here we demonstrate the use of a local argument
 >     -- type annotation rather than the complete signature.
 >     -- Let the compiler figure out the monad and the seed type.
 >     --iter :: (Maybe m) => Maybe Int -> DB.IterAct m [Int]
 >     iter (i::Maybe Int) acc = go $ (DB.ifNull i (-(1))):acc
->   c <- DB.openCursor query iter []
->   DB.withCursorBracket c $ do
+>   DB.withCursorBracket query iter [] $ \c -> do
 >       _ <- DB.cursorNext c
 >       _ <- DB.cursorNext c
 >       _ <- DB.cursorNext c
