@@ -1,7 +1,4 @@
 
-> {-# OPTIONS -ffi -fglasgow-exts #-}
-
-
 |
 Module      :  Database.Oracle.OCIFunctions
 Copyright   :  (c) 2004 Oleg Kiselyov, Alistair Bayley
@@ -25,6 +22,8 @@ The 'OCIException' simply contains the error number returned by
 the OCI call, and some text identifying the wrapper function.
 See 'formatErrorCodeDesc' for the set of possible values for the OCI error numbers.
 
+> {-# OPTIONS -ffi #-}
+> {-# OPTIONS -fglasgow-exts #-}
 
 
 > module Database.Oracle.OCIFunctions where
@@ -74,6 +73,8 @@ See 'formatErrorCodeDesc' for the set of possible values for the OCI error numbe
 > type DefnHandle = Ptr DefnStruct
 > data ParamStruct = ParamStruct
 > type ParamHandle = Ptr ParamStruct
+> data BindStruct = BindStruct
+> type BindHandle = Ptr BindStruct
 > type ColumnInfo = (DefnHandle, ColumnResultBuffer, ForeignPtr CShort, ForeignPtr CShort)
 
 
@@ -151,7 +152,7 @@ If we can't derive Typeable then the following code should do the trick:
 
 |Coming soon...
  
- > foreign import ccall "oci.h OCIBindByPos" ociBindByPos ...
+> --foreign import ccall "oci.h OCIBindByPos" ociBindByPos :: StmtHandle -> Ptr BindHandle -> ErrorHandle -> CString -> CInt -> BufferPtr -> CInt -> CInt -> Ptr CInt 
 
 
 ---------------------------------------------------------------------------------

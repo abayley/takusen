@@ -89,7 +89,7 @@ Portability :  non-portable
 >   printPropagateError $
 >       ddlExec db "create table t_blob (b blob)"
 >   printPropagateError $
->       ddlExec db "insert into t_blob values 'blobtest'"
+>       ddlExec db "insert into t_blob values ('blobtest')"
 
 > insertNatural db n = do
 >   ddlExec db $ "insert into t_natural values (" ++ (show n) ++ ")"
