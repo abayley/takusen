@@ -19,7 +19,7 @@ Source code for this project is at:
 
 > module Main where
 
-> 
+
 > import Database.Sqlite.Test.SqliteFunctions as SqliteLow
 > import Database.Oracle.Test.OCIFunctions as OracleLow
 > import Database.Test.MultiConnect as Multi

@@ -352,8 +352,8 @@ there's no equivalent for ReadUncommitted.
 
 
 > instance MonadSession (ReaderT Session IO) IO Session where
->   runSess s a = runReaderT a s
->   runSession = runReaderT
+>   runSession = flip runReaderT
+>   --runSession s a = runReaderT a s
 >   getSession = ask
 >
 >   beginTransaction isolation = do
@@ -482,12 +482,12 @@ there's no equivalent for ReadUncommitted.
 |Short-circuit null test: if the buffer contains a null then return Nothing.
 Otherwise, run the IO action to extract a value from the buffer and return Just it.
 
-> maybeBufferNull :: ColumnBuffer -> IO a -> IO (Maybe a)
-> maybeBufferNull buffer action =
+> maybeBufferNull :: ColumnBuffer -> Maybe a -> IO a -> IO (Maybe a)
+> maybeBufferNull buffer nullVal action =
 >   withForeignPtr (nullIndFPtr buffer) $ \nullIndPtr -> do
 >     nullInd <- liftM cShort2Int (peek nullIndPtr)
 >     if (nullInd == -1)  -- -1 == null, 0 == value
->       then return Nothing
+>       then return nullVal
 >       else do
 >         v <- action
 >         return (Just v)
@@ -495,7 +495,8 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 
 > bufferToString :: ColumnBuffer -> IO (Maybe String)
 > bufferToString buffer =
->   maybeBufferNull buffer $
+>   -- If it's null then return ""
+>   maybeBufferNull buffer (Just "") $
 >     -- Given a column buffer, extract a string of variable length
 >     -- (you have to terminate it yourself).
 >     withForeignPtr (bufferFPtr buffer) $ \bufferPtr ->
@@ -516,29 +517,30 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 
 
 > bufferToDatetime :: ColumnBuffer -> IO (Maybe CalendarTime)
-> bufferToDatetime colbuf = maybeBufferNull colbuf $ withForeignPtr (bufferFPtr colbuf) $ \bufferPtr -> do
->   let buffer = castPtr bufferPtr
->   century100 <- byteToInt buffer 0
->   year100 <- byteToInt buffer 1
->   month <- byteToInt buffer 2
->   day <- byteToInt buffer 3
->   hour <- byteToInt buffer 4
->   minute <- byteToInt buffer 5
->   second <- byteToInt buffer 6
->   return $ CalendarTime
->     { ctYear = makeYear century100 year100
->     , ctMonth = toEnum (month - 1)
->     , ctDay = day
->     , ctHour = hour - 1
->     , ctMin = minute - 1
->     , ctSec = second - 1
->     , ctPicosec = 0
->     , ctWDay = Sunday
->     , ctYDay = -1
->     , ctTZName = "UTC"
->     , ctTZ = 0
->     , ctIsDST = False
->     }
+> bufferToDatetime colbuf = maybeBufferNull colbuf Nothing $
+>   withForeignPtr (bufferFPtr colbuf) $ \bufferPtr -> do
+>     let buffer = castPtr bufferPtr
+>     century100 <- byteToInt buffer 0
+>     year100 <- byteToInt buffer 1
+>     month <- byteToInt buffer 2
+>     day <- byteToInt buffer 3
+>     hour <- byteToInt buffer 4
+>     minute <- byteToInt buffer 5
+>     second <- byteToInt buffer 6
+>     return $ CalendarTime
+>       { ctYear = makeYear century100 year100
+>       , ctMonth = toEnum (month - 1)
+>       , ctDay = day
+>       , ctHour = hour - 1
+>       , ctMin = minute - 1
+>       , ctSec = second - 1
+>       , ctPicosec = 0
+>       , ctWDay = Sunday
+>       , ctYDay = -1
+>       , ctTZName = "UTC"
+>       , ctTZ = 0
+>       , ctIsDST = False
+>       }
 
 
 > bufferPeekValue :: (Storable a) => ColumnBuffer -> IO a
@@ -547,7 +549,7 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 >   return v
 
 > bufferToA :: (Storable a) => ColumnBuffer -> IO (Maybe a)
-> bufferToA buffer = maybeBufferNull buffer (bufferPeekValue buffer)
+> bufferToA buffer = maybeBufferNull buffer Nothing (bufferPeekValue buffer)
 
 > bufferToInt :: ColumnBuffer -> IO (Maybe Int)
 > bufferToInt = bufferToA
@@ -557,21 +559,34 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 
 
 
+|This single polymorphic instance covers all of the
+type-specific non-Maybe instances e.g. String, Int, Double, etc.
+
+> instance DBType (Maybe a) OCIMonadQuery ColumnBuffer
+>     => DBType a OCIMonadQuery ColumnBuffer where
+>   allocBufferFor _ n = allocBufferFor (undefined::Maybe a) n
+>   fetchCol buffer = throwIfDBNull buffer fetchCol
+>   bind pos val = return()
+
 > instance DBType (Maybe String) OCIMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (16000, DBTypeString) n
 >   fetchCol buffer = liftIO$ bufferToString buffer
+>   bind pos val = return()
 
 > instance DBType (Maybe Int) OCIMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (4, DBTypeInt) n
 >   fetchCol buffer = liftIO$ bufferToInt buffer
+>   bind pos val = return()
 
 > instance DBType (Maybe Double) OCIMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (8, DBTypeDouble) n
 >   fetchCol buffer = liftIO$ bufferToDouble buffer
+>   bind pos val = return()
 
 > instance DBType (Maybe CalendarTime) OCIMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (8, DBTypeDatetime) n
 >   fetchCol buffer = liftIO$ bufferToDatetime buffer
+>   bind pos val = return()
 
 
 |A polymorphic instance which assumes that the value is in a String column,
@@ -584,12 +599,4 @@ and uses Read to convert the String to a Haskell data value.
 >     case v of
 >       Just s -> return (Just (read s))
 >       Nothing -> return Nothing
-
-
-|This single polymorphic instance replaces all of the type-specific non-Maybe instances
-e.g. String, Int, Double, etc.
-
-> instance DBType (Maybe a) OCIMonadQuery ColumnBuffer
->     => DBType a OCIMonadQuery ColumnBuffer where
->   allocBufferFor _ n = allocBufferFor (undefined::Maybe a) n
->   fetchCol buffer = throwIfDBNull buffer fetchCol
+>   bind pos val = return()

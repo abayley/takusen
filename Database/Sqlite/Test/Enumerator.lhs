@@ -10,23 +10,22 @@ Portability :  non-portable
 
 > {-# OPTIONS -fglasgow-exts -fallow-overlapping-instances #-}
 
-> module Database.Sqlite.Test.Enumerator (runTest) where
+> module Database.Sqlite.Test.Enumerator where
 
 > import Database.Sqlite.Enumerator as Sqlite
-> import Database.Test.Enumerator
+> import Database.Test.Enumerator as Enum
+> import Database.Test.Performance as Perf
+> import Database.Enumerator
 > import System.Environment (getArgs)
-> import System.Time  -- CalendarTime
-> import Data.List (intersperse)
 
 > runTest :: IO ()
 > runTest = catchDB ( do
->     sess <- argLogon
->     runTests dateSqlite sess
->     --runTests dateOracle sess
->     Sqlite.disconnect sess
+>     sessSql <- logonSqlite
+>     Enum.runTests dateSqlite sessSql
+>     --Perf.runTests sessSql
+>     Sqlite.disconnect sessSql
 >   ) basicDBExceptionReporter
 
-> argLogon :: IO Session
-> argLogon = do
+> logonSqlite = do
 >   [ user, pswd, dbname ] <- getArgs
 >   Sqlite.connect user pswd dbname

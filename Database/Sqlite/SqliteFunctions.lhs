@@ -27,8 +27,10 @@ Simple wrappers for Sqlite functions (FFI).
 > type DBHandle = Ptr DBHandleStruct
 > data StmtStruct = StmtStruct
 > type StmtHandle = Ptr StmtStruct
+> type Blob = Ptr Word8
 
-> type SqliteCallback a = FunPtr (Ptr a -> CInt -> Ptr CString -> Ptr CString -> Int)
+> type SqliteCallback a = FunPtr (Ptr a -> CInt -> Ptr CString -> Ptr CString -> IO Int)
+> type FreeFunPtr = FunPtr ( Ptr Word8 -> IO () )
 
 > data SqliteException = SqliteException Int String
 >   deriving (Typeable)
@@ -56,6 +58,10 @@ Simple wrappers for Sqlite functions (FFI).
 > cStrLen :: CStringLen -> CInt
 > cStrLen = fromIntegral . snd
 
+Apparently Sqlite's UTF16 is in "host native byte order",
+whatever that means.
+
+> type UTF16CString = CString
 > type UTF8CString = CString
 
 
@@ -100,7 +106,7 @@ column_bytes tells us how big a value is in the result set.
 >   :: StmtHandle -> CInt -> IO Int
 
 > foreign import ccall "sqlite.h sqlite3_column_blob" sqliteColumnBlob
->   :: StmtHandle -> CInt -> IO (Ptr a)
+>   :: StmtHandle -> CInt -> IO Blob
 
 > foreign import ccall "sqlite.h sqlite3_column_double" sqliteColumnDouble
 >   :: StmtHandle -> CInt -> IO CDouble
@@ -115,7 +121,31 @@ column_bytes tells us how big a value is in the result set.
 >   :: StmtHandle -> CInt -> IO UTF8CString
 
 > foreign import ccall "sqlite.h sqlite3_column_text16" sqliteColumnText16
->   :: StmtHandle -> CInt -> IO (Ptr a)
+>   :: StmtHandle -> CInt -> IO UTF16CString
+
+
+
+
+> foreign import ccall "sqlite.h sqlite3_bind_blob" sqliteBindBlob
+>   :: StmtHandle -> CInt -> Blob -> CInt -> FreeFunPtr -> IO CInt
+
+> foreign import ccall "sqlite.h sqlite3_bind_double" sqliteBindDouble
+>   :: StmtHandle -> CInt -> CDouble -> IO CInt
+
+> foreign import ccall "sqlite.h sqlite3_bind_int" sqliteBindInt
+>   :: StmtHandle -> CInt -> CInt -> IO CInt
+
+> foreign import ccall "sqlite.h sqlite3_bind_int64" sqliteBindInt64
+>   :: StmtHandle -> CInt -> CLLong -> IO CInt
+
+> foreign import ccall "sqlite.h sqlite3_bind_null" sqliteBindNull
+>   :: StmtHandle -> CInt -> IO CInt
+
+> foreign import ccall "sqlite.h sqlite3_bind_text" sqliteBindText
+>   :: StmtHandle -> CInt -> UTF8CString -> CInt -> FreeFunPtr -> IO CInt
+
+> foreign import ccall "sqlite.h sqlite3_bind_text16" sqliteBindText16
+>   :: StmtHandle -> CInt -> UTF16CString -> CInt -> FreeFunPtr -> IO CInt
 
 
 -------------------------------------------------------------------
@@ -234,3 +264,47 @@ from given index (we present a one-indexed interface).
 >     else do
 >       str <- peekUTF8String cstrptr
 >       return str
+
+> colValBlob :: StmtHandle -> Int -> IO (ForeignPtr Blob)
+> colValBlob stmt colnum = do
+>   let ccolnum = fromIntegral (colnum - 1)
+>   bytes <- sqliteColumnBytes stmt ccolnum
+>   src <- sqliteColumnBlob stmt ccolnum
+>   buffer <- mallocForeignPtrBytes bytes
+>   withForeignPtr buffer $ \dest -> copyBytes dest src bytes
+>   return (castForeignPtr buffer)
+
+
+Unlike column numbers, bind positions are 1-indexed,
+so there's no need to subtract one from the given position.
+
+> bindDouble :: DBHandle -> StmtHandle -> Int -> Double -> IO ()
+> bindDouble db stmt pos value = do
+>   rc <- sqliteBindDouble stmt (fromIntegral pos) (realToFrac value)
+>   testForError db rc ()
+
+> bindInt :: DBHandle -> StmtHandle -> Int -> Int -> IO ()
+> bindInt db stmt pos value = do
+>   rc <- sqliteBindInt stmt (fromIntegral pos) (fromIntegral value)
+>   testForError db rc ()
+
+> bindInt64 :: DBHandle -> StmtHandle -> Int -> Int64 -> IO ()
+> bindInt64 db stmt pos value = do
+>   rc <- sqliteBindInt64 stmt (fromIntegral pos) (fromIntegral value)
+>   testForError db rc ()
+
+> bindNull :: DBHandle -> StmtHandle -> Int -> IO ()
+> bindNull db stmt pos = do
+>   rc <- sqliteBindNull stmt (fromIntegral pos)
+>   testForError db rc ()
+
+> bindString :: DBHandle -> StmtHandle -> Int -> String -> IO ()
+> bindString db stmt pos value =
+>   withUTF8StringLen value $ \(cstr, clen) -> do
+>     rc <- sqliteBindText stmt (fromIntegral pos) cstr (fromIntegral clen) nullFunPtr
+>     testForError db rc ()
+
+> bindBlob :: DBHandle -> StmtHandle -> Int -> Blob -> Int -> IO ()
+> bindBlob db stmt pos value size = do
+>   rc <- sqliteBindBlob stmt (fromIntegral pos) value (fromIntegral size) nullFunPtr
+>   testForError db rc ()

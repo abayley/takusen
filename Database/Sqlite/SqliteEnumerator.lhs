@@ -85,8 +85,7 @@ because they never throw exceptions.
 
 
 > instance MonadSession (ReaderT Session IO) IO Session where
->   runSess s a = runReaderT a s
->   runSession = runReaderT
+>   runSession = flip runReaderT
 >   getSession = ask
 >
 >   beginTransaction isolation = executeDDL "begin"
@@ -111,6 +110,7 @@ because they never throw exceptions.
 > data Query = Query
 >   { stmtHandle :: StmtHandle
 >   , queryResourceUsage :: QueryResourceUsage
+>   , session :: Session
 >   }
 
 
@@ -126,7 +126,7 @@ because they never throw exceptions.
 >   makeQuery sqltext resourceUsage = do
 >     sess <- getSession
 >     stmt <- liftIO $ prepareStmt (dbHandle sess) sqltext
->     return $ Query stmt resourceUsage
+>     return $ Query stmt resourceUsage sess
 >
 >   destroyQuery query = do
 >     sess <- getSession
@@ -185,6 +185,20 @@ so that we get sensible behaviour for -ve numbers.
 >     , ctIsDST = False
 >     }
 
+> makeInt64 :: CalendarTime -> Int64
+> makeInt64 ct =
+>   let
+>     yearm :: Int64
+>     yearm = 10000000000
+>   in  yearm * fromIntegral (ctYear ct)
+>   + 100000000 * fromIntegral ((fromEnum (ctMonth ct) + 1))
+>   + 1000000 * fromIntegral (ctDay ct)
+>   + 10000 * fromIntegral (ctHour ct)
+>   + 100 * fromIntegral (ctMin ct)
+>   + fromIntegral (ctSec ct)
+
+
+
 |There aren't really Buffers to speak of with Sqlite,
 so we just record the position of each column.
 We also keep a reference to the Query which owns the buffer,
@@ -196,17 +210,12 @@ as we need it to get column values.
 >   }
 
 
-> nullIf v test = if test then Nothing else Just v
-
-|It's arguable as to whether or not an empty string
-should be considered the same as a null,
-but because Oracle does it, we will too.
-Perhaps instead we should fix the Oracle Enumerator so that
-it never returns null for Strings.
+> nullIf :: Bool -> a -> Maybe a
+> nullIf test v = if test then Nothing else Just v
 
 > bufferToString buffer = do
 >   v <- liftIO$ DBAPI.colValString (stmtHandle (query buffer)) (colPos buffer)
->   return (nullIf v (v == ""))
+>   return (Just v)
 
 > bufferToInt buffer = do
 >   v <- liftIO$ DBAPI.colValInt (stmtHandle (query buffer)) (colPos buffer)
@@ -216,39 +225,67 @@ it never returns null for Strings.
 >   v <- liftIO$ DBAPI.colValDouble (stmtHandle (query buffer)) (colPos buffer)
 >   return (Just v)
 
+> bufferToDatetime :: (MonadIO m) => ColumnBuffer -> m (Maybe CalendarTime)
 > bufferToDatetime buffer = do
 >   v <- liftIO$ DBAPI.colValInt64 (stmtHandle (query buffer)) (colPos buffer)
->   return (nullIf (makeCalTime v) (v == 0))
+>   return (nullIf (v == 0) (makeCalTime v))
 
 
 
-This single polymorphic instance replaces all of the type-specific non-Maybe instances
+> class SqliteBind a where
+>   stmtBind :: DBHandle -> StmtHandle -> Int -> a -> IO ()
+
+> instance SqliteBind Int where stmtBind = DBAPI.bindInt
+> instance SqliteBind String where stmtBind = DBAPI.bindString
+> instance SqliteBind Double where stmtBind = DBAPI.bindDouble
+> instance SqliteBind CalendarTime where
+>   stmtBind db stmt pos val =
+>     DBAPI.bindInt64 db stmt pos (makeInt64 val)
+
+> bindMaybe :: (SqliteBind a)
+>   => DBHandle -> StmtHandle -> Int -> Maybe a -> IO ()
+> bindMaybe db stmt pos mv = convertEx $
+>   case mv of
+>     Nothing -> DBAPI.bindNull db stmt pos
+>     Just val -> stmtBind db stmt pos val
+
+> bindM pos val = do
+>     sess <- lift getSession
+>     query <- getQuery
+>     liftIO $ bindMaybe (dbHandle sess) (stmtHandle query) pos val
+
+
+> instance DBType (Maybe String) SqliteMonadQuery ColumnBuffer where
+>   allocBufferFor _ n = allocBuffer undefined n
+>   fetchCol buffer = liftIO$ bufferToString buffer
+>   bind pos val = bindM pos val
+
+> instance DBType (Maybe Int) SqliteMonadQuery ColumnBuffer where
+>   allocBufferFor _ n = allocBuffer undefined n
+>   fetchCol buffer = liftIO$ bufferToInt buffer
+>   bind pos val = bindM pos val
+
+> instance DBType (Maybe Double) SqliteMonadQuery ColumnBuffer where
+>   allocBufferFor _ n = allocBuffer undefined n
+>   fetchCol buffer = liftIO$ bufferToDouble buffer
+>   bind pos val = bindM pos val
+
+> instance DBType (Maybe CalendarTime) SqliteMonadQuery ColumnBuffer where
+>   allocBufferFor _ n = allocBuffer undefined n
+>   fetchCol buffer = liftIO$ bufferToDatetime buffer
+>   bind pos val = bindM pos val
+
+
+|This single polymorphic instance replaces all of the type-specific non-Maybe instances
 e.g. String, Int, Double, etc.
 
 > instance DBType (Maybe a) SqliteMonadQuery ColumnBuffer
 >     => DBType a SqliteMonadQuery ColumnBuffer where
 >   allocBufferFor _ = allocBufferFor (undefined::Maybe a)
 >   fetchCol buffer = throwIfDBNull buffer fetchCol
+>   bind pos val = bind pos (Just val)
 
-
-> instance DBType (Maybe String) SqliteMonadQuery ColumnBuffer where
->   allocBufferFor _ n = allocBuffer undefined n
->   fetchCol buffer = liftIO$ bufferToString buffer
-
-> instance DBType (Maybe Int) SqliteMonadQuery ColumnBuffer where
->   allocBufferFor _ n = allocBuffer undefined n
->   fetchCol buffer = liftIO$ bufferToInt buffer
-
-> instance DBType (Maybe Double) SqliteMonadQuery ColumnBuffer where
->   allocBufferFor _ n = allocBuffer undefined n
->   fetchCol buffer = liftIO$ bufferToDouble buffer
-
-> instance DBType (Maybe CalendarTime) SqliteMonadQuery ColumnBuffer where
->   allocBufferFor _ n = allocBuffer undefined n
->   fetchCol buffer = liftIO$ bufferToDatetime buffer
-
-
-A polymorphic instance which assumes that the value is in a String column,
+|This polymorphic instance assumes that the value is in a String column,
 and uses Read to convert the String to a Haskell data value.
 
 > instance (Show a, Read a) => DBType (Maybe a) SqliteMonadQuery ColumnBuffer where
@@ -258,3 +295,8 @@ and uses Read to convert the String to a Haskell data value.
 >     case v of
 >       Just s -> return (Just (read s))
 >       Nothing -> return Nothing
+>   bind pos val = do
+>     sess <- lift getSession
+>     query <- getQuery
+>     let justString = maybe Nothing (Just . show) val
+>     liftIO $ bindMaybe (dbHandle sess) (stmtHandle query) pos justString
