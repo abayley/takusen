@@ -261,7 +261,7 @@ is unit.
 > createTable :: Session -> IO ()
 > createTable sess = ignoreDBError 955 $
 >     runSession (
->         executeDDL "create table agbtest (id number, v varchar(10))"
+>         executeDDL "create table agbtest (id number, v varchar(1000))"
 >       ) sess
 
 
@@ -274,43 +274,77 @@ is unit.
 >       ) sess
 
 
-
-> insertTable :: Int -> SessionQuery
-> insertTable n = do
->   liftIO $ putStrLn ("insert " ++ (show n))
->   rows <- executeDML $ "insert into agbtest (id, v) values (" ++ (show n) ++ ", '" ++ (show n) ++ "')"
+> insertTable :: Int -> String -> SessionQuery
+> insertTable n s = do
+>   liftIO $ putStrLn ("insert " ++ (show n) ++ " " ++ s)
+>   rows <- executeDML $ "insert into agbtest (id, v) values (" ++ (show n) ++ ", '" ++ s ++ "')"
 >   return ()
 
-> updateTable :: Int -> Int -> SessionQuery
-> updateTable x y = do
->   rows <- executeDML $ "update agbtest set v = '" ++ (show y) ++ "' where id = " ++ (show x)
+> insertInt :: Int -> SessionQuery
+> insertInt n = insertTable n (show n)
+
+
+> updateTable :: Int -> String -> SessionQuery
+> updateTable n s = do
+>   rows <- executeDML $ "update agbtest set v = '" ++ s ++ "' where id = " ++ (show n)
 >   liftIO $ putStrLn $ "rows updated: " ++ (show rows)
 
-
+> updateInt :: Int -> Int -> SessionQuery
+> updateInt n x = updateTable n (show x)
 
 
 > executeDDLTest :: Session -> IO ()
 > executeDDLTest sess = catchDB ( do
 >     putStrLn "\nexecuteDDLTest:"
+>     --createDual sess
 >     dropTable sess
 >     createTable sess
 >     runSession ( do
->         insertTable 1
->         insertTable 2
->         insertTable 3
->         insertTable 2
+>         beginTransaction Serialisable
+>         insertInt 1
+>         insertInt 2
+>         insertInt 3
+>         insertInt 2
 >         liftIO $ putStrLn "commit"
 >         commit
->         insertTable 2
->         updateTable 2 22
+>         beginTransaction Serialisable
+>         insertInt 2
+>         updateInt 2 22
 >         liftIO $ putStrLn "rollback"
 >         rollback
->         updateTable 2 22
+>         beginTransaction Serialisable
+>         updateInt 2 22
 >         liftIO $ putStrLn "commit"
 >         commit
 >       ) sess
 >     dropTable sess
 >   ) basicDBExceptionReporter
+
+
+> -- test polymorphic fetch function
+> polymorphicFetchTest :: Session -> IO ()
+> polymorphicFetchTest sess = catchDB ( do
+>     putStrLn "\npolymorphicFetchTest:"
+>     createTable sess
+>     runSession ( do
+>         beginTransaction Serialisable
+>         let
+>           l1 :: [Int]
+>           l1 = [1, 2, 3, 4]
+>           l2 :: [Int]
+>           l2 = [5, 6, 7, 8]
+>         insertTable 1 (show l1)
+>         insertTable 2 (show l2)
+>         commit
+>         let
+>           iter :: (Monad m) => [Int] -> IterAct m [[Int]]
+>           iter c1 acc = result $ c1:acc
+>         r <- doQuery "select v from agbtest" iter []
+>         liftIO $ putStrLn (show r)
+>       ) sess
+>     dropTable sess
+>   ) basicDBExceptionReporter
+
 
 
 > allTests :: Session -> IO ()
@@ -319,6 +353,7 @@ is unit.
 >     selectTests sess
 >     selectNullTest sess
 >     selectExhaustCursorTest sess
+>     polymorphicFetchTest sess
 
 
 > argLogon :: IO Session

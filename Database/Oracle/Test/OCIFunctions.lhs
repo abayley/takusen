@@ -32,9 +32,16 @@ so it should only use functions from there (and "Database.Oracle.OCIConstants").
 
 > reportAndIgnore :: ErrorHandle -> OCI.OCIException -> IO () -> IO ()
 > reportAndIgnore err ociexc cleanupAction = do
+>   (e, m) <- OCI.formatErrorMsg ociexc err
+>   printError $ (show e) ++ ": " ++ m
+>   cleanupAction
+
+> reportAndRethrow :: ErrorHandle -> OCI.OCIException -> IO () -> IO ()
+> reportAndRethrow err ociexc cleanupAction = do
 >   (_, m) <- OCI.formatErrorMsg ociexc err
 >   printError m
 >   cleanupAction
+>   OCI.throwOCI ociexc
 
 
 > logon :: (String, String, String) -> IO (EnvHandle, ErrorHandle, ConnHandle)
@@ -106,6 +113,18 @@ so it should only use functions from there (and "Database.Oracle.OCIConstants").
 >   return (castPtr stmt)
 
 
+> testBeginTrans :: (String, String, String) -> IO ()
+> testBeginTrans args = do
+>   (env, err, conn) <- logon args
+>   OCI.catchOCI ( do
+>       --OCI.beginTrans err conn oci_TRANS_SERIALIZABLE 
+>       OCI.beginTrans err conn 1
+>     ) (\ociexc -> reportAndIgnore (castPtr err) ociexc nullAction)
+>   stmt <- getStmt env err conn "select dummy from dual"
+>   OCI.handleFree oci_HTYPE_STMT (castPtr stmt)
+>   logoff (env, err, conn)
+
+
 > testExecute :: (String, String, String) -> IO ()
 > testExecute args = do
 >   (env, err, conn) <- logon args
@@ -146,6 +165,7 @@ so it should only use functions from there (and "Database.Oracle.OCIConstants").
 >   args <- parseArgs
 >   testCreateEnv
 >   testConnect args
+>   testBeginTrans args
 >   testExecute args
 >   testFetch args
 >   testFetchFail args

@@ -139,7 +139,7 @@ If we can't derive Typeable then the following code should do the trick:
 > foreign import ccall "oci.h OCIServerDetach" ociServerDetach :: ServerHandle -> ErrorHandle -> CInt -> IO CInt
 > foreign import ccall "oci.h OCITerminate" ociTerminate :: CInt -> IO CInt
 
-> foreign import ccall "oci.h OCITransStart" ociTransStart :: ConnHandle -> ErrorHandle -> CInt -> CInt -> IO CInt
+> foreign import ccall "oci.h OCITransStart" ociTransStart :: ConnHandle -> ErrorHandle -> Word8 -> CInt -> IO CInt
 > foreign import ccall "oci.h OCITransCommit" ociTransCommit :: ConnHandle -> ErrorHandle -> CInt -> IO CInt
 > foreign import ccall "oci.h OCITransRollback" ociTransRollback :: ConnHandle -> ErrorHandle -> CInt -> IO CInt
 

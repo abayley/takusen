@@ -29,7 +29,7 @@ the useful stuff from "Database.Enumerator" is re-exported.
 >
 >     -- **'MonadQuery' instance functions
 >     , DBCursor, MonadQuery, QueryResourceUsage(..)
->     , doQuery, doQueryTuned, openCursor, openCursorTuned
+>     , doQuery, doQueryTuned
 >
 >     -- *Sessions: connecting etc
 >     -- |'SessionQuery' is a convenient type synonym;

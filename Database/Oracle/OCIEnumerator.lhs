@@ -11,6 +11,8 @@ Oracle OCI implementation of Database.Enumerator.
 
 
 > {-# OPTIONS -fglasgow-exts #-}
+> {-# OPTIONS -fallow-undecidable-instances #-}
+> {-# OPTIONS -fallow-overlapping-instances #-}
 
 > module Database.Oracle.OCIEnumerator where
 
@@ -382,7 +384,7 @@ there's no equivalent for ReadUncommitted.
 
 > type OCIMonadQuery = ReaderT Query (ReaderT Session IO)
 
-> instance MonadQuery OCIMonadQuery (ReaderT Session IO) Query where
+> instance MonadQuery OCIMonadQuery (ReaderT Session IO) Query ColumnBuffer where
 >
 >   -- so, doQuery is essentially the result of applying lfold_nonrec_to_rec
 >   -- to doQuery1Maker
@@ -449,56 +451,36 @@ there's no equivalent for ReadUncommitted.
 >     sess <- lift getSession
 >     rc <- liftIO $ fetchRow sess query
 >     if rc == oci_NO_DATA then return False else return True
+>
+>   allocBuffer (bufsize, buftype) colpos = do
+>     let ociBufferType = dbColumnTypeToCInt buftype
+>     query <- getQuery
+>     sess <- lift getSession
+>     (_, buf, nullptr, sizeptr) <- liftIO $ defineCol sess query colpos bufsize ociBufferType
+>     return $ ColumnBuffer
+>       { bufferFPtr = buf
+>       , nullIndFPtr = nullptr
+>       , retSizeFPtr = sizeptr
+>       , bufSize = bufsize
+>       , colPos = colpos
+>       , bufType = ociBufferType
+>       }
+>
+>   columnPosition buffer = return (colPos buffer)
+>
+>   currentRowNum = do
+>     query <- getQuery
+>     sess <- lift getSession
+>     rc <- liftIO $ getRowCount sess (stmtHandle query)
+>     return rc
+>
+>   freeBuffer buffer = return ()
 
 
 
 
 --------------------------------------------------------------------
 -- ** Result-set data buffers implementation
---------------------------------------------------------------------
-
-If you need to add new database types, then you must:
-  In Database.Enumerator:
-    - add the constructor to DBColumnType
-    - add a fetch function to class Buffer
-  In Database.Oracle.OCIEnumerator:
-    - add a case for the new constructor to Database.Oracle.OCIEnumerator.dbColumnTypeToCInt
-    - add the fetch function to the OCIMonadQuery + ColumnBuffer instance of Buffer
-    - add two instances to DBType: one for the Maybe and one for the raw type.
-
-e.g. adding a fictional type Money:
-
-In Database.Enumerator:
-
-  data DBColumnType =
-      DBTypeInt
-    ...
-    | DBTypeMoney
-
-  class (Monad m) => Buffer m bufferType | m -> bufferType where
-    ...
-    fetchMoneyVal :: bufferType -> m (Maybe Money)
-
-In Database.Oracle.OCIEnumerator:
-
-  -- This is the tricky bit: extracting the Money value from the column buffer.
-  bufferToMoney :: ColumnBuffer -> IO (Maybe Money)
-  bufferToMoney buffer = maybeBufferNull buffer $ do ...
-
-  dbColumnTypeToCInt DBTypeMoney = oci_SQLT_MNY
-
-  instance Buffer OCIMonadQuery ColumnBuffer where
-    ...
-    fetchMoneyVal buffer = liftIO $ bufferToMoney buffer
-
-  instance DBType Money where
-    allocBufferFor _ n = allocBuffer (20, DBTypeMoney) n
-    fetchCol buffer = throwIfDBNull buffer fetchMoneyVal
-
-  instance DBType (Maybe Money) where
-    allocBufferFor _ n = allocBuffer (20, DBTypeMoney) n
-    fetchCol buffer = fetchMoneyVal buffer
-
 --------------------------------------------------------------------
 
 
@@ -510,6 +492,14 @@ In Database.Oracle.OCIEnumerator:
 >    , colPos :: Int
 >    , bufType :: CInt
 >    }
+
+
+> dbColumnTypeToCInt :: DBColumnType -> CInt
+> dbColumnTypeToCInt DBTypeInt = oci_SQLT_INT
+> dbColumnTypeToCInt DBTypeString = oci_SQLT_CHR
+> dbColumnTypeToCInt DBTypeDatetime = oci_SQLT_DAT
+> dbColumnTypeToCInt DBTypeDouble = oci_SQLT_FLT
+
 
 > nullByte :: CChar
 > nullByte = 0
@@ -604,81 +594,40 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 > bufferToDouble = bufferToA
 
 
-> dbColumnTypeToCInt :: DBColumnType -> CInt
-> dbColumnTypeToCInt DBTypeInt = oci_SQLT_INT
-> dbColumnTypeToCInt DBTypeString = oci_SQLT_CHR
-> dbColumnTypeToCInt DBTypeDatetime = oci_SQLT_DAT
-> dbColumnTypeToCInt DBTypeDouble = oci_SQLT_FLT
 
-
-
-> instance Buffer OCIMonadQuery ColumnBuffer where
->
->   allocBuffer (bufsize, buftype) colpos = do
->     let ociBufferType = dbColumnTypeToCInt buftype
->     query <- getQuery
->     sess <- lift getSession
->     (_, buf, nullptr, sizeptr) <- liftIO $ defineCol sess query colpos bufsize ociBufferType
->     return $ ColumnBuffer
->       { bufferFPtr = buf
->       , nullIndFPtr = nullptr
->       , retSizeFPtr = sizeptr
->       , bufSize = bufsize
->       , colPos = colpos
->       , bufType = ociBufferType
->       }
->
->   columnPosition buffer = return (colPos buffer)
->
->   currentRowNum = do
->     query <- getQuery
->     sess <- lift getSession
->     rc <- liftIO $ getRowCount sess (stmtHandle query)
->     return rc
->
->   fetchStringVal buffer = liftIO $ bufferToString buffer
->   fetchIntVal buffer = liftIO $ bufferToInt buffer
->   fetchDoubleVal buffer = liftIO $ bufferToDouble buffer
->   fetchDatetimeVal buffer = liftIO $ bufferToDatetime buffer
->   freeBuffer _ = return ()
-
-
-> freeBuffers :: (MonadIO m, Buffer m a) => [a] -> m ()
-> freeBuffers buffers = mapM_ freeBuffer buffers
-
-
-
-
-> instance DBType String where
+> instance DBType (Maybe String) OCIMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (4000, DBTypeString) n
->   fetchCol buffer = throwIfDBNull buffer fetchStringVal
+>   fetchCol buffer = liftIO$ bufferToString buffer
 
-> instance DBType Int where
+> instance DBType (Maybe Int) OCIMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (4, DBTypeInt) n
->   fetchCol buffer = throwIfDBNull buffer fetchIntVal
+>   fetchCol buffer = liftIO$ bufferToInt buffer
 
-> instance DBType Double where
+> instance DBType (Maybe Double) OCIMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (8, DBTypeDouble) n
->   fetchCol buffer = throwIfDBNull buffer fetchDoubleVal
+>   fetchCol buffer = liftIO$ bufferToDouble buffer
 
-> instance DBType CalendarTime where
+> instance DBType (Maybe CalendarTime) OCIMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (8, DBTypeDatetime) n
->   fetchCol buffer = throwIfDBNull buffer fetchDatetimeVal
+>   fetchCol buffer = liftIO$ bufferToDatetime buffer
 
 
+|A polymorphic instance which assumes that the value is in a String column,
+and uses Read to convert the String to a Haskell data value.
 
-> instance DBType (Maybe String) where
->   allocBufferFor _ n = allocBuffer (4000, DBTypeString) n
->   fetchCol buffer = fetchStringVal buffer
+> instance (Show a, Read a) => DBType (Maybe a) OCIMonadQuery ColumnBuffer where
+>   allocBufferFor _ n = allocBuffer undefined n
+>   fetchCol buffer = do
+>     v <- liftIO$ bufferToString buffer
+>     case v of
+>       Just s -> return (Just (read s))
+>       Nothing -> return Nothing
 
-> instance DBType (Maybe Int) where
->   allocBufferFor _ n = allocBuffer (4, DBTypeInt) n
->   fetchCol buffer = fetchIntVal buffer
 
-> instance DBType (Maybe Double) where
->   allocBufferFor _ n = allocBuffer (8, DBTypeDouble) n
->   fetchCol buffer = fetchDoubleVal buffer
+|This single polymorphic instance replaces all of the type-specific non-Maybe instances
+e.g. String, Int, Double, etc.
 
-> instance DBType (Maybe CalendarTime) where
->   allocBufferFor _ n = allocBuffer (8, DBTypeDatetime) n
->   fetchCol buffer = fetchDatetimeVal buffer
+> instance DBType (Maybe a) OCIMonadQuery ColumnBuffer
+>     => DBType a OCIMonadQuery ColumnBuffer where
+>   allocBufferFor _ = allocBufferFor (undefined::Maybe a)
+>   fetchCol buffer = throwIfDBNull buffer fetchCol
