@@ -49,30 +49,29 @@ Oracle OCI implementation of Database.Enumerator.
 > printError :: String -> IO ()
 > printError s = hPutStrLn stderr s
 
-|convertAndRethrow converts an OCIException to a DBException.
+|rethrow converts an OCIException to a DBException.
 The third parameter is an IO action that you can use to clean up any handles.
-First we get the error message from the ErrorHandle,
+First we get the error message from the Env or ErrorHandle,
 and then we run the cleanup action to free any allocated handles.
 (Obviously, we must extract the error message _before_ we free the handles.)
 If there's no cleanup action required then simply pass nullAction.
 
-> convertAndRethrow :: ErrorHandle -> OCIException -> IO () -> IO ()
-> convertAndRethrow err ociexc cleanupAction = do
->   (e, m) <- OCI.formatErrorMsg ociexc err
->   cleanupAction
->   throwDB (DBError e m)
+> class OCIExceptionHandler a where
+>   rethrow :: a -> OCIException -> IO () -> IO b
 
-> reportAndIgnore :: ErrorHandle -> OCIException -> IO () -> IO ()
-> reportAndIgnore err ociexc cleanupAction = do
->   (_, m) <- OCI.formatErrorMsg ociexc err
->   printError m
->   cleanupAction
+> instance OCIExceptionHandler ErrorHandle where
+>   rethrow err ex finaliser = do
+>     (e, m) <- OCI.formatErrorMsg ex err
+>     finaliser
+>     throwDB (DBError e m)
+>     return undefined
 
-> reportAndRethrow :: ErrorHandle -> OCIException -> IO () -> IO ()
-> reportAndRethrow err ociexc cleanupAction = do
->   (_, m) <- OCI.formatErrorMsg ociexc err
->   printError m
->   OCI.throwOCI ociexc
+> instance OCIExceptionHandler EnvHandle where
+>   rethrow env ex finaliser = do
+>     (e, m) <- OCI.formatEnvMsg ex env
+>     finaliser
+>     throwDB (DBError e m)
+>     return undefined
 
 
 |What do we do if creating the first handle (Environment) fails?
@@ -80,21 +79,13 @@ There's no Env- or ErrorHandle to get the error message from,
 so do the best we can by constructing a message with formatErrorCodeDesc.
 Still throws DBException.
 
-> reportOCIExc :: OCIException -> IO ()
+> reportOCIExc :: OCIException -> IO a
 > reportOCIExc (OCIException e m) = do
 >   let s = OCI.formatErrorCodeDesc e m
 >   printError s
 >   throwDB (DBError 0 s)
+>   return undefined
 
-
-|This is a version of convertAndRethrow version that uses EnvHandle
-rather than ErrorHandle. Only used by getErr.
-
-> convertAndRethrowEnv :: EnvHandle -> OCIException -> IO () -> IO ()
-> convertAndRethrowEnv env ociexc cleanupAction = do
->   (e, m) <- OCI.formatEnvMsg ociexc env
->   cleanupAction
->   throwDB (DBError e m)
 
 
 --------------------------------------------------------------------
@@ -114,6 +105,16 @@ rather than ErrorHandle. Only used by getErr.
 >   }
 
 
+> class FreeHandle ht where dispose :: ht -> IO ()
+
+> instance FreeHandle EnvHandle where dispose h = freeHandle (castPtr h) oci_HTYPE_ENV
+> instance FreeHandle ErrorHandle where dispose h = freeHandle (castPtr h) oci_HTYPE_ERROR
+> instance FreeHandle ServerHandle where dispose h = freeHandle (castPtr h) oci_HTYPE_SERVER
+> instance FreeHandle ConnHandle where dispose h = freeHandle (castPtr h) oci_HTYPE_SVCCTX
+> instance FreeHandle SessHandle where dispose h = freeHandle (castPtr h) oci_HTYPE_SESSION
+> instance FreeHandle StmtHandle where dispose h = freeHandle (castPtr h) oci_HTYPE_STMT
+
+
 |Reports and ignores any errors when freeing handles.
 Will catch attempts to free invalid (already freed?) handles.
 
@@ -125,59 +126,53 @@ Will catch attempts to free invalid (already freed?) handles.
 >     printError s
 >   )
 
+|Assumes that if an exception is raised,
+the Env and Error handles should be freed.
+
+> inOCI :: EnvHandle -> ErrorHandle -> IO a -> IO a
+> inOCI env err action = catchOCI action $ \e -> do
+>   rethrow err e $ do
+>     dispose err
+>     dispose env
+
+
+|Does not free handles when exception raised.
+
+> inSession :: Session -> (EnvHandle -> ErrorHandle -> ConnHandle -> IO a) -> IO () -> IO a
+> inSession session action finaliser = do
+>   let
+>     env = envHandle session
+>     err = errorHandle session
+>     conn = connHandle session
+>   catchOCI (action env err conn) (\e -> rethrow err e finaliser)
+
 
 > getEnv :: IO EnvHandle
-> getEnv = catchOCI ( do
->   OCI.envCreate
->   ) (\ociexc -> do
->     reportOCIExc ociexc
->     return nullPtr
->   )
+> getEnv = catchOCI OCI.envCreate reportOCIExc
 
 > getErr :: EnvHandle -> IO ErrorHandle
 > getErr env = catchOCI ( do
 >     err <- OCI.handleAlloc oci_HTYPE_ERROR (castPtr env)
 >     return (castPtr err)
->   ) (\ociexc -> do
->     convertAndRethrowEnv env ociexc (freeHandle (castPtr env) oci_HTYPE_ENV)
->     return nullPtr
->   )
+>   ) (\e -> rethrow env e (dispose env))
 
 
 > getServer :: EnvHandle -> ErrorHandle -> IO ServerHandle
-> getServer env err = catchOCI ( do
+> getServer env err = inOCI env err $ do
 >     server <- OCI.handleAlloc oci_HTYPE_SERVER (castPtr env)
 >     return (castPtr server)
->   ) (\ociexc -> do
->     convertAndRethrow err ociexc $ do
->       freeHandle (castPtr err) oci_HTYPE_ERROR
->       freeHandle (castPtr env) oci_HTYPE_ENV
->     return nullPtr
->   )
 
 
 > getConnection :: EnvHandle -> ErrorHandle -> IO ConnHandle
-> getConnection env err = catchOCI ( do
+> getConnection env err = inOCI env err $ do
 >     conn <- OCI.handleAlloc oci_HTYPE_SVCCTX (castPtr env)
 >     return (castPtr conn)
->   ) (\ociexc -> do
->     convertAndRethrow err ociexc $ do
->       freeHandle (castPtr err) oci_HTYPE_ERROR
->       freeHandle (castPtr env) oci_HTYPE_ENV
->     return nullPtr
->   )
 
 
 > getSessionHandle :: EnvHandle -> ErrorHandle -> IO SessHandle
-> getSessionHandle env err = catchOCI ( do
+> getSessionHandle env err = inOCI env err $ do
 >     session <- OCI.handleAlloc oci_HTYPE_SESSION (castPtr env)
 >     return (castPtr session)
->   ) (\ociexc -> do
->     convertAndRethrow err ociexc $ do
->       freeHandle (castPtr err) oci_HTYPE_ERROR
->       freeHandle (castPtr env) oci_HTYPE_ENV
->     return nullPtr
->   )
 
 
 |The idea with multiple logons is to first connect to the server.
@@ -185,16 +180,15 @@ Then you create a connection and a session, set the user id details,
 and begin the session.
 When finished, you end the session,
 detach from the server, and free the handles.
-So we have one EnvHandle and one ErrorHandle (globally),
-and then one ServerHandler, one ConnHandle, and one SessHandle per session.
+So we should have, globally, one EnvHandle and one ErrorHandle,
+and then, per session, one ServerHandle, one ConnHandle, and one SessHandle.
+Also, for each server (in Oracle-speak, an instance), we could share
+the ServerHandle among the many ConnHandles and SessHandles.
 At the moment we're being lazy,
 and not reusing the Env and ErrorHandles for new connections.
 
-
-> logon :: String -> String -> String -> EnvHandle -> ErrorHandle -> IO ConnHandle
-> logon user pswd dbname env err = catchOCI ( do
->     server <- getServer env err
->     OCI.serverAttach err server dbname
+> startServerSession :: String -> String -> EnvHandle -> ErrorHandle -> ServerHandle -> IO ConnHandle
+> startServerSession user pswd env err server = do
 >     conn <- getConnection env err
 >     -- the connection holds a reference to the server in one of its attributes
 >     OCI.setHandleAttr err (castPtr conn) oci_HTYPE_SVCCTX (castPtr server) oci_ATTR_SERVER
@@ -209,12 +203,13 @@ and not reusing the Env and ErrorHandles for new connections.
 >     -- the connection also holds a reference to the session in one of its attributes
 >     OCI.setHandleAttr err (castPtr conn) oci_HTYPE_SVCCTX (castPtr session) oci_ATTR_SESSION
 >     return conn
->   ) (\ociexc -> do
->     convertAndRethrow err ociexc $ do
->       freeHandle (castPtr err) oci_HTYPE_ERROR
->       freeHandle (castPtr env) oci_HTYPE_ENV
->     return nullPtr
->   )
+
+
+> logon :: String -> String -> String -> EnvHandle -> ErrorHandle -> IO ConnHandle
+> logon user pswd dbname env err = inOCI env err $ do
+>     server <- getServer env err
+>     OCI.serverAttach err server dbname
+>     startServerSession user pswd env err server
 
 
 > logoff :: ErrorHandle -> ConnHandle -> IO ()  
@@ -223,10 +218,10 @@ and not reusing the Env and ErrorHandles for new connections.
 >     server <- OCI.getHandleAttr err (castPtr conn) oci_HTYPE_SVCCTX oci_ATTR_SERVER
 >     OCI.sessionEnd err conn session
 >     OCI.serverDetach err server
->     freeHandle (castPtr session) oci_HTYPE_SESSION
->     freeHandle (castPtr conn) oci_HTYPE_SVCCTX
->     freeHandle (castPtr server) oci_HTYPE_SERVER
->   ) (\ociexc -> convertAndRethrow err ociexc nullAction)
+>     dispose session
+>     dispose conn
+>     dispose server
+>   ) (\e -> rethrow err e nullAction)
 
 
 
@@ -247,8 +242,8 @@ and not reusing the Env and ErrorHandles for new connections.
 >     err = errorHandle session
 >     conn = connHandle session
 >   logoff err conn
->   freeHandle (castPtr err) oci_HTYPE_ERROR
->   freeHandle (castPtr env) oci_HTYPE_ENV
+>   dispose err
+>   dispose env
 >   OCI.terminate
 
 
@@ -262,140 +257,86 @@ Oracle's default (and weakest) behaviour is ReadCommitted;
 there's no equivalent for ReadUncommitted.
 
 > beginTrans :: Session -> IsolationLevel -> IO ()
-> beginTrans session isolation = do
->   let
->     err = errorHandle session
->     conn = connHandle session
->   catchOCI ( do
+> beginTrans session isolation = inSession session 
+>   (\_ err conn -> do
 >       case isolation of
 >         ReadUncommitted -> OCI.beginTrans err conn oci_TRANS_READWRITE
 >         ReadCommitted -> OCI.beginTrans err conn oci_TRANS_READWRITE
 >         RepeatableRead -> OCI.beginTrans err conn oci_TRANS_SERIALIZABLE
 >         Serialisable -> OCI.beginTrans err conn oci_TRANS_SERIALIZABLE
 >         Serializable -> OCI.beginTrans err conn oci_TRANS_SERIALIZABLE
->     ) (\ociexc -> convertAndRethrow err ociexc nullAction)
+>   ) nullAction
 
 
 
 > commitTrans :: Session -> IO ()
-> commitTrans session = do
->   let
->     err = errorHandle session
->     conn = connHandle session
->   catchOCI ( do
->       OCI.commitTrans err conn
->     ) (\ociexc -> convertAndRethrow err ociexc nullAction)
-
+> commitTrans session = inSession session
+>   (\_ err conn -> OCI.commitTrans err conn)
+>   nullAction
 
 > rollbackTrans :: Session -> IO ()
-> rollbackTrans session = do
->   let
->     err = errorHandle session
->     conn = connHandle session
->   catchOCI ( do
->       OCI.rollbackTrans err conn
->     ) (\ociexc -> convertAndRethrow err ociexc nullAction)
+> rollbackTrans session = inSession session
+>   (\_ err conn -> OCI.rollbackTrans err conn)
+>   nullAction
+
 
 
 > getStmt :: Session -> IO StmtHandle
-> getStmt session = do
->   let
->     env = envHandle session
->     err = errorHandle session
->   catchOCI ( do
+> getStmt session = inSession session
+>   (\ env err _ -> do
 >       stmt <- OCI.handleAlloc oci_HTYPE_STMT (castPtr env)
 >       return (castPtr stmt)
->     ) (\ociexc -> do
->       convertAndRethrow err ociexc nullAction
->       return undefined
->     )
+>   ) nullAction
 
 
 > closeStmt :: Session -> StmtHandle -> IO ()
-> closeStmt _ stmt = freeHandle (castPtr stmt) oci_HTYPE_STMT
+> closeStmt _ stmt = dispose stmt
 
 
 > setPrefetchCount :: Session -> StmtHandle -> Int -> IO ()
-> setPrefetchCount session stmt count = do
->   let err = errorHandle session
->   catchOCI ( do
->       with count $ \countPtr -> do
+> setPrefetchCount session stmt count = inSession session
+>   (\_ err _ -> with count $ \countPtr ->
 >         OCI.setHandleAttr err (castPtr stmt) oci_HTYPE_STMT countPtr oci_ATTR_PREFETCH_ROWS
->     ) (\ociexc -> do
->       convertAndRethrow err ociexc (closeStmt session stmt)
->     )
+>   ) (closeStmt session stmt)
 
 
 > prepare :: Session -> StmtHandle -> String -> IO ()
-> prepare session stmt sql = do
->   let err = errorHandle session
->   catchOCI ( do
->       OCI.stmtPrepare err stmt sql
->       --setPrefetchCount session stmt 1000
->     ) (\ociexc -> do
->       convertAndRethrow err ociexc (closeStmt session stmt)
->     )
+> prepare session stmt sql = inSession session
+>   (\_ err _ -> OCI.stmtPrepare err stmt sql
+>   ) (closeStmt session stmt)
 
 
 > word32ToInt :: Word32 -> Int
 > word32ToInt n = fromIntegral n
 
 > getRowCount :: Session -> StmtHandle -> IO Int
-> getRowCount session stmt = do
->   let err = errorHandle session
->   catchOCI ( do
+> getRowCount session stmt = inSession session
+>   (\_ err _ -> do
 >       rc <- OCI.getHandleAttr err (castPtr stmt) oci_HTYPE_STMT oci_ATTR_ROW_COUNT
 >       return (word32ToInt rc)
->     ) (\ociexc -> do
->       convertAndRethrow err ociexc (closeStmt session stmt)
->       return undefined
->     )
+>   ) (closeStmt session stmt)
 
 
 > execute :: Session -> StmtHandle -> Int -> IO Int
-> execute session stmt iterations = do
->   let
->     err = errorHandle session
->     conn = connHandle session
->   catchOCI ( do
+> execute session stmt iterations = inSession session
+>   (\_ err conn -> do
 >       OCI.stmtExecute err conn stmt iterations
->       rowcount <- getRowCount session stmt
->       return rowcount
->     ) (\ociexc -> do
->       convertAndRethrow err ociexc (closeStmt session stmt)
->       return undefined
->     )
+>       getRowCount session stmt
+>   ) (closeStmt session stmt)
 
 
 
 > fetchRow :: Session -> Query -> IO CInt
-> fetchRow session query = do
->   let
->      err = errorHandle session
->      stmt = stmtHandle query
->   catchOCI ( do
->       rc <- OCI.stmtFetch err stmt
->       return rc
->     ) (\ociexc -> do
->       -- cleanup handled by doQuery1Maker
->       convertAndRethrow err ociexc nullAction
->       return undefined
->     )
+> fetchRow session query = inSession session
+>   (\_ err _ -> OCI.stmtFetch err (stmtHandle query))
+>   nullAction  -- cleanup handled by doQuery1Maker
 
 
 
 > defineCol :: Session -> Query -> Int -> Int -> CInt -> IO OCI.ColumnInfo
-> defineCol session query posn bufsize sqldatatype = do
->   let
->      err = errorHandle session
->      stmt = stmtHandle query
->   catchOCI ( do
->       v <- OCI.defineByPos err stmt posn bufsize sqldatatype
->       return v
->     ) (\ociexc -> do
->       convertAndRethrow err ociexc (closeStmt session stmt)
->       return undefined
->     )
+> defineCol session query posn bufsize sqldatatype = inSession session
+>   (\_ err _ -> OCI.defineByPos err (stmtHandle query) posn bufsize sqldatatype)
+>   (closeStmt session (stmtHandle query))
 
 
 
