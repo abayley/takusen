@@ -194,44 +194,7 @@ See fetchIntVal below for use of this:
 > instance MonadQuery OCIMonadQuery (ReaderT Session IO) Query ColumnBuffer
 >  where
 >
->   -- so, doQuery is essentially the result of applying lfold_nonrec_to_rec
->   -- to doQuery1Maker
->   doQuery = doQueryTuned defaultResourceUsage
->
->   doQueryTuned resourceUsage sqltext iteratee seed = do
->     (lFoldLeft, finalizer) <- doQuery1Maker sqltext iteratee resourceUsage
->     catchReaderT (fix lFoldLeft iteratee seed)
->       (\e -> do
->         finalizer
->         liftIO $ throwIO e
->       )
->
->   openCursor = openCursorTuned defaultResourceUsage
->
->   -- This is like 
->   -- lfold_nonrec_to_stream lfold' =
->   -- from the fold-stream.lhs paper:
->   openCursorTuned resourceUsage sqltext iteratee seed = do
->     ref <- liftIO$ newIORef (seed,Nothing)
->     (lFoldLeft, finalizer) <- doQuery1Maker sqltext iteratee resourceUsage
->     let update v = liftIO $ modifyIORef ref (\ (_, f) -> (v, f))
->     let
->       close finalseed = do
->         liftIO$ modifyIORef ref (\_ -> (finalseed, Nothing))
->         finalizer
->         return $ DBCursor ref
->     let
->       k' fni seed' = 
->         let
->           k fni' seed'' = do
->             let k'' flag = if flag then k' fni' seed'' else close seed''
->             liftIO$ modifyIORef ref (\_->(seed'', Just k''))
->             return seed''
->         in do
->           liftIO$ modifyIORef ref (\_ -> (seed', Nothing))
->           do {lFoldLeft k fni seed' >>= update}
->           return $ DBCursor ref
->     k' iteratee seed
+>   runQuery m query = runReaderT m query
 >
 >   getQuery = ask
 >
@@ -246,20 +209,7 @@ See fetchIntVal below for use of this:
 >     counter <- liftIO $ newIORef numberOfRowsToPretendToFetch >>= newIORef
 >     return $ Query stmt counter
 >
->   doQuery1Maker sqltext iteratee resourceUsage = do
->     sess <- getSession
->     query <- makeQuery sqltext resourceUsage
->     let inQuery m = runReaderT m query
->     buffers <- inQuery $ allocBuffers iteratee 1
->     let
->       finaliser = do
->         freeBuffers buffers
->         liftIO $ closeStmt sess (stmtHandle query)
->       hFoldLeft self iteratee seedVal = 
->         runfetch inQuery finaliser buffers self iteratee seedVal
->     return (hFoldLeft, inQuery finaliser)
->
->   fetch1 = do
+>   fetch1Row = do
 >     query <- getQuery
 >     sess <- lift getSession
 >     rc <- liftIO $ fetchRow sess query
@@ -271,11 +221,13 @@ See fetchIntVal below for use of this:
 >     if counter >= 0
 >       then (liftIO $ writeIORef refCounter (counter - 1) >> return True)
 >       else return False
+>
 >   allocBuffer (bufsize, buftype) colpos = do
 >     let ociBufferType = dbColumnTypeToCInt buftype
 >     query <- getQuery
 >     sess <- lift getSession
->     (_, buf, null, sizeptr) <- liftIO $ defineCol sess query colpos bufsize ociBufferType
+>     (_, buf, null, sizeptr) <- liftIO $ 
+>			 defineCol sess query colpos bufsize ociBufferType
 >     return $ ColumnBuffer
 >       { bufPtr = buf
 >       , nullIndPtr = null
@@ -294,7 +246,9 @@ See fetchIntVal below for use of this:
 >     return rc
 >
 >   freeBuffer buffer = return ()
-
+>   destroyQuery query = -- after buffers are freed, close the STMT
+>                do sess <- getSession
+>		    liftIO $ closeStmt sess (stmtHandle query)
 
 
 
@@ -374,10 +328,6 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 > dbColumnTypeToCInt DBTypeString = oci_SQLT_CHR
 > dbColumnTypeToCInt DBTypeDatetime = oci_SQLT_DAT
 > dbColumnTypeToCInt DBTypeDouble = oci_SQLT_FLT
-
-> freeBuffers buffers = mapM_ freeBuffer buffers
-
-
 
 
 > instance DBType (Maybe a) OCIMonadQuery ColumnBuffer
