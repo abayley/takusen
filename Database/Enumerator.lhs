@@ -15,11 +15,8 @@ e.g. @runfetch@, @iterApply@, @allocBuffers@.
 They are in here because they are generic i.e. they do not depend
 on any particular DBMS implementation.
  
-There is a stub ("Database.Oracle.OCIStub") for the Oracle OCI implementation.
-This lets you run the test cases without having a working Oracle installation.
-You need to switch in the "Database.Oracle.OCIStub" module,
-and switch out the "Database.Oracle.OCIEnumerator" module.
-See "Database.Oracle.Enumerator" for details.
+There is a stub: "Database.Stub.Enumerator".
+This lets you run the test cases without having a working DBMS installation.
  
 Additional reading:
  
@@ -200,15 +197,8 @@ We need these because 'Control.Exception.catch' is in the IO monad, but /not/ Mo
 -- ** Buffers and QueryIteratee
 --------------------------------------------------------------------
 
-|A class for Buffer types.
-
- class (Monad m) => Buffer m bufferType | m -> bufferType where
-   -- should these fetch functions be separated out?
-   fetchIntVal :: bufferType -> m (Maybe Int)
-   fetchStringVal :: bufferType -> m (Maybe String)
-   fetchDoubleVal :: bufferType -> m (Maybe Double)
-   fetchDatetimeVal :: bufferType -> m (Maybe CalendarTime)
-
+|A class of data-types that can be marshalled to-and-from the DBMS.
+This is parameterised over the buffer type too.
 
 > class DBType a m bufferType | m -> bufferType where
 >   allocBufferFor :: a -> Position -> m bufferType
