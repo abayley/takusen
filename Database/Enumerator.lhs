@@ -72,6 +72,7 @@ Additional reading:
 >     , defaultResourceUsage
 >     , cursorIsEOF, cursorCurrent, cursorNext, cursorClose
 >     , withCursorBracket, withCursorBracketTuned
+>     , withTransaction
 >
 >     -- * Misc.
 >     , runfetch, throwIfDBNull, ifNull, result, result'
@@ -199,7 +200,7 @@ We need these because 'Control.Exception.catch' is in the IO monad, but /not/ Mo
 -- ** Buffers and QueryIteratee
 --------------------------------------------------------------------
 
-|A class for Buffers types.
+|A class for Buffer types.
 
 > class (Monad m) => Buffer m bufferType | m -> bufferType where
 >   allocBuffer :: BufferHint -> Position -> m bufferType
@@ -265,7 +266,7 @@ The argument is applied, and the result returned.
 
 |At present the only resource tuning we support is the number of rows
 prefetched by the FFI library.
-We use a record to make it easy to add other tuning parameters later.
+We use a record to (hopefully) make it easy to add other tuning parameters later.
 
 > data QueryResourceUsage = QueryResourceUsage { prefetchRowCount :: Int }
 
@@ -420,6 +421,21 @@ Propagates exceptions after closing cursor.
 >       liftIO $ throwIO e
 >     )
 
+
+> withTransaction :: (MonadSession (ReaderT r IO) mb s, MonadIO (ReaderT r IO)) =>
+>   IsolationLevel -> ReaderT r IO a -> ReaderT r IO a
+> withTransaction isolation action = do
+>     commit
+>     beginTransaction isolation
+>     catchReaderT ( do
+>         v <- action
+>         commit
+>         return v
+>       ) (\e -> do
+>         rollback
+>         liftIO $ throwIO e
+>       )
+>
 
 --------------------------------------------------------------------
 -- ** Misc.
@@ -591,7 +607,7 @@ so if you want to do IO in it you must use 'Control.Monad.Trans.liftIO'
  
 The iteratee function is not restricted to just constructing lists.
 For example, a simple counter function would ignore its arguments,
-and the accumulator would simply be a number e.g.
+and the accumulator would simply be the count e.g.
  
  > counterIteratee :: (Monad m) => Int -> IterAct m Int
  > counterIteratee _ i = result' $ (1 + i)
@@ -613,7 +629,9 @@ The common case is:
  
  > query1Iteratee a b c accum = return (Right ((a, b, c):accum))
  
-which we can write as @result $ (a, b, c):accum)@.
+which we can write as
+ 
+ > query1Iteratee a b c accum = result $ (a, b, c):accum)
  
 We have lazy and strict versions of @result@. The strict version is almost certainly
 the one you want to use. If you come across a case where the lazy function is useful,
@@ -631,7 +649,7 @@ With GHC:
  
  * run with @+RTS -p -hr -RTS@
  
- * run @hp2ps@ over the resulting @.hp@ file to get a @.ps@ document; take a look at it.
+ * run @hp2ps@ over the resulting @.hp@ file to get a @.ps@ document, and take a look at it.
    Retainer sets are listed on the RHS, and are prefixed with numbers e.g. (13)CAF, (2)SYSTEM.
    At the bottom of the @.prof@ file you'll find the full descriptions of the retainer sets.
    Match the number in parentheses on the @.ps@ graph with a SET in the @.prof@ file;

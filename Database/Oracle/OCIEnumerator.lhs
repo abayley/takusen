@@ -49,7 +49,7 @@ Oracle OCI implementation of Database.Enumerator.
 > printError :: String -> IO ()
 > printError s = hPutStrLn stderr s
 
-convertAndRethrow converts an OCIException to a DBException.
+|convertAndRethrow converts an OCIException to a DBException.
 The third parameter is an IO action that you can use to clean up any handles.
 First we get the error message from the ErrorHandle,
 and then we run the cleanup action to free any allocated handles.
@@ -75,7 +75,7 @@ If there's no cleanup action required then simply pass nullAction.
 >   OCI.throwOCI ociexc
 
 
-What do we do if creating the first handle (Environment) fails?
+|What do we do if creating the first handle (Environment) fails?
 There's no Env- or ErrorHandle to get the error message from,
 so do the best we can by constructing a message with formatErrorCodeDesc.
 Still throws DBException.
@@ -87,7 +87,7 @@ Still throws DBException.
 >   throwDB (DBError 0 s)
 
 
-This is a version of convertAndRethrow version that uses EnvHandle
+|This is a version of convertAndRethrow version that uses EnvHandle
 rather than ErrorHandle. Only used by getErr.
 
 > convertAndRethrowEnv :: EnvHandle -> OCIException -> IO () -> IO ()
@@ -114,7 +114,7 @@ rather than ErrorHandle. Only used by getErr.
 >   }
 
 
-Reports and ignores any errors when freeing handles.
+|Reports and ignores any errors when freeing handles.
 Will catch attempts to free invalid (already freed?) handles.
 
 > freeHandle :: OCIHandle -> CInt -> IO ()
@@ -180,7 +180,7 @@ Will catch attempts to free invalid (already freed?) handles.
 >   )
 
 
-The idea with multiple logons is to first connect to the server.
+|The idea with multiple logons is to first connect to the server.
 Then you create a connection and a session, set the user id details,
 and begin the session.
 When finished, you end the session,
@@ -252,12 +252,12 @@ and not reusing the Env and ErrorHandles for new connections.
 >   OCI.terminate
 
 
-Oracle only supports ReadCommitted and Serialisable.
+|Oracle only supports ReadCommitted and Serialisable.
 If you ask for RepeatableRead, we must go one better and choose Serialisable
 (ReadCommitted is no good because you can get non-reapeatable reads).
 Oracle has a ReadOnly mode which will give you RepeatableRead,
 but you can't do any updates.
-
+ 
 Oracle's default (and weakest) behaviour is ReadCommitted;
 there's no equivalent for ReadUncommitted.
 

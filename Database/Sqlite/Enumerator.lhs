@@ -22,6 +22,7 @@ the useful stuff from "Database.Enumerator" is re-exported.
 >     , shakeReaderT, catchReaderT
 >     , cursorIsEOF, cursorCurrent, cursorNext, cursorClose
 >     , withCursorBracket, withCursorBracketTuned
+>     , withTransaction
 >     , ifNull, result, result'
 >
 >     -- **'MonadSession' instance functions

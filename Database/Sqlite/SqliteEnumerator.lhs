@@ -33,7 +33,7 @@ Sqlite implementation of Database.Enumerator.
 -- ** API Wrappers
 --------------------------------------------------------------------
 
-These wrappers ensure that only DBExceptions are thrown,
+|These wrappers ensure that only DBExceptions are thrown,
 and never SqliteExceptions.
 We don't need wrappers for the colValXxx functions
 because they never throw exceptions.
@@ -43,6 +43,8 @@ because they never throw exceptions.
 > convertAndRethrow (SqliteException errcode msg) = do
 >   throwDB (DBError errcode msg)
 >   return undefined
+
+|Common case: wrap an action with a convertAndRethrow.
 
 > convertEx :: IO a -> IO a
 > convertEx action = catchSqlite action convertAndRethrow
@@ -65,6 +67,8 @@ because they never throw exceptions.
 --------------------------------------------------------------------
 -- ** Sessions
 --------------------------------------------------------------------
+
+|We don't need much in an Sqlite Session record.
 
 > data Session = Session { dbHandle :: DBHandle }
 
@@ -174,16 +178,12 @@ because they never throw exceptions.
 >     if rc == DBAPI.sqliteDONE then return False else return True
 
 
-> data ColumnBuffer = ColumnBuffer
->   { colPos :: Int
->   }
 
 20040822073512
    10000000000 (10 ^ 10) * year
      100000000 (10 ^ 8) * month
        1000000 (10 ^ 6) * day
          10000  (10^4) * hour
-
 
 Use quot and rem, /not/ div and mod,
 so that we get sensible behaviour for -ve numbers.
@@ -212,6 +212,12 @@ so that we get sensible behaviour for -ve numbers.
 >     , ctIsDST = False
 >     }
 
+|There aren't really Buffers to speak of with Sqlite,
+so we just record the position of each column.
+
+> data ColumnBuffer = ColumnBuffer
+>   { colPos :: Int
+>   }
 
 
 > instance Buffer SqliteMonadQuery ColumnBuffer where

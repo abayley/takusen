@@ -56,18 +56,20 @@ Simple wrappers for Sqlite functions (FFI).
 > cStrLen :: CStringLen -> CInt
 > cStrLen = fromIntegral . snd
 
+> type UTF8CString = CString
+
 
 > foreign import ccall "sqlite.h sqlite3_open" sqliteOpen
->   :: CString -> Ptr DBHandle -> IO CInt
+>   :: UTF8CString -> Ptr DBHandle -> IO CInt
 
 > foreign import ccall "sqlite.h sqlite3_close" sqliteClose
 >   :: DBHandle -> IO CInt
 
 > foreign import ccall "sqlite.h sqlite3_prepare" sqlitePrepare
->   :: DBHandle -> CString -> CInt -> Ptr StmtHandle -> Ptr CString -> IO CInt
+>   :: DBHandle -> UTF8CString -> CInt -> Ptr StmtHandle -> Ptr CString -> IO CInt
 
 > foreign import ccall "sqlite.h sqlite3_exec" sqliteExec
->   :: DBHandle -> CString -> SqliteCallback a -> Ptr a -> Ptr CString -> IO CInt
+>   :: DBHandle -> UTF8CString -> SqliteCallback a -> Ptr a -> Ptr CString -> IO CInt
 
 > foreign import ccall "sqlite.h sqlite3_step" sqliteStep
 >   :: StmtHandle -> IO CInt
@@ -85,7 +87,7 @@ Simple wrappers for Sqlite functions (FFI).
 >   :: DBHandle -> IO CInt
 
 > foreign import ccall "sqlite.h sqlite3_errmsg" sqliteErrmsg
->   :: DBHandle -> IO CString
+>   :: DBHandle -> IO UTF8CString
 
 column_bytes tells us how big a value is in the result set.
  * For blobs it's the blob size.
@@ -110,7 +112,7 @@ column_bytes tells us how big a value is in the result set.
 >   :: StmtHandle -> CInt -> IO CLLong
 
 > foreign import ccall "sqlite.h sqlite3_column_text" sqliteColumnText
->   :: StmtHandle -> CInt -> IO CString
+>   :: StmtHandle -> CInt -> IO UTF8CString
 
 > foreign import ccall "sqlite.h sqlite3_column_text16" sqliteColumnText16
 >   :: StmtHandle -> CInt -> IO (Ptr a)
@@ -122,7 +124,7 @@ column_bytes tells us how big a value is in the result set.
 > getError db = do
 >   errcodec <- sqliteErrcode db
 >   errmsgc <- sqliteErrmsg db
->   errmsg <- peekCString errmsgc
+>   errmsg <- peekUTF8String errmsgc
 >   return $ SqliteException (fromIntegral errcodec) errmsg
 
 > getAndRaiseError :: DBHandle -> IO a
@@ -142,7 +144,7 @@ column_bytes tells us how big a value is in the result set.
 > testForErrorWithPtr :: (Storable a) => DBHandle -> CInt -> Ptr a -> IO a
 > testForErrorWithPtr db rc ptr = do
 >   -- wrap peek in action like this so that we can
->   -- ensure it's done only after we've tested rc
+>   -- ensure it's performed only after we've tested rc
 >   let peekAction = do
 >       v <- peek ptr
 >       return v
@@ -206,8 +208,8 @@ column_bytes tells us how big a value is in the result set.
 >   testForError db rc ()
 
 
--- Column numbers are zero-indexed, so subtract one
--- from given index (we present a one-indexed interface).
+|Column numbers are zero-indexed, so subtract one
+from given index (we present a one-indexed interface).
 
 > colValInt :: StmtHandle -> Int -> IO Int
 > colValInt stmt colnum = do

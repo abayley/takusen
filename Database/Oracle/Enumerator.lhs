@@ -12,11 +12,6 @@ Defines the concrete implemenation of the "Database.Enumerator" interfaces.
 in order to do simple Oracle database stuff;
 the useful stuff from "Database.Enumerator" is re-exported.
  
-If you want to use the real Oracle OCI implementation
-then uncomment OCIEnumberator and comment OCIStub.
-If you want to use the stub
-then comment OCIEnumberator and uncomment OCIStub.
-
 
 > module Database.Oracle.Enumerator
 >   (
@@ -26,6 +21,7 @@ then comment OCIEnumberator and uncomment OCIStub.
 >     , shakeReaderT, catchReaderT
 >     , cursorIsEOF, cursorCurrent, cursorNext, cursorClose
 >     , withCursorBracket, withCursorBracketTuned
+>     , withTransaction
 >     , ifNull, result, result'
 >
 >     -- **'MonadSession' instance functions
@@ -59,10 +55,7 @@ then comment OCIEnumberator and uncomment OCIStub.
 > import Control.Exception (throwIO)
 
 
-One or t'other:
-
 > import Database.Oracle.OCIEnumerator
-> --import Database.Oracle.OCIStub
 
 
 > type SessionQuery = ReaderT Session IO ()
