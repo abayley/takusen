@@ -15,7 +15,8 @@ You must to use a DBMS-specific library to create the Session
 (and to disconnect), but everything else is generic.
 
 
-> {-# OPTIONS -fglasgow-exts -fallow-overlapping-instances #-}
+> {-# OPTIONS -fglasgow-exts #-}
+> {-# OPTIONS -fallow-overlapping-instances #-}
 
 > module Database.Test.Enumerator where
 
@@ -47,7 +48,7 @@ So if we know that a dual table will always be present
 (and containing a single row) then we can use the same
 sql statements for all DBMS's.
 
-> makeFixture :: (MonadSession m IO s) => s -> IO ()
+> --makeFixture :: (MonadSession m IO s) => s -> IO ()
 > makeFixture sess = do
 >   execDrop sess "drop table tdual"
 >   execDDL_ sess "create table tdual (dummy varchar(1) primary key)"
@@ -62,13 +63,13 @@ sql statements for all DBMS's.
 >   execDDL_ sess $ "insert into " ++ testTable ++ " (id, v) values (3, '3')"
 >   runSession sess commit
 
-> destroyFixture :: (MonadSession m IO s) => s -> IO ()
+> --destroyFixture :: (MonadSession m IO s) => s -> IO ()
 > destroyFixture sess = do
 >   execDDL_ sess "drop table tdual"
 >   execDDL_ sess $ "drop table " ++ testTable
 
 
-> execDDL_ :: (MonadSession m IO s) => s -> String -> IO ()
+> --execDDL_ :: (MonadSession m IO s) => s -> String -> IO ()
 > execDDL_ sess sql =
 >   catchDB (runSession sess (executeDDL sql)) (reportError sql)
 
@@ -86,8 +87,9 @@ Use this (execDrop) when it's likely to raise an error.
 >   putStrLn $ "Unexpected null in row " ++ (show r) ++ ", column " ++ (show c) ++ "."
 > reportError sql (DBNoData) = putStrLn "Fetch: no more data."
 
-
-> makeTests sess = map (\f -> TestCase (f sess))
+> --makeTests :: MonadSession m IO s
+> --  => s -> [s -> Assertion] -> [Test]
+> makeTests sess list = map (\f -> TestCase (f sess)) list
 
 > testList (dateFn::(Int64 -> String)) =
 >   [ selectNoRows, selectTerminatesEarly, selectFloatsAndInts
@@ -103,7 +105,10 @@ Use this (execDrop) when it's likely to raise an error.
 
 
 > selectTest sess query iter expect = do
->   actual <- runSession sess (doQuery query iter [])
+>   let
+>     bindVals :: [Int]
+>     bindVals = []
+>   actual <- runSession sess (doQueryTuned defaultResourceUsage query bindVals iter [])
 >   assertEqual query expect actual
 
 > selectNoRows sess = selectTest sess query iter expect
@@ -224,7 +229,7 @@ i.e. open and fetch all rows, close after last row.
 >     query = "select 1 from tdual union select 2 from tdual"
 >     iter :: (Monad m) => Int -> IterAct m [Int]
 >     iter i acc = result $ i:acc
->   runSession sess $ withCursorBracket query iter [] $ \c -> do
+>   runSession sess $ withCursorTuned defaultResourceUsage query ([]::[Int]) iter [] $ \c -> do
 >     r <- cursorCurrent c
 >     liftIO $ assertEqual query [1] r
 >     doneBool <- cursorIsEOF c
@@ -266,7 +271,7 @@ the exception is not raised.
 >     iter :: (Monad m) => Int -> IterAct m [Int]
 >     iter i acc = result $ i:acc
 >   catchDB (
->     runSession sess $ withCursorBracket query iter [] $ \c -> do
+>     runSession sess $ withCursorTuned defaultResourceUsage query ([]::[Int]) iter [] $ \c -> do
 >       cursorNext c
 >       cursorNext c
 >       cursorNext c
@@ -283,8 +288,9 @@ the exception is not raised.
 >     iter i acc = result $ i:acc
 >     expect :: [Int]
 >     expect = [2, 1]
->     bindAc = do { bind 1 (1::Int); bind 2 (2::Int) }
->   actual <- runSession sess (doQueryBind query bindAc iter [])
+>     bindVals :: [Int]
+>     bindVals = [1, 2]
+>   actual <- runSession sess (doQueryTuned defaultResourceUsage query bindVals iter [])
 >   assertEqual query expect actual
 
 
@@ -298,18 +304,17 @@ the exception is not raised.
 >     dnull = Nothing
 >     expect :: [Maybe CalendarTime]
 >     expect = [d1, dnull]
->     bindAc = do { bind 1 d1; bind 2 dnull }
->   actual <- runSession sess (doQueryBind query bindAc iter [])
+>   actual <- runSession sess (doQueryTuned defaultResourceUsage query [d1, dnull] iter [])
 >   assertEqual query expect actual
 
 
 
-> insertTable :: (Monad m, MonadSession m IO s) => Int -> String -> m ()
+> --insertTable :: (Monad m, MonadSession m IO s) => Int -> String -> m ()
 > insertTable n s = do
 >   executeDML $ "insert into " ++ testTable ++ " (id, v) values (" ++ (show n) ++ ", '" ++ s ++ "')"
 >   return ()
 
-> updateTable :: (Monad m, MonadSession m IO s) => Int -> String -> m ()
+> --updateTable :: (Monad m, MonadSession m IO s) => Int -> String -> m ()
 > updateTable n s = do
 >   executeDML $ "update " ++ testTable ++ " set v = '" ++ s ++ "' where id = " ++ (show n)
 >   return ()
@@ -331,7 +336,7 @@ the exception is not raised.
 >     iter c1 acc = result $ c1:acc
 >     query = "select v from " ++ testTable ++ " order by id"
 >     expect = [ l2, l1 ]
->   actual <- doQuery query iter []
+>   actual <- doQueryTuned defaultResourceUsage query ([]::[Int]) iter []
 >   liftIO $ assertEqual query expect actual
 
 
@@ -339,8 +344,8 @@ the exception is not raised.
 >   let
 >     iter (c1::Int) (c2::String) acc = result $ (c1, c2):acc
 >     query = "select id, v from " ++ testTable ++ " order by id desc"
+>   --actual <- doQueryTuned defaultResourceUsage query ([]::[Int]) iter []
 >   actual <- doQuery query iter []
->   --actual <- getTestData
 >   liftIO $ assertEqual "checkContents" expect actual
 
 

@@ -14,7 +14,7 @@ We should add tests to shift data between databases, too.
 
 > {-# OPTIONS -fglasgow-exts -fallow-overlapping-instances #-}
 
-> module Database.Test.MultiConnect where
+> module Database.Test.MultiConnect (runTest) where
 
 > import qualified Database.Sqlite.Enumerator as Sqlite (connect, disconnect)
 > import qualified Database.Oracle.Enumerator as Oracle (connect, disconnect)
@@ -42,4 +42,3 @@ We should add tests to shift data between databases, too.
 > logonOracle = do
 >   [ user, pswd, dbname ] <- getArgs
 >   Oracle.connect user pswd dbname
-
