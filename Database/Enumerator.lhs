@@ -10,7 +10,7 @@ Portability :  non-portable
 Abstract database interface, providing a left-fold enumerator
 and cursor operations.
  
-Some functions in this module are not part of the Enumerator interface
+Some functions in this module are not strictly part of the Enumerator interface
 e.g. @runfetch@, @iterApply@, @allocBuffers@.
 They are in here because they are generic i.e. they do not depend
 on any particular DBMS implementation.
@@ -146,7 +146,7 @@ If we can't derive Typeable then the following code should do the trick:
 i.e. it doesn't propagate.
 
 > basicDBExceptionReporter :: DBException -> IO ()
-> basicDBExceptionReporter (DBError e m) = putStrLn m
+> basicDBExceptionReporter (DBError e m) = putStrLn $ (show e) ++ ": " ++ m
 > basicDBExceptionReporter (DBUnexpectedNull r c) =
 >   putStrLn $ "Unexpected null in row " ++ (show r) ++ ", column " ++ (show c) ++ "."
 > basicDBExceptionReporter (DBNoData) = putStrLn "Fetch: no more data."

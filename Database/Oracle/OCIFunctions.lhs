@@ -117,8 +117,8 @@ If we can't derive Typeable then the following code should do the trick:
 ---------------------------------------------------------------------------------
 
 
-> foreign import ccall "oci.h OCIEnvCreate" ociEnvCreate :: Ptr EnvHandle -> CInt -> Ptr a -> FunPtr a -> FunPtr a -> FunPtr a -> CInt -> Ptr (Ptr a) -> IO CInt
-> foreign import ccall "oci.h OCIHandleAlloc" ociHandleAlloc :: OCIHandle -> Ptr OCIHandle -> CInt -> CInt -> Ptr a -> IO CInt
+> foreign import ccall "OCIEnvCreate" ociEnvCreate :: Ptr EnvHandle -> CInt -> Ptr a -> FunPtr a -> FunPtr a -> FunPtr a -> CInt -> Ptr (Ptr a) -> IO CInt
+> foreign import ccall "OCIHandleAlloc" ociHandleAlloc :: OCIHandle -> Ptr OCIHandle -> CInt -> CInt -> Ptr a -> IO CInt
 > foreign import ccall "oci.h OCIHandleFree" ociHandleFree :: OCIHandle -> CInt -> IO CInt
 > foreign import ccall "oci.h OCIErrorGet" ociErrorGet :: OCIHandle -> CInt -> CString -> Ptr CInt -> CString -> CInt -> CInt -> IO CInt
 

@@ -14,7 +14,7 @@ so it should only use functions from there (and "Database.Oracle.OCIConstants").
 
 > {-# OPTIONS -fglasgow-exts #-}
 
-> module Database.Oracle.Test.OCIFunctions (runOCITest) where
+> module Database.Oracle.Test.OCIFunctions (runTest) where
 
 > import qualified Database.Oracle.OCIFunctions as OCI
 > import Database.Oracle.OCIFunctions (EnvHandle, ErrorHandle, ConnHandle, StmtHandle)
@@ -141,8 +141,8 @@ so it should only use functions from there (and "Database.Oracle.OCIConstants").
 >    return (u, p, d)
 
 
-> runOCITest :: IO ()
-> runOCITest = do
+> runTest :: IO ()
+> runTest = do
 >   args <- parseArgs
 >   testCreateEnv
 >   testConnect args
