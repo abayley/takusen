@@ -1,0 +1,424 @@
+{-|
+Module      :  Database.Oracle.OCIFunctions
+Copyright   :  (c) 2004 Oleg Kiselyov, Alistair Bayley
+License     :  BSD-style
+Maintainers :  oleg@pobox.com, alistair@abayley.org
+Stability   :  unstable
+Portability :  non-portable
+
+Simple wrappers for OCI functions (FFI).
+-}
+
+> {-# OPTIONS -ffi -fglasgow-exts #-}
+
+> module Database.Oracle.OCIFunctions where
+
+
+The functions in this file are simple wrappers for OCI functions.
+The wrappers add error detection and exceptions.
+All functions in this module raise OCIExceptions.
+The next layer up traps these and turns them into DBExceptions.
+
+Note that OCIExceptions DO NOT contain the error number and text
+returned by getOCIErrorMsg.
+It is the job of the next layer (module) up to catch the OCIException
+and then call getOCIErrorMsg to get the actual error details.
+The OCIException simply contains the error number returned by
+the OCI call, and some text identifying the wrapper function.
+See formatErrorCodeDesc for the set of possible values for the OCI error numbers.
+
+
+
+> import Database.Oracle.OCIConstants
+> import Foreign
+> import Foreign.C
+> import Control.Monad
+> import Control.Exception
+> import Data.Dynamic
+
+
+
+ - Each handle type has its own data type, to prevent stupid errors
+   i.e. using the wrong handle at the wrong time.
+ - In GHC you can simply say "data EnvStruct" i.e. there's no need for " = EnvStruct".
+   I've decided to be more portable, as it doesn't cost much.
+ - Use castPtr if you need to convert handles (say OCIHandle to more specific type, or vice versa).
+
+> data OCIStruct = OCIStruct
+> type OCIHandle = Ptr OCIStruct  -- generic Handle for OCI functions that return Handles
+> data OCIBuffer = OCIBuffer  -- generic buffer. Could hold anything: value or pointer.
+> type BufferPtr = Ptr OCIBuffer
+> type ColumnResultBuffer = BufferPtr
+
+
+> data EnvStruct = EnvStruct
+> type EnvHandle = Ptr EnvStruct
+> data ErrorStruct = ErrorStruct
+> type ErrorHandle = Ptr ErrorStruct
+> data ServerStruct = ServerStruct
+> type ServerHandle = Ptr ServerStruct
+> data ConnStruct = ConnStruct
+> type ConnHandle = Ptr ConnStruct  -- AKA Service Context
+> data SessStruct = SessStruct
+> type SessHandle = Ptr SessStruct
+> data StmtStruct = StmtStruct
+> type StmtHandle = Ptr StmtStruct
+> data DefnStruct = DefnStruct
+> type DefnHandle = Ptr DefnStruct
+> data ParamStruct = ParamStruct
+> type ParamHandle = Ptr ParamStruct
+> type ColumnInfo = (DefnHandle, BufferPtr, Ptr CShort, Ptr CShort)
+
+
+
+> data OCIException = OCIException CInt String
+>   deriving (Typeable, Show)
+
+If we can't derive Typeable then the following code should do the trick:
+
+ociExceptionTc :: TyCon
+ociExceptionTc = mkTyCon "Database.Oracle.OCIFunctions.OCIException"
+instance Typeable OCIException where typeOf _ = mkAppTy ociExceptionTc []
+
+> catchOCI :: IO a -> (OCIException -> IO a) -> IO a
+> catchOCI = catchDyn
+
+> throwOCI :: OCIException -> a
+> throwOCI = throwDyn
+
+
+
+> mkCInt :: Int -> CInt
+> mkCInt n = fromIntegral n
+
+> mkCShort :: CInt -> CShort
+> mkCShort n = fromIntegral n
+
+> cStrLen :: CStringLen -> CInt
+> cStrLen = mkCInt . snd
+
+> cStr :: CStringLen -> CString
+> cStr = fst
+
+
+
+---------------------------------------------------------------------------------
+-- Foreign OCI functions
+---------------------------------------------------------------------------------
+
+
+> foreign import ccall "oci.h OCIEnvCreate" ociEnvCreate :: Ptr EnvHandle -> CInt -> Ptr a -> FunPtr a -> FunPtr a -> FunPtr a -> CInt -> Ptr (Ptr a) -> IO CInt
+> foreign import ccall "oci.h OCIHandleAlloc" ociHandleAlloc :: OCIHandle -> Ptr OCIHandle -> CInt -> CInt -> Ptr a -> IO CInt
+> foreign import ccall "oci.h OCIHandleFree" ociHandleFree :: OCIHandle -> CInt -> IO CInt
+> foreign import ccall "oci.h OCIErrorGet" ociErrorGet :: OCIHandle -> CInt -> CInt -> Ptr CInt -> CString -> CInt -> CInt -> IO CInt
+
+
+> foreign import ccall "oci.h OCIParamGet" ociParamGet :: OCIHandle -> CInt -> ErrorHandle -> Ptr OCIHandle -> CInt -> IO CInt
+> foreign import ccall "oci.h OCIAttrGet" ociAttrGet
+>   :: OCIHandle -> CInt -> BufferPtr -> Ptr CInt -> CInt -> ErrorHandle -> IO CInt
+> foreign import ccall "oci.h OCIAttrSet" ociAttrSet
+>   :: OCIHandle -> CInt -> BufferPtr -> CInt -> CInt -> ErrorHandle -> IO CInt
+
+
+> foreign import ccall "oci.h OCILogon" ociLogon
+>   :: EnvHandle -> ErrorHandle -> Ptr ConnHandle -> CString -> CInt -> CString -> CInt -> CString -> CInt -> IO CInt
+> foreign import ccall "oci.h OCILogoff" ociLogoff :: ConnHandle -> ErrorHandle -> IO CInt
+> foreign import ccall "oci.h OCISessionEnd" ociSessionEnd :: ConnHandle -> ErrorHandle -> SessHandle -> CInt -> IO CInt
+> foreign import ccall "oci.h OCIServerAttach" ociServerAttach :: ServerHandle -> ErrorHandle -> CString -> CInt -> IO CInt
+> foreign import ccall "oci.h OCIServerDetach" ociServerDetach :: ServerHandle -> ErrorHandle -> CInt -> IO CInt
+> foreign import ccall "oci.h OCITerminate" ociTerminate :: CInt -> IO CInt
+
+> foreign import ccall "oci.h OCITransStart" ociTransStart :: ConnHandle -> ErrorHandle -> CInt -> CInt -> IO CInt
+> foreign import ccall "oci.h OCITransCommit" ociTransCommit :: ConnHandle -> ErrorHandle -> CInt -> IO CInt
+> foreign import ccall "oci.h OCITransRollback" ociTransRollback :: ConnHandle -> ErrorHandle -> CInt -> IO CInt
+
+> foreign import ccall "oci.h OCIStmtPrepare" ociStmtPrepare :: StmtHandle -> ErrorHandle -> CString -> CInt -> CInt -> CInt -> IO CInt
+> foreign import ccall "oci.h OCIDefineByPos" ociDefineByPos
+>   :: StmtHandle -> Ptr DefnHandle -> ErrorHandle -> CInt -> ColumnResultBuffer -> CInt -> CShort -> Ptr CShort -> Ptr CShort -> CInt -> CInt -> IO CInt
+> foreign import ccall "oci.h OCIStmtExecute" ociStmtExecute :: ConnHandle -> StmtHandle -> ErrorHandle -> CInt -> CInt -> OCIHandle -> OCIHandle -> CInt -> IO CInt
+> foreign import ccall "oci.h OCIStmtFetch" ociStmtFetch :: StmtHandle -> ErrorHandle -> CInt -> CShort -> CInt -> IO CInt
+
+Coming soon...
+
+foreign import ccall "oci.h OCIBindByPos" ociBindByPos ...
+
+
+---------------------------------------------------------------------------------
+-- OCI error reporting
+---------------------------------------------------------------------------------
+
+> getOCIErrorMsg2 :: OCIHandle -> CInt -> Ptr CInt -> CString -> CInt -> IO (CInt, String)
+> getOCIErrorMsg2 ocihandle handleType errCodePtr errMsgBuf maxErrMsgLen = do
+>   rc <- ociErrorGet ocihandle 1 0 errCodePtr errMsgBuf maxErrMsgLen handleType
+>   if rc < 0
+>     then return (0, "Error message not available.")
+>     else do
+>       msg <- peekCString errMsgBuf
+>       e <- peek errCodePtr
+>       return (e, msg)
+
+
+> getOCIErrorMsg :: OCIHandle -> CInt -> IO (CInt, String)
+> getOCIErrorMsg ocihandle handleType = do
+>   let stringBufferLen = 1000
+>   errMsg <- mallocBytes stringBufferLen
+>   errCode <- malloc
+>   e <- getOCIErrorMsg2 ocihandle handleType errCode errMsg (mkCInt stringBufferLen)
+>   free errMsg
+>   free errCode
+>   return e
+
+
+> formatErrorCodeDesc :: CInt -> String -> String
+> formatErrorCodeDesc err desc
+>   | err == oci_SUCCESS = "OCI_SUCCESS - " ++ desc
+>   | err == oci_SUCCESS_WITH_INFO = "OCI_SUCCESS_WITH_INFO - " ++ desc
+>   | err == oci_NEED_DATA = "OCI_NEED_DATA - " ++ desc
+>   | err == oci_NO_DATA = "OCI_NO_DATA - " ++ desc
+>   | err == oci_INVALID_HANDLE = "OCI_INVALID_HANDLE - " ++ desc
+>   | err == oci_STILL_EXECUTING = "OCI_STILL_EXECUTING - " ++ desc
+>   | err == oci_CONTINUE = "OCI_CONTINUE - " ++ desc
+>   | err == oci_RESERVED_FOR_INT_USE = "OCI_RESERVED_FOR_INT_USE - " ++ desc
+>   | otherwise = "OCI_ERROR - " ++ desc
+
+
+> formatOCIMsg :: CInt -> String -> OCIHandle -> CInt -> IO (Int, String)
+> formatOCIMsg e m ocihandle handleType = do
+>   (err, msg) <- getOCIErrorMsg ocihandle handleType
+>   return (fromIntegral err, (formatErrorCodeDesc e m) ++ " : " ++ (show err) ++ " - " ++ msg)
+
+
+
+We have two format functions: one takes the EnvHandle, and one takes the ErrorHandle.
+
+> formatMsgCommon :: OCIException -> OCIHandle -> CInt -> IO (Int, String)
+> formatMsgCommon (OCIException e m) h handleType = do
+>   if e == 0
+>     then return (0, "")
+>     else case () of
+>       _ | e == oci_ERROR -> do (formatOCIMsg e m h handleType)
+>         | e == oci_SUCCESS_WITH_INFO -> do (formatOCIMsg e m h handleType)
+>         | otherwise -> return (fromIntegral e, formatErrorCodeDesc e m)
+
+> formatErrorMsg :: OCIException -> ErrorHandle -> IO (Int, String)
+> formatErrorMsg exc err = formatMsgCommon exc (castPtr err) oci_HTYPE_ERROR
+
+> formatEnvMsg :: OCIException -> EnvHandle -> IO (Int, String)
+> formatEnvMsg exc err = formatMsgCommon exc (castPtr err) oci_HTYPE_ENV
+
+
+
+The testForError functions are the only places where OCIExcpetion is thrown,
+so if you want to change/embellish it, your changes will be localised here.
+These functions factor out common error handling code
+from the OCI wrapper functions that follow.
+
+> testForError :: CInt -> String -> a -> IO a
+> testForError rc msg retval = do
+>   if rc < 0
+>     then throwOCI (OCIException rc msg)
+>     else return retval
+
+
+> testForErrorWithPtr :: Storable a => CInt -> String -> Ptr a -> IO a
+> testForErrorWithPtr rc msg retval = do
+>   if rc < 0
+>     then throwOCI (OCIException rc msg)
+>     else peek retval
+
+
+---------------------------------------------------------------------------------
+-- Allocating Handles (i.e. creating OCI data structures, and memory management)
+---------------------------------------------------------------------------------
+
+
+> envCreate :: IO EnvHandle
+> envCreate = alloca $ \ptr -> do
+>   rc <- ociEnvCreate ptr oci_DEFAULT nullPtr nullFunPtr nullFunPtr nullFunPtr 0 nullPtr
+>   testForErrorWithPtr rc "allocate initial end" ptr
+
+> handleAlloc :: CInt -> OCIHandle -> IO OCIHandle
+> handleAlloc handleType env = alloca $ \ptr -> do
+>   rc <- ociHandleAlloc env ptr handleType 0 nullPtr
+>   testForErrorWithPtr rc "allocate handle" ptr
+
+> handleFree :: CInt -> OCIHandle -> IO ()
+> handleFree handleType ptr = do
+>	rc <- ociHandleFree ptr handleType
+>	testForError rc "free handle" ()
+
+
+
+> setAttrHandle_deleteme :: ErrorHandle -> OCIHandle -> CInt -> BufferPtr -> CInt -> IO ()
+> setAttrHandle_deleteme err ocihandle handleType handleAttr attrType = do
+>   -- need to cast handleAttr::OCIHandle to BufferPtr
+>   rc <- ociAttrSet ocihandle handleType (castPtr handleAttr) 0 attrType err
+>   testForError rc "setAttrHandle" ()
+
+> setHandleAttr :: ErrorHandle -> OCIHandle -> CInt -> Ptr a -> CInt -> IO ()
+> setHandleAttr err ocihandle handleType handleAttr attrType = do
+>   rc <- ociAttrSet ocihandle handleType (castPtr handleAttr) 0 attrType err
+>   testForError rc "setHandleAttr" ()
+
+ociAttrGet returns a pointer to something - maybe a handle or a chunk of memory.
+Sometimes it's a pointer to a Handle, i.e. a Ptr to a Ptr to a Struct,
+so we want to peek it to get the Handle.
+Other times it's a pointer to (say) a few bytes which might contain a number or a string.
+Deref'ing it returns that value immediately, rather than a Ptr to that value.
+
+> getHandleAttr :: (Storable a) => ErrorHandle -> OCIHandle -> CInt -> CInt -> IO a
+> getHandleAttr err ocihandle handleType attrType = alloca $ \ptr -> do
+>   -- 3rd arg has type Ptr OCIBuffer.
+>   rc <- ociAttrGet ocihandle handleType (castPtr ptr) nullPtr attrType err
+>   testForErrorWithPtr rc "getAttrHandle" ptr
+
+> getParam :: ErrorHandle -> StmtHandle -> Int -> IO ParamHandle
+> getParam err stmt posn = alloca $ \ptr -> do
+>     rc <- ociParamGet (castPtr stmt) oci_HTYPE_STMT err ptr (mkCInt posn)
+>     testForErrorWithPtr rc "getParam" (castPtr ptr)
+     
+
+---------------------------------------------------------------------------------
+-- Connecting and detaching
+---------------------------------------------------------------------------------
+
+The OCI Logon function doesn't behave as you'd expect when the password is due to expire.
+ociLogon returns oci_SUCCESS_WITH_INFO, but the handle returned is not valid.
+In this case we have to change oci_SUCCESS_WITH_INFO to oci_ERROR,
+so that the error handling code will catch it and abort. 
+I don't know why the handle returned isn't valid,
+as the logon process should be able to complete successfully in this case.
+
+
+> dbLogon :: String -> String -> String -> EnvHandle -> ErrorHandle -> IO ConnHandle
+> dbLogon user pswd db env err = do
+>   userC <- newCStringLen user
+>   pswdC <- newCStringLen pswd
+>   dbC <- newCStringLen db
+>   alloca $ \conn -> do
+>     rc <- ociLogon env err conn (cStr userC) (cStrLen userC) (cStr pswdC) (cStrLen pswdC) (cStr dbC) (cStrLen dbC)
+>     case () of
+>       _ | rc == oci_SUCCESS_WITH_INFO -> testForErrorWithPtr oci_ERROR "logon" conn
+>         | otherwise -> testForErrorWithPtr rc "logon" conn
+
+
+> dbLogoff :: ErrorHandle -> ConnHandle -> IO ()
+> dbLogoff err conn = do
+>   rc <- ociLogoff conn err
+>   testForError rc "logoff" ()
+
+
+> terminate :: IO ()
+> terminate = do
+>   rc <- ociTerminate oci_DEFAULT
+>   testForError rc "terminate" ()
+
+
+
+> serverDetach :: ErrorHandle -> ServerHandle -> IO ()
+> serverDetach err server = do
+>   rc <- ociServerDetach server err oci_DEFAULT
+>   testForError rc "server detach" ()
+
+
+> serverAttach :: ErrorHandle -> ServerHandle -> String -> IO ()
+> serverAttach err server dblink = do
+>   s <- newCStringLen dblink
+>   rc <- ociServerAttach server err (cStr s) (cStrLen s)
+>   testForError rc "server attach" ()
+
+
+Having established a connection (Service Context), now get the Session.
+You can have more than one session per connection, but I haven't implemented it yet.
+
+ getSession :: ErrorHandle -> ConnHandle -> IO SessHandle
+ getSession err conn = alloca $ \sess -> do
+   rc <- ociAttrGet (castPtr conn) oci_HTYPE_SVCCTX (castPtr sess) nullPtr oci_ATTR_SESSION err
+   testForErrorWithPtr rc "create session" sess
+
+Alternative definition for getSession
+(but any exception raised will contain "getAttrHandle" rather than "create session"):
+
+> getSession :: ErrorHandle -> ConnHandle -> IO SessHandle
+> getSession err conn = liftM castPtr (getHandleAttr err (castPtr conn) oci_HTYPE_SVCCTX oci_ATTR_SESSION)
+
+
+> sessionEnd :: ErrorHandle -> ConnHandle -> SessHandle -> IO ()
+> sessionEnd err conn sess = do
+>   rc <- ociSessionEnd conn err sess oci_DEFAULT
+>   testForError rc "session end" ()
+
+
+
+---------------------------------------------------------------------------------
+-- Transactions
+---------------------------------------------------------------------------------
+
+> beginTrans :: ErrorHandle -> ConnHandle -> CInt -> IO ()
+> beginTrans err conn isolation = do
+>   rc <- ociTransStart conn err 0 isolation
+>   testForError rc "begin transaction" ()
+
+> commitTrans :: ErrorHandle -> ConnHandle -> IO ()
+> commitTrans err conn = do
+>   rc <- ociTransCommit conn err oci_DEFAULT
+>   testForError rc "commit" ()
+
+> rollbackTrans :: ErrorHandle -> ConnHandle -> IO ()
+> rollbackTrans err conn = do
+>   rc <- ociTransRollback conn err oci_DEFAULT
+>   testForError rc "rollback" ()
+
+
+---------------------------------------------------------------------------------
+-- Issuing queries
+---------------------------------------------------------------------------------
+
+
+> stmtPrepare :: ErrorHandle -> StmtHandle -> String -> IO ()
+> stmtPrepare err stmt sqltext = do
+>   sqltextC <- newCStringLen sqltext
+>   rc <- ociStmtPrepare stmt err (cStr sqltextC) (cStrLen sqltextC) oci_NTV_SYNTAX oci_DEFAULT
+>   testForError rc "stmtPrepare" ()
+
+
+defineByPos allocates memory for:
+ - the result (you have to say how big with bufsize).
+ - the null indicator (int16)
+ - the size of the returned data (int16)
+It's the caller's responsibility to free the memory after they're done with it
+(by calling Foreign.Marshall.Alloc.free on bufferptr/nullindptr/retsizeptr).
+The caller will also have to cast the data in bufferptr to the expected type
+(using Foreign.Ptr.castPtr).
+
+> defineByPos :: ErrorHandle -> StmtHandle -> Int -> Int -> CInt -> IO ColumnInfo
+> defineByPos err stmt posn bufsize sqldatatype = do
+>   bufferptr <- mallocBytes bufsize
+>   nullindptr <- malloc
+>   retsizeptr <- malloc
+>   defnptr <- malloc
+>   rc <- ociDefineByPos stmt defnptr err (mkCInt posn) bufferptr (mkCInt bufsize) (mkCShort sqldatatype) nullindptr retsizeptr 0 oci_DEFAULT
+>   defn <- peek defnptr  -- no need for caller to free defn; I think freeing the stmt handle does it.
+>   free defnptr
+>   if rc < 0
+>     then do
+>       free bufferptr
+>       free nullindptr
+>       free retsizeptr
+>       testForError rc "" (nullPtr, nullPtr, nullPtr, nullPtr)
+>     else return (defn, bufferptr, nullindptr, retsizeptr)
+
+
+
+> stmtExecute :: ErrorHandle -> ConnHandle -> StmtHandle -> Int -> IO ()
+> stmtExecute err conn stmt iterations = do
+>   rc <- ociStmtExecute conn stmt err (mkCInt iterations) 0 nullPtr nullPtr oci_DEFAULT
+>   testForError rc "stmtExecute" ()
+
+
+> stmtFetch :: ErrorHandle -> StmtHandle -> IO CInt
+> stmtFetch err stmt = do
+>   rc <- ociStmtFetch stmt err 1 (mkCShort oci_FETCH_NEXT) oci_DEFAULT
+>   if rc == oci_NO_DATA
+>     then return rc
+>     else testForError rc "stmtFetch" rc
