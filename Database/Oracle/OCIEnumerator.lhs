@@ -352,6 +352,7 @@ there's no equivalent for ReadUncommitted.
 
 
 > instance MonadSession (ReaderT Session IO) IO Session where
+>   runSess s a = runReaderT a s
 >   runSession = runReaderT
 >   getSession = ask
 >
@@ -532,8 +533,8 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 >     , ctMin = minute - 1
 >     , ctSec = second - 1
 >     , ctPicosec = 0
->     --, ctWDay = Sunday
->     --, ctYDay = -1
+>     , ctWDay = Sunday
+>     , ctYDay = -1
 >     , ctTZName = "UTC"
 >     , ctTZ = 0
 >     , ctIsDST = False

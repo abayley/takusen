@@ -64,6 +64,7 @@ See fetchIntVal.
 
 
 > instance MonadSession (ReaderT Session IO) IO Session where
+>   runSess s a = runReaderT a s
 >   runSession = runReaderT
 >   getSession = ask
 >   beginTransaction isolation = return ()
@@ -81,9 +82,11 @@ See fetchIntVal.
 See makeQuery below for use of this:
 
 > numberOfRowsToPretendToFetch :: Int
-> numberOfRowsToPretendToFetch = 10
+> numberOfRowsToPretendToFetch = 3
 
 See fetchIntVal below for use of this:
+Note that rows are counted down from numberOfRowsToPretendToFetch,
+so this will throw on the last row.
 
 > throwNullIntOnRow :: Int
 > throwNullIntOnRow = 1
@@ -111,7 +114,7 @@ See fetchIntVal below for use of this:
 >     -- We'll pretend that we're going to fetch a finite number of rows.
 >     refCounter <- liftIO $ readIORef (fetchCounter query)
 >     counter <- liftIO $ readIORef refCounter
->     if counter >= 0
+>     if counter > 0
 >       then (liftIO $ writeIORef refCounter (counter - 1) >> return True)
 >       else return False
 >
@@ -201,3 +204,15 @@ See fetchIntVal below for use of this:
 > instance DBType (Maybe CalendarTime) StubMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (8, DBTypeDatetime) n
 >   fetchCol buffer = liftIO $ bufferToDatetime buffer
+
+
+A polymorphic instance which assumes that the value is in a String column,
+and uses Read to convert the String to a Haskell data value.
+
+> instance (Show a, Read a) => DBType (Maybe a) StubMonadQuery ColumnBuffer where
+>   allocBufferFor _ n = allocBuffer undefined n
+>   fetchCol buffer = do
+>     v <- liftIO$ bufferToString buffer
+>     case v of
+>       Just s -> return (Just (read s))
+>       Nothing -> return Nothing

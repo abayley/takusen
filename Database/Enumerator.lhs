@@ -197,6 +197,7 @@ to the user. They are also used internally.
 
 
 > class (MonadIO mb) => MonadSession m mb s | m -> mb, m -> s, mb s -> m where
+>   runSess :: s -> m a -> mb a
 >   runSession :: m a -> s -> mb a
 >   getSession :: m s
 >   beginTransaction :: IsolationLevel -> m ()

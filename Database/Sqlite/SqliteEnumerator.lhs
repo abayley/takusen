@@ -85,6 +85,7 @@ because they never throw exceptions.
 
 
 > instance MonadSession (ReaderT Session IO) IO Session where
+>   runSess s a = runReaderT a s
 >   runSession = runReaderT
 >   getSession = ask
 >
@@ -177,8 +178,8 @@ so that we get sensible behaviour for -ve numbers.
 >     , ctMin = fromIntegral minute
 >     , ctSec = fromIntegral second
 >     , ctPicosec = 0
->     --, ctWDay = Sunday
->     --, ctYDay = -1
+>     , ctWDay = Sunday
+>     , ctYDay = -1
 >     , ctTZName = "UTC"
 >     , ctTZ = 0
 >     , ctIsDST = False
@@ -195,10 +196,17 @@ as we need it to get column values.
 >   }
 
 
+> nullIf v test = if test then Nothing else Just v
+
+|It's arguable as to whether or not an empty string
+should be considered the same as a null,
+but because Oracle does it, we will too.
+Perhaps instead we should fix the Oracle Enumerator so that
+it never returns null for Strings.
 
 > bufferToString buffer = do
 >   v <- liftIO$ DBAPI.colValString (stmtHandle (query buffer)) (colPos buffer)
->   return (Just v)
+>   return (nullIf v (v == ""))
 
 > bufferToInt buffer = do
 >   v <- liftIO$ DBAPI.colValInt (stmtHandle (query buffer)) (colPos buffer)
@@ -210,7 +218,7 @@ as we need it to get column values.
 
 > bufferToDatetime buffer = do
 >   v <- liftIO$ DBAPI.colValInt64 (stmtHandle (query buffer)) (colPos buffer)
->   return (Just (makeCalTime v))
+>   return (nullIf (makeCalTime v) (v == 0))
 
 
 

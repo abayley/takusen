@@ -25,7 +25,7 @@ the useful stuff from "Database.Enumerator" is re-exported.
 >     , ifNull, result, result'
 >
 >     -- **'MonadSession' instance functions
->     , runSession, beginTransaction, commit, rollback, executeDML, executeDDL
+>     , runSess, runSession, beginTransaction, commit, rollback, executeDML, executeDDL
 >
 >     -- **'MonadQuery' instance functions
 >     , DBCursor, MonadQuery, QueryResourceUsage(..)
