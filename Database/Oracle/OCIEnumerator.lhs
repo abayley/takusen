@@ -182,7 +182,7 @@ When finished, you end the session,
 detach from the server, and free the handles.
 So we should have, globally, one EnvHandle and one ErrorHandle,
 and then, per session, one ServerHandle, one ConnHandle, and one SessHandle.
-Also, for each server (in Oracle-speak, an instance), we could share
+Also, for each server (or Instance, in Oracle-speak), we could share
 the ServerHandle among the many ConnHandles and SessHandles.
 At the moment we're being lazy,
 and not reusing the Env and ErrorHandles for new connections.
@@ -463,8 +463,8 @@ If you need to add new database types, then you must:
     - add a fetch function to class Buffer
   In Database.Oracle.OCIEnumerator:
     - add a case for the new constructor to Database.Oracle.OCIEnumerator.dbColumnTypeToCInt
-    - add the fetch function to OCIMonadQuery
-    - add an instances to DBType: one for the Maybe and one for the raw type.
+    - add the fetch function to the OCIMonadQuery + ColumnBuffer instance of Buffer
+    - add two instances to DBType: one for the Maybe and one for the raw type.
 
 e.g. adding a fictional type Money:
 
