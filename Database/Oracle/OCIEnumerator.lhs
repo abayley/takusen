@@ -404,12 +404,11 @@ handleFree env
 >   -- to doQuery1Maker
 >   doQuery sqltext iteratee seedVal = do
 >     (lFoldLeft, finalizer) <- doQuery1Maker sqltext iteratee
->     fix lFoldLeft iteratee seedVal
->     --catchReaderT (fix lFoldLeft iteratee seedVal)
->     --  (\e -> do
->     --    finalizer
->     --    liftIO $ throwIO e
->     --  )
+>     catchReaderT (fix lFoldLeft iteratee seedVal)
+>       (\e -> do
+>         finalizer
+>         liftIO $ throwIO e
+>       )
 >
 >   doQuery1Maker sqltext iteratee = do
 >     sess <- getSession
@@ -417,9 +416,7 @@ handleFree env
 >     let inQuery m = runReaderT m query
 >     buffers <- inQuery $ allocBuffers iteratee 1
 >     let
->       finaliser = do
->         --freeBuffers buffers
->         liftIO $ closeStmt sess (stmtHandle query)
+>       finaliser = liftIO $ closeStmt sess (stmtHandle query)
 >       hFoldLeft self iteratee seedVal = 
 >         runfetch inQuery finaliser buffers self iteratee seedVal
 >     return (hFoldLeft, inQuery finaliser)
@@ -648,10 +645,6 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 >   fetchDoubleVal buffer = liftIO $ bufferToDouble buffer
 >   fetchDatetimeVal buffer = liftIO $ bufferToDatetime buffer
 >   freeBuffer buffer = return ()
->   --freeBuffer buffer = liftIO $ do  -- Free a single column's buffer.
->   --  free (bufPtr buffer)
->   --  free (retSizePtr buffer)
->   --  free (nullIndPtr buffer)
 
 
 > freeBuffers :: (MonadIO m, Buffer m a) => [a] -> m ()
