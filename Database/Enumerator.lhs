@@ -40,7 +40,7 @@ Additional reading:
      - each list item must start with "*".
  - code-sections:
      - must be preceded by an empty line.
-     - use " >" rather than @...@, because "@" allows markup translation, " >" doesn't.
+     - use " >" rather than @...@, because "@" allows markup translation, where " >" doesn't.
  - @inline code (monospaced font)@
  - /emphasised text/
  - link to "Another.Module".
@@ -143,7 +143,7 @@ It passes anything else up.
 
 
 |These two functions let us catch (and rethrow) exceptions in the ReaderT monad.
-We need these because the 'Control.Exception.catch' is in the IO monad,
+We need these because 'Control.Exception.catch' is in the IO monad,
 but /not/ MonadIO.
 
 > shakeReaderT :: ((ReaderT r m1 a1 -> m1 a1) -> m a) -> ReaderT r m a
@@ -381,14 +381,10 @@ depend on any DBMS implementation details.
 
 > runfetch down finalizers buffers self iteratee seedVal = do
 >   let
->     handle seedVal True = (down$ iterApply buffers seedVal iteratee) >>= handleIter
->     handle seedVal False = do
->       down$ finalizers
->       return seedVal
+>     handle seedVal True = (down (iterApply buffers seedVal iteratee)) >>= handleIter
+>     handle seedVal False = (down finalizers) >> return seedVal
 >     handleIter (Right seed) = self iteratee seed
->     handleIter (Left seed) = do
->       down$ finalizers
->       return seed
+>     handleIter (Left seed) = (down finalizers) >> return seed
 >   (down fetch1) >>= handle seedVal
 
 
@@ -416,3 +412,21 @@ Will work for any type, as you pass the fetch action in the fetcher arg.
 >   -> a  -- ^ value to substitute if parm-1 null
 >   -> a
 > ifNull value subst = maybe subst id value
+
+
+
+| Another useful utility function.
+Use this to return a value from an iteratee function (the one passed to doQuery).
+Note that you should probably nearly always use the strict version.
+
+> result :: (Monad m) => IterAct m a
+> result x = return (Right x)
+
+
+|A strict version. This is recommended unless you have a specific need for laziness,
+as the lazy version will gobble stack and heap.
+If you have a large result-set (in the order of 10-100K rows or more),
+it will exhaust the standard 1M GHC stack.
+
+> result' :: (Monad m) => IterAct m a
+> result' x = return (Right $! x)
