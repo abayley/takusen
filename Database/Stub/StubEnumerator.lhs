@@ -38,48 +38,6 @@ See fetchIntVal.
 > import Data.Dynamic
 
 
-----------------------------------------------------------------
--- Normally imported from Database.Oracle.OCIFunctions
-----------------------------------------------------------------
-
-> oci_SQLT_CHR :: CInt
-> oci_SQLT_CHR = 1
-> oci_SQLT_INT :: CInt
-> oci_SQLT_INT = 2
-> oci_SQLT_FLT :: CInt
-> oci_SQLT_FLT = 2
-> oci_SQLT_DAT :: CInt
-> oci_SQLT_DAT = 2
-
-> oci_NO_DATA :: CInt
-> oci_NO_DATA = 100
-
-> data OCIStruct = OCIStruct
-> type OCIHandle = Ptr OCIStruct  -- generic Handle for OCI functions that return Handles
-> data OCIBuffer = OCIBuffer  -- generic buffer. Could hold anything: value or pointer.
-> type BufferPtr = Ptr OCIBuffer
-> type ColumnResultBuffer = BufferPtr
-
-
-> data EnvStruct = EnvStruct
-> type EnvHandle = Ptr EnvStruct
-> data ErrorStruct = ErrorStruct
-> type ErrorHandle = Ptr ErrorStruct
-> data ServerStruct = ServerStruct
-> type ServerHandle = Ptr ServerStruct
-> data ConnStruct = ConnStruct
-> type ConnHandle = Ptr ConnStruct  -- AKA Service Context
-> data SessStruct = SessStruct
-> type SessHandle = Ptr SessStruct
-> data StmtStruct = StmtStruct
-> type StmtHandle = Ptr StmtStruct
-> data DefnStruct = DefnStruct
-> type DefnHandle = Ptr DefnStruct
-> data ParamStruct = ParamStruct
-> type ParamHandle = Ptr ParamStruct
-> type ColumnInfo = (DefnHandle, BufferPtr, Ptr CShort, Ptr CShort)
-
-
 
 --------------------------------------------------------------------
 -- Stubs for OCI function wrappers.
@@ -87,55 +45,17 @@ See fetchIntVal.
 
 
 > data Session = Session 
->   { envHandle :: EnvHandle
->   , errorHandle :: ErrorHandle
->   , connHandle :: ConnHandle
->   }
 
 > data Query = Query
->   { stmtHandle :: StmtHandle
+>   { stmtHandle :: ()
 >   , fetchCounter :: IORef (IORef Int)
 >   }
 
 > connect :: String -> String -> String -> IO Session
-> connect user pswd dbname = return (Session nullPtr nullPtr nullPtr)
+> connect user pswd dbname = return Session
 
 > disconnect :: Session -> IO ()
 > disconnect session = return ()
-
-> beginTrans :: Session -> IsolationLevel -> IO ()
-> beginTrans session isolation = return ()
-
-> commitTrans :: Session -> IO ()
-> commitTrans session = return ()
-
-> rollbackTrans :: Session -> IO ()
-> rollbackTrans session = return ()
-
-> getStmt :: Session -> IO StmtHandle
-> getStmt session = return nullPtr
-
-> closeStmt :: Session -> StmtHandle -> IO ()
-> closeStmt session stmt = return ()
-
-> setPrefetchCount :: Session -> StmtHandle -> Int -> IO ()
-> setPrefetchCount session stmt count = return ()
-
-> prepare :: Session -> StmtHandle -> String -> IO ()
-> prepare session stmt sql = return ()
-
-> getRowCount :: Session -> StmtHandle -> IO Int
-> getRowCount session stmt = return 0
-
-> execute :: Session -> StmtHandle -> Int -> IO Int
-> execute session stmt iterations = return 0
-
-> fetchRow :: Session -> Query -> IO CInt
-> fetchRow session query = return 0
-
-> defineCol :: Session -> Query -> Int -> Int -> CInt -> IO ColumnInfo
-> defineCol session query posn bufsize sqldatatype =
->     return (nullPtr, nullPtr, nullPtr, nullPtr)
 
 
 --------------------------------------------------------------------
@@ -146,30 +66,11 @@ See fetchIntVal.
 > instance MonadSession (ReaderT Session IO) IO Session where
 >   runSession = runReaderT
 >   getSession = ask
->
->   beginTransaction isolation = do
->     sess <- ask
->     liftIO $ beginTrans sess isolation
->
->   commit = do
->     sess <- ask
->     liftIO $ commitTrans sess
->
->   rollback = do
->     sess <- ask
->     liftIO $ rollbackTrans sess
->
->   executeDML cmdText = do
->     sess <- ask
->     stmt <- liftIO $ getStmt sess
->     liftIO $ prepare sess stmt cmdText
->     rc <- liftIO $ execute sess stmt 1
->     liftIO $ closeStmt sess stmt
->     return rc
->
->   executeDDL cmdText = do
->     _ <- executeDML cmdText
->     return ()
+>   beginTransaction isolation = return ()
+>   commit = return ()
+>   rollback = return ()
+>   executeDML cmdText = return 0
+>   executeDDL cmdText = return ()
 
 
 
@@ -189,9 +90,9 @@ See fetchIntVal below for use of this:
 
 
 
-> type OCIMonadQuery = ReaderT Query (ReaderT Session IO)
+> type StubMonadQuery = ReaderT Query (ReaderT Session IO)
 
-> instance MonadQuery OCIMonadQuery (ReaderT Session IO) Query ColumnBuffer
+> instance MonadQuery StubMonadQuery (ReaderT Session IO) Query ColumnBuffer
 >  where
 >
 >   runQuery m query = runReaderT m query
@@ -200,21 +101,13 @@ See fetchIntVal below for use of this:
 >
 >   makeQuery sqltext resourceUsage = do
 >     sess <- getSession
->     stmt <- liftIO $ getStmt sess
->     liftIO $ prepare sess stmt sqltext
->     liftIO $ setPrefetchCount sess stmt (prefetchRowCount resourceUsage)
->     _ <- liftIO $ execute sess stmt 0
->     --return $ Query stmt
+>     stmt <- liftIO $ return ()
 >     -- Leave one counter in to ensure the fetch terminates
 >     counter <- liftIO $ newIORef numberOfRowsToPretendToFetch >>= newIORef
 >     return $ Query stmt counter
 >
 >   fetch1Row = do
 >     query <- getQuery
->     sess <- lift getSession
->     rc <- liftIO $ fetchRow sess query
->     --if rc == oci_NO_DATA then return False else return True
->     --
 >     -- We'll pretend that we're going to fetch a finite number of rows.
 >     refCounter <- liftIO $ readIORef (fetchCounter query)
 >     counter <- liftIO $ readIORef refCounter
@@ -223,32 +116,23 @@ See fetchIntVal below for use of this:
 >       else return False
 >
 >   allocBuffer (bufsize, buftype) colpos = do
->     let ociBufferType = dbColumnTypeToCInt buftype
 >     query <- getQuery
->     sess <- lift getSession
->     (_, buf, null, sizeptr) <- liftIO $ 
->			 defineCol sess query colpos bufsize ociBufferType
 >     return $ ColumnBuffer
->       { bufPtr = buf
->       , nullIndPtr = null
->       , retSizePtr = sizeptr
->       , bufSize = bufsize
->       , colPos = colpos
->       , bufType = ociBufferType
+>       { colPos = colpos
 >       }
 >
 >   columnPosition buffer = return (colPos buffer)
 >
 >   currentRowNum = do
 >     query <- getQuery
->     sess <- lift getSession
->     rc <- liftIO $ getRowCount sess (stmtHandle query)
->     return rc
+>     refCounter <- liftIO $ readIORef (fetchCounter query)
+>     counter <- liftIO $ readIORef refCounter
+>     return counter
 >
 >   freeBuffer buffer = return ()
->   destroyQuery query = -- after buffers are freed, close the STMT
->                do sess <- getSession
->		    liftIO $ closeStmt sess (stmtHandle query)
+>
+>   -- after buffers are freed, close the STMT
+>   destroyQuery query = return ()
 
 
 
@@ -256,43 +140,9 @@ See fetchIntVal below for use of this:
 -- result-set data buffers implementation
 --------------------------------------------------------------------
 
-
-> data ColumnBuffer = ColumnBuffer 
->    { bufPtr :: ColumnResultBuffer
->    , nullIndPtr :: Ptr CShort
->    , retSizePtr :: Ptr CShort
->    , bufSize :: Int
->    , colPos :: Int
->    , bufType :: CInt
->    }
-
-> nullByte :: CChar
-> nullByte = 0
-
-> cShort2Int :: CShort -> Int
-> cShort2Int n = fromIntegral n
-
-> cuCharToInt :: CUChar -> Int
-> cuCharToInt c = fromIntegral c
-
-> byteToInt :: Ptr CUChar -> Int -> IO Int
-> byteToInt buffer n = do
->   b <- peekByteOff buffer n
->   return (cuCharToInt b)
-
-
-
-Short-circuit null test: if the buffer contains a null then return Nothing.
-Otherwise, run the IO action to extract a value from the buffer and return Just it.
-
-> maybeBufferNull :: ColumnBuffer -> IO a -> IO (Maybe a)
-> maybeBufferNull buffer action = do
->   nullInd <- liftM cShort2Int (peek (nullIndPtr buffer))
->   if (nullInd == -1)
->     then return Nothing
->     else do
->       v <- action
->       return (Just v)
+> data ColumnBuffer = ColumnBuffer
+>   { colPos :: Int
+>   }
 
 
 > bufferToString :: ColumnBuffer -> IO (Maybe String)
@@ -308,13 +158,12 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 >         , ctMin = 1
 >         , ctSec = 1
 >         , ctPicosec = 0
->         --, ctWDay = Sunday
->         --, ctYDay = -1
+>         , ctWDay = Sunday
+>         , ctYDay = -1
 >         , ctTZName = "UTC"
 >         , ctTZ = 0
 >         , ctIsDST = False
 >         }
-
 
 > bufferToInt :: ColumnBuffer -> IO (Maybe Int)
 > bufferToInt buffer = return $ Just 1
@@ -323,34 +172,18 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 > bufferToDouble buffer = return $ Just 1.1
 
 
-> dbColumnTypeToCInt :: DBColumnType -> CInt
-> dbColumnTypeToCInt DBTypeInt = oci_SQLT_INT
-> dbColumnTypeToCInt DBTypeString = oci_SQLT_CHR
-> dbColumnTypeToCInt DBTypeDatetime = oci_SQLT_DAT
-> dbColumnTypeToCInt DBTypeDouble = oci_SQLT_FLT
 
-
-> instance DBType (Maybe a) OCIMonadQuery ColumnBuffer
->     => DBType a OCIMonadQuery ColumnBuffer where
+> instance DBType (Maybe a) StubMonadQuery ColumnBuffer
+>     => DBType a StubMonadQuery ColumnBuffer where
 >   allocBufferFor _ = allocBufferFor (undefined::Maybe a)
 >   fetchCol buffer = throwIfDBNull buffer fetchCol
 
->{-
-> instance DBType Double OCIMonadQuery ColumnBuffer where
->   allocBufferFor _ n = allocBuffer (8, DBTypeDouble) n
->   fetchCol buffer = throwIfDBNull buffer fetchDoubleVal
->
-> instance DBType CalendarTime OCIMonadQuery ColumnBuffer where
->   allocBufferFor _ n = allocBuffer (8, DBTypeDatetime) n
->   fetchCol buffer = throwIfDBNull buffer fetchDatetimeVal
->-}
 
-
-> instance DBType (Maybe String) OCIMonadQuery ColumnBuffer where
+> instance DBType (Maybe String) StubMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (4000, DBTypeString) n
 >   fetchCol buffer = liftIO $ bufferToString buffer
 
-> instance DBType (Maybe Int) OCIMonadQuery ColumnBuffer where
+> instance DBType (Maybe Int) StubMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (4, DBTypeInt) n
 >   fetchCol buffer = do
 >     query <- getQuery
@@ -361,10 +194,10 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 >       then return Nothing
 >       else liftIO $ bufferToInt buffer
 
-> instance DBType (Maybe Double) OCIMonadQuery ColumnBuffer where
+> instance DBType (Maybe Double) StubMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (8, DBTypeDouble) n
 >   fetchCol buffer = liftIO $ bufferToDouble buffer
 
-> instance DBType (Maybe CalendarTime) OCIMonadQuery ColumnBuffer where
+> instance DBType (Maybe CalendarTime) StubMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (8, DBTypeDatetime) n
 >   fetchCol buffer = liftIO $ bufferToDatetime buffer
