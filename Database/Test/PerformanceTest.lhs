@@ -10,7 +10,7 @@ Portability :  non-portable
 Performance tests. Currently just tests large result sets.
 
 
-> {-# OPTIONS -fglasgow-exts #-}
+> {-# OPTIONS -fglasgow-exts -fallow-overlapping-instances #-}
 
 > module Database.Test.PerformanceTest where
 
