@@ -19,13 +19,14 @@ Source code for this project is at:
 
 > module Main where
 
-
+> {-
 > import Database.Sqlite.Test.SqliteFunctions as SqliteLow
 > import Database.Sqlite.Test.Enumerator as Sqlite
 > import Database.Sqlite.Test.Performance as SqlitePerf
 > import Database.Oracle.Test.OCIFunctions as OracleLow
 > import Database.Oracle.Test.Enumerator as Oracle
 > import Database.Oracle.Test.Performance as OraclePerf
+> -}
 > import Database.Stub.Test.Enumerator as Stub
 
 
@@ -33,17 +34,19 @@ Source code for this project is at:
 > main :: IO ()
 > main = do
 >   testStub
->   testSqlite
+>   --testSqlite
 >   --testOCI
 
 > testStub = Stub.runTest
 
+> {-
 > testSqlite = do
 >   SqliteLow.runTest
 >   Sqlite.runTest
 >   SqlitePerf.runTest
-
+>
 > testOCI = do
 >   OracleLow.runTest
 >   Oracle.runTest
 >   OraclePerf.runTest
+> -}

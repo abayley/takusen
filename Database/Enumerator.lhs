@@ -62,7 +62,7 @@ Additional reading:
 >     --, runSession, getSession, beginTransaction, commit, rollback, executeDML, executeDDL
 >
 >     -- * Buffers and QueryIteratee.
->     , Buffer(..), DBType(..), QueryIteratee(..)
+>     , DBType(..), QueryIteratee(..)
 >
 >     -- * A Query monad and cursors.
 >     , DBCursor(..), MonadQuery(..), QueryResourceUsage(..)
@@ -202,44 +202,37 @@ We need these because 'Control.Exception.catch' is in the IO monad, but /not/ Mo
 
 |A class for Buffer types.
 
-> class (Monad m) => Buffer m bufferType | m -> bufferType where
->   allocBuffer :: BufferHint -> Position -> m bufferType
->   columnPosition :: bufferType -> m Int
->   currentRowNum :: m Int
->   freeBuffer :: bufferType -> m ()
->   -- should these fetch functions be separated out?
->   fetchIntVal :: bufferType -> m (Maybe Int)
->   fetchStringVal :: bufferType -> m (Maybe String)
->   fetchDoubleVal :: bufferType -> m (Maybe Double)
->   fetchDatetimeVal :: bufferType -> m (Maybe CalendarTime)
+ class (Monad m) => Buffer m bufferType | m -> bufferType where
+   -- should these fetch functions be separated out?
+   fetchIntVal :: bufferType -> m (Maybe Int)
+   fetchStringVal :: bufferType -> m (Maybe String)
+   fetchDoubleVal :: bufferType -> m (Maybe Double)
+   fetchDatetimeVal :: bufferType -> m (Maybe CalendarTime)
 
 
-> class DBType a where
->   allocBufferFor ::
->     (Buffer m bufferType) =>
->     a -> Position -> m bufferType
->   fetchCol :: (Buffer m bufferType) => bufferType -> m a
+> class DBType a m bufferType | m -> bufferType where
+>   allocBufferFor :: a -> Position -> m bufferType
+>   fetchCol :: bufferType -> m a
 
 
 |Define the Iteratee interface as a class.
 The implementations (instances) are below,
 as they're not DBMS specific.
 
-> class (MonadIO m) => QueryIteratee m iterType seedType |
->                      iterType -> seedType, iterType -> m where
+> class (MonadIO m) => QueryIteratee m iterType seedType bufferType |
+>                      iterType -> seedType, iterType -> m,
+>                      m -> bufferType where
 >   iterApply ::
->     (Buffer m bufferType) =>
 >     [bufferType] -> seedType -> iterType -> m (IterResult seedType)
->   allocBuffers ::
->     (Buffer m bufferType) =>
->     iterType -> Position -> m [bufferType]
+>   allocBuffers :: iterType -> Position -> m [bufferType]
 
 |This instance of the class is the terminating case
 i.e. where the iteratee function has one argument left.
 The argument is applied, and the result returned.
 
-> instance (DBType a, MonadIO m) =>
->   QueryIteratee m (a -> seedType -> m (IterResult seedType)) seedType where
+> instance (DBType a m bufferType, MonadIO m) =>
+>   QueryIteratee m (a -> seedType -> m (IterResult seedType))
+>                 seedType bufferType where
 >   iterApply [buf] seed fn = do
 >     v <- fetchCol buf
 >     fn v seed
@@ -248,8 +241,9 @@ The argument is applied, and the result returned.
 
 |This instance of the class implements the starting and continuation cases.
 
-> instance (QueryIteratee m iterType' seedType, DBType a) =>
->   QueryIteratee m (a -> iterType') seedType where
+> instance (QueryIteratee m iterType' seedType bufferType, 
+>           DBType a m bufferType)
+>     => QueryIteratee m (a -> iterType') seedType bufferType where
 >   iterApply (buffer:moreBuffers) seed fn = do
 >     v <- fetchCol buffer
 >     iterApply moreBuffers seed (fn v)
@@ -288,32 +282,38 @@ and the cursor has already been closed.
  
 > newtype DBCursor ms a = DBCursor (IORef (a, Maybe (Bool-> ms (DBCursor ms a))))
 
-> class (MonadIO ms) => MonadQuery m ms q | m -> ms, ms -> q, ms q -> m where
+> class (MonadIO ms) => MonadQuery m ms q bufferType | 
+>                                  m -> ms, ms -> q, ms q -> m, m -> bufferType
+>   where
 >   -- |Uses default resource usage settings, which are implementation dependent.
 >   -- (For the Oracle OCI, we only cache one row.)
 >   doQuery ::
->     (QueryIteratee m iterType seedType) =>
+>     (QueryIteratee m iterType seedType bufferType) =>
 >     QueryText -> iterType -> seedType -> ms seedType
 >   -- |Version of doQuery which gives you a bit more control over how rows are fetched.
 >   -- At the moment we only support specifying the numbers of rows prefetched (cached).
 >   doQueryTuned ::
->     (QueryIteratee m iterType seedType) =>
+>     (QueryIteratee m iterType seedType bufferType) =>
 >     QueryResourceUsage -> QueryText -> iterType -> seedType -> ms seedType
 >   -- |Open a cursor with default resource usage settings.
 >   openCursor :: 
->     (QueryIteratee m iterType seedType) =>
+>     (QueryIteratee m iterType seedType bufferType) =>
 >     QueryText -> iterType -> seedType -> ms (DBCursor ms seedType)
 >   -- |Version which lets you tune resource usage.
 >   openCursorTuned :: 
->     (QueryIteratee m iterType seedType) =>
+>     (QueryIteratee m iterType seedType bufferType) =>
 >     QueryResourceUsage -> QueryText -> iterType -> seedType -> ms (DBCursor ms seedType)
 >   -- the following aren't really part of the interface the user employs
 >   getQuery:: m q
 >   makeQuery:: QueryText -> QueryResourceUsage -> ms q
 >   doQuery1Maker::
->     (QueryIteratee m iterType seedType) =>
+>     (QueryIteratee m iterType seedType bufferType) =>
 >     QueryText -> iterType -> QueryResourceUsage -> ms (CFoldLeft iterType ms seedType,ms ())
 >   fetch1 :: m Bool
+>   allocBuffer :: BufferHint -> Position -> m bufferType
+>   columnPosition :: bufferType -> m Int
+>   currentRowNum :: m Int
+>   freeBuffer :: bufferType -> m ()
 
 
 |Returns True or False. Cursors are automatically closed and freed when:
@@ -392,7 +392,8 @@ You can nest them to get the interleaving you desire:
 | Ensures cursor resource is properly tidied up in exceptional cases.
 Propagates exceptions after closing cursor.
 
-> withCursorBracket :: (MonadQuery m (ReaderT r IO) q, QueryIteratee m iterType seedType) =>
+> withCursorBracket :: (MonadQuery m (ReaderT r IO) q bufferType,
+>                       QueryIteratee m iterType seedType bufferType) =>
 >   QueryText  -- ^ query string
 >   -> iterType  -- ^ iteratee function
 >   -> seedType  -- ^ seed value
@@ -403,7 +404,8 @@ Propagates exceptions after closing cursor.
 
 | Version which lets you tune resource usage.
 
-> withCursorBracketTuned :: (MonadQuery m (ReaderT r IO) q, QueryIteratee m iterType seedType) =>
+> withCursorBracketTuned :: (MonadQuery m (ReaderT r IO) q bufferType,
+>		             QueryIteratee m iterType seedType bufferType) =>
 >   QueryResourceUsage  -- ^ resource usage tuning
 >   -> QueryText  -- ^ query string
 >   -> iterType  -- ^ iteratee function
@@ -448,9 +450,8 @@ depend on any DBMS implementation details.
 > runfetch ::
 >   ( Monad m
 >   , MonadIO (t m)
->   , MonadQuery (t m) ms q
->   , Buffer (t m) bufferType
->   , QueryIteratee (t m) iterType seedType
+>   , MonadQuery (t m) ms q bufferType
+>   , QueryIteratee (t m) iterType seedType bufferType
 >   , MonadTrans t
 >   ) =>
 >      (forall a. t m a -> m a) -- ^ into query
@@ -474,7 +475,8 @@ depend on any DBMS implementation details.
 when a null (Nothing) is returned.
 Will work for any type, as you pass the fetch action in the fetcher arg.
 
-> throwIfDBNull :: (DBType a, Buffer m bufferType) =>
+> throwIfDBNull :: (Monad m,
+>	            MonadQuery m ms q bufferType, DBType a m bufferType) =>
 >   bufferType  -- ^ Buffer.
 >   -> (bufferType -> m (Maybe a))  -- ^ Action to get (fetch) value from buffer; this is applied to buffer.
 >   -> m a  -- ^ If the value in the buffer is not null, it is returned.

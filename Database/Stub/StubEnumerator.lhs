@@ -17,7 +17,9 @@ See fetchIntVal.
 
 
 
-> {-# OPTIONS -fglasgow-exts -fallow-overlapping-instances #-}
+> {-# OPTIONS -fglasgow-exts #-}
+> {-# OPTIONS -fallow-undecidable-instances #-}
+> {-# OPTIONS -fallow-overlapping-instances #-}
 
 > module Database.Stub.StubEnumerator where
 
@@ -189,7 +191,8 @@ See fetchIntVal below for use of this:
 
 > type OCIMonadQuery = ReaderT Query (ReaderT Session IO)
 
-> instance MonadQuery OCIMonadQuery (ReaderT Session IO) Query where
+> instance MonadQuery OCIMonadQuery (ReaderT Session IO) Query ColumnBuffer
+>  where
 >
 >   -- so, doQuery is essentially the result of applying lfold_nonrec_to_rec
 >   -- to doQuery1Maker
@@ -268,6 +271,29 @@ See fetchIntVal below for use of this:
 >     if counter >= 0
 >       then (liftIO $ writeIORef refCounter (counter - 1) >> return True)
 >       else return False
+>   allocBuffer (bufsize, buftype) colpos = do
+>     let ociBufferType = dbColumnTypeToCInt buftype
+>     query <- getQuery
+>     sess <- lift getSession
+>     (_, buf, null, sizeptr) <- liftIO $ defineCol sess query colpos bufsize ociBufferType
+>     return $ ColumnBuffer
+>       { bufPtr = buf
+>       , nullIndPtr = null
+>       , retSizePtr = sizeptr
+>       , bufSize = bufsize
+>       , colPos = colpos
+>       , bufType = ociBufferType
+>       }
+>
+>   columnPosition buffer = return (colPos buffer)
+>
+>   currentRowNum = do
+>     query <- getQuery
+>     sess <- lift getSession
+>     rc <- liftIO $ getRowCount sess (stmtHandle query)
+>     return rc
+>
+>   freeBuffer buffer = return ()
 
 
 
@@ -349,33 +375,34 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 > dbColumnTypeToCInt DBTypeDatetime = oci_SQLT_DAT
 > dbColumnTypeToCInt DBTypeDouble = oci_SQLT_FLT
 
+> freeBuffers buffers = mapM_ freeBuffer buffers
 
-> instance Buffer OCIMonadQuery ColumnBuffer where
+
+
+
+> instance DBType (Maybe a) OCIMonadQuery ColumnBuffer
+>     => DBType a OCIMonadQuery ColumnBuffer where
+>   allocBufferFor _ = allocBufferFor (undefined::Maybe a)
+>   fetchCol buffer = throwIfDBNull buffer fetchCol
+
+>{-
+> instance DBType Double OCIMonadQuery ColumnBuffer where
+>   allocBufferFor _ n = allocBuffer (8, DBTypeDouble) n
+>   fetchCol buffer = throwIfDBNull buffer fetchDoubleVal
 >
->   allocBuffer (bufsize, buftype) colpos = do
->     let ociBufferType = dbColumnTypeToCInt buftype
->     query <- getQuery
->     sess <- lift getSession
->     (_, buf, null, sizeptr) <- liftIO $ defineCol sess query colpos bufsize ociBufferType
->     return $ ColumnBuffer
->       { bufPtr = buf
->       , nullIndPtr = null
->       , retSizePtr = sizeptr
->       , bufSize = bufsize
->       , colPos = colpos
->       , bufType = ociBufferType
->       }
->
->   columnPosition buffer = return (colPos buffer)
->
->   currentRowNum = do
->     query <- getQuery
->     sess <- lift getSession
->     rc <- liftIO $ getRowCount sess (stmtHandle query)
->     return rc
->
->   fetchStringVal buffer = liftIO $ bufferToString buffer
->   fetchIntVal buffer = do
+> instance DBType CalendarTime OCIMonadQuery ColumnBuffer where
+>   allocBufferFor _ n = allocBuffer (8, DBTypeDatetime) n
+>   fetchCol buffer = throwIfDBNull buffer fetchDatetimeVal
+>-}
+
+
+> instance DBType (Maybe String) OCIMonadQuery ColumnBuffer where
+>   allocBufferFor _ n = allocBuffer (4000, DBTypeString) n
+>   fetchCol buffer = liftIO $ bufferToString buffer
+
+> instance DBType (Maybe Int) OCIMonadQuery ColumnBuffer where
+>   allocBufferFor _ n = allocBuffer (4, DBTypeInt) n
+>   fetchCol buffer = do
 >     query <- getQuery
 >     refCounter <- liftIO $ readIORef (fetchCounter query)
 >     counter <- liftIO $ readIORef refCounter
@@ -383,47 +410,11 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 >     if counter == throwNullIntOnRow
 >       then return Nothing
 >       else liftIO $ bufferToInt buffer
->   fetchDoubleVal buffer = liftIO $ bufferToDouble buffer
->   fetchDatetimeVal buffer = liftIO $ bufferToDatetime buffer
->   freeBuffer buffer = return ()
 
-
-> freeBuffers :: (MonadIO m, Buffer m a) => [a] -> m ()
-> freeBuffers buffers = mapM_ freeBuffer buffers
-
-
-
-
-> instance DBType String where
->   allocBufferFor _ n = allocBuffer (4000, DBTypeString) n
->   fetchCol buffer = throwIfDBNull buffer fetchStringVal
-
-> instance DBType Int where
->   allocBufferFor _ n = allocBuffer (4, DBTypeInt) n
->   fetchCol buffer = throwIfDBNull buffer fetchIntVal
-
-> instance DBType Double where
+> instance DBType (Maybe Double) OCIMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (8, DBTypeDouble) n
->   fetchCol buffer = throwIfDBNull buffer fetchDoubleVal
+>   fetchCol buffer = liftIO $ bufferToDouble buffer
 
-> instance DBType CalendarTime where
+> instance DBType (Maybe CalendarTime) OCIMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (8, DBTypeDatetime) n
->   fetchCol buffer = throwIfDBNull buffer fetchDatetimeVal
-
-
-
-> instance DBType (Maybe String) where
->   allocBufferFor _ n = allocBuffer (4000, DBTypeString) n
->   fetchCol buffer = fetchStringVal buffer
-
-> instance DBType (Maybe Int) where
->   allocBufferFor _ n = allocBuffer (4, DBTypeInt) n
->   fetchCol buffer = fetchIntVal buffer
-
-> instance DBType (Maybe Double) where
->   allocBufferFor _ n = allocBuffer (8, DBTypeDouble) n
->   fetchCol buffer = fetchDoubleVal buffer
-
-> instance DBType (Maybe CalendarTime) where
->   allocBufferFor _ n = allocBuffer (8, DBTypeDatetime) n
->   fetchCol buffer = fetchDatetimeVal buffer
+>   fetchCol buffer = liftIO $ bufferToDatetime buffer
