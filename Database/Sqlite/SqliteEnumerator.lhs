@@ -1,6 +1,6 @@
 
 |
-Module      :  Database.Sqlite.SqliteEnumberator
+Module      :  Database.Sqlite.SqliteEnumerator
 Copyright   :  (c) 2004 Oleg Kiselyov, Alistair Bayley
 License     :  BSD-style
 Maintainer  :  oleg@pobox.com, alistair@abayley.org
@@ -10,7 +10,9 @@ Portability :  non-portable
 Sqlite implementation of Database.Enumerator.
 
 
-> {-# OPTIONS -fglasgow-exts -fallow-overlapping-instances #-}
+> {-# OPTIONS -fglasgow-exts #-}
+> {-# OPTIONS -fallow-undecidable-instances #-}
+> {-# OPTIONS -fallow-overlapping-instances #-}
 
 > module Database.Sqlite.SqliteEnumerator where
 
@@ -110,9 +112,11 @@ because they never throw exceptions.
 >   , queryResourceUsage :: QueryResourceUsage
 >   }
 
+
 > type SqliteMonadQuery = ReaderT Query (ReaderT Session IO)
 
-> instance MonadQuery SqliteMonadQuery (ReaderT Session IO) Query where
+
+> instance MonadQuery SqliteMonadQuery (ReaderT Session IO) Query ColumnBuffer where
 >
 >   -- so, doQuery is essentially the result of applying lfold_nonrec_to_rec
 >   -- to doQuery1Maker
@@ -176,6 +180,17 @@ because they never throw exceptions.
 >     sess <- lift getSession
 >     rc <- liftIO $ fetchRow (dbHandle sess) (stmtHandle query)
 >     if rc == DBAPI.sqliteDONE then return False else return True
+>
+>   allocBuffer _ colpos = do
+>     q <- getQuery
+>     return ColumnBuffer {colPos = colpos, query = q}
+>
+>   columnPosition buffer = return (colPos buffer)
+>
+>   -- want to add a counter, so we can support this properly
+>   currentRowNum = return 0
+>
+>   freeBuffer buffer = return ()
 
 
 
@@ -214,77 +229,68 @@ so that we get sensible behaviour for -ve numbers.
 
 |There aren't really Buffers to speak of with Sqlite,
 so we just record the position of each column.
+We also keep a reference to the Query which owns the buffer,
+as we need it to get column values.
 
 > data ColumnBuffer = ColumnBuffer
 >   { colPos :: Int
+>   , query :: Query
 >   }
 
 
-> instance Buffer SqliteMonadQuery ColumnBuffer where
->
->   allocBuffer _ colpos = return ColumnBuffer {colPos = colpos}
->
->   columnPosition buffer = return (colPos buffer)
->
->   currentRowNum = return 0
->
->   fetchStringVal buffer = do
->     query <- getQuery
->     v <- liftIO$ DBAPI.colValString (stmtHandle query) (colPos buffer)
->     return (Just v)
->   fetchIntVal buffer = do
->     query <- getQuery
->     v <- liftIO$ DBAPI.colValInt (stmtHandle query) (colPos buffer)
->     return (Just v)
->   fetchDoubleVal buffer = do
->     query <- getQuery
->     v <- liftIO$ DBAPI.colValDouble (stmtHandle query) (colPos buffer)
->     return (Just v)
->   fetchDatetimeVal buffer = do
->     query <- getQuery
->     --s <- colValString (stmtHandle query) (colPos buffer)
->     v <- liftIO$ DBAPI.colValInt64 (stmtHandle query) (colPos buffer)
->     return (Just (makeCalTime v))
->   freeBuffer _ = return ()
 
+> bufferToString buffer = do
+>   v <- liftIO$ DBAPI.colValString (stmtHandle (query buffer)) (colPos buffer)
+>   return (Just v)
 
-> freeBuffers :: (MonadIO m, Buffer m a) => [a] -> m ()
-> freeBuffers buffers = mapM_ freeBuffer buffers
+> bufferToInt buffer = do
+>   v <- liftIO$ DBAPI.colValInt (stmtHandle (query buffer)) (colPos buffer)
+>   return (Just v)
+
+> bufferToDouble buffer = do
+>   v <- liftIO$ DBAPI.colValDouble (stmtHandle (query buffer)) (colPos buffer)
+>   return (Just v)
+
+> bufferToDatetime buffer = do
+>   v <- liftIO$ DBAPI.colValInt64 (stmtHandle (query buffer)) (colPos buffer)
+>   return (Just (makeCalTime v))
 
 
 
 
-> instance DBType String where
+> instance DBType (Maybe String) SqliteMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer undefined n
->   fetchCol buffer = throwIfDBNull buffer fetchStringVal
+>   fetchCol buffer = liftIO$ bufferToString buffer
 
-> instance DBType Int where
+> instance DBType (Maybe Int) SqliteMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer undefined n
->   fetchCol buffer = throwIfDBNull buffer fetchIntVal
+>   fetchCol buffer = liftIO$ bufferToInt buffer
 
-> instance DBType Double where
+> instance DBType (Maybe Double) SqliteMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer undefined n
->   fetchCol buffer = throwIfDBNull buffer fetchDoubleVal
+>   fetchCol buffer = liftIO$ bufferToDouble buffer
 
-> instance DBType CalendarTime where
+> instance DBType (Maybe CalendarTime) SqliteMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer undefined n
->   fetchCol buffer = throwIfDBNull buffer fetchDatetimeVal
+>   fetchCol buffer = liftIO$ bufferToDatetime buffer
 
 
+A polymorphic instance which assumes that the value is in a String column,
+and uses Read to convert the String to a Haskell data value.
 
-> instance DBType (Maybe String) where
+> instance (Show a, Read a) => DBType (Maybe a) SqliteMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer undefined n
->   fetchCol buffer = fetchStringVal buffer
+>   fetchCol buffer = do
+>     v <- liftIO$ bufferToString buffer
+>     case v of
+>       Just s -> return (Just (read s))
+>       Nothing -> return Nothing
 
-> instance DBType (Maybe Int) where
->   allocBufferFor _ n = allocBuffer undefined n
->   fetchCol buffer = fetchIntVal buffer
 
-> instance DBType (Maybe Double) where
->   allocBufferFor _ n = allocBuffer undefined n
->   fetchCol buffer = fetchDoubleVal buffer
+This single polymorphic instance replaces all of the type-specific non-Maybe instances
+e.g. String, Int, Double, etc.
 
-> instance DBType (Maybe CalendarTime) where
->   allocBufferFor _ n = allocBuffer undefined n
->   fetchCol buffer = fetchDatetimeVal buffer
-
+> instance DBType (Maybe a) SqliteMonadQuery ColumnBuffer
+>     => DBType a SqliteMonadQuery ColumnBuffer where
+>   allocBufferFor _ = allocBufferFor (undefined::Maybe a)
+>   fetchCol buffer = throwIfDBNull buffer fetchCol
