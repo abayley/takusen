@@ -23,9 +23,11 @@ Performance tests. Currently just tests large result sets.
 2 ^ 20 = 1048576
 
 Cartesian product. Each instance of the subquery multiplies
-the total number of rows by 2, so the number of rows is 2 ^ (count subquery instances).
+the total number of rows by 2, so the number of rows
+is 2 ^ (count of subquery instances).
 You start to notice the pause around 2^13,
-and 2^16 blows out the standard 1M stack. Bummer.
+and 2^16 blows out the standard 1M stack
+if you use the lazy version of result. Bummer.
 
 > manyRows :: String
 > manyRows = 
@@ -46,19 +48,22 @@ and 2^16 blows out the standard 1M stack. Bummer.
 >   ++ ", ( select 14 from dual union select 0 from dual)"
 >   ++ ", ( select 15 from dual union select 0 from dual)"
 >   ++ ", ( select 16 from dual union select 0 from dual)"
->   -- ++ ", ( select 17 from dual union select 0 from dual)"
->   -- ++ ", ( select 18 from dual union select 0 from dual)"
->   -- ++ ", ( select 19 from dual union select 0 from dual)"
->   -- ++ ", ( select 20 from dual union select 0 from dual)"
+>   ++ ", ( select 17 from dual union select 0 from dual)"
+>   ++ ", ( select 18 from dual union select 0 from dual)"
+>   ++ ", ( select 19 from dual union select 0 from dual)"
+>   ++ ", ( select 20 from dual union select 0 from dual)"
+
+
+
+> rowCounter :: (Monad m) => Int -> IterAct m Int
+> rowCounter _ i = result' (1 + i)  -- strict
+> --rowCounter _ i = result (1 + i)  -- lazy
 
 
 > selectLargeResultSet :: SessionQuery
 > selectLargeResultSet = do
->   r <- doQuery manyRows iter 0
+>   r <- doQuery manyRows rowCounter 0
 >   liftIO $ putStrLn (show r)
->   where
->     --iter :: (Monad m) => Int -> IterAct m Int
->     iter (_:: Maybe Int) (counter::Int) = result' (1 + counter)
 
 
 > largeResultSet :: Session -> IO ()
