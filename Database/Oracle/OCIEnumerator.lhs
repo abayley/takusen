@@ -34,7 +34,6 @@ Oracle OCI implementation of Database.Enumerator.
 > import System.IO (hPutStrLn, stderr)
 
 
-
 --------------------------------------------------------------------
 -- ** Error handling
 --------------------------------------------------------------------
@@ -236,11 +235,24 @@ there's no equivalent for ReadUncommitted.
 > closeStmt _ stmt = freeHandle (castPtr stmt) oci_HTYPE_STMT
 
 
+> setPrefetchCount :: Session -> StmtHandle -> Int -> IO ()
+> setPrefetchCount session stmt count = do
+>   let err = errorHandle session
+>   catchOCI ( do
+>       alloca $ \countPtr -> do
+>         poke countPtr (OCI.mkCInt count)
+>         OCI.setHandleAttr err (castPtr stmt) oci_HTYPE_STMT countPtr oci_ATTR_PREFETCH_ROWS
+>     ) (\ociexc -> do
+>       convertAndRethrow err ociexc (closeStmt session stmt)
+>     )
+
+
 > prepare :: Session -> StmtHandle -> String -> IO ()
 > prepare session stmt sql = do
 >   let err = errorHandle session
 >   catchOCI ( do
 >       OCI.stmtPrepare err stmt sql
+>       setPrefetchCount session stmt 1000
 >     ) (\ociexc -> do
 >       convertAndRethrow err ociexc (closeStmt session stmt)
 >     )
@@ -601,11 +613,9 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 
 > bufferToInt :: ColumnBuffer -> IO (Maybe Int)
 > bufferToInt = bufferToA
-> --bufferToInt buffer = maybeBufferNull buffer (bufferPeekValue buffer)
 
 > bufferToDouble :: ColumnBuffer -> IO (Maybe Double)
 > bufferToDouble = bufferToA
-> --bufferToDouble buffer = maybeBufferNull buffer (bufferPeekValue buffer)
 
 
 > dbColumnTypeToCInt :: DBColumnType -> CInt

@@ -452,22 +452,16 @@ The caller will also have to cast the data in bufferptr to the expected type
 >     rc <- ociDefineByPos stmt defnPtr err (mkCInt posn) bufferPtr (mkCInt bufsize) (mkCShort sqldatatype) nullIndPtr retSizePtr nullPtr oci_DEFAULT
 >     defn <- peek defnPtr  -- no need for caller to free defn; I think freeing the stmt handle does it.
 >     testForError rc "defineByPos" (defn, bufferFPtr, nullIndFPtr, retSizeFPtr)
->     --if rc < 0
->     --  then testForError rc "defineByPos" (nullPtr, nullPtr, nullPtr, nullPtr)
->     --  else return (defn, bufferFptr, nullindFptr, retsizeFptr)
+
 
 
 stmtFetch takes a lot of run-time
 because it involves a network trip to the DBMS for each call.
 
-> --stmtFetch2 :: ErrorHandle -> StmtHandle -> CShort -> IO CInt
-> --stmtFetch2 err stmt orientation =
-> --  ociStmtFetch stmt err 1 orientation oci_DEFAULT
-
 > stmtFetch :: ErrorHandle -> StmtHandle -> IO CInt
 > stmtFetch err stmt = do
->   rc <- ociStmtFetch stmt err 1 (mkCShort oci_FETCH_NEXT) oci_DEFAULT
->   --rc <- stmtFetch2 err stmt (mkCShort oci_FETCH_NEXT)
+>   let numRowsToFetch = 1
+>   rc <- ociStmtFetch stmt err numRowsToFetch (mkCShort oci_FETCH_NEXT) oci_DEFAULT
 >   if rc == oci_NO_DATA
 >     then return rc
 >     else testForError rc "stmtFetch" rc

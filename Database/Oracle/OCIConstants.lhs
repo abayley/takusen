@@ -83,6 +83,8 @@ to change these in a hurry (that would break compiled programs).
 > oci_ATTR_TRANS = 8
 > oci_ATTR_ROW_COUNT :: CInt
 > oci_ATTR_ROW_COUNT = 9
+> oci_ATTR_PREFETCH_ROWS :: CInt
+> oci_ATTR_PREFETCH_ROWS = 11
 
 
 
