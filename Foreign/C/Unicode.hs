@@ -102,13 +102,15 @@ toUTF8 (x:xs) =
                   mkUTF8 ox xs1 0xc0 0x20
 
 
--- We really want a fromUTF8 that will do error recovery
+-- | We really want a fromUTF8 that will do error recovery
 -- i.e. it will never raise an error, and do the best job it can,
 -- inserting substitution characters where necessary.
 -- But for now we'll just pretend...
 
 fromUTF8 :: Monad m => String -> m String
 fromUTF8 = fromUTF8WE
+
+-- | Instance of Control.Monad.MonadError, as suggested below.
 
 fromUTF8E :: String -> Either String String
 fromUTF8E = fromUTF8WE
