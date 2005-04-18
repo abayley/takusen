@@ -345,7 +345,10 @@ there's no equivalent for ReadUncommitted.
 >   (\_ err _ -> OCI.defineByPos err (stmtHandle query) posn bufsize sqldatatype)
 >   (closeStmt session (stmtHandle query))
 
-
+> bindByPos :: Session -> Query -> Int -> CShort -> OCI.BufferPtr -> Int -> CInt -> IO ()
+> bindByPos session query posn nullind val bufsize sqldatatype = inSession session
+>   (\_ err _ -> OCI.bindByPos err (stmtHandle query) posn nullind val bufsize sqldatatype)
+>   (closeStmt session (stmtHandle query))
 
 --------------------------------------------------------------------
 -- ** Sessions
@@ -402,8 +405,12 @@ there's no equivalent for ReadUncommitted.
 >     stmt <- liftIO $ getStmt sess
 >     liftIO $ prepare sess stmt sqltext
 >     liftIO $ setPrefetchCount sess stmt (prefetchRowCount resourceUsage)
->     _ <- liftIO $ execute sess stmt 0
 >     return $ Query stmt resourceUsage
+>
+>   execQuery query = do
+>     sess <- getSession
+>     _ <- liftIO $ execute sess (stmtHandle query) 0
+>     return ()
 >
 >   destroyQuery query = do
 >     sess <- getSession
@@ -509,19 +516,49 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 >       return val
 
 
-| Oracle's excess-something-or-other encoding for years.
+| Oracle's excess-something-or-other encoding for years:
+year = 100*(c - 100) + (y - 100),
+c = (year div 100) + 100,
+y = (year mod 100) + 100.
+
++1999 -> 119, 199
++0100 -> 101, 100
++0001 -> 100, 101
+-0001 -> 100,  99
+-0100 ->  99, 100
+-1999 ->  81,   1
 
 > makeYear :: Int -> Int -> Int
-> makeYear c100 y100 =
->   if c100 > 99
->   then 100 * (c100 - 100) + (y100 - 100)
->   else -(100 * (100 - c100) + (100 - y100))
+> makeYear c100 y100 = 100 * (c100 - 100) + (y100 - 100)
+
+> makeYearByte :: Int -> Word8
+> makeYearByte y = fromIntegral ((rem y 100) + 100)
+
+> makeCentByte :: Int -> Word8
+> makeCentByte y = fromIntegral ((quot y 100) + 100)
+
+
+> dumpBuffer :: Ptr Word8 -> IO ()
+> dumpBuffer buf = do
+>   dumpByte 0
+>   dumpByte 1
+>   dumpByte 2
+>   dumpByte 3
+>   dumpByte 4
+>   dumpByte 5
+>   dumpByte 6
+>   putStrLn ""
+>   where
+>   dumpByte n = do
+>     b <- (peekByteOff buf n :: IO Word8)
+>     putStr $ (show b) ++ " "
 
 
 > bufferToDatetime :: ColumnBuffer -> IO (Maybe CalendarTime)
 > bufferToDatetime colbuf = maybeBufferNull colbuf Nothing $
 >   withForeignPtr (bufferFPtr colbuf) $ \bufferPtr -> do
 >     let buffer = castPtr bufferPtr
+>     --dumpBuffer (castPtr buffer)
 >     century100 <- byteToInt buffer 0
 >     year100 <- byteToInt buffer 1
 >     month <- byteToInt buffer 2
@@ -544,6 +581,21 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 >       , ctIsDST = False
 >       }
 
+> setBufferByte :: OCI.BufferPtr -> Int -> Word8 -> IO ()
+> setBufferByte buf n v =
+>   pokeByteOff buf n v
+
+> dateTimeToBuffer :: CalendarTime -> OCI.BufferPtr -> IO ()
+> dateTimeToBuffer ct buf = do
+>   setBufferByte buf 0 (makeCentByte (ctYear ct))
+>   setBufferByte buf 1 (makeYearByte (ctYear ct))
+>   setBufferByte buf 2 (fromIntegral ((fromEnum (ctMonth ct)) + 1))
+>   setBufferByte buf 3 (fromIntegral (ctDay ct))
+>   setBufferByte buf 4 (fromIntegral (ctHour ct + 1))
+>   setBufferByte buf 5 (fromIntegral (ctMin ct + 1))
+>   setBufferByte buf 6 (fromIntegral (ctSec ct + 1))
+
+
 
 > bufferPeekValue :: (Storable a) => ColumnBuffer -> IO a
 > bufferPeekValue buffer = do
@@ -559,6 +611,11 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 > bufferToDouble :: ColumnBuffer -> IO (Maybe Double)
 > bufferToDouble = bufferToA
 
+> maybeToInd :: Maybe b -> (b -> a) -> a -> (CShort, a)
+> maybeToInd mv conv nullVal =
+>   case mv of
+>     Nothing -> (-1, nullVal)
+>     Just v -> (0, conv v)
 
 
 |This single polymorphic instance covers all of the
@@ -568,28 +625,57 @@ type-specific non-Maybe instances e.g. String, Int, Double, etc.
 >     => DBType a OCIMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBufferFor (undefined::Maybe a) n
 >   fetchCol buffer = throwIfDBNull buffer fetchCol
->   bindPos pos val = return()
+>   bindPos pos val = bindPos pos (Just val)
+
 
 > instance DBType (Maybe String) OCIMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (16000, DBTypeString) n
 >   fetchCol buffer = liftIO$ bufferToString buffer
->   bindPos pos val = return()
+>   bindPos pos val = do
+>     sess <- lift getSession
+>     query <- getQuery
+>     let (nullind, s) = maybeToInd val id ""
+>     liftIO$ withCStringLen s $ \(cstr, clen) -> 
+>       bindByPos sess query pos nullind (castPtr cstr) clen oci_SQLT_CHR
+
 
 > instance DBType (Maybe Int) OCIMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (4, DBTypeInt) n
 >   fetchCol buffer = liftIO$ bufferToInt buffer
->   bindPos pos val = return()
+>   bindPos pos val = do
+>     sess <- lift getSession
+>     query <- getQuery
+>     let (nullind, i) = maybeToInd val (fromIntegral::Int -> CInt) 0
+>     liftIO$ alloca $ \valPtr -> do
+>       poke valPtr i
+>       bindByPos sess query pos nullind (castPtr valPtr) (sizeOf i) oci_SQLT_INT
+
 
 > instance DBType (Maybe Double) OCIMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (8, DBTypeDouble) n
 >   fetchCol buffer = liftIO$ bufferToDouble buffer
->   bindPos pos val = return()
+>   bindPos pos val = do
+>     sess <- lift getSession
+>     query <- getQuery
+>     let (nullind, i) = maybeToInd val (fromRational . toRational :: Double -> CDouble) 0
+>     liftIO$ alloca $ \valPtr -> do
+>       poke valPtr i
+>       bindByPos sess query pos nullind (castPtr valPtr) (sizeOf i) oci_SQLT_FLT
+
 
 > instance DBType (Maybe CalendarTime) OCIMonadQuery ColumnBuffer where
->   allocBufferFor _ n = allocBuffer (8, DBTypeDatetime) n
+>   allocBufferFor _ n = allocBuffer (7, DBTypeDatetime) n
 >   fetchCol buffer = liftIO$ bufferToDatetime buffer
->   bindPos pos val = return()
-
+>   bindPos pos val = do
+>     sess <- lift getSession
+>     query <- getQuery
+>     liftIO$ allocaBytes 8 $ \bufptr -> do
+>       (nullind, d) <- case val of
+>         Nothing -> return (-1, bufptr)
+>         Just ct -> do
+>           dateTimeToBuffer ct bufptr
+>           return (0, bufptr)
+>       bindByPos sess query pos nullind (castPtr bufptr) 7 oci_SQLT_DAT
 
 |A polymorphic instance which assumes that the value is in a String column,
 and uses Read to convert the String to a Haskell data value.
@@ -601,4 +687,8 @@ and uses Read to convert the String to a Haskell data value.
 >     case v of
 >       Just s -> return (Just (read s))
 >       Nothing -> return Nothing
->   bindPos pos val = return()
+>   bindPos pos val = 
+>     case val of
+>       Just v -> bindPos pos (Just (show v))
+>       Nothing -> bindPos pos (Nothing :: Maybe String)
+

@@ -20,8 +20,12 @@ so it should only use functions from there (and "Database.Oracle.OCIConstants").
 > import Database.Oracle.OCIFunctions (EnvHandle, ErrorHandle, ConnHandle, StmtHandle)
 > import Database.Oracle.OCIConstants
 > import Foreign.Ptr
+> import Foreign.C.String
+> import Foreign.C.Types
+> import Foreign
 > import System.IO
 > import System.Environment (getArgs)
+> import Control.Monad
 
 
 > nullAction :: IO ()
@@ -157,6 +161,50 @@ so it should only use functions from there (and "Database.Oracle.OCIConstants").
 >   logoff (env, err, conn)
 
 
+> testBind :: (String, String, String) -> IO ()
+> testBind args = do
+>   (env, err, conn) <- logon args
+>   stmt <- OCI.handleAlloc oci_HTYPE_STMT (castPtr env)
+>   OCI.stmtPrepare err (castPtr stmt) "select :1 from dual union select :2 from dual"
+>   withCStringLen "hello" $ \(cstr, clen) ->
+>     OCI.bindByPos err (castPtr stmt) 1 0 (castPtr cstr) clen oci_SQLT_CHR
+>   withCStringLen "hello2" $ \(cstr, clen) ->
+>     OCI.bindByPos err (castPtr stmt) 2 0 (castPtr cstr) clen oci_SQLT_CHR
+>   OCI.stmtExecute err conn (castPtr stmt) 0
+>   buffer@(_, buf, nullptr, sizeptr) <- OCI.defineByPos err (castPtr stmt) 1 100 oci_SQLT_CHR
+>   rc <- OCI.stmtFetch err (castPtr stmt)
+>   s <- bufferToString buffer
+>   putStrLn $ "bind: fetched: " ++ s
+>   rc <- OCI.stmtFetch err (castPtr stmt)
+>   s <- bufferToString buffer
+>   putStrLn $ "bind: fetched: " ++ s
+>   rc <- OCI.stmtFetch err (castPtr stmt)
+>   OCI.handleFree oci_HTYPE_STMT (castPtr stmt)
+>   logoff (env, err, conn)
+
+> cShort2Int :: CShort -> Int
+> cShort2Int n = fromIntegral n
+> nullByte :: CChar
+> nullByte = 0
+
+> --bufferToString :: ColumnBuffer -> IO (Maybe String)
+> bufferToString (_, bufFPtr, nullFPtr, sizeFPtr) =
+>   -- If it's null then return ""
+>   withForeignPtr nullFPtr $ \nullIndPtr -> do
+>     nullInd <- liftM cShort2Int (peek nullIndPtr)
+>     if (nullInd == -1)  -- -1 == null, 0 == value
+>       then return ""
+>       else do
+>         -- Given a column buffer, extract a string of variable length
+>         -- (you have to terminate it yourself).
+>         withForeignPtr bufFPtr $ \bufferPtr ->
+>           withForeignPtr sizeFPtr $ \retSizePtr -> do
+>             retsize <- liftM cShort2Int (peek retSizePtr)
+>             pokeByteOff (castPtr bufferPtr) retsize nullByte
+>             val <- peekCString (castPtr bufferPtr)
+>             return val
+
+
 > parseArgs :: IO (String, String, String)
 > parseArgs = do
 >    [u, p, d] <- getArgs
@@ -172,3 +220,4 @@ so it should only use functions from there (and "Database.Oracle.OCIConstants").
 >   testExecute args
 >   testFetch args
 >   testFetchFail args
+>   testBind args

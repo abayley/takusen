@@ -149,10 +149,15 @@ If we can't derive Typeable then the following code should do the trick:
 >   :: StmtHandle -> Ptr DefnHandle -> ErrorHandle -> CInt -> BufferPtr -> CInt -> CShort -> Ptr CShort -> Ptr CShort -> Ptr CShort -> CInt -> IO CInt
 > foreign import ccall "oci.h OCIStmtExecute" ociStmtExecute :: ConnHandle -> StmtHandle -> ErrorHandle -> CInt -> CInt -> OCIHandle -> OCIHandle -> CInt -> IO CInt
 > foreign import ccall "oci.h OCIStmtFetch" ociStmtFetch :: StmtHandle -> ErrorHandle -> CInt -> CShort -> CInt -> IO CInt
-
-|Coming soon...
  
-> --foreign import ccall "oci.h OCIBindByPos" ociBindByPos :: StmtHandle -> Ptr BindHandle -> ErrorHandle -> CString -> CInt -> BufferPtr -> CInt -> CInt -> Ptr CInt 
+stmt, ptr bindHdl, err, pos, valuePtr, sizeOfValue,
+datatype, indicatorPtr, lenArrayPtr, retCodeArrayPtr,
+plsqlArrayMaxLen, plsqlCurrEltPtr, mode
+
+> foreign import ccall "oci.h OCIBindByPos" ociBindByPos ::
+>   StmtHandle -> Ptr BindHandle -> ErrorHandle -> CUInt -> BufferPtr -> CInt
+>   -> CUShort -> Ptr CShort -> Ptr CUShort -> Ptr CUShort
+>   -> Ptr CUInt -> Ptr CUInt -> CUInt -> IO CInt
 
 
 ---------------------------------------------------------------------------------
@@ -473,6 +478,33 @@ The caller will also have to cast the data in bufferptr to the expected type
 >     defn <- peek defnPtr  -- no need for caller to free defn; I think freeing the stmt handle does it.
 >     testForError rc "defineByPos" (defn, bufferFPtr, nullIndFPtr, retSizeFPtr)
 
+
+> bindByPos ::
+>   ErrorHandle
+>   -> StmtHandle
+>   -> Int   -- ^ Position
+>   -> CShort   -- ^ Null ind: 0 == not null, -1 == null
+>   -> BufferPtr  -- ^ payload
+>   -> Int   -- ^ Buffer size in bytes
+>   -> CInt  -- ^ SQL Datatype (from "Database.Oracle.OCIConstants")
+>   -> IO ()
+> bindByPos err stmt pos nullInd bufptr sze sqltype =
+>   alloca $ \bindHdl ->
+>   alloca $ \indPtr -> do
+>     poke indPtr nullInd
+>     -- we don't use the bind handle returned; I think it's freed when the stmt is.
+>     rc <- ociBindByPos stmt bindHdl err (fromIntegral pos) bufptr
+>             (fromIntegral sze) (fromIntegral sqltype)
+>             indPtr nullPtr nullPtr nullPtr nullPtr (fromIntegral oci_DEFAULT)
+>     testForError rc "bindByPos" ()
+
+
+stmt, ptr bindHdl, err, pos, valuePtr, sizeOfValue, datatype, indicatorPtr,
+lenArrayPtr, retCodeArrayPtr, plsqlArrayMaxLen, plsqlCurrEltPtr, mode
+
+stmt, ptr bindHdl, err, pos, valuePtr, sizeOfValue,
+datatype, indicatorPtr, lenArrayPtr, retCodeArrayPtr,
+plsqlArrayMaxLen, plsqlCurrEltPtr, mode
 
 
 |stmtFetch takes a lot of run-time

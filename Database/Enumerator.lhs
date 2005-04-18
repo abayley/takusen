@@ -321,6 +321,7 @@ The class MonadQuery is not intended for use by the end-user.
 >   getQuery :: m q
 >   makeQuery :: QueryText -> QueryResourceUsage -> ms q
 >   runQuery :: m a -> q -> ms a
+>   execQuery :: q -> ms ()
 >   destroyQuery :: q -> ms () -- after buffers are freed, close the STMT
 >   fetch1Row :: m Bool  -- fetch one row
 >   allocBuffer :: BufferHint -> Position -> m b
@@ -420,6 +421,7 @@ to doQueryMaker (which it not exposed by the module).
 >     query <- makeQuery sqltext resourceUsage
 >     let bindAction = sequence_ $ map (\(p, v) -> bindPos p v) (zip [1..] bindvals)
 >     runQuery bindAction query
+>     execQuery query
 >     let inQuery m = runQuery m query
 >     buffers <- inQuery $ allocBuffers iteratee 1
 >     let

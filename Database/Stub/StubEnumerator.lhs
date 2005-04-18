@@ -110,6 +110,8 @@ so this will throw on the last row.
 >     counter <- liftIO $ newIORef numberOfRowsToPretendToFetch >>= newIORef
 >     return $ Query stmt counter
 >
+>   execQuery query = return ()
+>
 >   fetch1Row = do
 >     query <- getQuery
 >     -- We'll pretend that we're going to fetch a finite number of rows.

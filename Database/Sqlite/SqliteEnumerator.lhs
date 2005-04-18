@@ -131,6 +131,8 @@ Session objects are created by 'connect'.
 >     stmt <- liftIO $ prepareStmt (dbHandle sess) sqltext
 >     return $ Query stmt resourceUsage sess
 >
+>   execQuery query = return ()
+>
 >   destroyQuery query = do
 >     sess <- getSession
 >     liftIO $ finaliseStmt (dbHandle sess) (stmtHandle query)
