@@ -8,6 +8,15 @@ Stability   :  experimental
 Portability :  non-portable
  
 Simple wrappers for MS Sql Server functions (FFI).
+ 
+When compiling, do not use loader flags:
+  @-Lc:\windows\system32 -lntwdblib@
+Instead, use:
+  @-optl c:\windows\system32\ntwdblib.dll@
+This is because adding @c:\windows\system32@ as a linker search
+path confuses it, as it tries to link against dlls in system32
+(like @msvcrt.dll@), rather than the equivalent mingw dlls it normally uses
+
 
 > {-# OPTIONS -ffi #-}
 > {-# OPTIONS -fglasgow-exts #-}
@@ -54,16 +63,20 @@ Don't need this, as it's implied by the FFI foreign imports.
 > throwMSSql :: MSSqlException -> a
 > throwMSSql = throwDyn
 
+> throwEx :: CInt -> String -> a
+> throwEx e msg = throwMSSql (MSSqlException (fromIntegral e) msg)
+> --throwEx e msg = error msg
+
 > testForError :: CInt -> String -> a -> IO a
 > testForError rc msg retval = do
 >   case () of
 >     _ | rc == dbSUCCEED -> return retval
->       | otherwise -> throwMSSql (MSSqlException (fromIntegral rc) msg)
+>       | otherwise -> throwEx rc msg
 
 > errorOnNull :: Ptr b -> String -> a -> IO a
 > errorOnNull ptr msg retval = do
 >   if ptr == nullPtr
->     then throwMSSql (MSSqlException (-1 ) msg)
+>     then throwEx (-1 ) msg
 >     else return retval
 
 > cStr :: CStringLen -> CString
@@ -96,8 +109,10 @@ Don't need this, as it's implied by the FFI foreign imports.
 > dbErrHandler :: DBErrHandler
 > dbErrHandler sess severity dberr oserr dberrstr oserrstr = do
 >   s <- peekCString dberrstr
+>   putStrLn ("MS Sql Server error: " ++ s)
 >   disableErrorHandler
->   throwMSSql (MSSqlException (fromIntegral dberr) s)
+>   putStrLn "error handler disabled"
+>   throwEx dberr s
 
 > dbMsgHandler :: DBMsgHandler
 > dbMsgHandler sess msgno msgstate severity msgtext srvname procname line = do
@@ -125,7 +140,7 @@ or null if init fails.
 
 > foreign import ccall "sqldb.h dblogin" dbLogin :: IO LoginHandle
 > foreign import ccall "sqldb.h dbsetlname" dbSetLName ::
->   LoginHandle -> CString -> CInt -> IO CInt
+>   LoginHandle -> Ptr a -> CInt -> IO CInt
 > foreign import ccall "sqldb.h dbopen" dbOpen ::
 >   LoginHandle -> CString -> IO SessHandle
 > foreign import ccall "sqldb.h dbclose" dbClose ::
@@ -138,8 +153,14 @@ or null if init fails.
 >   withCString appn $ \appnC ->
 >   withCString srvr $ \srvrC -> do
 >     login <- dbLogin
->     dbSetLName login userC dbSETUSER
->     dbSetLName login pswdC dbSETPWD
+>     if user == ""
+>       then do
+>         -- Use Windows-authenticated logon
+>         dbSetLName login nullPtr dbSETSECURE
+>       else do
+>         -- Normal username+password logon
+>         dbSetLName login (castPtr userC) dbSETUSER
+>         dbSetLName login (castPtr pswdC) dbSETPWD
 >     dbSetLName login appnC dbSETAPP
 >     sess <- dbOpen login srvrC
 >     errorOnNull sess "dbOpen" sess

@@ -25,7 +25,7 @@ Portability :  non-portable
 
 
 > runTest :: IO ()
-> runTest = printPropagateError$ do
+> runTest = printIgnoreError$ do
 >     [ usr, pwd, svr ] <- getArgs
 >     putStrLn "init"
 >     dbInit
@@ -56,6 +56,5 @@ Portability :  non-portable
 > printPropagateError action = catchMSSql action 
 >     (\e -> do
 >       putStrLn (show e)
->       throwMSSql e
 >       return undefined
 >     )
