@@ -479,6 +479,29 @@ The caller will also have to cast the data in bufferptr to the expected type
 >     testForError rc "defineByPos" (defn, bufferFPtr, nullIndFPtr, retSizeFPtr)
 
 
+|Oracle only understands bind variable placeholders using syntax :x,
+where x is a number or a variable name.
+Most other DBMS's use ? as a placeholder,
+so we have this function to substitute ? with :n,
+where n starts at one and increases with each ?.
+ 
+We don't hook this in function into this library though;
+it's used in the higher-level implementation of Enumerator.
+I like to retain flexibility at this lower-level,
+and not force arbitrary implementation choices too soon.
+If you want to use this library and use :x style syntax, you can.
+
+> substituteBindPlaceHolders sql =
+>   sbph sql 1 False ""
+
+> sbph :: String -> Int -> Bool -> String -> String
+> sbph [] _ _ acc = reverse acc
+> sbph ('\'':cs) i inQuote acc = sbph cs i (not inQuote) ('\'':acc)
+> sbph ('?':cs) i False acc = sbph cs (i+1) False ((reverse (show i)) ++ (':':acc))
+> sbph (c:cs) i inQuote acc = sbph cs i inQuote (c:acc)
+
+
+
 > bindByPos ::
 >   ErrorHandle
 >   -> StmtHandle
@@ -497,14 +520,6 @@ The caller will also have to cast the data in bufferptr to the expected type
 >             (fromIntegral sze) (fromIntegral sqltype)
 >             indPtr nullPtr nullPtr nullPtr nullPtr (fromIntegral oci_DEFAULT)
 >     testForError rc "bindByPos" ()
-
-
-stmt, ptr bindHdl, err, pos, valuePtr, sizeOfValue, datatype, indicatorPtr,
-lenArrayPtr, retCodeArrayPtr, plsqlArrayMaxLen, plsqlCurrEltPtr, mode
-
-stmt, ptr bindHdl, err, pos, valuePtr, sizeOfValue,
-datatype, indicatorPtr, lenArrayPtr, retCodeArrayPtr,
-plsqlArrayMaxLen, plsqlCurrEltPtr, mode
 
 
 |stmtFetch takes a lot of run-time
