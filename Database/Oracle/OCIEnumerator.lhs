@@ -307,6 +307,7 @@ there's no equivalent for ReadUncommitted.
 >   ) (closeStmt session stmt)
 
 
+
 > prepare :: Session -> StmtHandle -> String -> IO ()
 > prepare session stmt sql = inSession session
 >   (\_ err _ -> OCI.stmtPrepare err stmt sql
@@ -358,7 +359,6 @@ there's no equivalent for ReadUncommitted.
 
 > instance MonadSession (ReaderT Session IO) IO Session where
 >   runSession = flip runReaderT
->   --runSession s a = runReaderT a s
 >   getSession = ask
 >
 >   beginTransaction isolation = do
@@ -403,7 +403,7 @@ there's no equivalent for ReadUncommitted.
 >   makeQuery sqltext resourceUsage = do
 >     sess <- getSession
 >     stmt <- liftIO $ getStmt sess
->     liftIO $ prepare sess stmt sqltext
+>     liftIO $ prepare sess stmt (OCI.substituteBindPlaceHolders sqltext)
 >     liftIO $ setPrefetchCount sess stmt (prefetchRowCount resourceUsage)
 >     return $ Query stmt resourceUsage
 >
@@ -420,7 +420,6 @@ there's no equivalent for ReadUncommitted.
 >     query <- getQuery
 >     sess <- lift getSession
 >     rc <- liftIO $ fetchRow sess query
->     --if rc == oci_NO_DATA then return False else return True
 >     return (not (rc == oci_NO_DATA))
 >
 >   allocBuffer (bufsize, buftype) colpos = do
@@ -605,17 +604,26 @@ y = (year mod 100) + 100.
 > bufferToA :: (Storable a) => ColumnBuffer -> IO (Maybe a)
 > bufferToA buffer = maybeBufferNull buffer Nothing (bufferPeekValue buffer)
 
+> bufferToCInt :: ColumnBuffer -> IO (Maybe CInt)
+> bufferToCInt = bufferToA
+
 > bufferToInt :: ColumnBuffer -> IO (Maybe Int)
-> bufferToInt = bufferToA
+> bufferToInt b = do
+>   cint <- bufferToCInt b
+>   return $ maybe Nothing (Just . fromIntegral) cint
+
+> bufferToCDouble :: ColumnBuffer -> IO (Maybe CDouble)
+> bufferToCDouble = bufferToA
 
 > bufferToDouble :: ColumnBuffer -> IO (Maybe Double)
-> bufferToDouble = bufferToA
+> bufferToDouble b = do
+>   cdbl <- bufferToCDouble b
+>   return $ maybe Nothing (Just . realToFrac) cdbl
+
+|Turn a @Maybe a@ value into a @(null_ind, value)@ pair.
 
 > maybeToInd :: Maybe b -> (b -> a) -> a -> (CShort, a)
-> maybeToInd mv conv nullVal =
->   case mv of
->     Nothing -> (-1, nullVal)
->     Just v -> (0, conv v)
+> maybeToInd mv conv nullVal = maybe (-1, nullVal) (\v -> (0, conv v)) mv
 
 
 |This single polymorphic instance covers all of the
@@ -684,11 +692,8 @@ and uses Read to convert the String to a Haskell data value.
 >   allocBufferFor _ n = allocBuffer (16000, DBTypeString) n
 >   fetchCol buffer = do
 >     v <- liftIO$ bufferToString buffer
->     case v of
->       Just s -> return (Just (read s))
->       Nothing -> return Nothing
+>     return $ maybe Nothing (Just . read) v
 >   bindPos pos val = 
 >     case val of
 >       Just v -> bindPos pos (Just (show v))
 >       Nothing -> bindPos pos (Nothing :: Maybe String)
-
