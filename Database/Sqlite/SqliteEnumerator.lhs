@@ -77,8 +77,8 @@ Session objects are created by 'connect'.
 
 > data Session = Session { dbHandle :: DBHandle }
 
-> connect :: String -> String -> String -> IO Session
-> connect user pswd dbname = convertEx $ do
+> connect :: String -> IO Session
+> connect dbname = convertEx $ do
 >   db <- DBAPI.openDb dbname
 >   return (Session db)
 
@@ -141,7 +141,6 @@ Session objects are created by 'connect'.
 >     query <- getQuery
 >     sess <- lift getSession
 >     rc <- liftIO $ fetchRow (dbHandle sess) (stmtHandle query)
->     --if rc == DBAPI.sqliteDONE then return False else return True
 >     return (not (rc == DBAPI.sqliteDONE))
 >
 >   allocBuffer _ colpos = do
@@ -230,10 +229,13 @@ as we need it to get column values.
 >   v <- liftIO$ DBAPI.colValDouble (stmtHandle (query buffer)) (colPos buffer)
 >   return (Just v)
 
+> nullDatetimeInt64 :: Int64
+> nullDatetimeInt64 = 99999999999999
+
 > bufferToDatetime :: (MonadIO m) => ColumnBuffer -> m (Maybe CalendarTime)
 > bufferToDatetime buffer = do
 >   v <- liftIO$ DBAPI.colValInt64 (stmtHandle (query buffer)) (colPos buffer)
->   return (nullIf (v == 0) (makeCalTime v))
+>   return (nullIf (v == 0 || v == nullDatetimeInt64) (makeCalTime v))
 
 
 
@@ -255,9 +257,20 @@ as we need it to get column values.
 >     Just val -> stmtBind db stmt pos val
 
 > bindMb pos val = do
->     sess <- lift getSession
->     query <- getQuery
->     liftIO $ bindMaybe (dbHandle sess) (stmtHandle query) pos val
+>   sess <- lift getSession
+>   query <- getQuery
+>   liftIO $ bindMaybe (dbHandle sess) (stmtHandle query) pos val
+
+If we have a null datetime, convert it to 99999999999999, rather than 0.
+This ensures that dates have the same sorting behaviour as SQL,
+which is to have nulls come last in the sort order.
+
+> bindDatetime :: DBHandle -> StmtHandle -> Int -> Maybe CalendarTime -> IO ()
+> bindDatetime db stmt pos mbval =  convertEx $
+>   case mbval of
+>     Nothing -> DBAPI.bindInt64 db stmt pos nullDatetimeInt64
+>     Just val -> stmtBind db stmt pos val
+
 
 
 > instance DBType (Maybe String) SqliteMonadQuery ColumnBuffer where
@@ -278,7 +291,10 @@ as we need it to get column values.
 > instance DBType (Maybe CalendarTime) SqliteMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer undefined n
 >   fetchCol buffer = liftIO$ bufferToDatetime buffer
->   bindPos = bindMb
+>   bindPos pos val = do
+>     sess <- lift getSession
+>     query <- getQuery
+>     liftIO $ bindDatetime (dbHandle sess) (stmtHandle query) pos val
 
 
 |This single polymorphic instance replaces all of the type-specific non-Maybe instances
