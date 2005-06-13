@@ -170,7 +170,7 @@ and exception when it receives a null.
 
 
 > dateSqlite :: Int64 -> String
-> dateSqlite i = if i == 0 then "null" else show i
+> dateSqlite i = if i == 0 then "99999999999999" else show i
 
 > dateOracle :: Int64 -> String
 > dateOracle i
@@ -279,6 +279,8 @@ the exception is not raised.
 > selectBindInt sess = do
 >   let
 >     query = "select ? from tdual union select ? from tdual order by 1"
+>     -- Oracle only understands :x style placeholders
+>     --query = "select :x from tdual union select :x from tdual order by 1"
 >     iter :: (Monad m) => Int -> IterAct m [Int]
 >     iter i acc = result $ i:acc
 >     expect :: [Int]
@@ -288,6 +290,9 @@ the exception is not raised.
 >   actual <- runSession sess (doQueryTuned defaultResourceUsage query bindVals iter [])
 >   assertEqual query expect actual
 
+For Sqlite we use a 99999999999999 :: Int64 to represent a null date,
+so this is sorted after non-null dates, which is the same behaviour as
+SQL nulls. SQL nulls come last in the collation order.
 
 > selectBindDate sess = do
 >   let
@@ -295,11 +300,11 @@ the exception is not raised.
 >     iter :: (Monad m) => Maybe CalendarTime -> IterAct m [Maybe CalendarTime]
 >     iter i acc = result $ i:acc
 >     d1 = Just (makeCalTime 20050228093500)
->     dnull :: Maybe CalendarTime
->     dnull = Nothing
->     expect :: [Maybe CalendarTime]
->     expect = [d1, dnull]
->   actual <- runSession sess (doQueryTuned defaultResourceUsage query [d1, dnull] iter [])
+>     d2 = Just (makeCalTime 20050227093500)
+>     dnull :: Maybe CalendarTime; dnull = Nothing
+>     expect :: [Maybe CalendarTime]; expect = [dnull, d2]
+>     input :: [Maybe CalendarTime]; input = [dnull, d2]
+>   actual <- runSession sess (doQueryTuned defaultResourceUsage query input iter [])
 >   assertEqual query expect actual
 
 

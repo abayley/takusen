@@ -25,13 +25,8 @@ Portability :  non-portable
 
 
 
-> getDbName = do
->   [_, _, n] <- getArgs
->   return n
-
-> runTest :: IO ()
-> runTest = do
->   dbname <- getDbName
+> runTest :: String -> IO ()
+> runTest dbname = do
 >   testOpen dbname
 >   db <- openDb dbname
 >   createFixture db

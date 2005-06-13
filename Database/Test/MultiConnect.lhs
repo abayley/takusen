@@ -9,7 +9,8 @@ Portability :  non-portable
  
 Tests Database.Enumerator code in the context of multiple
 database connections to different DBMS products.
-We should add tests to shift data between databases, too.
+We should add tests to shift data between databases, too,
+but there are no tests for that (yet).
 
 
 > {-# OPTIONS -fglasgow-exts -fallow-overlapping-instances #-}
@@ -23,10 +24,11 @@ We should add tests to shift data between databases, too.
 > import Database.Enumerator
 > import System.Environment (getArgs)
 
-> runTest :: IO ()
-> runTest = catchDB ( do
->     sessOra <- logonOracle
->     sessSql <- logonSqlite
+> runTest :: [String] -> IO ()
+> runTest args = catchDB ( do
+>     let [ user, pswd, dbname ] = args
+>     sessOra <- Oracle.connect user pswd dbname
+>     sessSql <- Sqlite.connect user pswd dbname
 >     Enum.runTests dateSqlite sessSql
 >     Enum.runTests dateOracle sessOra
 >     Perf.runTests sessSql
@@ -34,11 +36,3 @@ We should add tests to shift data between databases, too.
 >     Sqlite.disconnect sessSql
 >     Oracle.disconnect sessOra
 >   ) basicDBExceptionReporter
-
-> logonSqlite = do
->   [ user, pswd, dbname ] <- getArgs
->   Sqlite.connect user pswd dbname
-
-> logonOracle = do
->   [ user, pswd, dbname ] <- getArgs
->   Oracle.connect user pswd dbname

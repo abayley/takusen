@@ -19,6 +19,7 @@ returns a somewhat contrived result set.
 
 > import Database.Enumerator
 > import Database.Stub.Enumerator
+> import Database.Test.Performance as Perf
 > import System.Time  -- CalendarTime
 > import Test.HUnit
 > import Data.Int
@@ -26,8 +27,8 @@ returns a somewhat contrived result set.
 
 
 
-> runTest :: IO ()
-> runTest = catchDB ( do
+> runTest :: Perf.ShouldRunTests -> [String] -> IO ()
+> runTest _ _ = catchDB ( do
 >     sess <- connect "" "" ""
 >     runTestTT (TestList (makeTests sess testList))
 >     disconnect sess

@@ -26,6 +26,7 @@ so it should only use functions from there (and "Database.Oracle.OCIConstants").
 > import System.IO
 > import System.Environment (getArgs)
 > import Control.Monad
+> import Test.HUnit
 
 
 > nullAction :: IO ()
@@ -94,29 +95,21 @@ so it should only use functions from there (and "Database.Oracle.OCIConstants").
 
 > testCreateEnv :: IO ()
 > testCreateEnv = do
->   putStrLn "testCreateEnv start"
 >   env <- OCI.envCreate
 >   OCI.handleFree oci_HTYPE_ENV (castPtr env)
->   putStrLn "testCreateEnv done"
 
 
 > testConnect :: (String, String, String) -> IO ()
 > testConnect args = do
->   putStrLn "testConnect start"
 >   x <- logon args
 >   logoff x
->   putStrLn "testConnect done"
 
 
 > getStmt :: EnvHandle -> ErrorHandle -> ConnHandle -> String -> IO StmtHandle
 > getStmt env err conn sql = do
->   putStrLn "getStmt start"
 >   stmt <- OCI.handleAlloc oci_HTYPE_STMT (castPtr env)
->   putStrLn "getStmt prepare"
 >   OCI.stmtPrepare err (castPtr stmt) sql
->   putStrLn "getStmt execute"
 >   OCI.stmtExecute err conn (castPtr stmt) 0
->   putStrLn "getStmt return"
 >   return (castPtr stmt)
 
 
@@ -124,29 +117,32 @@ so it should only use functions from there (and "Database.Oracle.OCIConstants").
 > testBeginTrans args = do
 >   (env, err, conn) <- logon args
 >   OCI.catchOCI ( do
->       --OCI.beginTrans err conn oci_TRANS_SERIALIZABLE 
->       OCI.beginTrans err conn 1
+>       OCI.beginTrans err conn oci_TRANS_SERIALIZABLE 
+>       stmt <- getStmt env err conn "select dummy from dual"
+>       OCI.handleFree oci_HTYPE_STMT (castPtr stmt)
 >     ) (\ociexc -> reportAndIgnore (castPtr err) ociexc nullAction)
->   stmt <- getStmt env err conn "select dummy from dual"
->   OCI.handleFree oci_HTYPE_STMT (castPtr stmt)
 >   logoff (env, err, conn)
 
 
 > testExecute :: (String, String, String) -> IO ()
 > testExecute args = do
 >   (env, err, conn) <- logon args
->   stmt <- getStmt env err conn "select dummy from dual"
->   OCI.handleFree oci_HTYPE_STMT (castPtr stmt)
+>   OCI.catchOCI ( do
+>       stmt <- getStmt env err conn "select dummy from dual"
+>       OCI.handleFree oci_HTYPE_STMT (castPtr stmt)
+>     ) (\ociexc -> reportAndIgnore (castPtr err) ociexc nullAction)
 >   logoff (env, err, conn)
 
 
 > testFetch :: (String, String, String) -> IO ()
 > testFetch args = do
 >   (env, err, conn) <- logon args
->   stmt <- getStmt env err conn "select dummy from dual"
->   (_, buf, nullptr, sizeptr) <- OCI.defineByPos err (castPtr stmt) 1 100 oci_SQLT_CHR
->   rc <- OCI.stmtFetch err (castPtr stmt)
->   OCI.handleFree oci_HTYPE_STMT (castPtr stmt)
+>   OCI.catchOCI ( do
+>       stmt <- getStmt env err conn "select dummy from dual"
+>       (_, buf, nullptr, sizeptr) <- OCI.defineByPos err (castPtr stmt) 1 100 oci_SQLT_CHR
+>       rc <- OCI.stmtFetch err (castPtr stmt)
+>       OCI.handleFree oci_HTYPE_STMT (castPtr stmt)
+>     ) (\ociexc -> reportAndIgnore (castPtr err) ociexc nullAction)
 >   logoff (env, err, conn)
 
 
@@ -154,33 +150,51 @@ so it should only use functions from there (and "Database.Oracle.OCIConstants").
 > testFetchFail :: (String, String, String) -> IO ()
 > testFetchFail args = do
 >   (env, err, conn) <- logon args
->   stmt <- getStmt env err conn "select dummy, 1 from dual"
->   (_, buf, nullptr, sizeptr) <- OCI.defineByPos err (castPtr stmt) 1 100 oci_SQLT_CHR
->   rc <- OCI.stmtFetch err (castPtr stmt)
->   OCI.handleFree oci_HTYPE_STMT (castPtr stmt)
+>   OCI.catchOCI ( do
+>       stmt <- getStmt env err conn "select dummy, 1 from dual"
+>       (_, buf, nullptr, sizeptr) <- OCI.defineByPos err (castPtr stmt) 1 100 oci_SQLT_CHR
+>       rc <- OCI.stmtFetch err (castPtr stmt)
+>       OCI.handleFree oci_HTYPE_STMT (castPtr stmt)
+>     ) (\ociexc -> reportAndIgnore (castPtr err) ociexc nullAction)
 >   logoff (env, err, conn)
 
 
 > testBind :: (String, String, String) -> IO ()
 > testBind args = do
 >   (env, err, conn) <- logon args
->   stmt <- OCI.handleAlloc oci_HTYPE_STMT (castPtr env)
->   OCI.stmtPrepare err (castPtr stmt) "select :1 from dual union select :2 from dual"
->   withCStringLen "hello" $ \(cstr, clen) ->
->     OCI.bindByPos err (castPtr stmt) 1 0 (castPtr cstr) clen oci_SQLT_CHR
->   withCStringLen "hello2" $ \(cstr, clen) ->
->     OCI.bindByPos err (castPtr stmt) 2 0 (castPtr cstr) clen oci_SQLT_CHR
->   OCI.stmtExecute err conn (castPtr stmt) 0
->   buffer@(_, buf, nullptr, sizeptr) <- OCI.defineByPos err (castPtr stmt) 1 100 oci_SQLT_CHR
->   rc <- OCI.stmtFetch err (castPtr stmt)
->   s <- bufferToString buffer
->   putStrLn $ "bind: fetched: " ++ s
->   rc <- OCI.stmtFetch err (castPtr stmt)
->   s <- bufferToString buffer
->   putStrLn $ "bind: fetched: " ++ s
->   rc <- OCI.stmtFetch err (castPtr stmt)
->   OCI.handleFree oci_HTYPE_STMT (castPtr stmt)
+>   OCI.catchOCI ( do
+>       stmt <- OCI.handleAlloc oci_HTYPE_STMT (castPtr env)
+>       -- Oracle can't cope with ? as a bind variable placeholder.
+>       -- We must use the :x style instead.
+>       -- Sqlite can cope with either. I think the ANSI/ISO standard is ?.
+>       OCI.stmtPrepare err (castPtr stmt) (OCI.substituteBindPlaceHolders "select :1 from dual union select :2 from dual")
+>       withCStringLen "hello" $ \(cstr, clen) ->
+>         OCI.bindByPos err (castPtr stmt) 1 0 (castPtr cstr) clen oci_SQLT_CHR
+>       withCStringLen "hello2" $ \(cstr, clen) ->
+>         OCI.bindByPos err (castPtr stmt) 2 0 (castPtr cstr) clen oci_SQLT_CHR
+>       OCI.stmtExecute err conn (castPtr stmt) 0
+>       buffer@(_, buf, nullptr, sizeptr) <- OCI.defineByPos err (castPtr stmt) 1 100 oci_SQLT_CHR
+>       rc <- OCI.stmtFetch err (castPtr stmt)
+>       s <- bufferToString buffer
+>       rc <- OCI.stmtFetch err (castPtr stmt)
+>       s <- bufferToString buffer
+>       rc <- OCI.stmtFetch err (castPtr stmt)
+>       OCI.handleFree oci_HTYPE_STMT (castPtr stmt)
+>     ) (\ociexc -> reportAndIgnore (castPtr err) ociexc nullAction)
 >   logoff (env, err, conn)
+
+> testSubst input expect = do
+>   let actual = OCI.substituteBindPlaceHolders input
+>   when (actual /= expect) (error $ "testSubstBindPlaceHolders failed: " ++ input ++ " -> " ++ actual)
+
+> testSubstituteBindPlaceHolders = do
+>    testSubst "?'?'?" ":1'?':2"
+>    testSubst "?" ":1"
+>    testSubst "" ""
+>    testSubst "x" "x"
+>    testSubst "????????????" ":1:2:3:4:5:6:7:8:9:10:11:12"
+>    testSubst "?'''?'''''?"   ":1'''?''''':2"
+
 
 > cShort2Int :: CShort -> Int
 > cShort2Int n = fromIntegral n
@@ -205,19 +219,24 @@ so it should only use functions from there (and "Database.Oracle.OCIConstants").
 >             return val
 
 
-> parseArgs :: IO (String, String, String)
-> parseArgs = do
->    [u, p, d] <- getArgs
+> parseArgs :: [String] -> IO (String, String, String)
+> parseArgs args = do
+>    let [u, p, d] = args
 >    return (u, p, d)
 
+> testlist args = TestList $ map TestCase
+>     [ testCreateEnv
+>     , testConnect args
+>     , testBeginTrans args
+>     , testExecute args
+>     , testFetch args
+>     , testFetchFail args
+>     , testBind args
+>     , testSubstituteBindPlaceHolders
+>     ]
 
-> runTest :: IO ()
-> runTest = do
->   args <- parseArgs
->   testCreateEnv
->   testConnect args
->   testBeginTrans args
->   testExecute args
->   testFetch args
->   testFetchFail args
->   testBind args
+> runTest :: [String] -> IO ()
+> runTest as = do
+>   args <- parseArgs as
+>   counts <- runTestTT (testlist args)
+>   return ()

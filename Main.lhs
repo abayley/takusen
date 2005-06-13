@@ -1,6 +1,6 @@
 
 |
-Module      :  Database.Enumerator
+Module      :  Main
 Copyright   :  (c) 2004 Oleg Kiselyov, Alistair Bayley
 License     :  BSD-style
 Maintainer  :  oleg@pobox.com, alistair@abayley.org
@@ -20,16 +20,28 @@ Source code for this project is at:
 > module Main where
 
 
-> import Database.Sqlite.Test.SqliteFunctions as SqliteLow
-> import Database.Oracle.Test.OCIFunctions as OracleLow
-> import Database.Test.MultiConnect as Multi
+> import Database.Sqlite.Test.Enumerator as Sqlite
+> import Database.Oracle.Test.Enumerator as Oracle
+> --import Database.Test.MultiConnect as Multi
 > import Database.Stub.Test.Enumerator as Stub
-
+> import Database.MSSqlServer.Test.Enumerator as MSSql
+> import System.Environment (getArgs)
+> import Database.Test.Performance as Perf
 
 
 > main :: IO ()
 > main = do
->   Stub.runTest
->   SqliteLow.runTest
->   OracleLow.runTest
->   Multi.runTest
+>   (impl:perf:args) <- getArgs
+>   let runPerf = if perf == "perf" then Perf.RunTests else Perf.Don'tRunTests
+>   case lookup impl backendTests of
+>     Nothing -> putStrLn $ "No backend for " ++ impl ++ "."
+>     Just test -> test runPerf args
+
+> backendTests :: [(String, Perf.ShouldRunTests -> [String] -> IO ())]
+> backendTests =
+>   [ ("stub", Stub.runTest)
+>   , ("sqlite", Sqlite.runTest)
+>   , ("mssql", MSSql.runTest)
+>   , ("oracle", Oracle.runTest)
+>   --, ("multi", Multi.runTest)
+>   ]

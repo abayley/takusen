@@ -14,7 +14,7 @@ Performance tests. Currently just tests large result sets.
 > {-# OPTIONS -fallow-overlapping-instances #-}
 > {-# OPTIONS -fno-monomorphism-restriction #-}
 
-> module Database.Test.Performance (runTests) where
+> module Database.Test.Performance (runTests, ShouldRunTests(..)) where
 
 > import Database.Enumerator
 > import qualified Database.Test.Enumerator as DBTest
@@ -24,6 +24,7 @@ Performance tests. Currently just tests large result sets.
 > import Test.HUnit
 > import Control.Monad.Reader
 
+> data ShouldRunTests = RunTests | Don'tRunTests deriving (Show, Eq)
 
 > runTests ::
 >   ( MonadSession (ReaderT r IO) IO r
