@@ -15,9 +15,16 @@ This project is hosted by Haskell-libs:
  
 Source code for this project is at:
   <http://cvs.sf.net/viewcvs.py/haskell-libs/libs/takusen/>
+ 
+Invoke main like this:
+ 
+ > takusen stub noperf
+ > takusen sqlite noperf dbname
+ > takusen oracle noperf "" "" dbname  -- no username, so os-authenticated
+ > takusen mssql noperf user paswd dbname
 
 
-> module Main where
+> module Main (main) where
 
 
 > import Database.Sqlite.Test.Enumerator as Sqlite
