@@ -8,7 +8,8 @@ Maintainer  :  oleg@pobox.com, alistair@abayley.org
 Stability   :  experimental
 Portability :  non-portable
  
-Simple wrappers for PostgreSQL functions (FFI).
+Simple wrappers for PostgreSQL functions (FFI) plus middle-level
+wrappers (in the second part of this file)
 
 
 > module Database.PostgreSQL.PGFunctions where
@@ -40,17 +41,16 @@ Simple wrappers for PostgreSQL functions (FFI).
 > catchPG :: IO a -> (PGException -> IO a) -> IO a
 > catchPG = catchDyn
 
-> throwPG :: Integral a => a -> String -> b
+> throwPG :: Integral a => a -> String -> any
 > throwPG rc s = throwDyn (PGException (fromIntegral rc) s)
+
+> rethrowPG :: PGException -> any
+> rethrowPG = throwDyn
 
 > cStr :: CStringLen -> CString
 > cStr = fst
 > cStrLen :: CStringLen -> CInt
 > cStrLen = fromIntegral . snd
-
-
- type UTF16CString = CString
- type UTF8CString = CString
 
 
 > foreign import ccall "libpq-fe.h PQconnectdb" fPQconnectdb
@@ -93,9 +93,19 @@ Execution of commands
 > foreign import ccall "libpq-fe.h PQexec" fPQexec
 >   :: DBHandle -> CString -> IO StmtHandle
 
+One can also use SQL PREPARE for that
+
+> foreign import ccall "libpq-fe.h PQprepare" fPQprepare
+>   :: DBHandle -> CString -> CString -> CInt -> Ptr Oid -> IO StmtHandle
+
+> foreign import ccall "libpq-fe.h PQexecPrepared" fPQexecPrepared
+>   :: DBHandle -> CString -> CInt -> Ptr CString -> Ptr CInt -> Ptr CInt ->
+>      CInt -> IO StmtHandle
+
+
+
 > foreign import ccall "libpq-fe.h PQresultStatus" fPQresultStatus
 >   :: StmtHandle -> IO ExecStatusType
-
 
 > type ExecStatusType = CInt -- enumeration, see libpq-fe.h
 > (ePGRES_EMPTY_QUERY : 
@@ -123,7 +133,7 @@ Retrieving Query Result Information
 > foreign import ccall "libpq-fe.h PQnfields" fPQnfields
 >   :: StmtHandle -> IO CInt
 
-Inquiry about a column
+Inquiry about a column; Column numbers start at 0
 
 > foreign import ccall "libpq-fe.h PQfname" fPQfname
 >   :: StmtHandle -> CInt -> IO CString
@@ -150,16 +160,20 @@ Really getting the values
 > foreign import ccall "libpq-fe.h PQoidValue" fPQoidValue
 >   :: StmtHandle -> IO Oid
 
+27.9. Control Functions
 
-> {-
-> foreign import ccall "libpq-fe.h sqlite3_prepare" sqlitePrepare
->   :: DBHandle -> UTF8CString -> CInt -> Ptr StmtHandle -> Ptr CString -> IO CInt
+> type PGVerbosity = CInt -- enumeration, see libpq-fe.h
+> (ePQERRORS_TERSE : 
+>  ePQERRORS_DEFAULT :
+>  ePQERRORS_VERBOSE :
+>  _) = [0..]::[PGVerbosity]
+> foreign import ccall "libpq-fe.h PQsetErrorVerbosity" fPQsetErrorVerbosity
+>   :: DBHandle -> PGVerbosity -> IO PGVerbosity
 
-> foreign import ccall "libpq-fe.h sqlite3_bind_text" sqliteBindText
->   :: StmtHandle -> CInt -> UTF8CString -> CInt -> FreeFunPtr -> IO CInt
-> -}
+
 
 -------------------------------------------------------------------
+			Middle-level interface
 
 Get the current error message
 
@@ -178,14 +192,6 @@ Get the current error message
 > getAndRaiseError db = do
 >   ex <- getError db
 >   throwPG ex
-
-> testForError :: DBHandle -> CInt -> a -> IO a
-> testForError db rc retval = do
->   case () of
->     _ | rc == sqliteOK -> return retval
->       | rc == sqliteDONE -> return retval
->       | rc == sqliteROW -> return retval
->       | otherwise -> getAndRaiseError db
 
 > testForErrorWithPtr :: (Storable a) => DBHandle -> CInt -> Ptr a -> IO a
 > testForErrorWithPtr db rc ptr = do
@@ -236,10 +242,10 @@ Check the StmtHandle returned by fPQexec and similar functions
 >                    msg <- fPQresultErrorMessage stmt >>= peekCString
 >                    fPQclear stmt
 >                    throwPG rc msg
-> 
 
 
-Execute some kind of statement, which returns no tuples
+
+Execute some kind of statement that returns no tuples
 
 > nqExec :: DBHandle -> String -> IO (String, String, Oid)
 > nqExec db sqlText =
@@ -254,39 +260,60 @@ Execute some kind of statement, which returns no tuples
 >     return (cmd'status, cmd'ntuples, cmd'oid)
 
 
-> stmtExec :: DBHandle -> String -> IO StmtHandle
-> stmtExec db sqlText =
+Prepare and Execute a query
+
+> stmtExecImm :: DBHandle -> String -> IO (StmtHandle, Int)
+> stmtExecImm db sqlText =
 >   withCString sqlText $ \cstr ->
->     fPQexec db cstr >>= check'stmt db ePGRES_TUPLES_OK
+>     do 
+>     stmt <- fPQexec db cstr >>= check'stmt db ePGRES_TUPLES_OK
+>     ntuples <- fPQntuples stmt
+>     return (stmt, fromIntegral ntuples)
+
+
+Currently assume all parameters, if any, are text
+
+> stmtPrepare :: DBHandle -> String -> String -> IO String
+> stmtPrepare db stmt'name sqlText =
+>   withCString stmt'name $ \csn ->
+>     withCString sqlText $ \cstr ->
+>       do
+>       stmt <- fPQprepare db csn cstr 0 nullPtr >>= 
+>                     check'stmt db ePGRES_COMMAND_OK
+>       fPQclear stmt			-- doesn't have any useful info
+>       return stmt'name
+
+
+Execute a previously prepared statement, with no params. Ask for the
+result in text
+
+> stmtExec0 :: DBHandle -> String -> IO (StmtHandle, Int)
+> stmtExec0 db stmt'name =
+>   withCString stmt'name $ \csn ->
+>     do 
+>     stmt <- fPQexecPrepared db csn 0 nullPtr nullPtr nullPtr 0 >>=
+>		   check'stmt db ePGRES_TUPLES_OK
+>     ntuples <- fPQntuples stmt
+>     return (stmt, fromIntegral ntuples)
+
+
 
 Free storage, that is. No error in Postgres
 
 > stmtFinalise :: StmtHandle -> IO ()
 > stmtFinalise = fPQclear
 
-> {-
-> stmtPrepare :: DBHandle -> String -> IO StmtHandle
-> stmtPrepare db sqlText =
->   withUTF8StringLen sqlText $ \(cstr, clen) ->
->   alloca $ \stmtptr ->
->   alloca $ \unusedptr -> do
->     rc <- sqlitePrepare db cstr (fromIntegral clen) stmtptr unusedptr
->     testForErrorWithPtr db rc stmtptr
-
-> stmtFetch :: DBHandle -> StmtHandle -> IO CInt
-> stmtFetch db stmt = do
->   rc <- sqliteStep stmt
->   testForError db rc rc
-
-
 |Column numbers are zero-indexed, so subtract one
 from given index (we present a one-indexed interface).
+So are the row numbers
 
-> colValInt :: StmtHandle -> Int -> IO Int
-> colValInt stmt colnum = do
->   cint <- sqliteColumnInt stmt (fromIntegral (colnum - 1))
->   return (fromIntegral cint)
+> colValString :: StmtHandle -> Int -> Int -> IO String
+> colValString stmt rownum colnum = do
+>   ptr <- fPQgetvalue stmt (fromIntegral (rownum - 1))
+>                           (fromIntegral (colnum - 1))
+>   peekCString (castPtr ptr)
 
+> {-
 > colValInt64 :: StmtHandle -> Int -> IO Int64
 > colValInt64 stmt colnum = do
 >   cllong <- sqliteColumnInt64 stmt (fromIntegral (colnum - 1))
