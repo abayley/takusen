@@ -29,7 +29,8 @@ Additional reading:
  * <http://www.eros-os.org/pipermail/e-lang/2004-March/009643.html>
 
 
-> {-# OPTIONS -fglasgow-exts -fallow-overlapping-instances #-}
+> {-# OPTIONS -fglasgow-exts #-}
+> {-# OPTIONS -fallow-overlapping-instances #-}
 
 > module Database.Enumerator
 >   (
@@ -44,6 +45,10 @@ Additional reading:
 >     -- ** result and result'
 >
 >     -- $usage_result
+>
+>     -- ** Bind Parameters
+>
+>     -- $usage_bindparms
 >
 >       DBColumnType(..), IsolationLevel(..)
 >     , BufferSize, BufferHint, Position
@@ -65,11 +70,13 @@ Additional reading:
 >     -- * A Query monad and cursors.
 >     , DBCursor(..),  QueryResourceUsage(..)
 >     , MonadQuery(..)
->     , defaultResourceUsage
+>     , defaultResourceUsage, dbBind
 >     , doQuery, doQueryBind, doQueryTuned
 >     , cursorIsEOF, cursorCurrent, cursorNext, cursorClose
 >     , withCursor, withCursorBind, withCursorTuned
 >     , withTransaction
+>
+>     --, openCursorTuned, doQueryMaker
 >
 >     -- * Misc.
 >     , throwIfDBNull, ifNull, result, result'
@@ -176,6 +183,9 @@ We need these because 'Control.Exception.catch' is in the IO monad, but /not/ Mo
 > catchReaderT :: ReaderT r IO a -> (Control.Exception.Exception -> ReaderT r IO a) -> ReaderT r IO a
 > catchReaderT m h = shakeReaderT $ \sinker -> Control.Exception.catch (sinker m) (sinker . h)
 
+> dbBind :: (DBType a m b) => a -> Position -> m ()
+> dbBind v = (\p -> bindPos p v)
+
 
 --------------------------------------------------------------------
 -- ** Session monad
@@ -196,18 +206,18 @@ database-specific) code and the high-level, database-independent code.
 The methods of the class MonadSession are visible (and highly useful)
 to the user. They are also used internally.
 
-> class (MonadIO mb) => MonadSession m mb s | m -> mb, m -> s, mb s -> m where
->   runSession :: s -> m a -> mb a
->   getSession :: m s
->   beginTransaction :: IsolationLevel -> m ()
->   commit :: m ()
->   rollback :: m ()
+> class (MonadIO mb) => MonadSession ms mb s | ms -> mb, ms -> s, mb s -> ms where
+>   runSession :: s -> ms a -> mb a
+>   getSession :: ms s
+>   beginTransaction :: IsolationLevel -> ms ()
+>   commit :: ms ()
+>   rollback :: ms ()
 >   -- insert/update/delete; returns number of rows affected
->   executeDML :: QueryText -> m Int
+>   executeDML :: QueryText -> ms Int
 >   -- DDL (create table, etc)
->   executeDDL :: QueryText -> m ()
+>   executeDDL :: QueryText -> ms ()
 >   -- PL/SQL blocks? Not in generic interface. ODBC can execute procedures; maybe later...
->   --executeProc :: QueryText -> m ()
+>   --executeProc :: QueryText -> ms ()
 
 
 > -- This might be useful
@@ -342,39 +352,32 @@ Resource usage settings are implementation dependent.
 >   ( MonadQuery m (ReaderT r IO) q b
 >   , MonadSession (ReaderT r IO) mb r
 >   , QueryIteratee m i s b
->   , DBType Int m b
 >   ) =>
 >      QueryText  -- ^ query string
 >   -> i  -- ^ iteratee function
 >   -> s  -- ^ seed value
 >   -> ReaderT r IO s
->
-> -- We must give the empty list a concrete type, or rather,
-> -- a type that is an instance of DBType.
-> -- It doesn't matter what type it has, as the list is empty
-> -- (it just contains bind values, and here there are none).
-> -- If we don't give it a type, then the type checker will
-> -- be unable (in user code) to resolve the empty list
-> -- to one of the DBType instances, which it must be.
-> doQuery sql iteratee seed = doQueryBind sql ([]::[Int]) iteratee seed
+> 
+> doQuery sql iteratee seed = doQueryBind sql [] iteratee seed
 
 
 
 |Adds bind action.
 
+
 > doQueryBind ::
 >   ( MonadQuery m (ReaderT r IO) q b
 >   , MonadSession (ReaderT r IO) mb r
 >   , QueryIteratee m i s b
->   , DBType a m b
 >   ) =>
 >      QueryText  -- ^ query string
->   -> [a]  -- ^ bind values
+>   -> [Position -> m ()]  -- ^ bind actions
 >   -> i  -- ^ iteratee function
 >   -> s  -- ^ seed value
 >   -> ReaderT r IO s
->
-> doQueryBind sql = doQueryTuned defaultResourceUsage sql
+> 
+> doQueryBind sql bindacts iter seed =
+>   doQueryTuned defaultResourceUsage sql bindacts iter seed
 
 
 |Version of doQuery which gives you a bit more control over how 
@@ -384,21 +387,21 @@ At the moment we only support specifying the numbers of rows prefetched
 doQuery is essentially the result of applying lfold_nonrec_to_rec
 to doQueryMaker (which it not exposed by the module).
 
+
 > doQueryTuned ::
 >   ( MonadQuery m (ReaderT r IO) q b
 >   , MonadSession (ReaderT r IO) mb r
 >   , QueryIteratee m i s b
->   , DBType a m b
 >   ) =>
 >      QueryResourceUsage  -- ^ resource usage tuning
 >   -> QueryText  -- ^ query string
->   -> [a]  -- ^ bind values
+>   -> [Position -> m ()]  -- ^ bind actions
 >   -> i  -- ^ iteratee function
 >   -> s  -- ^ seed value
 >   -> ReaderT r IO s
->
-> doQueryTuned resourceUsage sqltext bindvals iteratee seed = do
->     (lFoldLeft, finalizer) <- doQueryMaker sqltext bindvals iteratee resourceUsage
+> 
+> doQueryTuned resourceUsage sqltext bindacts iteratee seed = do
+>     (lFoldLeft, finalizer) <- doQueryMaker sqltext bindacts iteratee resourceUsage
 >     catchReaderT (fix lFoldLeft iteratee seed)
 >       (\e -> do
 >         finalizer
@@ -406,20 +409,20 @@ to doQueryMaker (which it not exposed by the module).
 >       )
 
 
-
 |This is the auxiliary function.
 
 > doQueryMaker ::
->   ( MonadSession ms mb r
->   , MonadQuery m ms q b
+>   ( MonadSession (ReaderT r IO) mb r
+>   , MonadQuery m (ReaderT r IO) q b
 >   , QueryIteratee m i s b
->   , DBType a m b
->   ) => QueryText -> [a] -> i -> QueryResourceUsage ->
->        ms ((i -> s -> ms s) -> i -> s -> ms s, ms ())
-> doQueryMaker sqltext bindvals iteratee resourceUsage = do
+>   ) => QueryText -> [Position -> m ()] -> i -> QueryResourceUsage ->
+>        (ReaderT r IO) ((i -> s -> (ReaderT r IO) s) -> i -> s -> (ReaderT r IO) s, (ReaderT r IO) ())
+>
+> doQueryMaker sqltext bindacts iteratee resourceUsage = do
 >     sess <- getSession
 >     query <- makeQuery sqltext resourceUsage
->     let bindAction = sequence_ $ map (\(p, v) -> bindPos p v) (zip [1..] bindvals)
+>     let nats :: [Int]; nats = [1..]
+>     let bindAction = sequence_ $ map (\(p, ba) -> ba p) (zip nats bindacts)
 >     runQuery bindAction query
 >     execQuery query
 >     let inQuery m = runQuery m query
@@ -442,9 +445,21 @@ to doQueryMaker (which it not exposed by the module).
 
 Cursor stuff. First, an auxiliary function, not seen by the user.
 
-> openCursorTuned resourceUsage sqltext bindvals iteratee seed = do
+> openCursorTuned ::
+>   ( MonadSession (ReaderT r IO) mb r
+>   , MonadQuery m (ReaderT r IO) q b
+>   , QueryIteratee m i s b
+>   ) =>
+>      QueryResourceUsage  -- ^ resource usage tuning
+>   -> QueryText  -- ^ query string
+>   -> [Position -> m ()]  -- ^ bind actions
+>   -> i  -- ^ iteratee function
+>   -> s  -- ^ seed value
+>   -> (ReaderT r IO) (DBCursor (ReaderT r IO) s)
+>
+> openCursorTuned resourceUsage sqltext bindacts iteratee seed = do
 >     ref <- liftIO$ newIORef (seed,Nothing)
->     (lFoldLeft, finalizer) <- doQueryMaker sqltext bindvals iteratee resourceUsage
+>     (lFoldLeft, finalizer) <- doQueryMaker sqltext bindacts iteratee resourceUsage
 >     let update v = liftIO $ modifyIORef ref (\ (_, f) -> (v, f))
 >     let
 >       close finalseed = do
@@ -522,30 +537,27 @@ Propagates exceptions after closing cursor.
 >   ( MonadQuery m (ReaderT r IO) q b
 >   , MonadSession (ReaderT r IO) mb r
 >   , QueryIteratee m i s b
->   , DBType Int m b
 >  ) =>
 >      QueryText  -- ^ query string
 >   -> i  -- ^ iteratee function
 >   -> s  -- ^ seed value
 >   -> (DBCursor (ReaderT r IO) s -> ReaderT r IO c)  -- ^ action that takes a cursor
 >   -> ReaderT r IO c
->
-> withCursor sqltext = withCursorBind sqltext ([]::[Int])
-
+> 
+> withCursor sqltext = withCursorBind sqltext []
 
 > withCursorBind ::
 >   ( MonadQuery m (ReaderT r IO) q b
 >   , MonadSession (ReaderT r IO) mb r
 >   , QueryIteratee m i s b
->   , DBType a m b
 >  ) =>
 >      QueryText  -- ^ query string
->   -> [a]  -- ^ bind values
+>   -> [Position -> m ()]  -- ^ bind actions
 >   -> i  -- ^ iteratee function
 >   -> s  -- ^ seed value
 >   -> (DBCursor (ReaderT r IO) s -> ReaderT r IO c)  -- ^ action that takes a cursor
 >   -> ReaderT r IO c
->
+> 
 > withCursorBind sqltext = withCursorTuned defaultResourceUsage sqltext
 
 
@@ -555,16 +567,15 @@ Propagates exceptions after closing cursor.
 >   ( MonadQuery m (ReaderT r IO) q b
 >   , MonadSession (ReaderT r IO) mb r
 >   , QueryIteratee m i s b
->   , DBType a m b
 >   ) =>
 >      QueryResourceUsage  -- ^ resource usage tuning
 >   -> QueryText  -- ^ query string
->   -> [a]  -- ^ bind values
+>   -> [Position -> m ()]  -- ^ bind actions
 >   -> i  -- ^ iteratee function
 >   -> s  -- ^ seed value
 >   -> (DBCursor (ReaderT r IO) s -> ReaderT r IO c)  -- ^ action that takes a cursor
 >   -> ReaderT r IO c
->
+> 
 > withCursorTuned resourceUsage query bindvals iteratee seed action = do
 >   cursor <- openCursorTuned resourceUsage query bindvals iteratee seed
 >   catchReaderT ( do
@@ -786,6 +797,59 @@ With GHC:
  
 You'll probably find that the lazy iteratee is consuming all of the stack with lazy thunks,
 which is why we recommend the strict function.
+
+
+-- $usage_bindparms
+ 
+Bind variables are specified by using the 'doQueryBind' or 'withCursorBind'
+interface functions. The bind parameters are a list of bind actions
+@Position -> m ()@ . The 'doQueryBind'\/'withCursorBind' functions invoke each
+action, passing the position in the list.
+Having the actions return () allows us to create lists of binds to
+values of different types.
+ 
+Perhaps an example will explain it better:
+ 
+ > bindExample sess = do
+ >   let
+ >     query = "select blah from blahblah where id = ? and code = ?"
+ >     iter :: (Monad m) => String -> IterAct m [String]
+ >     iter s acc = result $ s:acc
+ >     bindVals = [dbBind (12345::Int), dbBind "CODE123"]
+ >   actual <- runSession sess (doQueryBind query bindVals iter [])
+ >   print actual
+ 
+More examples can be found in "Database.Test.Enumerator";
+see 'Database.Test.Enumerator.selectBindInt',
+'Database.Test.Enumerator.selectBindIntDoubleString', and
+'Database.Test.Enumerator.selectBindDate'.
+ 
+For Int and Double bind values, we have to tell the compiler about the types.
+This is due to interaction (which I don't fully understand and therefore
+cannot explain in any detail) with the numeric literal defaulting mechanism.
+Note that for non-numeric literals the compiler can determine the correct
+types to use.
+ 
+If you omit type information for numeric literals, from GHC the error
+message looks something like this:
+ 
+ > Database\/Sqlite\/Test\/Enumerator.lhs:28:5:
+ >    Overlapping instances for DBType a4
+ >                                     Database.Sqlite.SqliteEnumerator.SqliteMonadQuery
+ >                                     Database.Sqlite.SqliteEnumerator.ColumnBuffer
+ >      arising from use of `Database.Test.Enumerator.runTests' at Database\/Sqlite\/Test\/Enumerator.lhs:28:5-17
+ >    Matching instances:
+ >      Imported from Database.Sqlite.SqliteEnumerator:
+ >        instance (DBType (Maybe a)
+ >                         Database.Sqlite.SqliteEnumerator.SqliteMonadQuery
+ >                         Database.Sqlite.SqliteEnumerator.ColumnBuffer) =>
+ >                 DBType a
+ >                        Database.Sqlite.SqliteEnumerator.SqliteMonadQuery
+ >                        Database.Sqlite.SqliteEnumerator.ColumnBuffer
+ >      Imported from Database.Sqlite.SqliteEnumerator:
+ >        instance DBType (Maybe Int)
+ >                        ....
+
 
 
 

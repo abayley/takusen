@@ -10,17 +10,22 @@ Portability :  non-portable
 Simple wrappers for MS Sql Server functions (FFI).
  
 When compiling, do not use these loader flags:
-  @-Lc:\windows\system32 -lntwdblib@
+ 
+ > -Lc:\windows\system32 -lntwdblib
+ 
 Instead, use:
-  @-optl c:\windows\system32\ntwdblib.dll@
+ 
+ > -optl c:\windows\system32\ntwdblib.dll
+ 
 This is because adding @c:\windows\system32@ to the linker search
 path confuses the linker, as it tries to link against dlls in system32
-(like @msvcrt.dll@), rather than the equivalent mingw dlls it normally uses.
+(like msvcrt.dll), rather than the equivalent mingw dlls it normally uses.
  
-Don't forget to specify the header file location:
-  @"-IC:\Program Files\Microsoft SQL Server\80\Tools\DevTools\Include"@
-(or wherever your Sql Server installation resides).
-
+Don't forget to specify the header file location
+(or wherever your Sql Server installation resides):
+ 
+ > "-IC:\Program Files\Microsoft SQL Server\80\Tools\DevTools\Include"
+ 
 
 > {-# OPTIONS -ffi #-}
 > {-# OPTIONS -fglasgow-exts #-}
@@ -28,8 +33,11 @@ Don't forget to specify the header file location:
 > {-# OPTIONS -#include "windows.h" #-}
 > {-# OPTIONS -#include "sqlfront.h" #-}
 
-Don't need this, as it's implied by the FFI foreign imports.
-{- # OPTIONS -#include "sqldb.h" #-}
+Don't need to explcitly include sqldb.h, as it's implied by the
+FFI foreign import declarations e.g.
+  > foreign import ccall "sqldb.h dbinit" dbInit :: IO CString
+implies
+ {- # OPTIONS -#include "sqldb.h" #-}
 
 
 > module Database.MSSqlServer.MSSqlFunctions where

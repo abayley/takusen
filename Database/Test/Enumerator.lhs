@@ -16,7 +16,6 @@ You must to use a DBMS-specific library to create the Session
 
 
 > {-# OPTIONS -fglasgow-exts #-}
-> {-# OPTIONS -fallow-overlapping-instances #-}
 
 > module Database.Test.Enumerator where
 
@@ -24,7 +23,6 @@ You must to use a DBMS-specific library to create the Session
 > import System.Time  -- CalendarTime
 > import Data.Int
 > import Test.HUnit
-
 
 
 > runTests dateFn sess = do
@@ -86,14 +84,16 @@ Use this (execDrop) when it's likely to raise an error.
 
 > makeTests sess list = map (\f -> TestCase (f sess)) list
 
+testList has a particularly nasty type, which wouldn't be feasable
+to copy into here.
+
 > testList (dateFn::(Int64 -> String)) =
 >   [ selectNoRows, selectTerminatesEarly, selectFloatsAndInts
 >   , selectNullString, selectUnhandledNull, selectNullDate dateFn
 >   , selectDate dateFn, selectBoundaryDates dateFn
 >   , selectCursor
 >   , selectExhaustCursor
->   , selectBindInt
->   , selectBindDate
+>   , selectBindInt, selectBindIntDoubleString, selectBindDate
 >   , polymorphicFetchTest
 >   , updateRollback
 >   ]
@@ -101,7 +101,7 @@ Use this (execDrop) when it's likely to raise an error.
 
 > selectTest sess query iter expect = do
 >   let
->     bindVals :: [Int]
+>     --bindVals :: [Int]
 >     bindVals = []
 >   actual <- runSession sess (doQueryTuned defaultResourceUsage query bindVals iter [])
 >   assertEqual query expect actual
@@ -224,7 +224,7 @@ i.e. open and fetch all rows, close after last row.
 >     query = "select 1 from tdual union select 2 from tdual"
 >     iter :: (Monad m) => Int -> IterAct m [Int]
 >     iter i acc = result $ i:acc
->   runSession sess $ withCursorTuned defaultResourceUsage query ([]::[Int]) iter [] $ \c -> do
+>   runSession sess $ withCursorTuned defaultResourceUsage query ([]) iter [] $ \c -> do
 >     r <- cursorCurrent c
 >     liftIO $ assertEqual query [1] r
 >     doneBool <- cursorIsEOF c
@@ -266,7 +266,7 @@ the exception is not raised.
 >     iter :: (Monad m) => Int -> IterAct m [Int]
 >     iter i acc = result $ i:acc
 >   catchDB (
->     runSession sess $ withCursorTuned defaultResourceUsage query ([]::[Int]) iter [] $ \c -> do
+>     runSession sess $ withCursorTuned defaultResourceUsage query ([]) iter [] $ \c -> do
 >       cursorNext c
 >       cursorNext c
 >       cursorNext c
@@ -285,8 +285,24 @@ the exception is not raised.
 >     iter i acc = result $ i:acc
 >     expect :: [Int]
 >     expect = [2, 1]
->     bindVals :: [Int]
->     bindVals = [1, 2]
+>     --bindVals :: [Int]
+>     bindVals = [dbBind (1::Int), dbBind (2::Int)]
+>   actual <- runSession sess (doQueryTuned defaultResourceUsage query bindVals iter [])
+>   assertEqual query expect actual
+
+Demonstrates use of different types in bind positions.
+
+> selectBindIntDoubleString sess = do
+>   let
+>     query = "select ?,?,? from tdual union select ?,?,? from tdual order by 1"
+>     -- Oracle only understands :x style placeholders;
+>     -- we can use them as they are passed through unmolested.
+>     --query = "select :x from tdual union select :x from tdual order by 1"
+>     iter :: (Monad m) => Int -> Double -> String -> IterAct m [(Int, Double, String)]
+>     iter i d s acc = result $ (i, d, s):acc
+>     expect :: [(Int, Double, String)]
+>     expect = [(3, 4.4, "row 2"), (1, 2.2, "row 1")]
+>     bindVals = [dbBind (1::Int), dbBind (2.2::Double), dbBind "row 1", dbBind (3::Int), dbBind (4.4::Double), dbBind "row 2"]
 >   actual <- runSession sess (doQueryTuned defaultResourceUsage query bindVals iter [])
 >   assertEqual query expect actual
 
@@ -303,7 +319,7 @@ SQL nulls. SQL nulls come last in the collation order.
 >     d2 = Just (makeCalTime 20050227093500)
 >     dnull :: Maybe CalendarTime; dnull = Nothing
 >     expect :: [Maybe CalendarTime]; expect = [dnull, d2]
->     input :: [Maybe CalendarTime]; input = [dnull, d2]
+>     input = [dbBind dnull, dbBind d2]
 >   actual <- runSession sess (doQueryTuned defaultResourceUsage query input iter [])
 >   assertEqual query expect actual
 
@@ -334,7 +350,7 @@ SQL nulls. SQL nulls come last in the collation order.
 >     iter c1 acc = result $ c1:acc
 >     query = "select v from " ++ testTable ++ " order by id"
 >     expect = [ l2, l1 ]
->   actual <- doQueryTuned defaultResourceUsage query ([]::[Int]) iter []
+>   actual <- doQueryTuned defaultResourceUsage query ([]) iter []
 >   liftIO $ assertEqual query expect actual
 
 

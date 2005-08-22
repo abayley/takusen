@@ -15,6 +15,8 @@ but there are no tests for that (yet).
 
 > {-# OPTIONS -fglasgow-exts -fallow-overlapping-instances #-}
 
+{-# OPTIONS -fglasgow-exts #-}
+
 > module Database.Test.MultiConnect (runTest) where
 
 > import qualified Database.Sqlite.Enumerator as Sqlite (connect, disconnect)
@@ -23,16 +25,18 @@ but there are no tests for that (yet).
 > import Database.Test.Performance as Perf
 > import Database.Enumerator
 > import System.Environment (getArgs)
+> import Control.Monad (when)
 
-> runTest :: [String] -> IO ()
-> runTest args = catchDB ( do
+
+> runTest :: Perf.ShouldRunTests -> [String] -> IO ()
+> runTest runPerf args = catchDB ( do
 >     let [ user, pswd, dbname ] = args
 >     sessOra <- Oracle.connect user pswd dbname
->     sessSql <- Sqlite.connect user pswd dbname
+>     sessSql <- Sqlite.connect dbname
 >     Enum.runTests dateSqlite sessSql
 >     Enum.runTests dateOracle sessOra
->     Perf.runTests sessSql
->     Perf.runTests sessOra
+>     when (runPerf == Perf.RunTests) (Perf.runTests sessSql)
+>     when (runPerf == Perf.RunTests) (Perf.runTests sessOra)
 >     Sqlite.disconnect sessSql
 >     Oracle.disconnect sessOra
 >   ) basicDBExceptionReporter

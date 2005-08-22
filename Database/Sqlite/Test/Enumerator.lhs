@@ -7,7 +7,8 @@ Maintainer  :  oleg@pobox.com, alistair@abayley.org
 Stability   :  experimental
 Portability :  non-portable
  
-> {-# OPTIONS -fglasgow-exts -fallow-overlapping-instances #-}
+> {-# OPTIONS -fglasgow-exts #-}
+> {-# OPTIONS -fallow-overlapping-instances #-}
 
 > module Database.Sqlite.Test.Enumerator (runTest) where
 
@@ -17,11 +18,11 @@ Portability :  non-portable
 > import Database.Test.Performance as Perf
 > import Database.Enumerator
 > import Control.Monad (when)
- 
+
 
 > runTest :: Perf.ShouldRunTests -> [String] -> IO ()
 > runTest runPerf args = catchDB ( do
->     let [dbname] = args
+>     let [_, _, dbname] = args
 >     Low.runTest dbname
 >     sess <- connect dbname 
 >     Enum.runTests dateSqlite sess

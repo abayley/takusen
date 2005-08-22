@@ -94,7 +94,7 @@ if you use the lazy version of result. Bummer.
 
 > selectLargeResultSet sess = runSession sess $ do
 >   ct1 <- liftIO getClockTime
->   r <- doQueryTuned prefetch1000 manyRows ([]::[Int]) rowCounter 0
+>   r <- doQueryTuned prefetch1000 manyRows [] rowCounter 0
 >   let r = 1
 >   ct2 <- liftIO getClockTime
 >   let diffCt = diffClockTimes ct2 ct1
@@ -105,9 +105,8 @@ if you use the lazy version of result. Bummer.
 
 
 > cursorHelper msg resourceUsage secs = do
->   withCursorTuned resourceUsage manyRows ([]::[Int]) rowCounter 0 $ \c -> do
+>   withCursorTuned resourceUsage manyRows [] rowCounter 0 $ \c -> do
 >     ct1 <- liftIO getClockTime
->     --replicateM_ 100000 (do _ <- cursorNext c; return())
 >     replicateM_ 100000 (cursorNext c)
 >     ct2 <- liftIO getClockTime
 >     let diffCt = diffClockTimes ct2 ct1

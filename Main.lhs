@@ -16,7 +16,7 @@ This project is hosted by Haskell-libs:
 Source code for this project is at:
   <http://cvs.sf.net/viewcvs.py/haskell-libs/libs/takusen/>
  
-Invoke main like this:
+Invoke main like this (assuming compiled to takusen.exe):
  
  > takusen stub noperf
  > takusen sqlite noperf dbname
@@ -29,7 +29,7 @@ Invoke main like this:
 
 > import Database.Sqlite.Test.Enumerator as Sqlite
 > import Database.Oracle.Test.Enumerator as Oracle
-> --import Database.Test.MultiConnect as Multi
+> import Database.Test.MultiConnect as Multi
 > import Database.Stub.Test.Enumerator as Stub
 > import Database.MSSqlServer.Test.Enumerator as MSSql
 > import System.Environment (getArgs)
@@ -50,5 +50,5 @@ Invoke main like this:
 >   , ("sqlite", Sqlite.runTest)
 >   , ("mssql", MSSql.runTest)
 >   , ("oracle", Oracle.runTest)
->   --, ("multi", Multi.runTest)
+>   , ("multi", Multi.runTest)
 >   ]
