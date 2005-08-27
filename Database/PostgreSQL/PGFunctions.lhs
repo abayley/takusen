@@ -313,6 +313,12 @@ So are the row numbers
 >                           (fromIntegral (colnum - 1))
 >   peekCString (castPtr ptr)
 
+> colValNull :: StmtHandle -> Int -> Int -> IO Bool
+> colValNull stmt rownum colnum = do
+>   ind <- fPQgetisnull stmt (fromIntegral (rownum - 1))
+>                            (fromIntegral (colnum - 1))
+>   return $ ind /= 0
+
 > {-
 > colValInt64 :: StmtHandle -> Int -> IO Int64
 > colValInt64 stmt colnum = do
