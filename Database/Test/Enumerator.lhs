@@ -17,7 +17,9 @@ You must to use a DBMS-specific library to create the Session
 
 > {-# OPTIONS -fglasgow-exts #-}
 
-> module Database.Test.Enumerator where
+> module Database.Test.Enumerator
+>   (runTests, dateSqlite, dateOracle, makeFixture, destroyFixture)
+> where
 
 > import Database.Enumerator
 > import System.Time  -- CalendarTime
@@ -89,7 +91,7 @@ to copy into here.
 
 > testList (dateFn::(Int64 -> String)) =
 >   [ selectNoRows, selectTerminatesEarly, selectFloatsAndInts
->   , selectNullString, selectUnhandledNull, selectNullDate dateFn
+>   , selectNullString, selectEmptyString, selectUnhandledNull, selectNullDate dateFn
 >   , selectDate dateFn, selectBoundaryDates dateFn
 >   , selectCursor
 >   , selectExhaustCursor
@@ -137,10 +139,20 @@ no signature for the iteratee is necessary.
 > selectNullString sess = selectTest sess query iter expect
 >   where
 >     query = "select 'hello1', 'hello2', null from tdual"
->     iter :: (Monad m) => String -> String -> String
->                          -> IterAct m [(String, String, String)]
->     iter c1 c2 c3 acc = result $ (c1, c2, ""):acc
->     expect = [ ("hello1", "hello2", "") ]
+>     iter :: (Monad m) => String -> String -> Maybe String
+>                          -> IterAct m [(String, String, Maybe String)]
+>     iter c1 c2 c3 acc = result $ (c1, c2, c3):acc
+>     expect = [ ("hello1", "hello2", Nothing) ]
+
+
+> selectEmptyString sess = selectTest sess query iter expect
+>   where
+>     query = "select 'hello1', 'hello2', '' from tdual /* Oracle always fails this test */"
+>     iter :: (Monad m) => String -> String -> Maybe String
+>                          -> IterAct m [(String, String, Maybe String)]
+>     iter c1 c2 c3 acc = result $ (c1, c2, c3):acc
+>     expect = [ ("hello1", "hello2", Just "") ]
+
 
 
 |Goal: test that a column which is not a Maybe throws
@@ -278,14 +290,15 @@ the exception is not raised.
 
 > selectBindInt sess = do
 >   let
->     query = "select ? from tdual union select ? from tdual order by 1"
->     -- Oracle only understands :x style placeholders
+>     -- Oracle only understands :x style placeholders;
+>     -- we can use them as they are passed through unmolested.
+>     -- ?-style seems to be ODBC only; ANSI SQL specifies :n, I believe.
 >     --query = "select :x from tdual union select :x from tdual order by 1"
+>     query = "select ? from tdual union select ? from tdual order by 1"
 >     iter :: (Monad m) => Int -> IterAct m [Int]
 >     iter i acc = result $ i:acc
 >     expect :: [Int]
 >     expect = [2, 1]
->     --bindVals :: [Int]
 >     bindVals = [dbBind (1::Int), dbBind (2::Int)]
 >   actual <- runSession sess (doQueryTuned defaultResourceUsage query bindVals iter [])
 >   assertEqual query expect actual
@@ -295,9 +308,6 @@ Demonstrates use of different types in bind positions.
 > selectBindIntDoubleString sess = do
 >   let
 >     query = "select ?,?,? from tdual union select ?,?,? from tdual order by 1"
->     -- Oracle only understands :x style placeholders;
->     -- we can use them as they are passed through unmolested.
->     --query = "select :x from tdual union select :x from tdual order by 1"
 >     iter :: (Monad m) => Int -> Double -> String -> IterAct m [(Int, Double, String)]
 >     iter i d s acc = result $ (i, d, s):acc
 >     expect :: [(Int, Double, String)]

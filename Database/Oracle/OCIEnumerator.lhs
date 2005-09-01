@@ -504,7 +504,7 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 > bufferToString :: ColumnBuffer -> IO (Maybe String)
 > bufferToString buffer =
 >   -- If it's null then return ""
->   maybeBufferNull buffer (Just "") $
+>   maybeBufferNull buffer Nothing $
 >     -- Given a column buffer, extract a string of variable length
 >     -- (you have to terminate it yourself).
 >     withForeignPtr (bufferFPtr buffer) $ \bufferPtr ->

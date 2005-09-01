@@ -13,9 +13,8 @@ We should add tests to shift data between databases, too,
 but there are no tests for that (yet).
 
 
-> {-# OPTIONS -fglasgow-exts -fallow-overlapping-instances #-}
-
-{-# OPTIONS -fglasgow-exts #-}
+> {-# OPTIONS -fglasgow-exts #-}
+> {-# OPTIONS -fallow-overlapping-instances #-}
 
 > module Database.Test.MultiConnect (runTest) where
 

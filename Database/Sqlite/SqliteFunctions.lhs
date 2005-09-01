@@ -256,14 +256,14 @@ from given index (we present a one-indexed interface).
 >   cdbl <- sqliteColumnDouble stmt (fromIntegral (colnum - 1))
 >   return (realToFrac cdbl)
 
-> colValString :: StmtHandle -> Int -> IO String
+> colValString :: StmtHandle -> Int -> IO (Maybe String)
 > colValString stmt colnum = do
 >   cstrptr <- sqliteColumnText stmt (fromIntegral (colnum - 1))
 >   if cstrptr == nullPtr
->     then return ""
+>     then return Nothing
 >     else do
 >       str <- peekUTF8String cstrptr
->       return str
+>       return (Just str)
 
 > colValBlob :: StmtHandle -> Int -> IO (ForeignPtr Blob)
 > colValBlob stmt colnum = do

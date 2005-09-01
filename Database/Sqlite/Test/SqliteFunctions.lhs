@@ -39,6 +39,8 @@ Portability :  non-portable
 >   [ testSelectInts
 >   , testSelectDouble
 >   , testSelectInt64
+>   , testSelectStringNull
+>   , testSelectStringEmpty
 >   , testSelectNoRows
 >   , testSelectManyRows
 >   , testUnion
@@ -144,18 +146,39 @@ Portability :  non-portable
 >   assertEqual "testSelectDouble: done" sqliteDONE rc
 
 
+> testSelectStringNull db = do
+>   stmt <- printPropagateError $
+>     stmtPrepare db "select null"
+>   rc <- stmtFetch db stmt
+>   n <- colValString stmt 1
+>   assertEqual "testSelectString: Nothing" Nothing n
+>   rc <- stmtFetch db stmt
+>   stmtFinalise db stmt
+>   assertEqual "testSelectString: done" sqliteDONE rc
+
+
+> testSelectStringEmpty db = do
+>   stmt <- printPropagateError $
+>     stmtPrepare db "select ''"
+>   rc <- stmtFetch db stmt
+>   n <- colValString stmt 1
+>   assertEqual "testSelectString: ''" (Just "") n
+>   rc <- stmtFetch db stmt
+>   stmtFinalise db stmt
+>   assertEqual "testSelectString: done" sqliteDONE rc
+
 
 > testUnion db = do
 >   stmt <- printPropagateError $
 >     stmtPrepare db "select 'h1' from tdual union select 'h2' from tdual union select 'h3' from tdual"
 >   rc <- stmtFetch db stmt
->   s <- colValString stmt 1
+>   Just s <- colValString stmt 1
 >   assertEqual "testUnion: h1" "h1" s
 >   rc <- stmtFetch db stmt
->   s <- colValString stmt 1
+>   Just s <- colValString stmt 1
 >   assertEqual "testUnion: h2" "h2" s
 >   rc <- stmtFetch db stmt
->   s <- colValString stmt 1
+>   Just s <- colValString stmt 1
 >   assertEqual "testUnion: h3" "h3" s
 >   rc <- stmtFetch db stmt
 >   stmtFinalise db stmt
@@ -206,7 +229,7 @@ Portability :  non-portable
 >     stmtPrepare db "select ? from tdual"
 >   bindString db stmt 1 "h1"
 >   rc <- stmtFetch db stmt
->   n <- colValString stmt 1
+>   Just n <- colValString stmt 1
 >   assertEqual "testBindString: h1" "h1" n
 >   rc <- stmtFetch db stmt
 >   stmtFinalise db stmt

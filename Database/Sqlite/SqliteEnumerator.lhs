@@ -217,9 +217,8 @@ as we need it to get column values.
 > nullIf :: Bool -> a -> Maybe a
 > nullIf test v = if test then Nothing else Just v
 
-> bufferToString buffer = do
->   v <- liftIO$ DBAPI.colValString (stmtHandle (query buffer)) (colPos buffer)
->   return (Just v)
+> bufferToString buffer =
+>   liftIO$ DBAPI.colValString (stmtHandle (query buffer)) (colPos buffer)
 
 > bufferToInt buffer = do
 >   v <- liftIO$ DBAPI.colValInt (stmtHandle (query buffer)) (colPos buffer)
