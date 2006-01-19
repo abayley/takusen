@@ -48,7 +48,7 @@ So if we know that a dual table will always be present
 (and containing a single row) then we can use the same
 sql statements for all DBMS's.
 
-> makeFixture :: (MonadSession m IO s) => s -> IO ()
+> makeFixture :: (MonadSession m IO s q) => s -> IO ()
 > makeFixture sess = do
 >   execDrop sess "drop table tdual"
 >   execDDL_ sess "create table tdual (dummy varchar(1) primary key)"
@@ -69,16 +69,19 @@ sql statements for all DBMS's.
 
 
 > execDDL_ sess sql =
->   catchDB (runSession sess (executeDDL sql)) (reportError sql)
+>   catchDB (runSession sess (executeDDL sql [])) (reportError sql)
 
 Use this (execDrop) when it's likely to raise an error.
 
 > execDrop sess sql =
->   catchDB (runSession sess (executeDDL sql)) (\e -> return undefined)
+>   catchDB (runSession sess (executeDDL sql [])) (\e -> return undefined)
 
 
-> reportError sql (DBError e m) = do
->   putStrLn m
+> reportError sql (DBFatal (ssc, sssc) e m) = do
+>   putStrLn ("FATAL: " ++ ssc ++ sssc ++ " - " ++ m)
+>   putStrLn ("  " ++ sql)
+> reportError sql (DBError (ssc, sssc) e m) = do
+>   putStrLn (ssc ++ sssc ++ " - " ++ m)
 >   putStrLn ("  " ++ sql)
 > reportError sql (DBUnexpectedNull r c) =
 >   putStrLn $ "Unexpected null in row " ++ (show r) ++ ", column " ++ (show c) ++ "."
@@ -97,7 +100,7 @@ to copy into here.
 >   , selectExhaustCursor
 >   , selectBindInt, selectBindIntDoubleString, selectBindDate
 >   , polymorphicFetchTest
->   , updateRollback
+>   , updateRollback, preparedStatement
 >   ]
 
 
@@ -336,16 +339,16 @@ SQL nulls. SQL nulls come last in the collation order.
 
 
 > insertTable n s = do
->   executeDML $ "insert into " ++ testTable ++ " (id, v) values (" ++ (show n) ++ ", '" ++ s ++ "')"
+>   executeDML ("insert into " ++ testTable ++ " (id, v) values (" ++ (show n) ++ ", '" ++ s ++ "')") []
 >   return ()
 
 > updateTable n s = do
->   executeDML $ "update " ++ testTable ++ " set v = '" ++ s ++ "' where id = " ++ (show n)
+>   executeDML ("update " ++ testTable ++ " set v = '" ++ s ++ "' where id = " ++ (show n)) []
 >   return ()
 
 
 > polymorphicFetchTest sess = runSession sess $ do
->   executeDML $ "delete from " ++ testTable
+>   executeDML ("delete from " ++ testTable) []
 >   let
 >     l1 :: [Int]
 >     l1 = [1, 2, 3, 4]
@@ -360,7 +363,9 @@ SQL nulls. SQL nulls come last in the collation order.
 >     iter c1 acc = result $ c1:acc
 >     query = "select v from " ++ testTable ++ " order by id"
 >     expect = [ l2, l1 ]
->   actual <- doQueryTuned defaultResourceUsage query ([]) iter []
+>     bindargs :: Monad ms => [stmt -> Position -> ms ()]
+>     bindargs = []
+>   actual <- doQueryTuned defaultResourceUsage query bindargs iter []
 >   liftIO $ assertEqual query expect actual
 
 
@@ -373,7 +378,7 @@ SQL nulls. SQL nulls come last in the collation order.
 
 
 > updateRollback sess = runSession sess $ do
->   executeDML $ "delete from " ++ testTable
+>   executeDML ("delete from " ++ testTable) []
 >   beginTransaction Serialisable
 >   insertTable 1 "1"
 >   insertTable 2 "2"
@@ -389,6 +394,17 @@ SQL nulls. SQL nulls come last in the collation order.
 >   updateTable 2 "22"
 >   commit
 >   checkContents [ (1, "1"), (2, "22"), (3, "3") ]
+
+
+> preparedStatement sess = runSession sess $ do
+>   let sql = "update " ++ testTable ++ " set v = v where v = ?"
+>   withStatement sql defaultResourceUsage $ \stmt -> do
+>     bindParameters stmt [dbBind "xxx"]
+>     rowcount <- executeStatement stmt
+>     liftIO $ assertEqual "prepare" 0 rowcount
+>     bindParameters stmt [dbBind "1"]
+>     rowcount <- executeStatement stmt
+>     liftIO $ assertEqual "prepare" 1 rowcount
 
 
 > makeCalTime :: Int64 -> CalendarTime

@@ -53,6 +53,48 @@ Oracle OCI implementation of Database.Enumerator.
 > printError :: String -> IO ()
 > printError s = hPutStrLn stderr s
 
+> between i (l, u) = i >= l && i <= u
+
+> errorSqlState :: Int -> (String, String)
+> errorSqlState 0 = ("00", "000")
+> -- 02 - no data
+> errorSqlState 1403 = ("02", "000")
+> errorSqlState 1095 = ("02", "000")
+> -- 23 - integrity violation
+> errorSqlState 1 = ("23", "000")
+> errorSqlState e | e >= 2290 && e <= 2299 = ("23", "000")
+> -- 42 - syntax error or access rule violation
+> errorSqlState 22 = ("42", "000")
+> errorSqlState 251 = ("42", "000")
+> errorSqlState e | e `between` (900, 999) = ("42", "000")
+> errorSqlState 1031 = ("42", "000")
+> errorSqlState e | e `between` (1490, 1493) = ("42", "000")
+> errorSqlState e | e `between` (1700, 1799) = ("42", "000")
+> errorSqlState e | e `between` (1900, 2099) = ("42", "000")
+> errorSqlState e | e `between` (2140, 2289) = ("42", "000")
+> errorSqlState e | e `between` (2420, 2424) = ("42", "000")
+> errorSqlState e | e `between` (2450, 2499) = ("42", "000")
+> errorSqlState e | e `between` (3276, 3299) = ("42", "000")
+> errorSqlState e | e `between` (4040, 4059) = ("42", "000")
+> errorSqlState e | e `between` (4070, 4099) = ("42", "000")
+> -- 08 - connection errors
+> errorSqlState 12154 = ("08", "001") -- TNS: can't resolve service name
+> -- unspecified error
+> errorSqlState _ = ("01", "000")
+
+> throwSqlError e m = do
+>   let
+>     s@(ssc,sssc) = errorSqlState e
+>     ec = case ssc of
+>       "XX" -> DBFatal
+>       "58" -> DBFatal
+>       "57" -> DBFatal
+>       "54" -> DBFatal
+>       "53" -> DBFatal
+>       "08" -> DBFatal
+>       _ -> DBError
+>   throwDB (ec s e m)
+
 |rethrow converts an OCIException to a DBException.
 The third parameter is an IO action that you can use to clean up any handles.
 First we get the error message from the Env or ErrorHandle,
@@ -67,15 +109,13 @@ If there's no cleanup action required then simply pass nullAction.
 >   rethrow err ex finaliser = do
 >     (e, m) <- OCI.formatErrorMsg ex err
 >     finaliser
->     throwDB (DBError e m)
->     return undefined
+>     throwSqlError e m
 
 > instance OCIExceptionHandler EnvHandle where
 >   rethrow env ex finaliser = do
 >     (e, m) <- OCI.formatEnvMsg ex env
 >     finaliser
->     throwDB (DBError e m)
->     return undefined
+>     throwSqlError e m
 
 
 |What do we do if creating the first handle (Environment) fails?
@@ -87,7 +127,7 @@ Still throws DBException.
 > reportOCIExc (OCIException e m) = do
 >   let s = OCI.formatErrorCodeDesc e m
 >   printError s
->   throwDB (DBError 0 s)
+>   throwDB (DBError (errorSqlState 0) 0 s)
 >   return undefined
 
 
@@ -103,9 +143,14 @@ Still throws DBException.
 >   , connHandle :: ConnHandle
 >   }
 
-> data Query = Query
+> data PreparedStatement = PreparedStatement
 >   { stmtHandle :: StmtHandle
->   , queryResourceUsage :: QueryResourceUsage
+>   , stmtSession :: Session
+>   , stmtResourceUsage :: QueryResourceUsage
+>   }
+
+> data Query = Query
+>   { queryStmt :: PreparedStatement
 >   }
 
 
@@ -334,30 +379,31 @@ there's no equivalent for ReadUncommitted.
 
 
 
-> fetchRow :: Session -> Query -> IO CInt
-> fetchRow session query = inSession session
->   (\_ err _ -> OCI.stmtFetch err (stmtHandle query))
+> fetchRow :: Session -> PreparedStatement -> IO CInt
+> fetchRow session stmt = inSession session
+>   (\_ err _ -> OCI.stmtFetch err (stmtHandle stmt))
 >   nullAction  -- cleanup handled by doQuery1Maker
 
 
 
-> defineCol :: Session -> Query -> Int -> Int -> CInt -> IO OCI.ColumnInfo
-> defineCol session query posn bufsize sqldatatype = inSession session
->   (\_ err _ -> OCI.defineByPos err (stmtHandle query) posn bufsize sqldatatype)
->   (closeStmt session (stmtHandle query))
+> defineCol :: Session -> PreparedStatement -> Int -> Int -> CInt -> IO OCI.ColumnInfo
+> defineCol session stmt posn bufsize sqldatatype = inSession session
+>   (\_ err _ -> OCI.defineByPos err (stmtHandle stmt) posn bufsize sqldatatype)
+>   (closeStmt session (stmtHandle stmt))
 
-> bindByPos :: Session -> Query -> Int -> CShort -> OCI.BufferPtr -> Int -> CInt -> IO ()
-> bindByPos session query posn nullind val bufsize sqldatatype = inSession session
->   (\_ err _ -> OCI.bindByPos err (stmtHandle query) posn nullind val bufsize sqldatatype)
->   (closeStmt session (stmtHandle query))
+> bindByPos :: Session -> PreparedStatement -> Int -> CShort -> OCI.BufferPtr -> Int -> CInt -> IO ()
+> bindByPos session stmt posn nullind val bufsize sqldatatype = inSession session
+>   (\_ err _ -> OCI.bindByPos err (stmtHandle stmt) posn nullind val bufsize sqldatatype)
+>   (closeStmt session (stmtHandle stmt))
 
 --------------------------------------------------------------------
 -- ** Sessions
 --------------------------------------------------------------------
 
 
+> type SessionM = (ReaderT Session IO)
 
-> instance MonadSession (ReaderT Session IO) IO Session where
+> instance MonadSession SessionM IO Session PreparedStatement where
 >   runSession = flip runReaderT
 >   getSession = ask
 >
@@ -374,16 +420,38 @@ there's no equivalent for ReadUncommitted.
 >     sess <- ask
 >     liftIO $ rollbackTrans sess
 >
->   executeDML cmdText = do
->     sess <- ask
+>   withStatement sqlText resourceUsage action = do
+>     sess <- getSession
 >     stmt <- liftIO $ getStmt sess
->     liftIO $ prepare sess stmt cmdText
->     rc <- liftIO $ execute sess stmt 1
+>     liftIO $ prepare sess stmt (OCI.substituteBindPlaceHolders sqlText)
+>     v <- action (PreparedStatement stmt sess resourceUsage)
 >     liftIO $ closeStmt sess stmt
->     return rc
+>     return v
 >
->   executeDDL cmdText = do
->     _ <- executeDML cmdText
+>   bindParameters stmt bindActions = do
+>     let nats :: [Int]; nats = [1..]
+>     sequence_ $ map (\(p, ba) -> ba stmt p) (zip nats bindActions)
+>
+>   executeStatement stmt =
+>     liftIO $ execute (stmtSession stmt) (stmtHandle stmt) 1
+>     
+>   prepareStatement sqlText resourceUsage = do
+>     sess <- getSession
+>     stmt <- liftIO $ getStmt sess
+>     liftIO $ prepare sess stmt (OCI.substituteBindPlaceHolders sqlText)
+>     return (PreparedStatement stmt sess resourceUsage)
+>     
+>   freeStatement stmt =
+>     liftIO $ closeStmt (stmtSession stmt) (stmtHandle stmt)
+>     
+>   executeDML sqlText args = do
+>     sess <- getSession
+>     withStatement sqlText defaultResourceUsage $ \stmt -> do
+>       bindParameters stmt args
+>       executeStatement stmt
+>
+>   executeDDL sqlText args = do
+>     _ <- executeDML sqlText args
 >     return ()
 
 
@@ -392,41 +460,31 @@ there's no equivalent for ReadUncommitted.
 -- ** Queries
 --------------------------------------------------------------------
 
-> type OCIMonadQuery = ReaderT Query (ReaderT Session IO)
+> type QueryM = ReaderT Query SessionM
 
-> instance MonadQuery OCIMonadQuery (ReaderT Session IO) Query ColumnBuffer where
+> instance MonadQuery QueryM SessionM PreparedStatement ColumnBuffer Query where
 >
->   runQuery m query = runReaderT m query
->
+>   runQuery = flip runReaderT
 >   getQuery = ask
 >
->   makeQuery sqltext resourceUsage = do
+>   makeQuery stmt bindacts = do
 >     sess <- getSession
->     stmt <- liftIO $ getStmt sess
->     liftIO $ prepare sess stmt (OCI.substituteBindPlaceHolders sqltext)
->     liftIO $ setPrefetchCount sess stmt (prefetchRowCount resourceUsage)
->     return $ Query stmt resourceUsage
+>     bindParameters stmt bindacts
+>     liftIO $ setPrefetchCount sess (stmtHandle stmt) (prefetchRowCount (stmtResourceUsage stmt))
+>     liftIO $ execute sess (stmtHandle stmt) 0
+>     return (Query stmt)
 >
->   execQuery query = do
->     sess <- getSession
->     _ <- liftIO $ execute sess (stmtHandle query) 0
->     return ()
->
->   destroyQuery query = do
->     sess <- getSession
->     liftIO $ closeStmt sess (stmtHandle query)
->
->   fetch1Row = do
+>   fetchOneRow = do
 >     query <- getQuery
 >     sess <- lift getSession
->     rc <- liftIO $ fetchRow sess query
+>     rc <- liftIO $ fetchRow sess (queryStmt query)
 >     return (not (rc == oci_NO_DATA))
 >
 >   allocBuffer (bufsize, buftype) colpos = do
 >     let ociBufferType = dbColumnTypeToCInt buftype
 >     query <- getQuery
 >     sess <- lift getSession
->     (_, buf, nullptr, sizeptr) <- liftIO $ defineCol sess query colpos bufsize ociBufferType
+>     (_, buf, nullptr, sizeptr) <- liftIO $ defineCol sess (queryStmt query) colpos bufsize ociBufferType
 >     return $ ColumnBuffer
 >       { bufferFPtr = buf
 >       , nullIndFPtr = nullptr
@@ -441,7 +499,7 @@ there's no equivalent for ReadUncommitted.
 >   currentRowNum = do
 >     query <- getQuery
 >     sess <- lift getSession
->     rc <- liftIO $ getRowCount sess (stmtHandle query)
+>     rc <- liftIO $ getRowCount sess (stmtHandle (queryStmt query))
 >     return rc
 >
 >   freeBuffer buffer = return ()
@@ -626,74 +684,82 @@ y = (year mod 100) + 100.
 > maybeToInd mv conv nullVal = maybe (-1, nullVal) (\v -> (0, conv v)) mv
 
 
-|This single polymorphic instance covers all of the
-type-specific non-Maybe instances e.g. String, Int, Double, etc.
-
-> instance DBType (Maybe a) OCIMonadQuery ColumnBuffer
->     => DBType a OCIMonadQuery ColumnBuffer where
->   allocBufferFor _ n = allocBufferFor (undefined::Maybe a) n
->   fetchCol buffer = throwIfDBNull buffer fetchCol
->   bindPos pos val = bindPos pos (Just val)
-
-
-> instance DBType (Maybe String) OCIMonadQuery ColumnBuffer where
->   allocBufferFor _ n = allocBuffer (16000, DBTypeString) n
->   fetchCol buffer = liftIO$ bufferToString buffer
->   bindPos pos val = do
->     sess <- lift getSession
->     query <- getQuery
+> instance DBBind (Maybe String) SessionM PreparedStatement where
+>   bindPos stmt val pos = do
+>     let sess = stmtSession stmt
 >     let (nullind, s) = maybeToInd val id ""
 >     liftIO$ withCStringLen s $ \(cstr, clen) -> 
->       bindByPos sess query pos nullind (castPtr cstr) clen oci_SQLT_CHR
+>       bindByPos sess stmt pos nullind (castPtr cstr) clen oci_SQLT_CHR
 
-
-> instance DBType (Maybe Int) OCIMonadQuery ColumnBuffer where
->   allocBufferFor _ n = allocBuffer (4, DBTypeInt) n
->   fetchCol buffer = liftIO$ bufferToInt buffer
->   bindPos pos val = do
->     sess <- lift getSession
->     query <- getQuery
+> instance DBBind (Maybe Int) SessionM PreparedStatement where
+>   bindPos stmt val pos = do
+>     let sess = stmtSession stmt
 >     let (nullind, i) = maybeToInd val (fromIntegral::Int -> CInt) 0
 >     liftIO$ alloca $ \valPtr -> do
 >       poke valPtr i
->       bindByPos sess query pos nullind (castPtr valPtr) (sizeOf i) oci_SQLT_INT
+>       bindByPos sess stmt pos nullind (castPtr valPtr) (sizeOf i) oci_SQLT_INT
 
-
-> instance DBType (Maybe Double) OCIMonadQuery ColumnBuffer where
->   allocBufferFor _ n = allocBuffer (8, DBTypeDouble) n
->   fetchCol buffer = liftIO$ bufferToDouble buffer
->   bindPos pos val = do
->     sess <- lift getSession
->     query <- getQuery
+> instance DBBind (Maybe Double) SessionM PreparedStatement where
+>   bindPos stmt val pos = do
+>     let sess = stmtSession stmt
 >     let (nullind, i) = maybeToInd val (fromRational . toRational :: Double -> CDouble) 0
 >     liftIO$ alloca $ \valPtr -> do
 >       poke valPtr i
->       bindByPos sess query pos nullind (castPtr valPtr) (sizeOf i) oci_SQLT_FLT
+>       bindByPos sess stmt pos nullind (castPtr valPtr) (sizeOf i) oci_SQLT_FLT
 
-
-> instance DBType (Maybe CalendarTime) OCIMonadQuery ColumnBuffer where
->   allocBufferFor _ n = allocBuffer (7, DBTypeDatetime) n
->   fetchCol buffer = liftIO$ bufferToDatetime buffer
->   bindPos pos val = do
->     sess <- lift getSession
->     query <- getQuery
+> instance DBBind (Maybe CalendarTime) SessionM PreparedStatement where
+>   bindPos stmt val pos = do
+>     let sess = stmtSession stmt
 >     liftIO$ allocaBytes 8 $ \bufptr -> do
 >       (nullind, d) <- case val of
 >         Nothing -> return (-1, bufptr)
 >         Just ct -> do
 >           dateTimeToBuffer ct bufptr
 >           return (0, bufptr)
->       bindByPos sess query pos nullind (castPtr bufptr) 7 oci_SQLT_DAT
+>       bindByPos sess stmt pos nullind (castPtr bufptr) 7 oci_SQLT_DAT
+
+> instance DBBind (Maybe a) SessionM PreparedStatement
+>     => DBBind a SessionM PreparedStatement where
+>   bindPos stmt val pos = bindPos stmt (Just val) pos
+
+> instance (Show a, Read a) => DBBind (Maybe a) SessionM PreparedStatement where
+>   bindPos stmt val pos = do
+>     case val of
+>       Just v -> bindPos stmt (Just (show v)) pos
+>       Nothing -> bindPos stmt (Nothing :: Maybe String) pos
+
+
+
+> instance DBType (Maybe String) QueryM ColumnBuffer where
+>   allocBufferFor _ n = allocBuffer (16000, DBTypeString) n
+>   fetchCol buffer = liftIO$ bufferToString buffer
+
+> instance DBType (Maybe Int) QueryM ColumnBuffer where
+>   allocBufferFor _ n = allocBuffer (4, DBTypeInt) n
+>   fetchCol buffer = liftIO$ bufferToInt buffer
+
+> instance DBType (Maybe Double) QueryM ColumnBuffer where
+>   allocBufferFor _ n = allocBuffer (8, DBTypeDouble) n
+>   fetchCol buffer = liftIO$ bufferToDouble buffer
+
+> instance DBType (Maybe CalendarTime) QueryM ColumnBuffer where
+>   allocBufferFor _ n = allocBuffer (7, DBTypeDatetime) n
+>   fetchCol buffer = liftIO$ bufferToDatetime buffer
+
+|This single polymorphic instance covers all of the
+type-specific non-Maybe instances e.g. String, Int, Double, etc.
+
+> instance DBType (Maybe a) QueryM ColumnBuffer
+>     => DBType a QueryM ColumnBuffer where
+>   allocBufferFor _ n = allocBufferFor (undefined::Maybe a) n
+>   fetchCol buffer = throwIfDBNull buffer fetchCol
+
 
 |A polymorphic instance which assumes that the value is in a String column,
 and uses Read to convert the String to a Haskell data value.
 
-> instance (Show a, Read a) => DBType (Maybe a) OCIMonadQuery ColumnBuffer where
+> instance (Show a, Read a) => DBType (Maybe a) QueryM ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (16000, DBTypeString) n
 >   fetchCol buffer = do
 >     v <- liftIO$ bufferToString buffer
 >     return $ maybe Nothing (Just . read) v
->   bindPos pos val = 
->     case val of
->       Just v -> bindPos pos (Just (show v))
->       Nothing -> bindPos pos (Nothing :: Maybe String)

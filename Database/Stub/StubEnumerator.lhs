@@ -46,11 +46,15 @@ See fetchIntVal.
 --------------------------------------------------------------------
 
 
-> data Session = Session 
+> data Session = Session
+> data StmtHandle = StmtHandle
+
+> data PreparedStatement = PreparedStatement
+>   { stmtSession :: Session, stmtHandle :: StmtHandle }
 
 > data Query = Query
->   { stmtHandle :: ()
->   , fetchCounter :: IORef (IORef Int)
+>   { queryStmt :: PreparedStatement
+>   , queryCounter :: IORef (IORef Int)
 >   }
 
 > connect :: String -> String -> String -> IO Session
@@ -64,15 +68,26 @@ See fetchIntVal.
 -- Sessions
 --------------------------------------------------------------------
 
+> type SessionM = ReaderT Session IO
 
-> instance MonadSession (ReaderT Session IO) IO Session where
+> instance MonadSession SessionM IO Session PreparedStatement where
 >   runSession = flip runReaderT
 >   getSession = ask
 >   beginTransaction isolation = return ()
 >   commit = return ()
 >   rollback = return ()
->   executeDML cmdText = return 0
->   executeDDL cmdText = return ()
+>   executeDML cmdText args = return 0
+>   executeDDL cmdText args = return ()
+>   withStatement sqltext resourceUsage action = do
+>     sess <- getSession
+>     let s = PreparedStatement sess StmtHandle
+>     action s
+>   executeStatement stmt = return 0
+>   prepareStatement sqltext resourceUsage = do
+>     sess <- getSession
+>     return (PreparedStatement sess StmtHandle)
+>   freeStatement stmt = return ()
+>   bindParameters stmt acts = return ()
 
 
 
@@ -94,28 +109,25 @@ so this will throw on the last row.
 
 
 
-> type StubMonadQuery = ReaderT Query (ReaderT Session IO)
+> type QueryM = ReaderT Query SessionM
 
-> instance MonadQuery StubMonadQuery (ReaderT Session IO) Query ColumnBuffer
+> instance MonadQuery QueryM SessionM PreparedStatement ColumnBuffer Query
 >  where
 >
->   runQuery m query = runReaderT m query
+>   runQuery = flip runReaderT
 >
 >   getQuery = ask
 >
->   makeQuery sqltext resourceUsage = do
->     sess <- getSession
->     stmt <- liftIO $ return ()
+>   makeQuery stmt bindacts = do
 >     -- Leave one counter in to ensure the fetch terminates
->     counter <- liftIO $ newIORef numberOfRowsToPretendToFetch >>= newIORef
->     return $ Query stmt counter
+>     counter <- liftIO $ newIORef numberOfRowsToPretendToFetch
+>     refc <- liftIO $ newIORef counter
+>     return (Query stmt refc)
 >
->   execQuery query = return ()
->
->   fetch1Row = do
+>   fetchOneRow = do
 >     query <- getQuery
 >     -- We'll pretend that we're going to fetch a finite number of rows.
->     refCounter <- liftIO $ readIORef (fetchCounter query)
+>     refCounter <- liftIO $ readIORef (queryCounter query)
 >     counter <- liftIO $ readIORef refCounter
 >     if counter > 0
 >       then (liftIO $ writeIORef refCounter (counter - 1) >> return True)
@@ -131,14 +143,11 @@ so this will throw on the last row.
 >
 >   currentRowNum = do
 >     query <- getQuery
->     refCounter <- liftIO $ readIORef (fetchCounter query)
+>     refCounter <- liftIO $ readIORef (queryCounter query)
 >     counter <- liftIO $ readIORef refCounter
 >     return counter
 >
 >   freeBuffer buffer = return ()
->
->   -- after buffers are freed, close the STMT
->   destroyQuery query = return ()
 
 
 
@@ -178,49 +187,62 @@ so this will throw on the last row.
 > bufferToDouble buffer = return $ Just 1.1
 
 
+> instance DBBind (Maybe a) SessionM PreparedStatement
+>     => DBBind a SessionM PreparedStatement where
+>   bindPos v q p = return ()
 
-> instance DBType (Maybe a) StubMonadQuery ColumnBuffer
->     => DBType a StubMonadQuery ColumnBuffer where
+> instance DBBind (Maybe String) SessionM PreparedStatement where
+>   bindPos v q p = return ()
+
+> instance DBBind (Maybe Int) SessionM PreparedStatement where
+>   bindPos v q p = return ()
+
+> instance DBBind (Maybe Double) SessionM PreparedStatement where
+>   bindPos v q p = return ()
+
+> instance DBBind (Maybe CalendarTime) SessionM PreparedStatement where
+>   bindPos v q p = return ()
+
+> instance (Show a, Read a) => DBBind (Maybe a) SessionM PreparedStatement where
+>   bindPos v q p = return ()
+
+
+> instance DBType (Maybe a) QueryM ColumnBuffer
+>     => DBType a QueryM ColumnBuffer where
 >   allocBufferFor _ = allocBufferFor (undefined::Maybe a)
 >   fetchCol buffer = throwIfDBNull buffer fetchCol
->   bindPos pos val = return ()
 
-> instance DBType (Maybe String) StubMonadQuery ColumnBuffer where
+> instance DBType (Maybe String) QueryM ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (4000, DBTypeString) n
 >   fetchCol buffer = liftIO $ bufferToString buffer
->   bindPos pos val = return ()
 
-> instance DBType (Maybe Int) StubMonadQuery ColumnBuffer where
+> instance DBType (Maybe Int) QueryM ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (4, DBTypeInt) n
 >   fetchCol buffer = do
 >     query <- getQuery
->     refCounter <- liftIO $ readIORef (fetchCounter query)
+>     refCounter <- liftIO $ readIORef (queryCounter query)
 >     counter <- liftIO $ readIORef refCounter
 >     -- last row returns null rather than 1
 >     if counter == throwNullIntOnRow
 >       then return Nothing
 >       else liftIO $ bufferToInt buffer
->   bindPos pos val = return ()
 
-> instance DBType (Maybe Double) StubMonadQuery ColumnBuffer where
+> instance DBType (Maybe Double) QueryM ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (8, DBTypeDouble) n
 >   fetchCol buffer = liftIO $ bufferToDouble buffer
->   bindPos pos val = return ()
 
-> instance DBType (Maybe CalendarTime) StubMonadQuery ColumnBuffer where
+> instance DBType (Maybe CalendarTime) QueryM ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (8, DBTypeDatetime) n
 >   fetchCol buffer = liftIO $ bufferToDatetime buffer
->   bindPos pos val = return ()
 
 
 A polymorphic instance which assumes that the value is in a String column,
 and uses Read to convert the String to a Haskell data value.
 
-> instance (Show a, Read a) => DBType (Maybe a) StubMonadQuery ColumnBuffer where
+> instance (Show a, Read a) => DBType (Maybe a) QueryM ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer undefined n
 >   fetchCol buffer = do
 >     v <- liftIO$ bufferToString buffer
 >     case v of
 >       Just s -> return (Just (read s))
 >       Nothing -> return Nothing
->   bindPos pos val = return ()

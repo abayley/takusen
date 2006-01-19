@@ -184,18 +184,22 @@ plsqlArrayMaxLen, plsqlCurrEltPtr, mode
 >     alloca $ \errCode ->
 >     getOCIErrorMsg2 ocihandle handleType errCode errMsg (mkCInt stringBufferLen)
 
+> fromEnumOCIErrorCode :: CInt -> String
+> fromEnumOCIErrorCode err
+>   | err == oci_SUCCESS = "OCI_SUCCESS"
+>   | err == oci_SUCCESS_WITH_INFO = "OCI_SUCCESS_WITH_INFO"
+>   | err == oci_NEED_DATA = "OCI_NEED_DATA"
+>   | err == oci_NO_DATA = "OCI_NO_DATA"
+>   | err == oci_INVALID_HANDLE = "OCI_INVALID_HANDLE"
+>   | err == oci_STILL_EXECUTING = "OCI_STILL_EXECUTING"
+>   | err == oci_CONTINUE = "OCI_CONTINUE"
+>   | err == oci_RESERVED_FOR_INT_USE = "OCI_RESERVED_FOR_INT_USE"
+>   | otherwise = "OCI_ERROR"
 
 > formatErrorCodeDesc :: CInt -> String -> String
 > formatErrorCodeDesc err desc
->   | err == oci_SUCCESS = "OCI_SUCCESS - " ++ desc
->   | err == oci_SUCCESS_WITH_INFO = "OCI_SUCCESS_WITH_INFO - " ++ desc
->   | err == oci_NEED_DATA = "OCI_NEED_DATA - " ++ desc
->   | err == oci_NO_DATA = "OCI_NO_DATA - " ++ desc
->   | err == oci_INVALID_HANDLE = "OCI_INVALID_HANDLE - " ++ desc
->   | err == oci_STILL_EXECUTING = "OCI_STILL_EXECUTING - " ++ desc
->   | err == oci_CONTINUE = "OCI_CONTINUE - " ++ desc
->   | err == oci_RESERVED_FOR_INT_USE = "OCI_RESERVED_FOR_INT_USE - " ++ desc
->   | otherwise = "OCI_ERROR - " ++ desc
+>   | err == oci_ERROR = ""
+>   | otherwise = (fromEnumOCIErrorCode err) ++ " - " ++ desc
 
 
 |Given the two parts of an 'OCIException' (the error number and text)
@@ -205,7 +209,10 @@ from all of these pieces.
 > formatOCIMsg :: CInt -> String -> OCIHandle -> CInt -> IO (Int, String)
 > formatOCIMsg e m ocihandle handleType = do
 >   (err, msg) <- getOCIErrorMsg ocihandle handleType
->   return (fromIntegral err, (formatErrorCodeDesc e m) ++ " : " ++ (show err) ++ " - " ++ msg)
+>   --return (fromIntegral err, (formatErrorCodeDesc e m) ++ " : " ++ (show err) ++ " - " ++ msg)
+>   if msg == ""
+>     then return (fromIntegral err, (formatErrorCodeDesc e m))
+>     else return (fromIntegral err, (formatErrorCodeDesc e m) ++ " : " ++ msg)
 
 
 
@@ -372,7 +379,8 @@ as the logon process should be able to complete successfully in this case.
 
 
 |Having established a connection (Service Context), now get the Session.
-You can have more than one session per connection, but I haven't implemented it yet.
+You can have more than one session per connection,
+but I haven't implemented it yet.
 
 > getSession :: ErrorHandle -> ConnHandle -> IO SessHandle
 > getSession err conn = liftM castPtr (getHandleAttr err (castPtr conn) oci_HTYPE_SVCCTX oci_ATTR_SESSION)
@@ -508,7 +516,7 @@ If you want to use this library and use :x style syntax, you can.
 >   -> Int   -- ^ Position
 >   -> CShort   -- ^ Null ind: 0 == not null, -1 == null
 >   -> BufferPtr  -- ^ payload
->   -> Int   -- ^ Buffer size in bytes
+>   -> Int   -- ^ payload size in bytes
 >   -> CInt  -- ^ SQL Datatype (from "Database.Oracle.OCIConstants")
 >   -> IO ()
 > bindByPos err stmt pos nullInd bufptr sze sqltype =

@@ -19,7 +19,7 @@ Source code for this project is at:
 Invoke main like this (assuming compiled to takusen.exe):
  
  > takusen stub noperf
- > takusen sqlite noperf dbname
+ > takusen sqlite noperf "" "" dbname
  > takusen oracle noperf "" "" dbname  -- no username, so os-authenticated
  > takusen mssql noperf user paswd dbname
 
@@ -31,7 +31,7 @@ Invoke main like this (assuming compiled to takusen.exe):
 > import Database.Oracle.Test.Enumerator as Oracle
 > import Database.Test.MultiConnect as Multi
 > import Database.Stub.Test.Enumerator as Stub
-> import Database.MSSqlServer.Test.Enumerator as MSSql
+> --import Database.MSSqlServer.Test.Enumerator as MSSql
 > import System.Environment (getArgs)
 > import Database.Test.Performance as Perf
 
@@ -48,7 +48,7 @@ Invoke main like this (assuming compiled to takusen.exe):
 > backendTests =
 >   [ ("stub", Stub.runTest)
 >   , ("sqlite", Sqlite.runTest)
->   , ("mssql", MSSql.runTest)
+>   --, ("mssql", MSSql.runTest)
 >   , ("oracle", Oracle.runTest)
 >   , ("multi", Multi.runTest)
 >   ]

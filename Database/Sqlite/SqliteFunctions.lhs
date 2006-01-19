@@ -83,6 +83,9 @@ whatever that means.
 > foreign import ccall "sqlite.h sqlite3_finalize" sqliteFinalise
 >   :: StmtHandle -> IO CInt
 
+> foreign import ccall "sqlite.h sqlite3_reset" sqliteReset
+>   :: StmtHandle -> IO CInt
+
 > foreign import ccall "sqlite.h sqlite3_changes" sqliteChanges
 >   :: DBHandle -> IO CInt
 
@@ -157,32 +160,28 @@ column_bytes tells us how big a value is in the result set.
 >   errmsg <- peekUTF8String errmsgc
 >   return $ SqliteException (fromIntegral errcodec) errmsg
 
-> getAndRaiseError :: DBHandle -> IO a
-> getAndRaiseError db = do
->   ex <- getError db
->   throwSqlite ex
+> getAndRaiseError :: Int -> DBHandle -> IO a
+> getAndRaiseError rc db = do
+>   ex@(SqliteException e m) <- getError db
+>   if e == 0
+>     then throwSqlite (SqliteException rc m)
+>     else throwSqlite ex
 >   return undefined
 
-> testForError :: DBHandle -> CInt -> a -> IO a
-> testForError db rc retval = do
+> errorTest :: DBHandle -> CInt -> IO a -> IO a
+> errorTest db rc action = do
 >   case () of
->     _ | rc == sqliteOK -> return retval
->       | rc == sqliteDONE -> return retval
->       | rc == sqliteROW -> return retval
->       | otherwise -> getAndRaiseError db
+>     _ | rc == sqliteOK -> action
+>       | rc == sqliteDONE -> action
+>       | rc == sqliteROW -> action
+>       | otherwise -> getAndRaiseError (fromIntegral rc) db
+
+
+> testForError :: DBHandle -> CInt -> a -> IO a
+> testForError db rc retval = errorTest db rc (return retval)
 
 > testForErrorWithPtr :: (Storable a) => DBHandle -> CInt -> Ptr a -> IO a
-> testForErrorWithPtr db rc ptr = do
->   -- wrap peek in action like this so that we can
->   -- ensure it's performed only after we've tested rc
->   let peekAction = do
->       v <- peek ptr
->       return v
->   case () of
->     _ | rc == sqliteOK -> peekAction
->       | rc == sqliteDONE -> peekAction
->       | rc == sqliteROW -> peekAction
->       | otherwise -> getAndRaiseError db
+> testForErrorWithPtr db rc ptr = errorTest db rc (peek ptr >>= return)
 
 
 > openDb :: String -> IO DBHandle
@@ -213,11 +212,17 @@ column_bytes tells us how big a value is in the result set.
 
 > stmtExec :: DBHandle -> String -> IO Int
 > stmtExec db sqlText =
->   withUTF8String sqlText $ \cstr ->
->   alloca $ \errmsgptr -> do
->     rc <- sqliteExec db cstr nullFunPtr nullPtr errmsgptr
+>   withUTF8String sqlText $ \cstr -> do
+>   --alloca $ \errmsgptr -> do
+>     --rc <- sqliteExec db cstr nullFunPtr nullPtr errmsgptr
+>     rc <- sqliteExec db cstr nullFunPtr nullPtr nullPtr
 >     rows <- sqliteChanges db
 >     testForError db rc (fromIntegral rows)
+
+> stmtChanges :: DBHandle -> IO Int
+> stmtChanges db = do
+>   rows <- sqliteChanges db
+>   return (fromIntegral rows)
 
 > stmtPrepare :: DBHandle -> String -> IO StmtHandle
 > stmtPrepare db sqlText =
@@ -235,6 +240,11 @@ column_bytes tells us how big a value is in the result set.
 > stmtFinalise :: DBHandle -> StmtHandle -> IO ()
 > stmtFinalise db stmt = do
 >   rc <- sqliteFinalise stmt
+>   testForError db rc ()
+
+> stmtReset :: DBHandle -> StmtHandle -> IO ()
+> stmtReset db stmt = do
+>   rc <- sqliteReset stmt
 >   testForError db rc ()
 
 

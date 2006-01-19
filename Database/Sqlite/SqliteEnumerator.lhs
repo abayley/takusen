@@ -44,19 +44,58 @@ because they never throw exceptions.
 
 
 > convertAndRethrow :: SqliteException -> IO a
-> convertAndRethrow (SqliteException errcode msg) = do
->   throwDB (DBError errcode msg)
->   return undefined
+> convertAndRethrow (SqliteException e m) = do
+>   let
+>     s@(ssc,sssc) = errorSqlState e
+>     ec = case ssc of
+>       "XX" -> DBFatal
+>       "58" -> DBFatal
+>       "57" -> DBFatal
+>       "54" -> DBFatal
+>       "53" -> DBFatal
+>       "08" -> DBFatal
+>       _ -> DBError
+>   throwDB (ec s e m)
+
+> errorSqlState :: Int -> (String, String)
+> errorSqlState 0  = ("00", "000")
+> errorSqlState 1  = ("42", "000") -- sql error or missing database
+> errorSqlState 2  = ("XX", "000") -- internal error
+> errorSqlState 3  = ("42", "501") -- insufficient privileges/permission denied
+> errorSqlState 4  = ("38", "000") -- callback requested abort
+> errorSqlState 5  = ("58", "030") -- database file locked
+> errorSqlState 6  = ("55", "006") -- table locked
+> errorSqlState 7  = ("53", "200") -- malloc failed
+> errorSqlState 8  = ("25", "006") -- can't write readonly database
+> errorSqlState 9  = ("57", "014") -- query cancelled (interrupt)
+> errorSqlState 10 = ("58", "030") -- io error
+> errorSqlState 11 = ("58", "030") -- corrupt file
+> errorSqlState 12 = ("42", "704") -- internal: object not found
+> errorSqlState 13 = ("53", "100") -- database full
+> errorSqlState 14 = ("58", "030") -- can't open database file
+> errorSqlState 15 = ("55", "000") -- lock protocol error
+> errorSqlState 16 = ("22", "000") -- internal: empty table
+> errorSqlState 17 = ("42", "000") -- schema changed
+> errorSqlState 18 = ("54", "000") -- row too big
+> errorSqlState 19 = ("23", "000") -- constraint violation
+> errorSqlState 20 = ("42", "804") -- data type mismatch
+> errorSqlState 21 = ("39", "000") -- library used incorrectly
+> errorSqlState 22 = ("58", "030") -- unsupported OS feature on host
+> errorSqlState 23 = ("42", "501") -- authorisation denied
+> errorSqlState _  = ("01", "000") -- unspecified error
 
 |Common case: wrap an action with a convertAndRethrow.
 
 > convertEx :: IO a -> IO a
 > convertEx action = catchSqlite action convertAndRethrow
 
+|Returns number of rows modified.
+
 > executeSql :: DBHandle -> String -> IO Int
 > executeSql db sqltext = convertEx $ do
 >   rc <- DBAPI.stmtExec db sqltext
->   return rc
+>   rows <- DBAPI.stmtChanges db
+>   return rows
 
 > prepareStmt :: DBHandle -> String -> IO StmtHandle
 > prepareStmt db sqltext = convertEx $ DBAPI.stmtPrepare db sqltext
@@ -77,6 +116,12 @@ Session objects are created by 'connect'.
 
 > data Session = Session { dbHandle :: DBHandle }
 
+> data PreparedStatement = PreparedStatement
+>   { stmtHandle :: StmtHandle
+>   , stmtSession :: Session
+>   , stmtResourceUsage :: QueryResourceUsage
+>   }
+
 > connect :: String -> IO Session
 > connect dbname = convertEx $ do
 >   db <- DBAPI.openDb dbname
@@ -87,23 +132,61 @@ Session objects are created by 'connect'.
 
 > type SessionM = ReaderT Session IO
 
-> instance MonadSession SessionM IO Session where
+> instance MonadSession SessionM IO Session PreparedStatement where
 >   runSession = flip runReaderT
 >   getSession = ask
 >
->   beginTransaction isolation = executeDDL "begin"
+>   beginTransaction isolation = executeDDL "begin" []
 >
->   commit = executeDDL "commit"
+>   commit = do
+>     sess <- getSession
+>     liftIO $ executeSql (dbHandle sess) "commit"
+>     return ()
 >
->   rollback = executeDDL "rollback"
+>   rollback = do
+>     sess <- getSession
+>     liftIO $ executeSql (dbHandle sess) "rollback"
+>     return ()
 >
->   executeDML cmdText = do
->     sess <- ask
->     rc <- liftIO $ executeSql (dbHandle sess) cmdText
->     return rc
+>   withStatement sqlText resourceUsage action = do
+>     sess <- getSession
+>     stmt <- liftIO $ prepareStmt (dbHandle sess) sqlText
+>     catchReaderT (do
+>         v <- action (PreparedStatement stmt sess resourceUsage)
+>         liftIO $ finaliseStmt (dbHandle sess) stmt
+>         return v
+>       )
+>       (\e -> do
+>           liftIO $ finaliseStmt (dbHandle sess) stmt
+>           liftIO $ throwIO e
+>           return undefined
+>       )
 >
->   executeDDL cmdText = do
->     _ <- executeDML cmdText
+>   bindParameters stmt bindActions = do
+>     let nats :: [Int]; nats = [1..]
+>     sequence_ $ map (\(p, ba) -> ba stmt p) (zip nats bindActions)
+>
+>   executeStatement stmt = do
+>     _ <- liftIO $ fetchRow (dbHandle (stmtSession stmt)) (stmtHandle stmt)
+>     liftIO $ DBAPI.stmtReset (dbHandle (stmtSession stmt)) (stmtHandle stmt)
+>     liftIO $ DBAPI.stmtChanges (dbHandle (stmtSession stmt))
+>
+>   prepareStatement sqlText resourceUsage = do
+>     sess <- getSession
+>     stmt <- liftIO $ prepareStmt (dbHandle sess) sqlText
+>     return (PreparedStatement stmt sess resourceUsage)
+>
+>   freeStatement stmt = do
+>         liftIO $ finaliseStmt (dbHandle (stmtSession stmt)) (stmtHandle stmt)
+>
+>   executeDML sqlText args = do
+>     sess <- getSession
+>     withStatement sqlText defaultResourceUsage $ \stmt -> do
+>       bindParameters stmt args
+>       executeStatement stmt
+>
+>   executeDDL sqlText args = do
+>     _ <- executeDML sqlText args
 >     return ()
 
 --------------------------------------------------------------------
@@ -111,46 +194,41 @@ Session objects are created by 'connect'.
 --------------------------------------------------------------------
 
 > data Query = Query
->   { stmtHandle :: StmtHandle
->   , queryResourceUsage :: QueryResourceUsage
->   , session :: Session
+>   { queryStmt :: PreparedStatement
+>   , queryCount :: IORef Int
 >   }
 
 
-> type SqliteMonadQuery = ReaderT Query SessionM
+> type QueryM = ReaderT Query SessionM
 
 
-> instance MonadQuery SqliteMonadQuery SessionM Query ColumnBuffer where
+> instance MonadQuery QueryM SessionM PreparedStatement ColumnBuffer Query where
 >
->   runQuery m query = runReaderT m query
->
+>   runQuery = flip runReaderT
 >   getQuery = ask
 >
->   makeQuery sqltext resourceUsage = do
->     sess <- getSession
->     stmt <- liftIO $ prepareStmt (dbHandle sess) sqltext
->     return $ Query stmt resourceUsage sess
+>   makeQuery stmt bindacts = do
+>     bindParameters stmt bindacts
+>     count <- liftIO $ newIORef 0
+>     return (Query stmt count)
 >
->   execQuery query = return ()
->
->   destroyQuery query = do
->     sess <- getSession
->     liftIO $ finaliseStmt (dbHandle sess) (stmtHandle query)
->
->   fetch1Row = do
+>   fetchOneRow = do
 >     query <- getQuery
 >     sess <- lift getSession
->     rc <- liftIO $ fetchRow (dbHandle sess) (stmtHandle query)
+>     count <- liftIO $ readIORef (queryCount query)
+>     liftIO $ writeIORef (queryCount query) (count + 1)
+>     rc <- liftIO $ fetchRow (dbHandle sess) (stmtHandle (queryStmt query))
 >     return (not (rc == DBAPI.sqliteDONE))
 >
 >   allocBuffer _ colpos = do
 >     q <- getQuery
->     return ColumnBuffer {colPos = colpos, query = q}
+>     return ColumnBuffer {colPos = colpos, colStmt = (queryStmt q)}
 >
 >   columnPosition buffer = return (colPos buffer)
 >
->   -- want to add a counter, so we can support this properly
->   currentRowNum = return 0
+>   currentRowNum = do
+>     query <- getQuery
+>     liftIO $ readIORef (queryCount query)
 >
 >   freeBuffer buffer = return ()
 
@@ -210,7 +288,7 @@ as we need it to get column values.
 
 > data ColumnBuffer = ColumnBuffer
 >   { colPos :: Int
->   , query :: Query
+>   , colStmt :: PreparedStatement
 >   }
 
 
@@ -218,14 +296,14 @@ as we need it to get column values.
 > nullIf test v = if test then Nothing else Just v
 
 > bufferToString buffer =
->   liftIO$ DBAPI.colValString (stmtHandle (query buffer)) (colPos buffer)
+>   liftIO$ DBAPI.colValString (stmtHandle (colStmt buffer)) (colPos buffer)
 
 > bufferToInt buffer = do
->   v <- liftIO$ DBAPI.colValInt (stmtHandle (query buffer)) (colPos buffer)
+>   v <- liftIO$ DBAPI.colValInt (stmtHandle (colStmt buffer)) (colPos buffer)
 >   return (Just v)
 
 > bufferToDouble buffer = do
->   v <- liftIO$ DBAPI.colValDouble (stmtHandle (query buffer)) (colPos buffer)
+>   v <- liftIO$ DBAPI.colValDouble (stmtHandle (colStmt buffer)) (colPos buffer)
 >   return (Just v)
 
 > nullDatetimeInt64 :: Int64
@@ -233,7 +311,7 @@ as we need it to get column values.
 
 > bufferToDatetime :: (MonadIO m) => ColumnBuffer -> m (Maybe CalendarTime)
 > bufferToDatetime buffer = do
->   v <- liftIO$ DBAPI.colValInt64 (stmtHandle (query buffer)) (colPos buffer)
+>   v <- liftIO$ DBAPI.colValInt64 (stmtHandle (colStmt buffer)) (colPos buffer)
 >   return (nullIf (v == 0 || v == nullDatetimeInt64) (makeCalTime v))
 
 
@@ -255,10 +333,9 @@ as we need it to get column values.
 >     Nothing -> DBAPI.bindNull db stmt pos
 >     Just val -> stmtBind db stmt pos val
 
-> bindMb pos val = do
->   sess <- lift getSession
->   query <- getQuery
->   liftIO $ bindMaybe (dbHandle sess) (stmtHandle query) pos val
+> bindMb (stmt::PreparedStatement) val pos = do
+>   let sess = stmtSession stmt
+>   liftIO $ bindMaybe (dbHandle sess) (stmtHandle stmt) pos val
 
 If we have a null datetime, convert it to 99999999999999, rather than 0.
 This ensures that dates have the same sorting behaviour as SQL,
@@ -270,52 +347,64 @@ which is to have nulls come last in the sort order.
 >     Nothing -> DBAPI.bindInt64 db stmt pos nullDatetimeInt64
 >     Just val -> stmtBind db stmt pos val
 
+> instance DBBind (Maybe String) SessionM PreparedStatement where
+>   bindPos = bindMb
+
+> instance DBBind (Maybe Int) SessionM PreparedStatement where
+>   bindPos = bindMb
+
+> instance DBBind (Maybe Double) SessionM PreparedStatement where
+>   bindPos = bindMb
+
+> instance DBBind (Maybe CalendarTime) SessionM PreparedStatement where
+>   bindPos stmt val pos = do
+>     let sess = stmtSession stmt
+>     liftIO $ bindDatetime (dbHandle sess) (stmtHandle stmt) pos val
+
+> instance DBBind (Maybe a) SessionM PreparedStatement
+>     => DBBind a SessionM PreparedStatement where
+>   bindPos stmt val pos = bindPos stmt (Just val) pos
+
+> instance (Show a, Read a) => DBBind (Maybe a) SessionM PreparedStatement where
+>   bindPos stmt val pos = do
+>     let sess = stmtSession stmt
+>     let justString = maybe Nothing (Just . show) val
+>     liftIO $ bindMaybe (dbHandle sess) (stmtHandle stmt) pos justString
 
 
-> instance DBType (Maybe String) SqliteMonadQuery ColumnBuffer where
+
+> instance DBType (Maybe String) QueryM ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer undefined n
 >   fetchCol buffer = liftIO$ bufferToString buffer
->   bindPos = bindMb
 
-> instance DBType (Maybe Int) SqliteMonadQuery ColumnBuffer where
+> instance DBType (Maybe Int) QueryM ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer undefined n
 >   fetchCol buffer = liftIO$ bufferToInt buffer
->   bindPos = bindMb
 
-> instance DBType (Maybe Double) SqliteMonadQuery ColumnBuffer where
+> instance DBType (Maybe Double) QueryM ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer undefined n
 >   fetchCol buffer = liftIO$ bufferToDouble buffer
->   bindPos = bindMb
 
-> instance DBType (Maybe CalendarTime) SqliteMonadQuery ColumnBuffer where
+> instance DBType (Maybe CalendarTime) QueryM ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer undefined n
 >   fetchCol buffer = liftIO$ bufferToDatetime buffer
->   bindPos pos val = do
->     sess <- lift getSession
->     query <- getQuery
->     liftIO $ bindDatetime (dbHandle sess) (stmtHandle query) pos val
 
 
 |This single polymorphic instance replaces all of the type-specific non-Maybe instances
 e.g. String, Int, Double, etc.
 
-> instance DBType (Maybe a) SqliteMonadQuery ColumnBuffer
->     => DBType a SqliteMonadQuery ColumnBuffer where
+> instance DBType (Maybe a) QueryM ColumnBuffer
+>     => DBType a QueryM ColumnBuffer where
 >   allocBufferFor _ = allocBufferFor (undefined::Maybe a)
 >   fetchCol buffer = throwIfDBNull buffer fetchCol
->   bindPos pos val = bindPos pos (Just val)
 
 
 |This polymorphic instance assumes that the value is in a String column,
 and uses Read to convert the String to a Haskell data value.
 
-> instance (Show a, Read a) => DBType (Maybe a) SqliteMonadQuery ColumnBuffer where
+> instance (Show a, Read a) => DBType (Maybe a) QueryM ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer undefined n
 >   fetchCol buffer = do
 >     v <- liftIO$ bufferToString buffer
 >     return $ maybe Nothing (Just . read) v
->   bindPos pos val = do
->     sess <- lift getSession
->     query <- getQuery
->     let justString = maybe Nothing (Just . show) val
->     liftIO $ bindMaybe (dbHandle sess) (stmtHandle query) pos justString
+

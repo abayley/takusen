@@ -13,7 +13,7 @@ Portability :  non-portable
 > module Database.Sqlite.Test.Enumerator (runTest) where
 
 > import qualified Database.Sqlite.Test.SqliteFunctions as Low
-> import Database.Sqlite.Enumerator (connect, disconnect)
+> import Database.Sqlite.Enumerator (connect, disconnect, Session)
 > import Database.Test.Enumerator as Enum
 > import Database.Test.Performance as Perf
 > import Database.Enumerator

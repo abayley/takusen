@@ -60,7 +60,7 @@ Additional reading:
 >     , shakeReaderT, catchReaderT
 >
 >     -- * Session monad.
->     , MonadSession(..)
+>     , MonadSession(..), DBBind(..), Statement(..)
 >
 >     -- * Buffers.
 >     --   These are not directly used by the user: they merely provide the
@@ -133,9 +133,14 @@ If we can't derive Typeable then the following code should do the trick:
  > dbExceptionTc = mkTyCon "Database.Enumerator.DBException"
  > instance Typeable DBException where typeOf _ = mkAppTy dbExceptionTc []
 
+> type SqlStateClass = String
+> type SqlStateSubClass = String
+> type SqlState = (SqlStateClass, SqlStateSubClass)
+
 > data DBException
 >   -- | DBMS error message.
->   = DBError Int String
+>   = DBError SqlState Int String
+>   | DBFatal SqlState Int String
 >   -- | the iteratee function used for queries accepts both nullable (Maybe) and
 >   -- non-nullable types. If the query itself returns a null in a column where a
 >   -- non-nullable type was specified, we can't handle it, so DBUnexpectedNull is thrown.
@@ -154,7 +159,10 @@ If we can't derive Typeable then the following code should do the trick:
 i.e. it doesn't propagate.
 
 > basicDBExceptionReporter :: DBException -> IO ()
-> basicDBExceptionReporter (DBError e m) = putStrLn $ (show e) ++ ": " ++ m
+> basicDBExceptionReporter (DBError (ssc, sssc) e m) =
+>   putStrLn $ ssc ++ sssc ++ " " ++ (show e) ++ ": " ++ m
+> basicDBExceptionReporter (DBFatal (ssc, sssc) e m) =
+>   putStrLn $ ssc ++ sssc ++ " " ++ (show e) ++ ": " ++ m
 > basicDBExceptionReporter (DBUnexpectedNull r c) =
 >   putStrLn $ "Unexpected null in row " ++ (show r) ++ ", column " ++ (show c) ++ "."
 > basicDBExceptionReporter (DBNoData) = putStrLn "Fetch: no more data."
@@ -166,7 +174,7 @@ It passes anything else up.
 > catchDBError n action handler = catchDB action
 >   (\dberror ->
 >     case dberror of
->       DBError e m | e == n -> handler dberror
+>       DBError ss e m | e == n -> handler dberror
 >       _ | otherwise -> throwDB dberror
 >   )
 
@@ -183,8 +191,8 @@ We need these because 'Control.Exception.catch' is in the IO monad, but /not/ Mo
 > catchReaderT :: ReaderT r IO a -> (Control.Exception.Exception -> ReaderT r IO a) -> ReaderT r IO a
 > catchReaderT m h = shakeReaderT $ \sinker -> Control.Exception.catch (sinker m) (sinker . h)
 
-> dbBind :: (DBType a m b) => a -> Position -> m ()
-> dbBind v = (\p -> bindPos p v)
+> dbBind :: (DBBind a ms q) => a -> q -> Position -> ms ()
+> dbBind v = (\q p -> bindPos q v p)
 
 
 --------------------------------------------------------------------
@@ -206,22 +214,39 @@ database-specific) code and the high-level, database-independent code.
 The methods of the class MonadSession are visible (and highly useful)
 to the user. They are also used internally.
 
-> class (MonadIO mb) => MonadSession ms mb s | ms -> mb, ms -> s, mb s -> ms where
->   runSession :: s -> ms a -> mb a
->   getSession :: ms s
+The MonadSession class is also parameterised by a Statement type.
+This allows us to create prepared statements, which can be reused many
+times by runQuery.
+
+> class (MonadIO mio) => MonadSession ms mio sess stmt
+>     | ms -> mio, ms -> sess, mio sess -> ms, ms -> stmt where
+>   runSession :: sess -> ms a -> mio a
+>   getSession :: ms sess
 >   beginTransaction :: IsolationLevel -> ms ()
 >   commit :: ms ()
 >   rollback :: ms ()
+>   withStatement :: QueryText -> QueryResourceUsage -> (stmt -> ms a) -> ms a
+>   bindParameters :: stmt -> [stmt -> Position -> ms ()] -> ms ()
+>   executeStatement :: stmt -> ms Int
+>   -- I think that we don't need prepareStatement and freeStatement,
+>   -- but I'll leave them in for now, just in case.
+>   prepareStatement :: QueryText -> QueryResourceUsage -> ms stmt
+>   freeStatement :: stmt -> ms ()
 >   -- insert/update/delete; returns number of rows affected
->   executeDML :: QueryText -> ms Int
+>   executeDML :: QueryText -> [stmt -> Position -> ms ()] -> ms Int
 >   -- DDL (create table, etc)
->   executeDDL :: QueryText -> ms ()
+>   executeDDL :: QueryText -> [stmt -> Position -> ms ()] -> ms ()
 >   -- PL/SQL blocks? Not in generic interface. ODBC can execute procedures; maybe later...
->   --executeProc :: QueryText -> ms ()
+>   --executeProc :: stmt -> ms ()
+
+
+
+> class (Monad ms) => Statement sess ms | ms -> sess where
+>   submit :: sess -> ms ()
 
 
 > -- This might be useful
-> type MSess s = ReaderT s IO
+> type MSess sess = ReaderT sess IO
 
 
 
@@ -250,16 +275,17 @@ A database-specific library must provide a set of instances for DBType.
 > class DBType a m b | m -> b where
 >   allocBufferFor :: a -> Position -> m b
 >   fetchCol :: b -> m a
->   bindPos :: Position -> a -> m ()
 
+> class DBBind a ms stmt | ms -> stmt where
+>   bindPos :: stmt -> a -> Position -> ms ()
 
 |The class QueryIteratee is not for the end user. It provides the
 interface between the low- and the middle-layers of Takusen. The
 middle-layer -- enumerator -- is database-independent then.
 
-> class (MonadIO m) => QueryIteratee m i s b
->     | i -> s, i -> m, m -> b where
->   iterApply :: [b] -> s -> i -> m (IterResult s)
+> class (MonadIO m) => QueryIteratee m i seed b
+>     | i -> seed, i -> m, m -> b where
+>   iterApply :: [b] -> seed -> i -> m (IterResult seed)
 >   allocBuffers :: i -> Position -> m [b]
 
 |This instance of the class is the terminating case
@@ -267,7 +293,7 @@ i.e. where the iteratee function has one argument left.
 The argument is applied, and the result returned.
 
 > instance (DBType a m b, MonadIO m) =>
->   QueryIteratee m (a -> s -> m (IterResult s)) s b where
+>   QueryIteratee m (a -> seed -> m (IterResult seed)) seed b where
 >   iterApply [buf] seed fn = do
 >     v <- fetchCol buf
 >     fn v seed
@@ -276,8 +302,8 @@ The argument is applied, and the result returned.
 
 |This instance of the class implements the starting and continuation cases.
 
-> instance (QueryIteratee m i' s b, DBType a m b)
->     => QueryIteratee m (a -> i') s b where
+> instance (QueryIteratee m i' seed b, DBType a m b)
+>     => QueryIteratee m (a -> i') seed b where
 >   iterApply (buffer:moreBuffers) seed fn = do
 >     v <- fetchCol buffer
 >     iterApply moreBuffers seed (fn v)
@@ -299,7 +325,7 @@ We use a record to (hopefully) make it easy to add other tuning parameters later
 > data QueryResourceUsage = QueryResourceUsage { prefetchRowCount :: Int }
 
 > defaultResourceUsage :: QueryResourceUsage
-> defaultResourceUsage = QueryResourceUsage 1
+> defaultResourceUsage = QueryResourceUsage 100
 
 
 
@@ -325,19 +351,17 @@ and the middle layer (enumerators) of Takusen. An implementor of a
 database-specific layer must provide an instance of MonadQuery.
 The class MonadQuery is not intended for use by the end-user.
 
-> class (MonadIO ms) => MonadQuery m ms q b
->     | m -> ms, ms -> q, ms -> m, ms -> b
+> class (MonadIO ms) => MonadQuery mq ms stmt b q
+>     | mq -> ms, ms -> stmt, ms -> mq, ms -> b, mq -> stmt, mq -> q
 >   where
->   getQuery :: m q
->   makeQuery :: QueryText -> QueryResourceUsage -> ms q
->   runQuery :: m a -> q -> ms a
->   execQuery :: q -> ms ()
->   destroyQuery :: q -> ms () -- after buffers are freed, close the STMT
->   fetch1Row :: m Bool  -- fetch one row
->   allocBuffer :: BufferHint -> Position -> m b
->   columnPosition :: b -> m Int
->   currentRowNum :: m Int
->   freeBuffer :: bufferType -> m ()
+>   getQuery :: mq q
+>   runQuery :: q -> mq a -> ms a
+>   makeQuery :: stmt -> [stmt -> Position -> ms ()] -> ms q
+>   fetchOneRow :: mq Bool  -- fetch one row
+>   allocBuffer :: BufferHint -> Position -> mq b
+>   columnPosition :: b -> mq Int
+>   currentRowNum :: mq Int
+>   freeBuffer :: bufferType -> mq ()
 
 
 The following functions provide the high-level query interface,
@@ -346,17 +370,17 @@ for the end user.
 |The simplest doQuery interface.
 No bind action, default resource usage.
 Resource usage settings are implementation dependent.
-(For the Oracle OCI, we only cache one row.)
+(The default row cache size is 100, because 1 is painfully slow.)
 
 > doQuery ::
->   ( MonadQuery m (ReaderT r IO) q b
->   , MonadSession (ReaderT r IO) mb r
->   , QueryIteratee m i s b
+>   ( MonadQuery mq (ReaderT r IO) stmt b q
+>   , MonadSession (ReaderT r IO) mio r stmt
+>   , QueryIteratee mq i seed b
 >   ) =>
 >      QueryText  -- ^ query string
 >   -> i  -- ^ iteratee function
->   -> s  -- ^ seed value
->   -> ReaderT r IO s
+>   -> seed  -- ^ seed value
+>   -> ReaderT r IO seed
 > 
 > doQuery sql iteratee seed = doQueryBind sql [] iteratee seed
 
@@ -366,15 +390,15 @@ Resource usage settings are implementation dependent.
 
 
 > doQueryBind ::
->   ( MonadQuery m (ReaderT r IO) q b
->   , MonadSession (ReaderT r IO) mb r
->   , QueryIteratee m i s b
+>   ( MonadQuery mq (ReaderT r IO) stmt b q
+>   , MonadSession (ReaderT r IO) mio r stmt
+>   , QueryIteratee mq i seed b
 >   ) =>
 >      QueryText  -- ^ query string
->   -> [Position -> m ()]  -- ^ bind actions
+>   -> [stmt -> Position -> (ReaderT r IO) ()]  -- ^ bind actions
 >   -> i  -- ^ iteratee function
->   -> s  -- ^ seed value
->   -> ReaderT r IO s
+>   -> seed  -- ^ seed value
+>   -> ReaderT r IO seed
 > 
 > doQueryBind sql bindacts iter seed =
 >   doQueryTuned defaultResourceUsage sql bindacts iter seed
@@ -389,20 +413,22 @@ to doQueryMaker (which it not exposed by the module).
 
 
 > doQueryTuned ::
->   ( MonadQuery m (ReaderT r IO) q b
->   , MonadSession (ReaderT r IO) mb r
->   , QueryIteratee m i s b
+>   ( MonadQuery mq (ReaderT r IO) stmt b q
+>   , MonadSession (ReaderT r IO) mio r stmt
+>   , QueryIteratee mq i seed b
 >   ) =>
 >      QueryResourceUsage  -- ^ resource usage tuning
 >   -> QueryText  -- ^ query string
->   -> [Position -> m ()]  -- ^ bind actions
+>   -> [stmt -> Position -> (ReaderT r IO) ()]  -- ^ bind actions
 >   -> i  -- ^ iteratee function
->   -> s  -- ^ seed value
->   -> ReaderT r IO s
+>   -> seed  -- ^ seed value
+>   -> ReaderT r IO seed
 > 
 > doQueryTuned resourceUsage sqltext bindacts iteratee seed = do
->     (lFoldLeft, finalizer) <- doQueryMaker sqltext bindacts iteratee resourceUsage
->     catchReaderT (fix lFoldLeft iteratee seed)
+>   withStatement sqltext resourceUsage $ \stmt -> do
+>   --(lFoldLeft, finalizer) <- doQueryMaker sqltext bindacts iteratee resourceUsage
+>   (lFoldLeft, finalizer) <- doQueryMaker stmt bindacts iteratee resourceUsage
+>   catchReaderT (fix lFoldLeft iteratee seed)
 >       (\e -> do
 >         finalizer
 >         liftIO $ throwIO e
@@ -412,25 +438,22 @@ to doQueryMaker (which it not exposed by the module).
 |This is the auxiliary function.
 
 > doQueryMaker ::
->   ( MonadSession (ReaderT r IO) mb r
->   , MonadQuery m (ReaderT r IO) q b
->   , QueryIteratee m i s b
->   ) => QueryText -> [Position -> m ()] -> i -> QueryResourceUsage ->
->        (ReaderT r IO) ((i -> s -> (ReaderT r IO) s) -> i -> s -> (ReaderT r IO) s, (ReaderT r IO) ())
+>   ( MonadSession (ReaderT r IO) mio r stmt
+>   , MonadQuery mq (ReaderT r IO) stmt b q
+>   , QueryIteratee mq i seed b
+>   ) =>
+>      stmt
+>   -> [stmt -> Position -> (ReaderT r IO) ()]
+>   -> i
+>   -> QueryResourceUsage
+>   -> (ReaderT r IO) ((i -> seed -> (ReaderT r IO) seed) -> i -> seed -> (ReaderT r IO) seed, (ReaderT r IO) ())
 >
-> doQueryMaker sqltext bindacts iteratee resourceUsage = do
->     sess <- getSession
->     query <- makeQuery sqltext resourceUsage
->     let nats :: [Int]; nats = [1..]
->     let bindAction = sequence_ $ map (\(p, ba) -> ba p) (zip nats bindacts)
->     runQuery bindAction query
->     execQuery query
->     let inQuery m = runQuery m query
->     buffers <- inQuery $ allocBuffers iteratee 1
+> doQueryMaker stmt bindacts iteratee resourceUsage = do
+>     query <- makeQuery stmt bindacts
+>     let inQuery mq = runQuery query mq
+>     buffers <- inQuery (allocBuffers iteratee 1)
 >     let
->       finaliser = do
->         inQuery $ mapM_ freeBuffer buffers
->         destroyQuery query
+>       finaliser = inQuery (mapM_ freeBuffer buffers)
 >       hFoldLeft self iteratee initialSeed = do
 >         let
 >           handle seed True = (inQuery (iterApply buffers seed iteratee)) 
@@ -438,7 +461,7 @@ to doQueryMaker (which it not exposed by the module).
 >           handle seed False = (finaliser) >> return seed
 >           handleIter (Right seed) = self iteratee seed
 >           handleIter (Left seed) = (finaliser) >> return seed
->         (inQuery fetch1Row) >>= handle initialSeed
+>         (inQuery fetchOneRow) >>= handle initialSeed
 >     return (hFoldLeft, finaliser)
 
 
@@ -446,20 +469,20 @@ to doQueryMaker (which it not exposed by the module).
 Cursor stuff. First, an auxiliary function, not seen by the user.
 
 > openCursorTuned ::
->   ( MonadSession (ReaderT r IO) mb r
->   , MonadQuery m (ReaderT r IO) q b
->   , QueryIteratee m i s b
+>   ( MonadSession (ReaderT r IO) mio r stmt
+>   , MonadQuery mq (ReaderT r IO) stmt b q
+>   , QueryIteratee mq i seed b
 >   ) =>
 >      QueryResourceUsage  -- ^ resource usage tuning
->   -> QueryText  -- ^ query string
->   -> [Position -> m ()]  -- ^ bind actions
+>   -> stmt  -- ^ query string
+>   -> [stmt -> Position -> (ReaderT r IO) ()]  -- ^ bind actions
 >   -> i  -- ^ iteratee function
->   -> s  -- ^ seed value
->   -> (ReaderT r IO) (DBCursor (ReaderT r IO) s)
->
-> openCursorTuned resourceUsage sqltext bindacts iteratee seed = do
+>   -> seed  -- ^ seed value
+>   -> (ReaderT r IO) (DBCursor (ReaderT r IO) seed)
+> 
+> openCursorTuned resourceUsage stmt bindacts iteratee seed = do
 >     ref <- liftIO$ newIORef (seed,Nothing)
->     (lFoldLeft, finalizer) <- doQueryMaker sqltext bindacts iteratee resourceUsage
+>     (lFoldLeft, finalizer) <- doQueryMaker stmt bindacts iteratee resourceUsage
 >     let update v = liftIO $ modifyIORef ref (\ (_, f) -> (v, f))
 >     let
 >       close finalseed = do
@@ -534,28 +557,28 @@ You can nest them to get interleaving, if you desire:
 Propagates exceptions after closing cursor.
 
 > withCursor ::
->   ( MonadQuery m (ReaderT r IO) q b
->   , MonadSession (ReaderT r IO) mb r
->   , QueryIteratee m i s b
+>   ( MonadQuery mq (ReaderT r IO) stmt b q
+>   , MonadSession (ReaderT r IO) mio r stmt
+>   , QueryIteratee mq i seed b
 >  ) =>
 >      QueryText  -- ^ query string
 >   -> i  -- ^ iteratee function
->   -> s  -- ^ seed value
->   -> (DBCursor (ReaderT r IO) s -> ReaderT r IO c)  -- ^ action that takes a cursor
+>   -> seed  -- ^ seed value
+>   -> (DBCursor (ReaderT r IO) seed -> ReaderT r IO c)  -- ^ action that takes a cursor
 >   -> ReaderT r IO c
 > 
 > withCursor sqltext = withCursorBind sqltext []
 
 > withCursorBind ::
->   ( MonadQuery m (ReaderT r IO) q b
->   , MonadSession (ReaderT r IO) mb r
->   , QueryIteratee m i s b
+>   ( MonadQuery mq (ReaderT r IO) stmt b q
+>   , MonadSession (ReaderT r IO) mio r stmt
+>   , QueryIteratee mq i seed b
 >  ) =>
 >      QueryText  -- ^ query string
->   -> [Position -> m ()]  -- ^ bind actions
+>   -> [stmt -> Position -> (ReaderT r IO) ()]  -- ^ bind actions
 >   -> i  -- ^ iteratee function
->   -> s  -- ^ seed value
->   -> (DBCursor (ReaderT r IO) s -> ReaderT r IO c)  -- ^ action that takes a cursor
+>   -> seed  -- ^ seed value
+>   -> (DBCursor (ReaderT r IO) seed -> ReaderT r IO c)  -- ^ action that takes a cursor
 >   -> ReaderT r IO c
 > 
 > withCursorBind sqltext = withCursorTuned defaultResourceUsage sqltext
@@ -564,20 +587,21 @@ Propagates exceptions after closing cursor.
 |Version which lets you tune resource usage.
 
 > withCursorTuned ::
->   ( MonadQuery m (ReaderT r IO) q b
->   , MonadSession (ReaderT r IO) mb r
->   , QueryIteratee m i s b
+>   ( MonadQuery mq (ReaderT r IO) stmt b q
+>   , MonadSession (ReaderT r IO) mio r stmt
+>   , QueryIteratee mq i seed b
 >   ) =>
 >      QueryResourceUsage  -- ^ resource usage tuning
 >   -> QueryText  -- ^ query string
->   -> [Position -> m ()]  -- ^ bind actions
+>   -> [stmt -> Position -> (ReaderT r IO) ()]  -- ^ bind actions
 >   -> i  -- ^ iteratee function
->   -> s  -- ^ seed value
->   -> (DBCursor (ReaderT r IO) s -> ReaderT r IO c)  -- ^ action that takes a cursor
+>   -> seed  -- ^ seed value
+>   -> (DBCursor (ReaderT r IO) seed -> ReaderT r IO c)  -- ^ action that takes a cursor
 >   -> ReaderT r IO c
 > 
 > withCursorTuned resourceUsage query bindvals iteratee seed action = do
->   cursor <- openCursorTuned resourceUsage query bindvals iteratee seed
+>   withStatement query resourceUsage $ \stmt -> do
+>   cursor <- openCursorTuned resourceUsage stmt bindvals iteratee seed
 >   catchReaderT ( do
 >       v <- action cursor
 >       _ <- cursorClose cursor
@@ -592,11 +616,11 @@ Propagates exceptions after closing cursor.
 unless there was an exception, in which case rollback.
 
 > withTransaction ::
->   ( MonadSession (ReaderT r IO) mb r
+>   ( MonadSession (ReaderT r IO) mio r stmt
 >   , MonadIO (ReaderT r IO)
 >   ) =>
 >   IsolationLevel -> ReaderT r IO a -> ReaderT r IO a
->
+> 
 > withTransaction isolation action = do
 >     commit
 >     beginTransaction isolation
@@ -618,10 +642,10 @@ unless there was an exception, in which case rollback.
 when a null (Nothing) is returned.
 Will work for any type, as you pass the fetch action in the fetcher arg.
 
-> throwIfDBNull :: (Monad m, MonadQuery m ms q b, DBType a m b) =>
+> throwIfDBNull :: (Monad mq, MonadQuery mq ms stmt b q, DBType a mq b) =>
 >   b  -- ^ Buffer.
->   -> (b -> m (Maybe a))  -- ^ Action to get (fetch) value from buffer; this is applied to buffer.
->   -> m a  -- ^ If the value in the buffer is not null, it is returned.
+>   -> (b -> mq (Maybe a))  -- ^ Action to get (fetch) value from buffer; this is applied to buffer.
+>   -> mq a  -- ^ If the value in the buffer is not null, it is returned.
 > throwIfDBNull buffer fetcher = do
 >   v <- fetcher buffer
 >   case v of
@@ -803,8 +827,9 @@ which is why we recommend the strict function.
  
 Bind variables are specified by using the 'doQueryBind' or 'withCursorBind'
 interface functions. The bind parameters are a list of bind actions
-@Position -> m ()@ . The 'doQueryBind'\/'withCursorBind' functions invoke each
-action, passing the position in the list.
+@s -> Position -> m ()@ .
+The 'doQueryBind'\/'withCursorBind' functions invoke each
+action, passing the statement object and position in the list.
 Having the actions return () allows us to create lists of binds to
 values of different types.
  

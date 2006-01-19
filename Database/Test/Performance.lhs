@@ -27,8 +27,8 @@ Performance tests. Currently just tests large result sets.
 > data ShouldRunTests = RunTests | Don'tRunTests deriving (Show, Eq)
 
 > runTests ::
->   ( MonadSession (ReaderT r IO) IO r
->   , MonadQuery m (ReaderT r IO) q b
+>   ( MonadSession (ReaderT r IO) IO r stmt
+>   , MonadQuery m (ReaderT r IO) stmt b q
 >   , DBType Int m b
 >   , QueryIteratee m (Int -> IterAct m Int) Int b
 >   ) => r -> IO ()

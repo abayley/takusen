@@ -15,6 +15,7 @@ Portability :  non-portable
 
 > import Foreign
 > import Foreign.C
+> import Foreign.C.Unicode
 > import Control.Monad
 > import Control.Exception
 > import Data.Dynamic
@@ -46,6 +47,8 @@ Portability :  non-portable
 >   , testUnion
 >   , testBindString
 >   , testBindDouble
+>   , testFetchAfterFinalise
+>   , testConstraintError
 >   ]
 
 
@@ -222,8 +225,6 @@ Portability :  non-portable
 >   stmtFinalise db stmt
 >   assertEqual "testSelectManyRows: done" 1024 n
 
-
-
 > testBindString db = do
 >   stmt <- printPropagateError $
 >     stmtPrepare db "select ? from tdual"
@@ -245,3 +246,29 @@ Portability :  non-portable
 >   assertEqual "testBindDouble: 2.3" 2.3 n
 >   rc <- stmtFetch db stmt
 >   stmtFinalise db stmt
+
+
+This test reveals that library misuse (error number 21)
+is reported by sqlite_errcode as error code zero.
+
+> testFetchAfterFinalise db = do
+>   stmt <- printPropagateError $ stmtPrepare db manyRows
+>   stmtFinalise db stmt
+>   rc <- sqliteStep stmt
+>   assertEqual "testFetchAfterFinalise: rc" 21 rc
+>   ex@(SqliteException e m) <- getError db
+>   -- Is this a bug in Sqlite?)
+>   assertEqual "testFetchAfterFinalise: errcode" 0 e
+>   assertEqual "testFetchAfterFinalise: errmsg" "not an error" m
+
+
+This test confirms that a constraint error (19)
+is correctly reported by sqlite_errcode.
+
+> testConstraintError db = do
+>   withUTF8String "insert into t_natural values (1)" $ \cstr -> do
+>   rc <- sqliteExec db cstr nullFunPtr nullPtr nullPtr
+>   assertEqual "testConstraintError: rc" 19 rc
+>   ex@(SqliteException e m) <- getError db
+>   assertEqual "testConstraintError: errcode" 19 e
+>   assertEqual "testConstraintError: errmsg" "PRIMARY KEY must be unique" m
