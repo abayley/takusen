@@ -93,6 +93,7 @@ Execution of commands
 > foreign import ccall "libpq-fe.h PQexec" fPQexec
 >   :: DBHandle -> CString -> IO StmtHandle
 
+
 One can also use SQL PREPARE for that
 
 > foreign import ccall "libpq-fe.h PQprepare" fPQprepare
@@ -329,15 +330,6 @@ So are the row numbers
 > colValDouble stmt colnum = do
 >   cdbl <- sqliteColumnDouble stmt (fromIntegral (colnum - 1))
 >   return (realToFrac cdbl)
-
-> colValString :: StmtHandle -> Int -> IO String
-> colValString stmt colnum = do
->   cstrptr <- sqliteColumnText stmt (fromIntegral (colnum - 1))
->   if cstrptr == nullPtr
->     then return ""
->     else do
->       str <- peekUTF8String cstrptr
->       return str
 
 > colValBlob :: StmtHandle -> Int -> IO (ForeignPtr Blob)
 > colValBlob stmt colnum = do

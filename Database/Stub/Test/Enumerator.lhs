@@ -19,7 +19,7 @@ returns a somewhat contrived result set.
 
 > import Database.Enumerator
 > import Database.Stub.Enumerator
-> import Database.Test.Performance as Perf
+> -- import Database.Test.Performance as Perf
 > import System.Time  -- CalendarTime
 > import Test.HUnit
 > import Data.Int
@@ -27,29 +27,28 @@ returns a somewhat contrived result set.
 
 
 
-> runTest :: Perf.ShouldRunTests -> [String] -> IO ()
-> runTest _ _ = catchDB ( do
->     sess <- connect "" "" ""
->     runTestTT (TestList (makeTests sess testList))
->     disconnect sess
+> -- runTest :: Perf.ShouldRunTests -> [String] -> IO ()
+> runTest _ _ = catchDB (withSession (connect (ConnParm "" "" "")) (
+>     selectTest undefined ())
+>     -- fmap runTestTT (TestList (map TestCase testList)))
 >   ) basicDBExceptionReporter
 
 
-> makeTests sess = map (\f -> TestCase (f sess))
+> -- makeTests sess = map (\f -> TestCase (f sess))
 
 > testList =
->   [ selectString, selectIterIO, selectFloatInt
+>   [ {- selectString, selectIterIO, selectFloatInt
 >   , selectStringNullInt, selectDatetime
->   , selectCursor, selectExhaustCursor
+>   , selectCursor, selectExhaustCursor -}
 >   ]
 
-
-> selectTest sess iter expect = catchDB ( do
->     actual <- runSession sess (doQuery "" iter [])
+> selectTest iter expect = catchDB ( do
+>     actual <- do beginTransaction Serialisable; executeDML (sql "here"); commit -- (doQuery "" iter [])
 >     liftIO $ assertEqual "" expect actual
 >   ) (\e -> return () )
 
 
+> {-
 > selectString sess = selectTest sess iter expect
 >   where
 >     -- To illustrate that the full signature is not necessary as long
@@ -173,3 +172,5 @@ The following test illustrates doing IO in the iteratee itself.
 >     , ctTZ = 0
 >     , ctIsDST = False
 >     }
+
+> -}

@@ -18,58 +18,55 @@ See fetchIntVal.
 
 
 > {-# OPTIONS -fglasgow-exts #-}
-> {-# OPTIONS -fallow-undecidable-instances #-}
-> {-# OPTIONS -fallow-overlapping-instances #-}
 
 > module Database.Stub.StubEnumerator
->   ( Session, connect, disconnect )
+>   -- Session is not exported, not even its type!
+>   ( ConnParm(..), connect, sql )
 > where
 
 
-> import Database.Enumerator
+> import Database.InternalEnumerator
 > import Foreign
 > import Foreign.C
 > import Foreign.C.Types
 > import Control.Monad
-> import Control.Monad.State
 > import Control.Exception (catchDyn, throwDyn, throwIO)
 > import System.Time
-> import Control.Monad.Trans
-> import Control.Monad.Reader
 > import Data.IORef
 > import Data.Dynamic
 
 
 
---------------------------------------------------------------------
--- Stubs for OCI function wrappers.
---------------------------------------------------------------------
+> data ConnParm = ConnParm{ user, pswd, dbname :: String }
 
 
 > data Session = Session
 > data StmtHandle = StmtHandle
+> data QueryString = QueryString String
 
-> data PreparedStatement = PreparedStatement
->   { stmtSession :: Session, stmtHandle :: StmtHandle }
+ data PreparedStatement = PreparedStatement
+   { stmtSession :: Session, stmtHandle :: StmtHandle }
 
 > data Query = Query
->   { queryStmt :: PreparedStatement
+>   { queryStmt :: StmtHandle
 >   , queryCounter :: IORef (IORef Int)
 >   }
 
-> connect :: String -> String -> String -> IO Session
-> connect user pswd dbname = return Session
-
-> disconnect :: Session -> IO ()
-> disconnect session = return ()
 
 
 --------------------------------------------------------------------
 -- Sessions
 --------------------------------------------------------------------
 
-> type SessionM = ReaderT Session IO
+> connect connparm = return Session
 
+> instance ISession Session where
+>   disconnect sess = return ()
+>   beginTransaction sess isol  = return ()
+>   commit sess = return ()
+>   rollback sess = return ()
+
+> {-
 > instance MonadSession SessionM IO Session PreparedStatement where
 >   runSession = flip runReaderT
 >   getSession = ask
@@ -88,8 +85,21 @@ See fetchIntVal.
 >     return (PreparedStatement sess StmtHandle)
 >   freeStatement stmt = return ()
 >   bindParameters stmt acts = return ()
+> -}
 
+--------------------------------------------------------------------
+-- Statements
+--------------------------------------------------------------------
 
+-- Simple statements: just string
+
+> sql str = QueryString str
+
+> instance Statement QueryString Session where
+>   executeDML s q  = return 0
+>   executeDDL s q  = return ()
+
+> {-
 
 --------------------------------------------------------------------
 -- Queries
@@ -246,3 +256,5 @@ and uses Read to convert the String to a Haskell data value.
 >     case v of
 >       Just s -> return (Just (read s))
 >       Nothing -> return Nothing
+
+> -}

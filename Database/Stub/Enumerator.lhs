@@ -11,6 +11,6 @@ Exports just what you need from "Database.Stub.StubEnumerator".
  
 
 > module Database.Stub.Enumerator
->   ( Session, connect, disconnect )
+>   ( ConnParm(..), connect, sql )
 > where
 > import Database.Stub.StubEnumerator

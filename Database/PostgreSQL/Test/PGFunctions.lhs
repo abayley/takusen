@@ -41,7 +41,7 @@ Portability :  non-portable
 >   -- , testSelectInt64
 >   , testSelectNoRows
 >   , testUnion
->   , testSelectManyRows
+>   -- , testSelectManyRows
 >   -- , testBindString
 >   -- , testBindDouble
 >   , testCreateDual
@@ -115,6 +115,10 @@ Portability :  non-portable
 >     stmtPrepare db "" "select n from t_natural where n < 3 order by n;"
 >   (stmt,ntuples) <- stmtExec0 db sn
 >   assertEqual "testSelectInts: ntuples" 2 ntuples
+>   fmt0 <- fPQfformat stmt 0
+>   ct0  <- fPQftype stmt 0
+>   putStrLn $ "\nt_natural: format " ++ (show fmt0) ++
+>	       ", type (oid) " ++ (show ct0)
 >   n <- colValString stmt 1 1
 >   assertEqual "testSelectInts: 1" 1 (read n)
 >   n <- colValString stmt 2 1

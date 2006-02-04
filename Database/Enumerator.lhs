@@ -50,22 +50,27 @@ Additional reading:
 >
 >     -- $usage_bindparms
 >
->       DBColumnType(..), IsolationLevel(..)
+>       DBM  -- The data constructor is nor exported
+>
+>     , IE.IsolationLevel(..)
 >     , BufferSize, BufferHint, Position
->     , IterResult, IterAct, QueryText, ColNum, RowNum
+>     , IterResult, IterAct, ColNum, RowNum
 >
 >     -- * Exceptions and handlers
 >     , DBException(..)
 >     , catchDB, throwDB, basicDBExceptionReporter, catchDBError, ignoreDBError
->     , shakeReaderT, catchReaderT
 >
 >     -- * Session monad.
->     , MonadSession(..), DBBind(..), Statement(..)
+>     , IE.ISession  -- only the class, not its function (for the sake of
+>                    -- writing signatures
+>     , withSession, commit, beginTransaction
+>     , executeDML
 >
+> {-
 >     -- * Buffers.
 >     --   These are not directly used by the user: they merely provide the
 >     --   interface between the low and the middle layers of Takusen.
->     , DBType(..), QueryIteratee(..)
+>     , QueryIteratee(..)
 >
 >     -- * A Query monad and cursors.
 >     , DBCursor(..),  QueryResourceUsage(..)
@@ -80,17 +85,20 @@ Additional reading:
 >
 >     -- * Misc.
 >     , throwIfDBNull, ifNull, result, result'
+> -}
 >     , liftIO, throwIO
 >   ) where
 
 > import System.Time (CalendarTime)
-> import Data.Dynamic (Typeable)
+> import Data.Typeable
 > import Data.IORef
 > import Control.Monad.Trans
-> import Control.Exception (catchDyn, throwDyn, throwIO, Exception)
+> import Control.Exception (throw, catchDyn, 
+>		    dynExceptions, throwDyn, throwIO, bracket, Exception)
 > import qualified Control.Exception (catch)
 > import Control.Monad.Reader
 
+> import qualified Database.InternalEnumerator as IE
 
 |If you add a new type here, you must add an 'DBType' instance for it
 to each of the implementation modules
@@ -103,13 +111,6 @@ e.g. "Database.Oracle.OCIEnumerator"
 >   | DBTypeDouble
 >   | DBTypeDatetime
 
-> data IsolationLevel =
->     ReadUncommitted
->   | ReadCommitted
->   | RepeatableRead
->   | Serialisable
->   | Serializable  -- ^ for alternative spellers
->   deriving Show
 
 > type BufferSize = Int
 > type BufferHint = (BufferSize, DBColumnType)
@@ -117,8 +118,8 @@ e.g. "Database.Oracle.OCIEnumerator"
 > type IterResult seedType = Either seedType seedType
 > type IterAct m seedType = seedType -> m (IterResult seedType)
 > type QueryText = String
-> type ColNum = Int
 > type RowNum = Int
+> type ColNum = Int
 
 > type SessionQuery s a = ReaderT s IO a
 
@@ -150,8 +151,16 @@ If we can't derive Typeable then the following code should do the trick:
 >   deriving (Typeable, Show)
 
 
-> catchDB :: IO a -> (DBException -> IO a) -> IO a
-> catchDB = catchDyn
+> class MonadIO m => CaughtMonadIO m where
+>   gcatch :: m a -> (Control.Exception.Exception -> m a) -> m a
+> instance CaughtMonadIO IO where
+>   gcatch = Control.Exception.catch
+> instance CaughtMonadIO m => CaughtMonadIO (ReaderT a m) where
+>   gcatch m f = ReaderT $ 
+>	 \r -> gcatch (runReaderT m r) (\e -> runReaderT (f e) r)
+
+> catchDB :: CaughtMonadIO m => m a -> (DBException -> m a) -> m a
+> catchDB m f = gcatch m (\e -> maybe (throw e) f ((dynExceptions e) >>= cast))
 > throwDB :: DBException -> a
 > throwDB = throwDyn
 
@@ -191,64 +200,55 @@ We need these because 'Control.Exception.catch' is in the IO monad, but /not/ Mo
 > catchReaderT :: ReaderT r IO a -> (Control.Exception.Exception -> ReaderT r IO a) -> ReaderT r IO a
 > catchReaderT m h = shakeReaderT $ \sinker -> Control.Exception.catch (sinker m) (sinker . h)
 
-> dbBind :: (DBBind a ms q) => a -> q -> Position -> ms ()
-> dbBind v = (\q p -> bindPos q v p)
+> -- dbBind :: (DBBind a ms q) => a -> q -> Position -> ms ()
+> -- dbBind v = (\q p -> bindPos q v p)
 
 
 --------------------------------------------------------------------
 -- ** Session monad
 --------------------------------------------------------------------
 
-|The MonadSession class describes a database session to a particular
-DBMS.  Oracle has its own Session object, SQLite has its own
-session object (which maintains the connection handle to the database
-engine and other related stuff). Session objects for different databases
-normally have different types -- yet they all belong to the class MonadSession
-so we can do generic operations like `commit', `executeDDL', etc. 
-in a database-independent manner.
- 
-Session objects per se are created by database connection\/login functions.
- 
-The class MonadSession is thus an interface between low-level (and
-database-specific) code and the high-level, database-independent code.
-The methods of the class MonadSession are visible (and highly useful)
-to the user. They are also used internally.
+The DBM data constructor is NOT exported. 
 
-The MonadSession class is also parameterised by a Statement type.
-This allows us to create prepared statements, which can be reused many
-times by runQuery.
+?? Investigate quantification over sess in |withSession|. We won't need
+any mark then, I gather.
 
-> class (MonadIO mio) => MonadSession ms mio sess stmt
->     | ms -> mio, ms -> sess, mio sess -> ms, ms -> stmt where
->   runSession :: sess -> ms a -> mio a
->   getSession :: ms sess
->   beginTransaction :: IsolationLevel -> ms ()
->   commit :: ms ()
->   rollback :: ms ()
->   withStatement :: QueryText -> QueryResourceUsage -> (stmt -> ms a) -> ms a
->   bindParameters :: stmt -> [stmt -> Position -> ms ()] -> ms ()
->   executeStatement :: stmt -> ms Int
->   -- I think that we don't need prepareStatement and freeStatement,
->   -- but I'll leave them in for now, just in case.
->   prepareStatement :: QueryText -> QueryResourceUsage -> ms stmt
->   freeStatement :: stmt -> ms ()
->   -- insert/update/delete; returns number of rows affected
->   executeDML :: QueryText -> [stmt -> Position -> ms ()] -> ms Int
->   -- DDL (create table, etc)
->   executeDDL :: QueryText -> [stmt -> Position -> ms ()] -> ms ()
->   -- PL/SQL blocks? Not in generic interface. ODBC can execute procedures; maybe later...
->   --executeProc :: stmt -> ms ()
+> newtype IE.ISession sess => DBM mark sess a = DBM (ReaderT sess IO a) 
+> --    deriving (Monad, MonadIO, MonadReader sess)
+> unDBM (DBM x) = x
+
+> instance Monad (DBM mark si) where
+>   return x = DBM (return x)
+>   m >>= f  = DBM (unDBM m >>= unDBM . f)
+> instance MonadIO (DBM mark si) where
+>   liftIO x = DBM (liftIO x)
+> instance CaughtMonadIO (DBM mark si) where
+>   gcatch m f = DBM ( gcatch (unDBM m) (unDBM . f) )
+
+Typeable constraint is to prevent the leakage of Session and other
+marked objects.
+
+> withSession :: (Typeable a, IE.ISession sess) => 
+>	 IO sess -> (forall mark. DBM mark sess a) -> IO a
+> withSession connecta m = 
+>     bracket (connecta)
+>	      (IE.disconnect)
+>             (runReaderT $ unDBM m)
 
 
 
-> class (Monad ms) => Statement sess ms | ms -> sess where
->   submit :: sess -> ms ()
+> beginTransaction il = DBM (ask >>= \s -> lift $ IE.beginTransaction s il)
+> commit :: IE.ISession s => DBM mark s ()
+> commit = DBM( ask >>= lift . IE.commit )
+
+> executeDML :: IE.Statement stmt s => stmt -> DBM mark s Int
+> executeDML stmt = DBM( ask >>= \s -> lift $ IE.executeDML s stmt )
+
+ --   withStatement :: QueryText -> QueryResourceUsage -> (stmt -> ms a) -> ms a
+ --   bindParameters :: stmt -> [stmt -> Position -> ms ()] -> ms ()
 
 
-> -- This might be useful
-> type MSess sess = ReaderT sess IO
-
-
+> {-
 
 --------------------------------------------------------------------
 -- ** Buffers and QueryIteratee
@@ -266,7 +266,7 @@ describes marshalling functions, to fetch a typed value out of the
 Different DBMS's (that is, different session objects) have, in
 general, columnBuffers of different types: the type of Column Buffer
 is specific to a database.
-So, MonadSession (m) uniquely determines the buffer type (b).
+So, ISession (m) uniquely determines the buffer type (b).
  
 The class DBType is not used by the end-user.
 It is used to tie up low-level database access and the enumerator.
@@ -374,7 +374,7 @@ Resource usage settings are implementation dependent.
 
 > doQuery ::
 >   ( MonadQuery mq (ReaderT r IO) stmt b q
->   , MonadSession (ReaderT r IO) mio r stmt
+>   , ISession (ReaderT r IO) mio r stmt
 >   , QueryIteratee mq i seed b
 >   ) =>
 >      QueryText  -- ^ query string
@@ -391,7 +391,7 @@ Resource usage settings are implementation dependent.
 
 > doQueryBind ::
 >   ( MonadQuery mq (ReaderT r IO) stmt b q
->   , MonadSession (ReaderT r IO) mio r stmt
+>   , ISession (ReaderT r IO) mio r stmt
 >   , QueryIteratee mq i seed b
 >   ) =>
 >      QueryText  -- ^ query string
@@ -414,7 +414,7 @@ to doQueryMaker (which it not exposed by the module).
 
 > doQueryTuned ::
 >   ( MonadQuery mq (ReaderT r IO) stmt b q
->   , MonadSession (ReaderT r IO) mio r stmt
+>   , ISession (ReaderT r IO) mio r stmt
 >   , QueryIteratee mq i seed b
 >   ) =>
 >      QueryResourceUsage  -- ^ resource usage tuning
@@ -438,7 +438,7 @@ to doQueryMaker (which it not exposed by the module).
 |This is the auxiliary function.
 
 > doQueryMaker ::
->   ( MonadSession (ReaderT r IO) mio r stmt
+>   ( ISession (ReaderT r IO) mio r stmt
 >   , MonadQuery mq (ReaderT r IO) stmt b q
 >   , QueryIteratee mq i seed b
 >   ) =>
@@ -469,7 +469,7 @@ to doQueryMaker (which it not exposed by the module).
 Cursor stuff. First, an auxiliary function, not seen by the user.
 
 > openCursorTuned ::
->   ( MonadSession (ReaderT r IO) mio r stmt
+>   ( ISession (ReaderT r IO) mio r stmt
 >   , MonadQuery mq (ReaderT r IO) stmt b q
 >   , QueryIteratee mq i seed b
 >   ) =>
@@ -558,7 +558,7 @@ Propagates exceptions after closing cursor.
 
 > withCursor ::
 >   ( MonadQuery mq (ReaderT r IO) stmt b q
->   , MonadSession (ReaderT r IO) mio r stmt
+>   , ISession (ReaderT r IO) mio r stmt
 >   , QueryIteratee mq i seed b
 >  ) =>
 >      QueryText  -- ^ query string
@@ -571,7 +571,7 @@ Propagates exceptions after closing cursor.
 
 > withCursorBind ::
 >   ( MonadQuery mq (ReaderT r IO) stmt b q
->   , MonadSession (ReaderT r IO) mio r stmt
+>   , ISession (ReaderT r IO) mio r stmt
 >   , QueryIteratee mq i seed b
 >  ) =>
 >      QueryText  -- ^ query string
@@ -588,7 +588,7 @@ Propagates exceptions after closing cursor.
 
 > withCursorTuned ::
 >   ( MonadQuery mq (ReaderT r IO) stmt b q
->   , MonadSession (ReaderT r IO) mio r stmt
+>   , ISession (ReaderT r IO) mio r stmt
 >   , QueryIteratee mq i seed b
 >   ) =>
 >      QueryResourceUsage  -- ^ resource usage tuning
@@ -616,7 +616,7 @@ Propagates exceptions after closing cursor.
 unless there was an exception, in which case rollback.
 
 > withTransaction ::
->   ( MonadSession (ReaderT r IO) mio r stmt
+>   ( ISession (ReaderT r IO) mio r stmt
 >   , MonadIO (ReaderT r IO)
 >   ) =>
 >   IsolationLevel -> ReaderT r IO a -> ReaderT r IO a
@@ -741,8 +741,8 @@ where Session is a DBMS-specific type.
 @Session@ is an opaque type returned by the connect function.
 @connect@ is only exported by the DBMS-specific module,
 not from this module ('Database.Enumerator').
-@Session@ is an instance of 'MonadSession',
-and to use the 'MonadSession' functions you invoke them via runSession.
+@Session@ is an instance of 'ISession',
+and to use the 'ISession' functions you invoke them via runSession.
  
 
 -- $usage_iteratee
@@ -911,3 +911,5 @@ as they do in the source, as do functions, data types, etc.)
  - link to 'SomeType' in same module.
  - link to 'Another.Module.SomeType'.
  - <http:/www.haskell.org/haddock>
+
+> -}
