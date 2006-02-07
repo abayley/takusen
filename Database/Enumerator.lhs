@@ -50,22 +50,22 @@ Additional reading:
 >
 >     -- $usage_bindparms
 >
->       DBM  -- The data constructor is nor exported
+>       DBM  -- The data constructor is not exported
 >
 >     , IE.IsolationLevel(..)
->     , BufferSize, BufferHint, Position
->     , IterResult, IterAct, ColNum, RowNum
+>     , IterResult, IterAct
 >
 >     -- * Exceptions and handlers
 >     , DBException(..)
->     , catchDB, throwDB, basicDBExceptionReporter, catchDBError, ignoreDBError
+>     , catchDB, basicDBExceptionReporter, catchDBError, ignoreDBError
 >
 >     -- * Session monad.
->     , IE.ISession  -- only the class, not its function (for the sake of
->                    -- writing signatures
+>     , IE.ISession  -- only the class, not its methods (for the sake of
+>                    -- writing signatures?? Really need it?
 >     , withSession, commit, beginTransaction
 >     , executeDML
 >
+>     , doQuery
 > {-
 >     -- * Buffers.
 >     --   These are not directly used by the user: they merely provide the
@@ -74,82 +74,35 @@ Additional reading:
 >
 >     -- * A Query monad and cursors.
 >     , DBCursor(..),  QueryResourceUsage(..)
->     , MonadQuery(..)
 >     , defaultResourceUsage, dbBind
->     , doQuery, doQueryBind, doQueryTuned
+>     , doQueryBind, doQueryTuned
 >     , cursorIsEOF, cursorCurrent, cursorNext, cursorClose
 >     , withCursor, withCursorBind, withCursorTuned
 >     , withTransaction
 >
 >     --, openCursorTuned, doQueryMaker
 >
->     -- * Misc.
->     , throwIfDBNull, ifNull, result, result'
 > -}
+>     -- * Misc.
+>     , ifNull, result, result'
 >     , liftIO, throwIO
 >   ) where
 
 > import System.Time (CalendarTime)
-> import Data.Typeable
+> import Data.Dynamic
 > import Data.IORef
 > import Control.Monad.Trans
-> import Control.Exception (throw, catchDyn, 
+> import Control.Exception (throw, 
 >		    dynExceptions, throwDyn, throwIO, bracket, Exception)
 > import qualified Control.Exception (catch)
 > import Control.Monad.Reader
 
 > import qualified Database.InternalEnumerator as IE
-
-|If you add a new type here, you must add an 'DBType' instance for it
-to each of the implementation modules
-e.g. "Database.Oracle.OCIEnumerator"
-, "Database.Sqlite.SqliteEnumerator"
-
-> data DBColumnType =
->     DBTypeInt
->   | DBTypeString
->   | DBTypeDouble
->   | DBTypeDatetime
+> import Database.InternalEnumerator (DBException(..))
 
 
-> type BufferSize = Int
-> type BufferHint = (BufferSize, DBColumnType)
-> type Position = Int
 > type IterResult seedType = Either seedType seedType
 > type IterAct m seedType = seedType -> m (IterResult seedType)
-> type QueryText = String
-> type RowNum = Int
-> type ColNum = Int
-
-> type SessionQuery s a = ReaderT s IO a
-
-
---------------------------------------------------------------------
--- ** Exceptions and handlers
---------------------------------------------------------------------
-
-If we can't derive Typeable then the following code should do the trick:
- > data DBException = DBError ...
- > dbExceptionTc :: TyCon
- > dbExceptionTc = mkTyCon "Database.Enumerator.DBException"
- > instance Typeable DBException where typeOf _ = mkAppTy dbExceptionTc []
-
-> type SqlStateClass = String
-> type SqlStateSubClass = String
-> type SqlState = (SqlStateClass, SqlStateSubClass)
-
-> data DBException
->   -- | DBMS error message.
->   = DBError SqlState Int String
->   | DBFatal SqlState Int String
->   -- | the iteratee function used for queries accepts both nullable (Maybe) and
->   -- non-nullable types. If the query itself returns a null in a column where a
->   -- non-nullable type was specified, we can't handle it, so DBUnexpectedNull is thrown.
->   | DBUnexpectedNull RowNum ColNum
->   -- | Thrown by cursor functions if you try to fetch after the end.
->   | DBNoData
->   deriving (Typeable, Show)
-
 
 > class MonadIO m => CaughtMonadIO m where
 >   gcatch :: m a -> (Control.Exception.Exception -> m a) -> m a
@@ -160,9 +113,8 @@ If we can't derive Typeable then the following code should do the trick:
 >	 \r -> gcatch (runReaderT m r) (\e -> runReaderT (f e) r)
 
 > catchDB :: CaughtMonadIO m => m a -> (DBException -> m a) -> m a
-> catchDB m f = gcatch m (\e -> maybe (throw e) f ((dynExceptions e) >>= cast))
-> throwDB :: DBException -> a
-> throwDB = throwDyn
+> catchDB m f = gcatch m (\e -> maybe (throw e) f 
+>		                      ((dynExceptions e) >>= fromDynamic))
 
 |This simple handler reports the error to @stdout@ and swallows it
 i.e. it doesn't propagate.
@@ -179,12 +131,12 @@ i.e. it doesn't propagate.
 |If you want to trap a specific error number, use this.
 It passes anything else up.
 
-> catchDBError :: Int -> IO a -> (DBException -> IO a) -> IO a
+> catchDBError :: Int -> IO a -> (IE.DBException -> IO a) -> IO a
 > catchDBError n action handler = catchDB action
 >   (\dberror ->
 >     case dberror of
 >       DBError ss e m | e == n -> handler dberror
->       _ | otherwise -> throwDB dberror
+>       _ | otherwise -> IE.throwDB dberror
 >   )
 
 > ignoreDBError :: Int -> IO a -> IO a
@@ -194,14 +146,12 @@ It passes anything else up.
 |'shakeReaderT' and 'catchReaderT' let us catch (and rethrow) exceptions in the ReaderT monad.
 We need these because 'Control.Exception.catch' is in the IO monad, but /not/ MonadIO.
 
-> shakeReaderT :: ((ReaderT r m1 a1 -> m1 a1) -> m a) -> ReaderT r m a
-> shakeReaderT f = ReaderT $ \r -> f (\lm -> runReaderT lm r)
+ shakeReaderT :: ((ReaderT r m1 a1 -> m1 a1) -> m a) -> ReaderT r m a
+ shakeReaderT f = ReaderT $ \r -> f (\lm -> runReaderT lm r)
 
-> catchReaderT :: ReaderT r IO a -> (Control.Exception.Exception -> ReaderT r IO a) -> ReaderT r IO a
-> catchReaderT m h = shakeReaderT $ \sinker -> Control.Exception.catch (sinker m) (sinker . h)
+ catchReaderT :: ReaderT r IO a -> (Control.Exception.Exception -> ReaderT r IO a) -> ReaderT r IO a
+ catchReaderT m h = shakeReaderT $ \sinker -> Control.Exception.catch (sinker m) (sinker . h)
 
-> -- dbBind :: (DBBind a ms q) => a -> q -> Position -> ms ()
-> -- dbBind v = (\q p -> bindPos q v p)
 
 
 --------------------------------------------------------------------
@@ -214,14 +164,16 @@ The DBM data constructor is NOT exported.
 any mark then, I gather.
 
 > newtype IE.ISession sess => DBM mark sess a = DBM (ReaderT sess IO a) 
-> --    deriving (Monad, MonadIO, MonadReader sess)
+>     deriving (Monad, MonadIO, MonadReader sess)
 > unDBM (DBM x) = x
 
+>{-
 > instance Monad (DBM mark si) where
 >   return x = DBM (return x)
 >   m >>= f  = DBM (unDBM m >>= unDBM . f)
 > instance MonadIO (DBM mark si) where
 >   liftIO x = DBM (liftIO x)
+> -}
 > instance CaughtMonadIO (DBM mark si) where
 >   gcatch m f = DBM ( gcatch (unDBM m) (unDBM . f) )
 
@@ -241,75 +193,50 @@ marked objects.
 > commit :: IE.ISession s => DBM mark s ()
 > commit = DBM( ask >>= lift . IE.commit )
 
-> executeDML :: IE.Statement stmt s => stmt -> DBM mark s Int
+> executeDML :: IE.Statement stmt s q => stmt -> DBM mark s Int
 > executeDML stmt = DBM( ask >>= \s -> lift $ IE.executeDML s stmt )
 
  --   withStatement :: QueryText -> QueryResourceUsage -> (stmt -> ms a) -> ms a
  --   bindParameters :: stmt -> [stmt -> Position -> ms ()] -> ms ()
 
 
-> {-
 
 --------------------------------------------------------------------
 -- ** Buffers and QueryIteratee
 --------------------------------------------------------------------
 
-|A \'buffer\' means a column buffer: a data structure that points to a
-block of memory allocated for the values of one particular
-column. Since a query normally fetches a row of several columns, we
-typically deal with a list of column buffers. Although the column data
-are typed (e.g., Integer, CalendarDate, etc), column buffers hide that
-type. Think of the column buffer as Dynamics. The class DBType below
-describes marshalling functions, to fetch a typed value out of the
-`untyped' columnBuffer.
- 
-Different DBMS's (that is, different session objects) have, in
-general, columnBuffers of different types: the type of Column Buffer
-is specific to a database.
-So, ISession (m) uniquely determines the buffer type (b).
- 
-The class DBType is not used by the end-user.
-It is used to tie up low-level database access and the enumerator.
-A database-specific library must provide a set of instances for DBType.
-
-> class DBType a m b | m -> b where
->   allocBufferFor :: a -> Position -> m b
->   fetchCol :: b -> m a
-
-> class DBBind a ms stmt | ms -> stmt where
->   bindPos :: stmt -> a -> Position -> ms ()
 
 |The class QueryIteratee is not for the end user. It provides the
 interface between the low- and the middle-layers of Takusen. The
 middle-layer -- enumerator -- is database-independent then.
 
-> class (MonadIO m) => QueryIteratee m i seed b
->     | i -> seed, i -> m, m -> b where
->   iterApply :: [b] -> seed -> i -> m (IterResult seed)
->   allocBuffers :: i -> Position -> m [b]
+> class MonadIO m => QueryIteratee m q i seed b | i -> seed, q -> b where
+>   iterApply ::  q -> [b] -> seed -> i -> m (IterResult seed)
+>   allocBuffers :: q -> i -> IE.Position -> m [b]
 
 |This instance of the class is the terminating case
 i.e. where the iteratee function has one argument left.
 The argument is applied, and the result returned.
 
-> instance (DBType a m b, MonadIO m) =>
->   QueryIteratee m (a -> seed -> m (IterResult seed)) seed b where
->   iterApply [buf] seed fn = do
->     v <- fetchCol buf
+> instance (IE.DBType a q b, MonadIO m) =>
+>   QueryIteratee m q (a -> seed -> m (IterResult seed)) seed b where
+>   iterApply q [buf] seed fn  = do
+>     v <- liftIO $ IE.fetchCol q buf
 >     fn v seed
->   allocBuffers _ n = sequence [allocBufferFor (undefined::a) n]
+>   allocBuffers q _ n = liftIO $ 
+>		 sequence [IE.allocBufferFor (undefined::a) q n]
 
 
 |This instance of the class implements the starting and continuation cases.
 
-> instance (QueryIteratee m i' seed b, DBType a m b)
->     => QueryIteratee m (a -> i') seed b where
->   iterApply (buffer:moreBuffers) seed fn = do
->     v <- fetchCol buffer
->     iterApply moreBuffers seed (fn v)
->   allocBuffers fn n = do
->     buffer <- allocBufferFor (undefined::a) n
->     moreBuffers <- allocBuffers (undefined::i') (n+1)
+> instance (QueryIteratee m q i' seed b, IE.DBType a q b)
+>     => QueryIteratee m q (a -> i') seed b where
+>   iterApply q (buffer:moreBuffers) seed fn = do
+>     v <- liftIO $ IE.fetchCol q buffer
+>     iterApply q moreBuffers seed (fn v)
+>   allocBuffers q fn n = do
+>     buffer <- liftIO $ IE.allocBufferFor (undefined::a) q n
+>     moreBuffers <- allocBuffers q (undefined::i') (n+1)
 >     return (buffer:moreBuffers)
 
 
@@ -343,29 +270,12 @@ and the cursor has already been closed.
 > newtype DBCursor ms a = DBCursor (IORef (a, Maybe (Bool-> ms (DBCursor ms a))))
 
 
-|The class MonadQuery describes the class of query objects. Each
-database (that is, each Session object) has its own Query object. The
-class MonadQuery implements the database-independent interface to
-query object. The class provides the interface between low-level layer
-and the middle layer (enumerators) of Takusen. An implementor of a
-database-specific layer must provide an instance of MonadQuery.
-The class MonadQuery is not intended for use by the end-user.
-
-> class (MonadIO ms) => MonadQuery mq ms stmt b q
->     | mq -> ms, ms -> stmt, ms -> mq, ms -> b, mq -> stmt, mq -> q
->   where
->   getQuery :: mq q
->   runQuery :: q -> mq a -> ms a
->   makeQuery :: stmt -> [stmt -> Position -> ms ()] -> ms q
->   fetchOneRow :: mq Bool  -- fetch one row
->   allocBuffer :: BufferHint -> Position -> mq b
->   columnPosition :: b -> mq Int
->   currentRowNum :: mq Int
->   freeBuffer :: bufferType -> mq ()
 
 
 The following functions provide the high-level query interface,
 for the end user.
+
+> {-
 
 |The simplest doQuery interface.
 No bind action, default resource usage.
@@ -433,38 +343,37 @@ to doQueryMaker (which it not exposed by the module).
 >         finalizer
 >         liftIO $ throwIO e
 >       )
+> -}
+
+> doQuery stmt iteratee seed = do
+>   (lFoldLeft, finalizer) <- doQueryMaker stmt iteratee
+>   gcatch (fix lFoldLeft iteratee seed)
+>       (\e -> do
+>         finalizer
+>         liftIO $ throw e
+>       )
 
 
 |This is the auxiliary function.
 
-> doQueryMaker ::
->   ( ISession (ReaderT r IO) mio r stmt
->   , MonadQuery mq (ReaderT r IO) stmt b q
->   , QueryIteratee mq i seed b
->   ) =>
->      stmt
->   -> [stmt -> Position -> (ReaderT r IO) ()]
->   -> i
->   -> QueryResourceUsage
->   -> (ReaderT r IO) ((i -> seed -> (ReaderT r IO) seed) -> i -> seed -> (ReaderT r IO) seed, (ReaderT r IO) ())
->
-> doQueryMaker stmt bindacts iteratee resourceUsage = do
->     query <- makeQuery stmt bindacts
->     let inQuery mq = runQuery query mq
->     buffers <- inQuery (allocBuffers iteratee 1)
+> doQueryMaker stmt iteratee = do
+>     sess <- ask
+>     query <- liftIO $ IE.makeQuery sess stmt
+>     buffers <- allocBuffers query iteratee 1
 >     let
->       finaliser = inQuery (mapM_ freeBuffer buffers)
+>       finaliser = liftIO $ mapM_ IE.freeBuffer buffers
 >       hFoldLeft self iteratee initialSeed = do
 >         let
->           handle seed True = (inQuery (iterApply buffers seed iteratee)) 
+>           handle seed True = iterApply query buffers seed iteratee
 >             >>= handleIter
 >           handle seed False = (finaliser) >> return seed
 >           handleIter (Right seed) = self iteratee seed
 >           handleIter (Left seed) = (finaliser) >> return seed
->         (inQuery fetchOneRow) >>= handle initialSeed
+>         liftIO (IE.fetchOneRow query) >>= handle initialSeed
 >     return (hFoldLeft, finaliser)
 
 
+> {-
 
 Cursor stuff. First, an auxiliary function, not seen by the user.
 
@@ -633,27 +542,11 @@ unless there was an exception, in which case rollback.
 >         liftIO $ throwIO e
 >       )
 
+> -}
 
 --------------------------------------------------------------------
 -- ** Misc.
 --------------------------------------------------------------------
-
-|Used by instances of DBType to throw an exception
-when a null (Nothing) is returned.
-Will work for any type, as you pass the fetch action in the fetcher arg.
-
-> throwIfDBNull :: (Monad mq, MonadQuery mq ms stmt b q, DBType a mq b) =>
->   b  -- ^ Buffer.
->   -> (b -> mq (Maybe a))  -- ^ Action to get (fetch) value from buffer; this is applied to buffer.
->   -> mq a  -- ^ If the value in the buffer is not null, it is returned.
-> throwIfDBNull buffer fetcher = do
->   v <- fetcher buffer
->   case v of
->     Nothing -> do
->       row <- currentRowNum
->       col <- columnPosition buffer
->       throwDB (DBUnexpectedNull row col)
->     Just m -> return m
 
 
 |Useful utility function, for SQL weenies.
@@ -912,4 +805,3 @@ as they do in the source, as do functions, data types, etc.)
  - link to 'Another.Module.SomeType'.
  - <http:/www.haskell.org/haddock>
 
-> -}

@@ -18,10 +18,12 @@ See fetchIntVal.
 
 
 > {-# OPTIONS -fglasgow-exts #-}
+> {-# OPTIONS -fallow-undecidable-instances #-}
+> {-# OPTIONS -fallow-overlapping-instances #-}
 
 > module Database.Stub.StubEnumerator
 >   -- Session is not exported, not even its type!
->   ( ConnParm(..), connect, sql )
+>   ( Session, ConnParm(..), connect, sql )
 > where
 
 
@@ -48,10 +50,18 @@ See fetchIntVal.
    { stmtSession :: Session, stmtHandle :: StmtHandle }
 
 > data Query = Query
->   { queryStmt :: StmtHandle
+>   { querySess :: Session
+>   , queryStmt :: StmtHandle
 >   , queryCounter :: IORef (IORef Int)
 >   }
 
+> data DBColumnType =
+>     DBTypeInt
+>   | DBTypeString
+>   | DBTypeDouble
+>   | DBTypeDatetime
+
+> type BufferSize = Int
 
 
 --------------------------------------------------------------------
@@ -91,15 +101,19 @@ See fetchIntVal.
 -- Statements
 --------------------------------------------------------------------
 
--- Simple statements: just string
+-- Simple statements: just a string
 
 > sql str = QueryString str
 
-> instance Statement QueryString Session where
+> instance Statement QueryString Session Query where
 >   executeDML s q  = return 0
 >   executeDDL s q  = return ()
+>   makeQuery sess stmt = do
+>       -- Leave one counter in to ensure the fetch terminates
+>     counter <- newIORef numberOfRowsToPretendToFetch
+>     refc <- newIORef counter
+>     return (Query sess StmtHandle refc)
 
-> {-
 
 --------------------------------------------------------------------
 -- Queries
@@ -118,7 +132,28 @@ so this will throw on the last row.
 > throwNullIntOnRow = 1
 
 
+> instance IQuery Query Session
+>   where
+>
+>   fetchOneRow q = do
+>     -- We'll pretend that we're going to fetch a finite number of rows.
+>     refCounter <- readIORef (queryCounter q)
+>     counter <- readIORef refCounter
+>     if counter > 0
+>       then (modifyIORef refCounter pred >> return True)
+>       else return False
+>
+>
+>   currentRowNum q = do
+>     refCounter <- readIORef (queryCounter q)
+>     counter <- readIORef refCounter
+>     return counter
+>
+>   -- freeBuffer buffer = return ()
+>
 
+
+> {-
 > type QueryM = ReaderT Query SessionM
 
 > instance MonadQuery QueryM SessionM PreparedStatement ColumnBuffer Query
@@ -158,7 +193,7 @@ so this will throw on the last row.
 >     return counter
 >
 >   freeBuffer buffer = return ()
-
+> -}
 
 
 --------------------------------------------------------------------
@@ -169,6 +204,18 @@ so this will throw on the last row.
 >   { colPos :: Int
 >   }
 
+> buffer_pos q buffer = 
+>     do 
+>     let col = colPos buffer
+>     row <- currentRowNum q
+>     return (row,col)
+
+An auxiliary function: buffer allocation
+
+> allocBuffer q bufsize buftype colpos = do
+>     return $ ColumnBuffer
+>       { colPos = colpos
+>       }
 
 > bufferToString :: ColumnBuffer -> IO (Maybe String)
 > bufferToString buffer = return $ Just "boo"
@@ -196,7 +243,7 @@ so this will throw on the last row.
 > bufferToDouble :: ColumnBuffer -> IO (Maybe Double)
 > bufferToDouble buffer = return $ Just 1.1
 
-
+> {-
 > instance DBBind (Maybe a) SessionM PreparedStatement
 >     => DBBind a SessionM PreparedStatement where
 >   bindPos v q p = return ()
@@ -215,17 +262,19 @@ so this will throw on the last row.
 
 > instance (Show a, Read a) => DBBind (Maybe a) SessionM PreparedStatement where
 >   bindPos v q p = return ()
+> -}
 
-
-> instance DBType (Maybe a) QueryM ColumnBuffer
->     => DBType a QueryM ColumnBuffer where
+> instance DBType (Maybe a) Query ColumnBuffer
+>     => DBType a Query ColumnBuffer where
 >   allocBufferFor _ = allocBufferFor (undefined::Maybe a)
->   fetchCol buffer = throwIfDBNull buffer fetchCol
+>   fetchCol q buffer = throwIfDBNull (buffer_pos q buffer) $ fetchCol q buffer
+>   freeBuffer q = return ()
 
-> instance DBType (Maybe String) QueryM ColumnBuffer where
->   allocBufferFor _ n = allocBuffer (4000, DBTypeString) n
->   fetchCol buffer = liftIO $ bufferToString buffer
+> instance DBType (Maybe String) Query ColumnBuffer where
+>   allocBufferFor _ q n = allocBuffer q 4000 DBTypeString n
+>   fetchCol q buffer = bufferToString buffer
 
+> {-
 > instance DBType (Maybe Int) QueryM ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (4, DBTypeInt) n
 >   fetchCol buffer = do
@@ -244,17 +293,16 @@ so this will throw on the last row.
 > instance DBType (Maybe CalendarTime) QueryM ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer (8, DBTypeDatetime) n
 >   fetchCol buffer = liftIO $ bufferToDatetime buffer
-
+> -}
 
 A polymorphic instance which assumes that the value is in a String column,
 and uses Read to convert the String to a Haskell data value.
 
-> instance (Show a, Read a) => DBType (Maybe a) QueryM ColumnBuffer where
->   allocBufferFor _ n = allocBuffer undefined n
->   fetchCol buffer = do
->     v <- liftIO$ bufferToString buffer
+> instance (Show a, Read a) => DBType (Maybe a) Query ColumnBuffer where
+>   allocBufferFor _  = allocBufferFor (undefined::String)
+>   fetchCol q buffer = do
+>     v <- bufferToString buffer
 >     case v of
 >       Just s -> return (Just (read s))
 >       Nothing -> return Nothing
 
-> -}

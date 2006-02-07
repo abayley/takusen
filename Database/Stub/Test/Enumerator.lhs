@@ -28,35 +28,37 @@ returns a somewhat contrived result set.
 
 
 > -- runTest :: Perf.ShouldRunTests -> [String] -> IO ()
-> runTest _ _ = catchDB (withSession (connect (ConnParm "" "" "")) (
->     selectTest undefined ())
->     -- fmap runTestTT (TestList (map TestCase testList)))
+> runTest _ _ = runTestTT $ TestCase $ catchDB (withSession (connect (ConnParm "" "" "")) (
+>     sequence_ testList)
 >   ) basicDBExceptionReporter
 
 
 > -- makeTests sess = map (\f -> TestCase (f sess))
 
+> testList :: [DBM mark Session ()]
 > testList =
->   [ {- selectString, selectIterIO, selectFloatInt
+>   [ selectString {-, selectIterIO, selectFloatInt
 >   , selectStringNullInt, selectDatetime
 >   , selectCursor, selectExhaustCursor -}
 >   ]
 
 > selectTest iter expect = catchDB ( do
->     actual <- do beginTransaction Serialisable; executeDML (sql "here"); commit -- (doQuery "" iter [])
+>     actual <- doQuery (sql "") iter []
 >     liftIO $ assertEqual "" expect actual
 >   ) (\e -> return () )
 
-
-> {-
-> selectString sess = selectTest sess iter expect
+> selectString :: DBM mark Session ()
+> selectString = selectTest iter expect
 >   where
 >     -- To illustrate that the full signature is not necessary as long
 >     -- as some type information (e.g., (c1::String)) is provided --
 >     -- or enough context for the compiler to figure that out.
->     iter :: (Monad m) => String -> IterAct m [String]
+>     -- iter :: (Monad m) => String -> IterAct m [String]
+>     iter :: String -> IterAct (DBM mark Session) [String]
 >     iter (c1::String) acc = result $ c1:acc
 >     expect = [ "boo", "boo", "boo" ]
+
+> {-
 
 The following test illustrates doing IO in the iteratee itself.
 
