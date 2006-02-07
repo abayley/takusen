@@ -37,7 +37,7 @@ returns a somewhat contrived result set.
 
 > testList :: [DBM mark Session ()]
 > testList =
->   [ selectString {-, selectIterIO, selectFloatInt
+>   [ selectString (), selectIterIO () {-, selectFloatInt
 >   , selectStringNullInt, selectDatetime
 >   , selectCursor, selectExhaustCursor -}
 >   ]
@@ -47,22 +47,21 @@ returns a somewhat contrived result set.
 >     liftIO $ assertEqual "" expect actual
 >   ) (\e -> return () )
 
-> selectString :: DBM mark Session ()
-> selectString = selectTest iter expect
+> selectString () = selectTest iter expect
 >   where
 >     -- To illustrate that the full signature is not necessary as long
 >     -- as some type information (e.g., (c1::String)) is provided --
 >     -- or enough context for the compiler to figure that out.
 >     -- iter :: (Monad m) => String -> IterAct m [String]
->     iter :: String -> IterAct (DBM mark Session) [String]
+>     -- iter :: String -> IterAct (DBM mark Session) [String]
 >     iter (c1::String) acc = result $ c1:acc
 >     expect = [ "boo", "boo", "boo" ]
 
-> {-
 
 The following test illustrates doing IO in the iteratee itself.
 
-> selectIterIO sess = selectTest sess iter ([]::[String])
+> -- monomorphism restriction strikes...
+> selectIterIO () = selectTest iter ([]::[String])
 >   where
 >     -- Here, it's better to avoid the signature and specify
 >     -- types of the arguments specifically so we do not have to
@@ -72,8 +71,10 @@ The following test illustrates doing IO in the iteratee itself.
 >     --iter :: String -> IterAct  (ReaderT Query SessionQuery) ()
 >     iter (c1::String) seed = do
 >       ct <- liftIO $ getClockTime
+>       liftIO $ print "here"
 >       result seed
 
+> {-
 
 > selectFloatInt sess = selectTest sess iter expect
 >   where

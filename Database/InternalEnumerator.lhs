@@ -155,10 +155,11 @@ determine the query,
 Note that we explicitly use IO monad because we will have to explicitly
 do FFI.
 
-> class ISession sess => IQuery q sess | q -> sess
+> class ISession sess => IQuery q sess b | q -> sess, q -> b
 >   where
 >   fetchOneRow :: q -> IO Bool  -- fetch one row
 >   currentRowNum :: q -> IO Int
+>   freeBuffer :: q -> b -> IO ()
 
 
 |A \'buffer\' means a column buffer: a data structure that points to a
@@ -184,7 +185,6 @@ A database-specific library must provide a set of instances for DBType.
 > class DBType a q b | q -> b where
 >   allocBufferFor :: a -> q -> Position -> IO b
 >   fetchCol   :: q -> b -> IO a
->   freeBuffer :: b -> IO ()
 
  class DBBind a ms stmt | ms -> stmt where
    bindPos :: stmt -> a -> Position -> ms ()

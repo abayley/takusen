@@ -132,7 +132,7 @@ so this will throw on the last row.
 > throwNullIntOnRow = 1
 
 
-> instance IQuery Query Session
+> instance IQuery Query Session ColumnBuffer
 >   where
 >
 >   fetchOneRow q = do
@@ -149,7 +149,7 @@ so this will throw on the last row.
 >     counter <- readIORef refCounter
 >     return counter
 >
->   -- freeBuffer buffer = return ()
+>   freeBuffer q buffer = return ()
 >
 
 
@@ -268,7 +268,6 @@ An auxiliary function: buffer allocation
 >     => DBType a Query ColumnBuffer where
 >   allocBufferFor _ = allocBufferFor (undefined::Maybe a)
 >   fetchCol q buffer = throwIfDBNull (buffer_pos q buffer) $ fetchCol q buffer
->   freeBuffer q = return ()
 
 > instance DBType (Maybe String) Query ColumnBuffer where
 >   allocBufferFor _ q n = allocBuffer q 4000 DBTypeString n

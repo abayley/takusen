@@ -210,7 +210,7 @@ marked objects.
 interface between the low- and the middle-layers of Takusen. The
 middle-layer -- enumerator -- is database-independent then.
 
-> class MonadIO m => QueryIteratee m q i seed b | i -> seed, q -> b where
+> class MonadIO m => QueryIteratee m q i seed b | i -> m, i -> seed, q -> b where
 >   iterApply ::  q -> [b] -> seed -> i -> m (IterResult seed)
 >   allocBuffers :: q -> i -> IE.Position -> m [b]
 
@@ -345,6 +345,10 @@ to doQueryMaker (which it not exposed by the module).
 >       )
 > -}
 
+> doQuery :: (IE.Statement stmt sess q,
+>             QueryIteratee (DBM mark sess) q i seed b,
+>             IE.IQuery q sess b) =>
+>     stmt -> i -> seed -> DBM mark sess seed
 > doQuery stmt iteratee seed = do
 >   (lFoldLeft, finalizer) <- doQueryMaker stmt iteratee
 >   gcatch (fix lFoldLeft iteratee seed)
@@ -361,7 +365,7 @@ to doQueryMaker (which it not exposed by the module).
 >     query <- liftIO $ IE.makeQuery sess stmt
 >     buffers <- allocBuffers query iteratee 1
 >     let
->       finaliser = liftIO $ mapM_ IE.freeBuffer buffers
+>       finaliser = liftIO $ mapM_ (IE.freeBuffer query) buffers
 >       hFoldLeft self iteratee initialSeed = do
 >         let
 >           handle seed True = iterApply query buffers seed iteratee
