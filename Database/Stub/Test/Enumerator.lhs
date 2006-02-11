@@ -29,21 +29,25 @@ returns a somewhat contrived result set.
 
 > -- runTest :: Perf.ShouldRunTests -> [String] -> IO ()
 > runTest _ _ = runTestTT $ TestCase $ catchDB (withSession (connect (ConnParm "" "" "")) (
->     sequence_ testList)
+>     sequence_ (map (\t -> liftIO (putStrLn "testing") >> t ()) testList))
 >   ) basicDBExceptionReporter
 
 
 > -- makeTests sess = map (\f -> TestCase (f sess))
 
-> testList :: [DBM mark Session ()]
+> testList :: [() -> DBM mark Session ()]
 > testList =
->   [ selectString (), selectIterIO () {-, selectFloatInt
+>   [ selectString, selectIterIO, selectFloatInt
 >   , selectStringNullInt, selectDatetime
->   , selectCursor, selectExhaustCursor -}
+>   , selectCursor, selectExhaustCursor
 >   ]
 
 > selectTest iter expect = catchDB ( do
 >     actual <- doQuery (sql "") iter []
+>     liftIO $ assertEqual "" expect actual
+>   ) (\e -> return () )
+> selectTest' iter expect = catchDB ( do
+>     actual <- doQuery (sql_tuned (QueryResourceUsage 10) "") iter []
 >     liftIO $ assertEqual "" expect actual
 >   ) (\e -> return () )
 
@@ -74,9 +78,8 @@ The following test illustrates doing IO in the iteratee itself.
 >       liftIO $ print "here"
 >       result seed
 
-> {-
 
-> selectFloatInt sess = selectTest sess iter expect
+> selectFloatInt () = selectTest' iter expect
 >   where
 >     iter :: (Monad m) => Double -> Int -> IterAct m [(Double, Int)]
 >     iter c1 c2 acc = result $ (c1, c2):acc
@@ -84,7 +87,7 @@ The following test illustrates doing IO in the iteratee itself.
 
 
 
-> selectStringNullInt sess = selectTest sess iter expect
+> selectStringNullInt () = selectTest' iter expect
 >   where
 >     iter :: (Monad m) =>
 >       String -> Maybe Int -> IterAct m [(String, Int)]
@@ -94,7 +97,7 @@ The following test illustrates doing IO in the iteratee itself.
 
 > defDate = makeCalTime 19710701120101
 
-> selectDatetime sess = selectTest sess iter expect
+> selectDatetime () = selectTest iter expect
 >   where
 >     iter :: (Monad m) => CalendarTime -> IterAct m [CalendarTime]
 >     iter c1 acc = result $ c1:acc
@@ -102,11 +105,11 @@ The following test illustrates doing IO in the iteratee itself.
 
 
 
-> selectCursor sess = runSession sess $ do
+> selectCursor () = do
 >   let
 >     iter :: (Monad m) => Maybe Int -> IterAct m [Int]
 >     iter i acc = result $ (ifNull i 2):acc
->   withCursor "" iter [] $ \c -> do
+>   withCursor (sql "") iter [] $ \c -> do
 >     r <- cursorCurrent c
 >     liftIO $ assertEqual "selectCursor" [1] r
 >     doneBool <- cursorIsEOF c
@@ -134,14 +137,14 @@ The following test illustrates doing IO in the iteratee itself.
 
 
 
-> selectExhaustCursor sess = catchDB ( runSession sess $ do
+> selectExhaustCursor () = catchDB (do
 >     let
 >     -- Again, here we demonstrate the use of a local argument
 >     -- type annotation rather than the complete signature.
 >     -- Let the compiler figure out the monad and the seed type.
 >     --iter :: (Maybe m) => Maybe Int -> IterAct m [Int]
 >       iter (i::Maybe Int) acc = result $ (ifNull i (-(1))):acc
->     withCursor "" iter [] $ \c -> do
+>     withCursor (sql "") iter [] $ \c -> do
 >         cursorNext c
 >         cursorNext c
 >         cursorNext c
@@ -149,7 +152,6 @@ The following test illustrates doing IO in the iteratee itself.
 >         liftIO $ assertFailure "selectExhaustCursor"
 >         return ()
 >     ) (\e -> return () )
-
 
 
 > makeCalTime :: Int64 -> CalendarTime
@@ -176,4 +178,3 @@ The following test illustrates doing IO in the iteratee itself.
 >     , ctIsDST = False
 >     }
 
-> -}

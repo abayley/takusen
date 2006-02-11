@@ -193,12 +193,6 @@ A database-specific library must provide a set of instances for DBType.
 when a null (Nothing) is returned.
 Will work for any type, as you pass the fetch action in the fetcher arg.
 
-> {-
-> throwIfDBNull :: (Monad mq, MonadQuery mq ms stmt b q, DBType a mq b) =>
->   b  -- ^ Buffer.
->   -> (b -> mq (Maybe a))  -- ^ Action to get (fetch) value from buffer; this is applied to buffer.
->   -> mq a  -- ^ If the value in the buffer is not null, it is returned.
-> -}
 > throwIfDBNull pos fetcher = do
 >   v <- fetcher 
 >   case v of

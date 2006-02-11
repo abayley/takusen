@@ -10,6 +10,9 @@ Portability :  non-portable
 Abstract database interface, providing a left-fold enumerator
 and cursor operations.
  
+?? Should we even mention the stuff below? The functions below are
+part of the implementation rather than the interface. The enumerator
+interface is what exported by this module.??
 Some functions in this module are not strictly part of the Enumerator interface
 e.g. @iterApply@, @allocBuffers@.
 They are in here because they are generic i.e. they do not depend
@@ -60,35 +63,23 @@ Additional reading:
 >     , catchDB, basicDBExceptionReporter, catchDBError, ignoreDBError
 >
 >     -- * Session monad.
->     , IE.ISession  -- only the class, not its methods (for the sake of
->                    -- writing signatures?? Really need it?
->     , withSession, commit, beginTransaction
->     , executeDML
+>     , withSession, commit, rollback, beginTransaction
+>     , executeDML, executeDDL
 >
 >     , doQuery
-> {-
->     -- * Buffers.
->     --   These are not directly used by the user: they merely provide the
->     --   interface between the low and the middle layers of Takusen.
->     , QueryIteratee(..)
 >
 >     -- * A Query monad and cursors.
->     , DBCursor(..),  QueryResourceUsage(..)
->     , defaultResourceUsage, dbBind
->     , doQueryBind, doQueryTuned
->     , cursorIsEOF, cursorCurrent, cursorNext, cursorClose
->     , withCursor, withCursorBind, withCursorTuned
+>     , DBCursor, -- need to export this?
+>     , cursorIsEOF, cursorCurrent, cursorNext, 
+>     , withCursor
+>
 >     , withTransaction
 >
->     --, openCursorTuned, doQueryMaker
->
-> -}
 >     -- * Misc.
 >     , ifNull, result, result'
 >     , liftIO, throwIO
 >   ) where
 
-> import System.Time (CalendarTime)
 > import Data.Dynamic
 > import Data.IORef
 > import Control.Monad.Trans
@@ -162,6 +153,8 @@ The DBM data constructor is NOT exported.
 
 ?? Investigate quantification over sess in |withSession|. We won't need
 any mark then, I gather.
+The quantification over Session is quite bothersome: need to enumerate
+all class constraints for the Session (like IQuery, DBType, etc).
 
 > newtype IE.ISession sess => DBM mark sess a = DBM (ReaderT sess IO a) 
 >     deriving (Monad, MonadIO, MonadReader sess)
@@ -192,11 +185,15 @@ marked objects.
 > beginTransaction il = DBM (ask >>= \s -> lift $ IE.beginTransaction s il)
 > commit :: IE.ISession s => DBM mark s ()
 > commit = DBM( ask >>= lift . IE.commit )
+> rollback :: IE.ISession s => DBM mark s ()
+> rollback = DBM( ask >>= lift . IE.rollback )
 
 > executeDML :: IE.Statement stmt s q => stmt -> DBM mark s Int
 > executeDML stmt = DBM( ask >>= \s -> lift $ IE.executeDML s stmt )
 
- --   withStatement :: QueryText -> QueryResourceUsage -> (stmt -> ms a) -> ms a
+> executeDDL :: IE.Statement stmt s q => stmt -> DBM mark s ()
+> executeDDL stmt = DBM( ask >>= \s -> lift $ IE.executeDDL s stmt )
+
  --   bindParameters :: stmt -> [stmt -> Position -> ms ()] -> ms ()
 
 
@@ -210,8 +207,9 @@ marked objects.
 interface between the low- and the middle-layers of Takusen. The
 middle-layer -- enumerator -- is database-independent then.
 
-> class MonadIO m => QueryIteratee m q i seed b | i -> m, i -> seed, q -> b where
->   iterApply ::  q -> [b] -> seed -> i -> m (IterResult seed)
+> class MonadIO m => QueryIteratee m q i seed b |
+>     i -> m, i -> seed, q -> b where
+>   iterApply ::    q -> [b] -> seed -> i -> m (IterResult seed)
 >   allocBuffers :: q -> i -> IE.Position -> m [b]
 
 |This instance of the class is the terminating case
@@ -245,16 +243,6 @@ The argument is applied, and the result returned.
 -- ** A Query monad and cursors
 --------------------------------------------------------------------
 
-|At present the only resource tuning we support is the number of rows
-prefetched by the FFI library.
-We use a record to (hopefully) make it easy to add other tuning parameters later.
-
-> data QueryResourceUsage = QueryResourceUsage { prefetchRowCount :: Int }
-
-> defaultResourceUsage :: QueryResourceUsage
-> defaultResourceUsage = QueryResourceUsage 100
-
-
 
 > type CollEnumerator i m s = i -> s -> m s
 > type Self           i m s = i -> s -> m s
@@ -267,83 +255,12 @@ If @Maybe@ f is @Nothing@, then the result-set has been exhausted
 (or the iteratee function terminated early),
 and the cursor has already been closed.
  
-> newtype DBCursor ms a = DBCursor (IORef (a, Maybe (Bool-> ms (DBCursor ms a))))
-
-
+> newtype DBCursor mark ms a =
+>     DBCursor (IORef (a, Maybe (Bool-> ms (DBCursor mark ms a))))
 
 
 The following functions provide the high-level query interface,
 for the end user.
-
-> {-
-
-|The simplest doQuery interface.
-No bind action, default resource usage.
-Resource usage settings are implementation dependent.
-(The default row cache size is 100, because 1 is painfully slow.)
-
-> doQuery ::
->   ( MonadQuery mq (ReaderT r IO) stmt b q
->   , ISession (ReaderT r IO) mio r stmt
->   , QueryIteratee mq i seed b
->   ) =>
->      QueryText  -- ^ query string
->   -> i  -- ^ iteratee function
->   -> seed  -- ^ seed value
->   -> ReaderT r IO seed
-> 
-> doQuery sql iteratee seed = doQueryBind sql [] iteratee seed
-
-
-
-|Adds bind action.
-
-
-> doQueryBind ::
->   ( MonadQuery mq (ReaderT r IO) stmt b q
->   , ISession (ReaderT r IO) mio r stmt
->   , QueryIteratee mq i seed b
->   ) =>
->      QueryText  -- ^ query string
->   -> [stmt -> Position -> (ReaderT r IO) ()]  -- ^ bind actions
->   -> i  -- ^ iteratee function
->   -> seed  -- ^ seed value
->   -> ReaderT r IO seed
-> 
-> doQueryBind sql bindacts iter seed =
->   doQueryTuned defaultResourceUsage sql bindacts iter seed
-
-
-|Version of doQuery which gives you a bit more control over how 
-rows are fetched.
-At the moment we only support specifying the numbers of rows prefetched 
-(cached).
-doQuery is essentially the result of applying lfold_nonrec_to_rec
-to doQueryMaker (which it not exposed by the module).
-
-
-> doQueryTuned ::
->   ( MonadQuery mq (ReaderT r IO) stmt b q
->   , ISession (ReaderT r IO) mio r stmt
->   , QueryIteratee mq i seed b
->   ) =>
->      QueryResourceUsage  -- ^ resource usage tuning
->   -> QueryText  -- ^ query string
->   -> [stmt -> Position -> (ReaderT r IO) ()]  -- ^ bind actions
->   -> i  -- ^ iteratee function
->   -> seed  -- ^ seed value
->   -> ReaderT r IO seed
-> 
-> doQueryTuned resourceUsage sqltext bindacts iteratee seed = do
->   withStatement sqltext resourceUsage $ \stmt -> do
->   --(lFoldLeft, finalizer) <- doQueryMaker sqltext bindacts iteratee resourceUsage
->   (lFoldLeft, finalizer) <- doQueryMaker stmt bindacts iteratee resourceUsage
->   catchReaderT (fix lFoldLeft iteratee seed)
->       (\e -> do
->         finalizer
->         liftIO $ throwIO e
->       )
-> -}
 
 > doQuery :: (IE.Statement stmt sess q,
 >             QueryIteratee (DBM mark sess) q i seed b,
@@ -377,25 +294,11 @@ to doQueryMaker (which it not exposed by the module).
 >     return (hFoldLeft, finaliser)
 
 
-> {-
-
 Cursor stuff. First, an auxiliary function, not seen by the user.
 
-> openCursorTuned ::
->   ( ISession (ReaderT r IO) mio r stmt
->   , MonadQuery mq (ReaderT r IO) stmt b q
->   , QueryIteratee mq i seed b
->   ) =>
->      QueryResourceUsage  -- ^ resource usage tuning
->   -> stmt  -- ^ query string
->   -> [stmt -> Position -> (ReaderT r IO) ()]  -- ^ bind actions
->   -> i  -- ^ iteratee function
->   -> seed  -- ^ seed value
->   -> (ReaderT r IO) (DBCursor (ReaderT r IO) seed)
-> 
-> openCursorTuned resourceUsage stmt bindacts iteratee seed = do
+> openCursor stmt iteratee seed = do
 >     ref <- liftIO$ newIORef (seed,Nothing)
->     (lFoldLeft, finalizer) <- doQueryMaker stmt bindacts iteratee resourceUsage
+>     (lFoldLeft, finalizer) <- doQueryMaker stmt iteratee
 >     let update v = liftIO $ modifyIORef ref (\ (_, f) -> (v, f))
 >     let
 >       close finalseed = do
@@ -439,28 +342,37 @@ You can nest them to get interleaving, if you desire:
  >      return something
  
 
-> cursorIsEOF :: (MonadIO m) => DBCursor ms a -> m Bool
+Note that the type of the functions below is set up so to perpetuate
+the mark.
+
+> -- cursorIsEOF :: (MonadIO m) => DBCursor mark ms a -> m Bool
+> cursorIsEOF :: DBCursor mark (DBM mark s) a -> DBM mark s Bool
 > cursorIsEOF (DBCursor ref) = do
 >   (_, maybeF) <- liftIO $ readIORef ref
 >   return $ maybe True (const False) maybeF
 
 |Returns the results fetched so far, processed by iteratee function.
 
-> cursorCurrent :: (MonadIO m) => DBCursor ms a -> m a
+> -- cursorCurrent :: (MonadIO m) => DBCursor ms a -> m a
+> cursorCurrent :: DBCursor mark (DBM mark s) a -> DBM mark s a
 > cursorCurrent (DBCursor ref) = do
 >   (v, _) <- liftIO $ readIORef ref
 >   return v
 
 |Advance the cursor. Returns the cursor. The return value is usually ignored.
 
-> cursorNext :: (MonadIO ms) => DBCursor ms a -> ms (DBCursor ms a)
+> -- cursorNext :: (MonadIO ms) => DBCursor ms a -> ms (DBCursor ms a)
+> cursorNext :: DBCursor mark (DBM mark s) a
+>     -> DBM mark s (DBCursor mark (DBM mark s) a)
 > cursorNext (DBCursor ref) = do
 >   (_, maybeF) <- liftIO $ readIORef ref
->   maybe (throwDB DBNoData) ($ True) maybeF
+>   maybe (IE.throwDB DBNoData) ($ True) maybeF
 
-|Returns the cursor. The return value is usually ignored.
 
-> cursorClose :: (MonadIO ms) => DBCursor ms a -> ms (DBCursor ms a)
+Returns the cursor. The return value is usually ignored.
+This function is not available to the end user. The cursor is closed
+automatically when its region exits. 
+
 > cursorClose c@(DBCursor ref) = do
 >   (_, maybeF) <- liftIO $ readIORef ref
 >   maybe (return c) ($ False) maybeF
@@ -468,76 +380,36 @@ You can nest them to get interleaving, if you desire:
 
 |Ensures cursor resource is properly tidied up in exceptional cases.
 Propagates exceptions after closing cursor.
+The Typeable constraint is to prevent cursors and other marked values
+(like cursor computations) from escaping.
 
-> withCursor ::
->   ( MonadQuery mq (ReaderT r IO) stmt b q
->   , ISession (ReaderT r IO) mio r stmt
->   , QueryIteratee mq i seed b
->  ) =>
->      QueryText  -- ^ query string
->   -> i  -- ^ iteratee function
->   -> seed  -- ^ seed value
->   -> (DBCursor (ReaderT r IO) seed -> ReaderT r IO c)  -- ^ action that takes a cursor
->   -> ReaderT r IO c
-> 
-> withCursor sqltext = withCursorBind sqltext []
-
-> withCursorBind ::
->   ( MonadQuery mq (ReaderT r IO) stmt b q
->   , ISession (ReaderT r IO) mio r stmt
->   , QueryIteratee mq i seed b
->  ) =>
->      QueryText  -- ^ query string
->   -> [stmt -> Position -> (ReaderT r IO) ()]  -- ^ bind actions
->   -> i  -- ^ iteratee function
->   -> seed  -- ^ seed value
->   -> (DBCursor (ReaderT r IO) seed -> ReaderT r IO c)  -- ^ action that takes a cursor
->   -> ReaderT r IO c
-> 
-> withCursorBind sqltext = withCursorTuned defaultResourceUsage sqltext
-
-
-|Version which lets you tune resource usage.
-
-> withCursorTuned ::
->   ( MonadQuery mq (ReaderT r IO) stmt b q
->   , ISession (ReaderT r IO) mio r stmt
->   , QueryIteratee mq i seed b
->   ) =>
->      QueryResourceUsage  -- ^ resource usage tuning
->   -> QueryText  -- ^ query string
->   -> [stmt -> Position -> (ReaderT r IO) ()]  -- ^ bind actions
->   -> i  -- ^ iteratee function
->   -> seed  -- ^ seed value
->   -> (DBCursor (ReaderT r IO) seed -> ReaderT r IO c)  -- ^ action that takes a cursor
->   -> ReaderT r IO c
-> 
-> withCursorTuned resourceUsage query bindvals iteratee seed action = do
->   withStatement query resourceUsage $ \stmt -> do
->   cursor <- openCursorTuned resourceUsage stmt bindvals iteratee seed
->   catchReaderT ( do
->       v <- action cursor
->       _ <- cursorClose cursor
->       return v
->     ) (\e -> do
->       _ <- cursorClose cursor
->       liftIO $ throwIO e
->     )
+> withCursor :: (Typeable a, IE.Statement stmt sess q,
+>	         QueryIteratee (DBM mark sess) q i seed b,
+>                IE.IQuery q sess b) =>
+>     stmt -> i -> seed
+>     -> (DBCursor mark (DBM mark sess) seed -> DBM mark sess a)
+>     -> DBM mark sess a
+> withCursor stmt iteratee seed action = do
+>   do c <- openCursor stmt iteratee seed
+>      gcatch
+>        (do v <- action c
+>            cursorClose c
+>            return v) 
+>        (\e -> cursorClose c >> (liftIO$ throwIO e))
 
 
 |Perform an action as a transaction: commit afterwards,
 unless there was an exception, in which case rollback.
 
 > withTransaction ::
->   ( ISession (ReaderT r IO) mio r stmt
->   , MonadIO (ReaderT r IO)
+>   ( IE.ISession s
 >   ) =>
->   IsolationLevel -> ReaderT r IO a -> ReaderT r IO a
+>   IE.IsolationLevel -> DBM mark s a -> DBM mark s a
 > 
 > withTransaction isolation action = do
 >     commit
 >     beginTransaction isolation
->     catchReaderT ( do
+>     gcatch ( do
 >         v <- action
 >         commit
 >         return v
@@ -546,7 +418,6 @@ unless there was an exception, in which case rollback.
 >         liftIO $ throwIO e
 >       )
 
-> -}
 
 --------------------------------------------------------------------
 -- ** Misc.
@@ -581,13 +452,6 @@ and arithmetic operations (counting, summing, etc).
 
 > result' :: (Monad m) => IterAct m a
 > result' x = return (Right $! x)
-
-
-
-
-
-
-
 
 
 

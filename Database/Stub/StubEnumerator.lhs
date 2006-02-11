@@ -22,8 +22,11 @@ See fetchIntVal.
 > {-# OPTIONS -fallow-overlapping-instances #-}
 
 > module Database.Stub.StubEnumerator
->   -- Session is not exported, not even its type!
->   ( Session, ConnParm(..), connect, sql )
+>   -- Only the type constructor of Session is exported
+>   -- (so the end user could write type signatures). 
+>   (  Session, ConnParm(..), connect, sql 
+>    , QueryResourceUsage(..), sql_tuned
+>   )
 > where
 
 
@@ -45,6 +48,7 @@ See fetchIntVal.
 > data Session = Session
 > data StmtHandle = StmtHandle
 > data QueryString = QueryString String
+> data QueryStringTuned = QueryStringTuned QueryResourceUsage String
 
  data PreparedStatement = PreparedStatement
    { stmtSession :: Session, stmtHandle :: StmtHandle }
@@ -62,6 +66,16 @@ See fetchIntVal.
 >   | DBTypeDatetime
 
 > type BufferSize = Int
+
+|At present the only resource tuning we support is the number of rows
+prefetched by the FFI library.
+We use a record to (hopefully) make it easy to add other 
+tuning parameters later.
+
+> data QueryResourceUsage = QueryResourceUsage { prefetchRowCount :: Int }
+
+> defaultResourceUsage :: QueryResourceUsage
+> defaultResourceUsage = QueryResourceUsage 100
 
 
 --------------------------------------------------------------------
@@ -113,6 +127,17 @@ See fetchIntVal.
 >     counter <- newIORef numberOfRowsToPretendToFetch
 >     refc <- newIORef counter
 >     return (Query sess StmtHandle refc)
+
+-- Statements with resource usage
+
+> sql_tuned resource_usage str = QueryStringTuned resource_usage str
+
+> instance Statement QueryStringTuned Session Query where
+>   executeDML s (QueryStringTuned _ str) = executeDML s (QueryString str)
+>   executeDDL s (QueryStringTuned _ str) = executeDDL s (QueryString str)
+>   -- Currently just ignore the tuning parameter. This is the stub
+>   -- anyway. We only wish to test different types of statements
+>   makeQuery s (QueryStringTuned _ str) = makeQuery s (QueryString str)
 
 
 --------------------------------------------------------------------
@@ -273,26 +298,23 @@ An auxiliary function: buffer allocation
 >   allocBufferFor _ q n = allocBuffer q 4000 DBTypeString n
 >   fetchCol q buffer = bufferToString buffer
 
-> {-
-> instance DBType (Maybe Int) QueryM ColumnBuffer where
->   allocBufferFor _ n = allocBuffer (4, DBTypeInt) n
->   fetchCol buffer = do
->     query <- getQuery
->     refCounter <- liftIO $ readIORef (queryCounter query)
->     counter <- liftIO $ readIORef refCounter
+> instance DBType (Maybe Int) Query ColumnBuffer where
+>   allocBufferFor _ q n = allocBuffer q 4 DBTypeInt n
+>   fetchCol query buffer = do
+>     refCounter <- readIORef (queryCounter query)
+>     counter <- readIORef refCounter
 >     -- last row returns null rather than 1
 >     if counter == throwNullIntOnRow
 >       then return Nothing
->       else liftIO $ bufferToInt buffer
+>       else bufferToInt buffer
 
-> instance DBType (Maybe Double) QueryM ColumnBuffer where
->   allocBufferFor _ n = allocBuffer (8, DBTypeDouble) n
->   fetchCol buffer = liftIO $ bufferToDouble buffer
+> instance DBType (Maybe Double) Query ColumnBuffer where
+>   allocBufferFor _ q n = allocBuffer q 8 DBTypeDouble n
+>   fetchCol q buffer = bufferToDouble buffer
 
-> instance DBType (Maybe CalendarTime) QueryM ColumnBuffer where
->   allocBufferFor _ n = allocBuffer (8, DBTypeDatetime) n
->   fetchCol buffer = liftIO $ bufferToDatetime buffer
-> -}
+> instance DBType (Maybe CalendarTime) Query ColumnBuffer where
+>   allocBufferFor _ q n = allocBuffer q 8 DBTypeDatetime n
+>   fetchCol q buffer = bufferToDatetime buffer
 
 A polymorphic instance which assumes that the value is in a String column,
 and uses Read to convert the String to a Haskell data value.
