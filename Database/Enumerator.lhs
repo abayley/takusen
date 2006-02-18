@@ -174,8 +174,8 @@ Typeable constraint is to prevent the leakage of Session and other
 marked objects.
 
 > withSession :: (Typeable a, IE.ISession sess) => 
->	 IO sess -> (forall mark. DBM mark sess a) -> IO a
-> withSession connecta m = 
+>	 IE.ConnectA sess -> (forall mark. DBM mark sess a) -> IO a
+> withSession (IE.ConnectA connecta) m = 
 >     bracket (connecta)
 >	      (IE.disconnect)
 >             (runReaderT $ unDBM m)

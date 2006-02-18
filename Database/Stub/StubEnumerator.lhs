@@ -82,7 +82,7 @@ tuning parameters later.
 -- Sessions
 --------------------------------------------------------------------
 
-> connect connparm = return Session
+> connect connparm = ConnectA (return Session)
 
 > instance ISession Session where
 >   disconnect sess = return ()

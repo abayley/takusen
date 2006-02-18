@@ -10,7 +10,7 @@ Only the programmer for a new back-end needs to consult this file.
 > module Database.InternalEnumerator
 >   (
 >     -- * Session object.
->     ISession(..)
+>     ISession(..), ConnectA(..), 
 >    , Statement(..) {-- DBBind(..), --} -- Statement(..)
 >    , IsolationLevel(..)
 >    , Position
@@ -35,6 +35,16 @@ Only the programmer for a new back-end needs to consult this file.
 >   | Serialisable
 >   | Serializable  -- ^ for alternative spellers
 >   deriving Show
+
+
+A wrapper around the action to open the database. That wrapper is not
+exported to the end user. The only reason for the wrapper is to
+guarantee that the only thing to do with the result of 'connect'
+function is to pass it out directly to |withSession|.
+
+> newtype ConnectA sess = ConnectA (IO sess)
+
+
 
 Position within the result set. Not for the end user.
 
