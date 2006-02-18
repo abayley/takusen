@@ -20,17 +20,19 @@ You must to use a DBMS-specific library to create the Session
 
 > module Database.PostgreSQL.Test.En1 where
 
-> import Database.Enumerator hiding (defaultResourceUsage)
+> import Database.Enumerator
+> import Database.PostgreSQL.Enumerator
 > import System.Time  -- CalendarTime
 > import Data.Int
 > import Test.HUnit
 
-> defaultResourceUsage = QueryResourceUsage{prefetchRowCount = 0}
+> -- defaultResourceUsage = QueryResourceUsage{prefetchRowCount = 0}
 
-> runTests dateFn sess = do
->   makeFixture sess
->   runTestTT (TestList (makeTests sess (testList dateFn)))
->   destroyFixture sess
+> runTests dateFn = do
+>   makeFixture ()
+>   sequence_ (map (\t -> liftIO (putStrLn "testing") >> t dateFn) testList)
+>   -- runTestTT (TestList (makeTests sess (testList dateFn)))
+>   destroyFixture ()
 
 > testTable = "takusen_test"
 
@@ -48,65 +50,59 @@ So if we know that a dual table will always be present
 (and containing a single row) then we can use the same
 sql statements for all DBMS's.
 
-> makeFixture :: (MonadSession m IO s) => s -> IO ()
-> makeFixture sess = do
->   execDrop sess "drop table tdual"
->   execDDL_ sess "create table tdual (dummy varchar(1) primary key)"
->   runSession sess (beginTransaction Serialisable)
->   execDDL_ sess "insert into tdual values ('X')"
->   runSession sess commit
->   execDrop sess $ "drop table " ++ testTable
->   execDDL_ sess $ "create table " ++ testTable ++ " (id integer, v varchar(1000))"
->   runSession sess (beginTransaction Serialisable)
->   execDDL_ sess $ "insert into " ++ testTable ++ " (id, v) values (1, '2')"
->   execDDL_ sess $ "insert into " ++ testTable ++ " (id, v) values (2, '2')"
->   execDDL_ sess $ "insert into " ++ testTable ++ " (id, v) values (3, '3')"
->   runSession sess commit
+> makeFixture () = do
+>   execDrop "drop table tdual"
+>   execDDL_ "create table tdual (dummy varchar(1) primary key)"
+>   beginTransaction Serialisable
+>   execDDL_ "insert into tdual values ('X')"
+>   commit
+>   execDrop $ "drop table " ++ testTable
+>   execDDL_ $ "create table " ++ testTable ++ " (id integer, v varchar(1000))"
+>   beginTransaction Serialisable
+>   execDDL_ $ "insert into " ++ testTable ++ " (id, v) values (1, '2')"
+>   execDDL_ $ "insert into " ++ testTable ++ " (id, v) values (2, '2')"
+>   execDDL_ $ "insert into " ++ testTable ++ " (id, v) values (3, '3')"
+>   commit
 
-> destroyFixture sess = do
->   execDDL_ sess "drop table tdual"
->   execDDL_ sess $ "drop table " ++ testTable
+> destroyFixture () = do
+>   execDDL_ "drop table tdual"
+>   execDDL_ $ "drop table " ++ testTable
 
 
-> execDDL_ sess sql =
->   catchDB (runSession sess (executeDDL sql)) (reportError sql)
+> execDDL_ q = catchDB (executeCommand (sql q) >> return ()) (reportError q)
 
 Use this (execDrop) when it's likely to raise an error.
 
-> execDrop sess sql =
->   catchDB (runSession sess (executeDDL sql)) (\e -> return undefined)
+> execDrop q = catchDB (executeCommand (sql q)) (\e -> return undefined)
 
 
-> reportError sql (DBError e m) = do
+> reportError q (DBError sqlstate e m) = liftIO $ do
 >   putStrLn m
->   putStrLn ("  " ++ sql)
-> reportError sql (DBUnexpectedNull r c) =
->   putStrLn $ "Unexpected null in row " ++ (show r) ++ ", column " ++ (show c) ++ "."
-> reportError sql (DBNoData) = putStrLn "Fetch: no more data."
+>   putStrLn ("  " ++ q)
+> reportError q (DBUnexpectedNull r c) =
+>   liftIO $ putStrLn $ "Unexpected null in row " ++ 
+>              (show r) ++ ", column " ++ (show c) ++ "."
+> reportError q (DBNoData) = liftIO $ putStrLn "Fetch: no more data."
 
-> makeTests sess list = map (\f -> TestCase (f sess)) list
-
-> testList (dateFn::(Int64 -> String)) =
+> testList :: [(Int64 -> String) -> DBM mark Session ()]
+> testList =
 >   [ selectNoRows, selectTerminatesEarly, selectFloatsAndInts
->    , selectNullString -- , selectUnhandledNull --, selectNullDate dateFn
+>   , selectNullString -- , selectUnhandledNull --, selectNullDate dateFn
 > --   , selectDate dateFn, selectBoundaryDates dateFn
 > --  , selectCursor
 > --  , selectExhaustCursor
 > --  , selectBindInt
 > --  , selectBindDate
 > --  , polymorphicFetchTest
-> --  , updateRollback
+>   , updateRollback
 >   ]
 
 
-> selectTest sess query iter expect = do
->   let
->     bindVals :: [Int]
->     bindVals = []
->   actual <- runSession sess (doQueryTuned defaultResourceUsage query bindVals iter [])
->   assertEqual query expect actual
+> selectTest query iter expect = do
+>   actual <- doQuery (sql query) iter []
+>   liftIO $ assertEqual query expect actual
 
-> selectNoRows sess = selectTest sess query iter expect
+> selectNoRows _ = selectTest query iter expect
 >   where
 >     query = "select dummy from tdual where dummy = 'a' or dummy = '2' "
 >     iter (c1::String) acc = result $ c1:acc
@@ -117,7 +113,7 @@ This is the example of enough context being provided so that
 no signature for the iteratee is necessary.
   iter :: (Monad m) => String -> IterAct m [String]
 
-> selectTerminatesEarly sess = selectTest sess query iter expect
+> selectTerminatesEarly _ = selectTest query iter expect
 >   where
 >     query = "select 'hello1' from tdual union select 'hello2' from tdual union select 'hello3' from tdual"
 >     iter c1 acc = if c1 == "hello2"
@@ -126,7 +122,7 @@ no signature for the iteratee is necessary.
 >     expect = ["hello2", "hello1"]
 
 
-> selectFloatsAndInts sess = selectTest sess query iter expect
+> selectFloatsAndInts _ = selectTest query iter expect
 >   where
 >     query = "select 4841.3403490431, -22340234 from tdual union select 33311.32332, 23789234 from tdual"
 >     --iter :: (Monad m) => Double -> Int -> IterAct m [(Double, Int)]
@@ -134,7 +130,7 @@ no signature for the iteratee is necessary.
 >     expect = [ (33311.32332, 23789234) , (4841.3403490431, -22340234) ]
 
 
-> selectNullString sess = selectTest sess query iter expect
+> selectNullString _ = selectTest query iter expect
 >   where
 >     query = "select 'hello1', 'hello2', '' from tdual"
 >     iter :: (Monad m) => String -> String -> String
@@ -146,9 +142,9 @@ no signature for the iteratee is necessary.
 |Goal: test that a column which is not a Maybe throws
 and exception when it receives a null.
 
-> selectUnhandledNull sess = catchDB ( do
->       selectTest sess query iter expect
->       assertFailure query
+> selectUnhandledNull _ = catchDB ( do
+>       selectTest query iter expect
+>       liftIO $ assertFailure query
 >   ) (\e -> return () )
 >   where
 >     query = "select 'hello1', 'hello2', null from tdual"
@@ -179,7 +175,7 @@ and exception when it receives a null.
 >   | i < 0  = "to_date('" ++ (zeroPad 14 i) ++ "', 'syyyymmddhh24miss')"
 
 
-> selectNullDate dateFn sess = selectTest sess query iter expect
+> selectNullDate dateFn = selectTest query iter expect
 >   where
 >     query = "select 'hello1', 'hello2', " ++ (dateFn 0) ++ " from tdual"
 >     nvl = makeCalTime 10101000000
@@ -190,7 +186,7 @@ and exception when it receives a null.
 
 
 
-> selectDate dateFn sess = selectTest sess query iter expect
+> selectDate dateFn = selectTest query iter expect
 >   where
 >     query = "select " ++ (dateFn 20041225235959) ++ " from tdual"
 >     iter :: (Monad m) => CalendarTime -> IterAct m [CalendarTime]
@@ -198,7 +194,7 @@ and exception when it receives a null.
 >     expect = [ (makeCalTime 20041225235959) ]
 
 
-> selectBoundaryDates dateFn sess = selectTest sess query iter expect
+> selectBoundaryDates dateFn = selectTest query iter expect
 >   where
 >     iter :: (Monad m) => CalendarTime -> IterAct m [CalendarTime]
 >     iter c1 acc = result $ c1:acc
@@ -216,15 +212,16 @@ and exception when it receives a null.
 >       ]
 
 
+
 |Goal: exercise the  "happy path" throught cursor code
 i.e. open and fetch all rows, close after last row.
 
-> selectCursor sess = do
+> selectCursor _ = do
 >   let
 >     query = "select 1 from tdual union select 2 from tdual"
 >     iter :: (Monad m) => Int -> IterAct m [Int]
 >     iter i acc = result $ i:acc
->   runSession sess $ withCursorTuned defaultResourceUsage query ([]::[Int]) iter [] $ \c -> do
+>   withCursor (sql query) iter [] $ \c -> do
 >     r <- cursorCurrent c
 >     liftIO $ assertEqual query [1] r
 >     doneBool <- cursorIsEOF c
@@ -260,13 +257,13 @@ The main action should never finish, so there's
 a failure assertion at the bottom, just in case
 the exception is not raised.
 
-> selectExhaustCursor sess = do
+> selectExhaustCursor _ = do
 >   let
 >     query = "select 1 from tdual union select 2 from tdual"
 >     iter :: (Monad m) => Int -> IterAct m [Int]
 >     iter i acc = result $ i:acc
 >   catchDB (
->     runSession sess $ withCursorTuned defaultResourceUsage query ([]::[Int]) iter [] $ \c -> do
+>       withCursor (sql query) iter [] $ \c -> do
 >       cursorNext c
 >       cursorNext c
 >       cursorNext c
@@ -275,8 +272,8 @@ the exception is not raised.
 >     ) (\e -> return () )
 
 
-
-> selectBindInt sess = do
+> {-
+> selectBindInt _ = do
 >   let
 >     query = "select ? from tdual union select ? from tdual order by 1"
 >     -- Oracle only understands :x style placeholders
@@ -307,19 +304,22 @@ SQL nulls. SQL nulls come last in the collation order.
 >   actual <- runSession sess (doQueryTuned defaultResourceUsage query input iter [])
 >   assertEqual query expect actual
 
+> -}
 
 
 > insertTable n s = do
->   executeDML $ "insert into " ++ testTable ++ " (id, v) values (" ++ (show n) ++ ", '" ++ s ++ "')"
+>   executeCommand $ sql $ "insert into " ++ testTable 
+>	       ++ " (id, v) values (" ++ (show n) ++ ", '" ++ s ++ "')"
 >   return ()
 
 > updateTable n s = do
->   executeDML $ "update " ++ testTable ++ " set v = '" ++ s ++ "' where id = " ++ (show n)
+>   executeCommand $ sql $ "update " ++ testTable ++ 
+>	       " set v = '" ++ s ++ "' where id = " ++ (show n)
 >   return ()
 
 
-> polymorphicFetchTest sess = runSession sess $ do
->   executeDML $ "delete from " ++ testTable
+> polymorphicFetchTest _ = do
+>   executeCommand $ sql $ "delete from " ++ testTable
 >   let
 >     l1 :: [Int]
 >     l1 = [1, 2, 3, 4]
@@ -334,7 +334,7 @@ SQL nulls. SQL nulls come last in the collation order.
 >     iter c1 acc = result $ c1:acc
 >     query = "select v from " ++ testTable ++ " order by id"
 >     expect = [ l2, l1 ]
->   actual <- doQueryTuned defaultResourceUsage query ([]::[Int]) iter []
+>   actual <- doQuery (sql query) iter []
 >   liftIO $ assertEqual query expect actual
 
 
@@ -342,12 +342,12 @@ SQL nulls. SQL nulls come last in the collation order.
 >   let
 >     iter (c1::Int) (c2::String) acc = result $ (c1, c2):acc
 >     query = "select id, v from " ++ testTable ++ " order by id desc"
->   actual <- doQuery query iter []
+>   actual <- doQuery (sql query) iter []
 >   liftIO $ assertEqual "checkContents" expect actual
 
 
-> updateRollback sess = runSession sess $ do
->   executeDML $ "delete from " ++ testTable
+> updateRollback _ = do
+>   executeCommand $ sql $ "delete from " ++ testTable
 >   beginTransaction Serialisable
 >   insertTable 1 "1"
 >   insertTable 2 "2"

@@ -175,7 +175,7 @@ do FFI.
 >   fetchOneRow :: q -> IO Bool  -- fetch one row
 >   currentRowNum :: q -> IO Int
 >   freeBuffer :: q -> b -> IO ()
-
+>   destroyQuery :: q -> IO ()
 
 |A \'buffer\' means a column buffer: a data structure that points to a
 block of memory allocated for the values of one particular

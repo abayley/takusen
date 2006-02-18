@@ -15,7 +15,10 @@ PostgreSQL implementation of Database.Enumerator.
 > {-# OPTIONS -fallow-overlapping-instances #-}
 
 > module Database.PostgreSQL.PGEnumerator
+>   -- Only the type constructor of Session is exported
+>   -- (so the end user could write type signatures). 
 >   ( Session, connect, ConnectAttr(..)
+>    , sql
 >    , QueryResourceUsage(..), sql_tuned
 >   )
 > where
@@ -24,7 +27,6 @@ PostgreSQL implementation of Database.Enumerator.
 > import Database.InternalEnumerator
 > import Foreign.C
 > import Control.Monad
-> import Control.Exception
 > import Control.Exception (catchDyn, throwDyn, throwIO)
 > import Database.PostgreSQL.PGFunctions
 >   (DBHandle, StmtHandle, PGException(..), catchPG, throwPG)
@@ -45,7 +47,47 @@ because they never throw exceptions.
 
 
 > convertAndRethrow :: PGException -> IO a
-> convertAndRethrow (PGException errcode msg) = throwDB (DBError errcode msg)
+> convertAndRethrow (PGException e m) = do
+>   let
+>     s@(ssc,sssc) = errorSqlState e
+>     ec = case ssc of
+>       "XX" -> DBFatal
+>       "58" -> DBFatal
+>       "57" -> DBFatal
+>       "54" -> DBFatal
+>       "53" -> DBFatal
+>       "08" -> DBFatal
+>       _ -> DBError
+>   throwDB (ec s e m)
+
+> errorSqlState :: Int -> (String, String)
+> errorSqlState 0  = ("00", "000")
+> {-
+> errorSqlState 1  = ("42", "000") -- sql error or missing database
+> errorSqlState 2  = ("XX", "000") -- internal error
+> errorSqlState 3  = ("42", "501") -- insufficient privileges/permission denied
+> errorSqlState 4  = ("38", "000") -- callback requested abort
+> errorSqlState 5  = ("58", "030") -- database file locked
+> errorSqlState 6  = ("55", "006") -- table locked
+> errorSqlState 7  = ("53", "200") -- malloc failed
+> errorSqlState 8  = ("25", "006") -- can't write readonly database
+> errorSqlState 9  = ("57", "014") -- query cancelled (interrupt)
+> errorSqlState 10 = ("58", "030") -- io error
+> errorSqlState 11 = ("58", "030") -- corrupt file
+> errorSqlState 12 = ("42", "704") -- internal: object not found
+> errorSqlState 13 = ("53", "100") -- database full
+> errorSqlState 14 = ("58", "030") -- can't open database file
+> errorSqlState 15 = ("55", "000") -- lock protocol error
+> errorSqlState 16 = ("22", "000") -- internal: empty table
+> errorSqlState 17 = ("42", "000") -- schema changed
+> errorSqlState 18 = ("54", "000") -- row too big
+> errorSqlState 19 = ("23", "000") -- constraint violation
+> errorSqlState 20 = ("42", "804") -- data type mismatch
+> errorSqlState 21 = ("39", "000") -- library used incorrectly
+> errorSqlState 22 = ("58", "030") -- unsupported OS feature on host
+> errorSqlState 23 = ("42", "501") -- authorisation denied
+> -}
+> errorSqlState _  = ("01", "000") -- unspecified error
 
 |Common case: wrap an action with a convertAndRethrow.
 
@@ -105,18 +147,24 @@ Session objects are created by 'connect'.
 
 
 > test_connect host = do
->  db <- connect [CAhostaddr host,CAuser "oleg",CAdbname "test"]
+>  let (ConnectA ca) = connect [CAhostaddr host,CAuser "oleg",CAdbname "test"]
+>  db <- ca
 >  putStrLn $ "Database name: " ++ (show (DBAPI.fPQdb (dbHandle db)))
 >  disconnect db
 >  putStrLn "Done"
 
 
 > instance ISession Session where
->   disconnect sess = convertEx $ DBAPI.closeDb (dbHandle session)
->   beginTransaction sess isolation = executeDDL sess "begin"
->   commit sess = executeDDL sess "commit"
->   rollback sess = executeDDL sess "rollback"
+>   disconnect sess = convertEx $ DBAPI.closeDb (dbHandle sess)
+>   beginTransaction sess isolation =
+>	executeCommand sess (sql "begin") >> return ()
+>   commit sess   = executeCommand sess (sql "commit") >> return ()
+>   rollback sess = executeCommand sess (sql "rollback") >> return ()
 
+
+--------------------------------------------------------------------
+-- Statements and Commands
+--------------------------------------------------------------------
 
 The simplest kind of a statement: no tuning parameters, all default,
 little overhead
@@ -124,31 +172,34 @@ little overhead
 > data QueryString = QueryString String
 > sql str = QueryString str
 
->
->
->
->   executeDML cmdText = do
->     sess <- ask
->     (_,ntuple_str,_) <- liftIO $ convertEx $ 
->		                DBAPI.nqExec (dbHandle sess) cmdText
+> instance Command QueryString Session where
+>   executeCommand s (QueryString str)  = do
+>     (_,ntuple_str,_) <- convertEx $ DBAPI.nqExec (dbHandle s) str
 >     return $ if ntuple_str == "" then 0 else read ntuple_str
->
->   executeDDL sess cmdText = do
->     sess <- ask
->     _ <- liftIO $ convertEx $ DBAPI.nqExec (dbHandle sess) cmdText
->     return ()
 
 > test_ddl :: String -> IO ()
 > test_ddl host = do
->  db <- connect [CAhostaddr host,CAuser "oleg",CAdbname "test"]
+>  let (ConnectA ca) = connect [CAhostaddr host,CAuser "oleg",CAdbname "test"]
+>  db <- ca
 >  putStrLn "Connected"
->  runSession db $ do
->                   executeDDL "create table tdual (dummy text)"
->                   executeDML "insert into tdual values ('aaa')" >>= 
->		       liftIO . print
->                   executeDDL "drop table tdual"
+>  do
+>    executeCommand db (sql "create table tdual (dummy text)")
+>    executeCommand db (sql "insert into tdual values ('aaa')") >>= print
+>    executeCommand db (sql "drop table tdual")
 >  disconnect db
 >  putStrLn "Done"
+
+|At present the only resource tuning we support is the number of rows
+prefetched by the FFI library.
+We use a record to (hopefully) make it easy to add other 
+tuning parameters later.
+
+> data QueryResourceUsage = QueryResourceUsage { prefetchRowCount :: Int }
+
+> defaultResourceUsage :: QueryResourceUsage
+> defaultResourceUsage = QueryResourceUsage 100
+
+
 
 --------------------------------------------------------------------
 -- ** Queries
@@ -177,7 +228,8 @@ decisions to make:
     Potentially, we should be able to execute a previously prepared
     statement...
 
-Currently, if prefetchRowCount is 0, we use execImm. Otherwise,
+Currently, if prefetchRowCount is 0 or the query is
+not tuned, we use execImm. Otherwise,
 we open a cursor and advance it by prefetchRowCount step.
 We use anonymous prepared statement name.
 
@@ -186,75 +238,76 @@ out 0 rows) so that later on, we could determine the type of data in columns
 and prepare the buffers accordingly. We don't do that at the moment.
 
 
+> instance Statement QueryString Session Query where
+>   makeQuery sess (QueryString sqltext) = commence'query'simple sess sqltext
+
+
+-- Statements with resource usage
+
+> data QueryStringTuned = QueryStringTuned QueryResourceUsage String
+> sql_tuned resource_usage str = QueryStringTuned resource_usage str
+>
+> instance Statement QueryStringTuned Session Query where
+>   makeQuery sess (QueryStringTuned resource_usage sqltext) = 
+>	commence'query sess resource_usage sqltext
+
+
 > default'cursor'name = "takusenp"
 > prepared'statement'name = "" -- meaning anonymous
 
-> commence'query sess resourceUsage sqltext 
->     | QueryResourceUsage{prefetchRowCount = 0} <- resourceUsage
->	   = do
->	       subq <- create'subq sess
+> commence'query'simple sess sqltext 
+>     = do
+>       subq <- create'subq sess
 >	                 (convertEx $ 
 >			    DBAPI.stmtExecImm (dbHandle sess) sqltext)
->              sqr <- liftIO $ newIORef subq
->	       return Query {subquery = sqr,
->		             advance'action = Nothing,
->		             cleanup'action = Nothing,
->		             session = sess}
+>	sqr <- newIORef subq
+>       return Query {subquery = sqr,
+>	              advance'action = Nothing,
+>	              cleanup'action = Nothing,
+>	              session = sess}
+
+> commence'query sess resourceUsage sqltext 
+>     | QueryResourceUsage{prefetchRowCount = 0} <- resourceUsage
+>              = commence'query'simple sess sqltext
 
 Now, prepare and open the cursor
 
 > commence'query sess resourceUsage sqltext =
 >     do
 >     let cursor = default'cursor'name
->     let q = "DECLARE " ++ cursor ++ " NO SCROLL CURSOR FOR " ++ sqltext
->     executeDDL q
+>     let q = sql ("DECLARE " ++ cursor ++ " NO SCROLL CURSOR FOR " ++ sqltext)
+>     executeCommand sess q
 >     let fetchq = "FETCH FORWARD " ++ (show $ prefetchRowCount resourceUsage)
 >	           ++ " FROM " ++ cursor
->     sn <- liftIO $ convertEx $ DBAPI.stmtPrepare (dbHandle sess) 
->                                   prepared'statement'name fetchq
+>     sn <- convertEx $ DBAPI.stmtPrepare (dbHandle sess) 
+>                          prepared'statement'name fetchq
 >     let advanceA = convertEx $ DBAPI.stmtExec0 (dbHandle sess) sn
 >     let cleanupA = convertEx $ DBAPI.nqExec (dbHandle sess) 
 >	                                ("CLOSE " ++ cursor)
 >		     >> return ()
 >     subq <- create'subq sess advanceA
->     sqr <- liftIO $ newIORef subq
+>     sqr <- newIORef subq
 >     return Query {subquery = sqr,
 >	            advance'action = Just advanceA,
 >	            cleanup'action = Just cleanupA,
 >	            session = sess}
 
 > create'subq sess action = do
->     (stmt,ntuples) <- liftIO $ action
+>     (stmt,ntuples) <- action
 >     return $ SubQuery stmt ntuples 0
-> destroy'subq sess subq = 
->     liftIO $ convertEx $ DBAPI.stmtFinalise (stmtHandle subq)
+> destroy'subq sess subq = convertEx $ DBAPI.stmtFinalise (stmtHandle subq)
 
   
-
-> type PGMonadQuery = ReaderT Query SessionM
-
-> instance MonadQuery PGMonadQuery SessionM Query ColumnBuffer where
->
->   runQuery m query = runReaderT m query
->
->   getQuery = ask
->
->   makeQuery sqltext resourceUsage = do
->     sess <- getSession
->     commence'query sess resourceUsage sqltext 
->
->   execQuery query = return ()
+> instance IQuery Query Session ColumnBuffer where
 >
 >   destroyQuery query = do
->     sess <- getSession
->     subq <- liftIO $ readIORef (subquery query)
->     destroy'subq sess subq
->     maybe (return ()) liftIO (cleanup'action query)
+>     subq <- readIORef (subquery query)
+>     destroy'subq (session query) subq
+>     maybe (return ()) id (cleanup'action query)
 >
->   fetch1Row = do
->     query <- getQuery
->     sess  <- lift $ getSession
->     subq'  <- liftIO $ readIORef (subquery query)
+>   fetchOneRow query = do
+>     let sess  = session query
+>     subq'  <- readIORef (subquery query)
 >     let subq = subq' { curr'row = succ (curr'row subq') }
 >     if ntuples subq == 0
 >        then return False
@@ -263,25 +316,39 @@ Now, prepare and open the cursor
 >              (return False)		-- no advance action: we're done
 >              (\action -> destroy'subq sess subq   >>
 >	                   create'subq  sess action >>=
->	                   (liftIO . writeIORef (subquery query)) >>
->	                   fetch1Row)
+>	                   (writeIORef (subquery query)) >>
+>	                   fetchOneRow query)
 >	       (advance'action query)
->        else liftIO $ writeIORef (subquery query) subq >>
->             return True
-
->
->   allocBuffer _ colpos = do
->     q <- getQuery
->     return ColumnBuffer {colPos = colpos, query = q}
->
->   columnPosition buffer = return (colPos buffer)
+>        else writeIORef (subquery query) subq >> return True
 >
 >   -- want to add a counter, so we can support this properly
->   currentRowNum = return 0
+>   currentRowNum q = return 0
 >
->   freeBuffer buffer = return ()
+>   freeBuffer q buffer = return ()
 
+--------------------------------------------------------------------
+-- result-set data buffers implementation
+--------------------------------------------------------------------
 
+|There aren't really Buffers to speak of with PostgreSQL,
+so we just record the position of each column.
+
+> data ColumnBuffer = ColumnBuffer
+>   { colPos :: Int
+>   }
+
+> buffer_pos q buffer = 
+>     do 
+>     let col = colPos buffer
+>     row <- currentRowNum q
+>     return (row,col)
+
+An auxiliary function: buffer allocation
+
+> allocBuffer q colpos = do
+>     return $ ColumnBuffer
+>       { colPos = colpos
+>       }
 
 
 20040822073512
@@ -331,37 +398,28 @@ so that we get sensible behaviour for -ve numbers.
 
 
 
-|There aren't really Buffers to speak of with PostgreSQL,
-so we just record the position of each column.
-We also keep a reference to the Query which owns the buffer,
-as we need it to get column values.
-
-> data ColumnBuffer = ColumnBuffer
->   { colPos :: Int
->   , query :: Query
->   }
 
 
 > nullIf :: Bool -> a -> Maybe a
 > nullIf test v = if test then Nothing else Just v
 
-> bufferToString buffer = do
->   subq <- liftIO $ readIORef (subquery (query buffer))
->   ind  <- liftIO $ DBAPI.colValNull (stmtHandle subq) (curr'row subq) 
->                                     (colPos buffer)
+> bufferToString query buffer = do
+>   subq <- readIORef (subquery query)
+>   ind  <- DBAPI.colValNull (stmtHandle subq) (curr'row subq) 
+>                            (colPos buffer)
 >   if ind then return Nothing
 >      else 
->        liftIO$ DBAPI.colValString (stmtHandle subq) (curr'row subq) 
->	                            (colPos buffer)
+>        DBAPI.colValString (stmtHandle subq) (curr'row subq) 
+>	                    (colPos buffer)
 >        >>= return . Just
 
 > {-
 > bufferToInt buffer = do
->   v <- liftIO$ DBAPI.colValInt (stmtHandle (query buffer)) (colPos buffer)
+>   v <- DBAPI.colValInt (stmtHandle (query buffer)) (colPos buffer)
 >   return (Just v)
 
 > bufferToDouble buffer = do
->   v <- liftIO$ DBAPI.colValDouble (stmtHandle (query buffer)) (colPos buffer)
+>   v <- DBAPI.colValDouble (stmtHandle (query buffer)) (colPos buffer)
 >   return (Just v)
 
 > nullDatetimeInt64 :: Int64
@@ -369,7 +427,7 @@ as we need it to get column values.
 
 > bufferToDatetime :: (MonadIO m) => ColumnBuffer -> m (Maybe CalendarTime)
 > bufferToDatetime buffer = do
->   v <- liftIO$ DBAPI.colValInt64 (stmtHandle (query buffer)) (colPos buffer)
+>   v <- DBAPI.colValInt64 (stmtHandle (query buffer)) (colPos buffer)
 >   return (nullIf (v == 0 || v == nullDatetimeInt64) (makeCalTime v))
 
 
@@ -394,7 +452,7 @@ as we need it to get column values.
 > bindMb pos val = do
 >   sess <- lift getSession
 >   query <- getQuery
->   liftIO $ bindMaybe (dbHandle sess) (stmtHandle query) pos val
+>   bindMaybe (dbHandle sess) (stmtHandle query) pos val
 
 If we have a null datetime, convert it to 99999999999999, rather than 0.
 This ensures that dates have the same sorting behaviour as SQL,
@@ -407,53 +465,51 @@ which is to have nulls come last in the sort order.
 >     Just val -> stmtBind db stmt pos val
 > -}
 
+> instance DBType (Maybe String) Query ColumnBuffer where
+>   allocBufferFor _ q n = allocBuffer q n
+>   fetchCol = bufferToString
 
-> instance DBType (Maybe String) PGMonadQuery ColumnBuffer where
->   allocBufferFor _ n = allocBuffer undefined n
->   fetchCol buffer = liftIO$ bufferToString buffer
->   bindPos p v = return () -- bindMb
+
+> --   bindPos p v = return () -- bindMb
 
 > {-
 > instance DBType (Maybe Int) PGMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer undefined n
->   fetchCol buffer = liftIO$ bufferToInt buffer
+>   fetchCol buffer = bufferToInt buffer
 >   bindPos = bindMb
 
 > instance DBType (Maybe Double) PGMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer undefined n
->   fetchCol buffer = liftIO$ bufferToDouble buffer
+>   fetchCol buffer = bufferToDouble buffer
 >   bindPos = bindMb
 
 > instance DBType (Maybe CalendarTime) PGMonadQuery ColumnBuffer where
 >   allocBufferFor _ n = allocBuffer undefined n
->   fetchCol buffer = liftIO$ bufferToDatetime buffer
+>   fetchCol buffer = bufferToDatetime buffer
 >   bindPos pos val = do
 >     sess <- lift getSession
 >     query <- getQuery
->     liftIO $ bindDatetime (dbHandle sess) (stmtHandle query) pos val
+>     bindDatetime (dbHandle sess) (stmtHandle query) pos val
 > -}
 
 |This single polymorphic instance replaces all of the type-specific non-Maybe instances
 e.g. String, Int, Double, etc.
 
-> instance DBType (Maybe a) PGMonadQuery ColumnBuffer
->     => DBType a PGMonadQuery ColumnBuffer where
+> instance DBType (Maybe a) Query ColumnBuffer
+>     => DBType a Query ColumnBuffer where
 >   allocBufferFor _ = allocBufferFor (undefined::Maybe a)
->   fetchCol buffer = throwIfDBNull buffer fetchCol
->   bindPos pos val = bindPos pos (Just val)
+>   fetchCol q buffer = throwIfDBNull (buffer_pos q buffer) $ fetchCol q buffer
+
+>  -- bindPos pos val = bindPos pos (Just val)
 
 
 |This polymorphic instance assumes that the value is in a String column,
 and uses Read to convert the String to a Haskell data value.
 
-> instance (Show a, Read a) => DBType (Maybe a) PGMonadQuery ColumnBuffer where
->   allocBufferFor _ n = allocBuffer undefined n
->   fetchCol buffer = do
->     v <- liftIO$ bufferToString buffer
->     return $ liftM read v
->   bindPos pos val = do
->     sess <- lift getSession
->     query <- getQuery
->     let justString = maybe Nothing (Just . show) val
->     return () -- liftIO $ bindMaybe (dbHandle sess) (stmtHandle query) pos justString
-
+> instance (Show a, Read a) => DBType (Maybe a) Query ColumnBuffer where
+>   allocBufferFor _  = allocBufferFor (undefined::String)
+>   fetchCol q buffer = do
+>     v <- bufferToString q buffer
+>     case v of
+>       Just s -> return (Just (read s))
+>       Nothing -> return Nothing

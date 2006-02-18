@@ -90,27 +90,6 @@ tuning parameters later.
 >   commit sess = return ()
 >   rollback sess = return ()
 
-> {-
-> instance MonadSession SessionM IO Session PreparedStatement where
->   runSession = flip runReaderT
->   getSession = ask
->   beginTransaction isolation = return ()
->   commit = return ()
->   rollback = return ()
->   executeDML cmdText args = return 0
->   executeDDL cmdText args = return ()
->   withStatement sqltext resourceUsage action = do
->     sess <- getSession
->     let s = PreparedStatement sess StmtHandle
->     action s
->   executeStatement stmt = return 0
->   prepareStatement sqltext resourceUsage = do
->     sess <- getSession
->     return (PreparedStatement sess StmtHandle)
->   freeStatement stmt = return ()
->   bindParameters stmt acts = return ()
-> -}
-
 --------------------------------------------------------------------
 -- Statements
 --------------------------------------------------------------------
@@ -178,50 +157,7 @@ so this will throw on the last row.
 >     return counter
 >
 >   freeBuffer q buffer = return ()
->
-
-
-> {-
-> type QueryM = ReaderT Query SessionM
-
-> instance MonadQuery QueryM SessionM PreparedStatement ColumnBuffer Query
->  where
->
->   runQuery = flip runReaderT
->
->   getQuery = ask
->
->   makeQuery stmt bindacts = do
->     -- Leave one counter in to ensure the fetch terminates
->     counter <- liftIO $ newIORef numberOfRowsToPretendToFetch
->     refc <- liftIO $ newIORef counter
->     return (Query stmt refc)
->
->   fetchOneRow = do
->     query <- getQuery
->     -- We'll pretend that we're going to fetch a finite number of rows.
->     refCounter <- liftIO $ readIORef (queryCounter query)
->     counter <- liftIO $ readIORef refCounter
->     if counter > 0
->       then (liftIO $ writeIORef refCounter (counter - 1) >> return True)
->       else return False
->
->   allocBuffer (bufsize, buftype) colpos = do
->     query <- getQuery
->     return $ ColumnBuffer
->       { colPos = colpos
->       }
->
->   columnPosition buffer = return (colPos buffer)
->
->   currentRowNum = do
->     query <- getQuery
->     refCounter <- liftIO $ readIORef (queryCounter query)
->     counter <- liftIO $ readIORef refCounter
->     return counter
->
->   freeBuffer buffer = return ()
-> -}
+>   destroyQuery q      = return ()
 
 
 --------------------------------------------------------------------

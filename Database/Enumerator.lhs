@@ -279,7 +279,8 @@ for the end user.
 >     query <- liftIO $ IE.makeQuery sess stmt
 >     buffers <- allocBuffers query iteratee 1
 >     let
->       finaliser = liftIO $ mapM_ (IE.freeBuffer query) buffers
+>       finaliser = liftIO (mapM_ (IE.freeBuffer query) buffers) >>
+>                   liftIO (IE.destroyQuery query)
 >       hFoldLeft self iteratee initialSeed = do
 >         let
 >           handle seed True = iterApply query buffers seed iteratee

@@ -11,6 +11,6 @@ Exports just what you need from "Database.PostgreSQL.Enumerator".
 
 
 > module Database.PostgreSQL.Enumerator
->   ( Session, connect, disconnect, ConnectAttr(..) )
+>   ( module Database.PostgreSQL.PGEnumerator )
 > where
 > import Database.PostgreSQL.PGEnumerator

@@ -12,21 +12,21 @@ Portability :  non-portable
 > module Database.PostgreSQL.Test.Enumerator (runTest) where
 
 > import qualified Database.PostgreSQL.Test.PGFunctions as Low
-> import Database.PostgreSQL.Enumerator (connect, disconnect, ConnectAttr (..))
+> import Database.PostgreSQL.Enumerator (connect, ConnectAttr (..))
 > -- import Database.Test.Enumerator as Enum
 > import Database.PostgreSQL.Test.En1 as Enum
-> import Database.Test.Performance as Perf
+> -- import Database.Test.Performance as Perf
 > import Database.Enumerator
 > import Control.Monad (when)
+> import Test.HUnit
  
 
 > --runTest :: Perf.ShouldRunTests -> [String] -> IO ()
-> runTest runPerf args = catchDB ( do
->     let [dbname] = args
->     -- Low.runTest dbname
->     sess <- connect dbname 
->     Enum.runTests undefined sess
+> runTest _ args = 
+>   runTestTT $ TestCase $ catchDB (
+>     (withSession (connect args)
+>      -- Low.runTest dbname
+>     (Enum.runTests undefined)
 >     --Enum.runTests datePG sess
 >     -- when (runPerf == Perf.RunTests) (Perf.runTests sess)
->     disconnect sess
->   ) basicDBExceptionReporter
+>   )) basicDBExceptionReporter
