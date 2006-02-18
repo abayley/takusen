@@ -11,7 +11,7 @@ Only the programmer for a new back-end needs to consult this file.
 >   (
 >     -- * Session object.
 >     ISession(..), ConnectA(..), 
->    , Statement(..) {-- DBBind(..), --} -- Statement(..)
+>    , Statement(..), Command(..),
 >    , IsolationLevel(..)
 >    , Position
 >    , IQuery(..)
@@ -140,14 +140,19 @@ with all bound variables.
 -- instances of Statements are defined by a particular database.
 
 
-> class ISession sess => Statement stmt sess q | stmt sess -> q where
+Command is not a query: command deletes or updates rows, creates/drops
+tables, or changes database state. Command returns the number of affected
+rows (or 0).
+
+> class ISession sess => Command stmt sess where
 >   -- insert/update/delete; returns number of rows affected
->   executeDML :: sess -> stmt -> IO Int
->   -- DDL (create table, etc)
->   executeDDL :: sess -> stmt -> IO ()
->   makeQuery :: sess -> stmt -> IO q
+>   executeCommand :: sess -> stmt -> IO Int
 >   -- PL/SQL blocks? Not in generic interface. ODBC can execute procedures; maybe later...
 >   --executeProc :: stmt -> ms ()
+
+
+> class ISession sess => Statement stmt sess q | stmt sess -> q where
+>   makeQuery :: sess -> stmt -> IO q
 
 
 |The class IQuery describes the class of query objects. Each

@@ -64,7 +64,7 @@ Additional reading:
 >
 >     -- * Session monad.
 >     , withSession, commit, rollback, beginTransaction
->     , executeDML, executeDDL
+>     , executeCommand
 >
 >     , doQuery
 >
@@ -188,11 +188,8 @@ marked objects.
 > rollback :: IE.ISession s => DBM mark s ()
 > rollback = DBM( ask >>= lift . IE.rollback )
 
-> executeDML :: IE.Statement stmt s q => stmt -> DBM mark s Int
-> executeDML stmt = DBM( ask >>= \s -> lift $ IE.executeDML s stmt )
-
-> executeDDL :: IE.Statement stmt s q => stmt -> DBM mark s ()
-> executeDDL stmt = DBM( ask >>= \s -> lift $ IE.executeDDL s stmt )
+> executeCommand :: IE.Command stmt s => stmt -> DBM mark s Int
+> executeCommand stmt = DBM( ask >>= \s -> lift $ IE.executeCommand s stmt )
 
  --   bindParameters :: stmt -> [stmt -> Position -> ms ()] -> ms ()
 

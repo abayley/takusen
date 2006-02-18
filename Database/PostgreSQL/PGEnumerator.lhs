@@ -15,19 +15,20 @@ PostgreSQL implementation of Database.Enumerator.
 > {-# OPTIONS -fallow-overlapping-instances #-}
 
 > module Database.PostgreSQL.PGEnumerator
->   ( Session, connect, disconnect, ConnectAttr(..) )
+>   ( Session, connect, ConnectAttr(..)
+>    , QueryResourceUsage(..), sql_tuned
+>   )
 > where
 
 
+> import Database.InternalEnumerator
 > import Foreign.C
 > import Control.Monad
 > import Control.Exception
+> import Control.Exception (catchDyn, throwDyn, throwIO)
 > import Database.PostgreSQL.PGFunctions
 >   (DBHandle, StmtHandle, PGException(..), catchPG, throwPG)
 > import qualified Database.PostgreSQL.PGFunctions as DBAPI
-> import Database.Enumerator
-> import Control.Monad.Trans
-> import Control.Monad.Reader
 > import Data.IORef
 > import Data.Int
 > import System.Time
@@ -81,8 +82,8 @@ Session objects are created by 'connect'.
 >  | CAsslmode String
 >  | CAservice String
 >	   
-> connect :: [ConnectAttr] -> IO Session
-> connect attrs = convertEx $ do
+> connect :: [ConnectAttr] -> ConnectA Session
+> connect attrs = ConnectA $ convertEx $ do
 >   db <- DBAPI.openDb (unwords $ map encode attrs)
 >   return (Session db)
 >  where 
@@ -102,9 +103,6 @@ Session objects are created by 'connect'.
 >	             (s,"") -> s
 >                    (s,(c:t))  -> s ++ ('\\' : c : qu t)
 
-> disconnect :: Session -> IO ()
-> disconnect session = convertEx $ DBAPI.closeDb (dbHandle session)
-
 
 > test_connect host = do
 >  db <- connect [CAhostaddr host,CAuser "oleg",CAdbname "test"]
@@ -113,24 +111,29 @@ Session objects are created by 'connect'.
 >  putStrLn "Done"
 
 
-> type SessionM = ReaderT Session IO
+> instance ISession Session where
+>   disconnect sess = convertEx $ DBAPI.closeDb (dbHandle session)
+>   beginTransaction sess isolation = executeDDL sess "begin"
+>   commit sess = executeDDL sess "commit"
+>   rollback sess = executeDDL sess "rollback"
 
-> instance MonadSession SessionM IO Session where
->   runSession = flip runReaderT
->   getSession = ask
+
+The simplest kind of a statement: no tuning parameters, all default,
+little overhead
+
+> data QueryString = QueryString String
+> sql str = QueryString str
+
 >
->   beginTransaction isolation = executeDDL "begin"
 >
->   commit = executeDDL "commit"
 >
->   rollback = executeDDL "rollback"
 >   executeDML cmdText = do
 >     sess <- ask
 >     (_,ntuple_str,_) <- liftIO $ convertEx $ 
 >		                DBAPI.nqExec (dbHandle sess) cmdText
 >     return $ if ntuple_str == "" then 0 else read ntuple_str
 >
->   executeDDL cmdText = do
+>   executeDDL sess cmdText = do
 >     sess <- ask
 >     _ <- liftIO $ convertEx $ DBAPI.nqExec (dbHandle sess) cmdText
 >     return ()

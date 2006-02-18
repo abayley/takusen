@@ -119,9 +119,10 @@ tuning parameters later.
 
 > sql str = QueryString str
 
+> instance Command QueryString Session where
+>   executeCommand s q  = return 0
+
 > instance Statement QueryString Session Query where
->   executeDML s q  = return 0
->   executeDDL s q  = return ()
 >   makeQuery sess stmt = do
 >       -- Leave one counter in to ensure the fetch terminates
 >     counter <- newIORef numberOfRowsToPretendToFetch
@@ -132,9 +133,11 @@ tuning parameters later.
 
 > sql_tuned resource_usage str = QueryStringTuned resource_usage str
 
+> instance Command QueryStringTuned Session where
+>   executeCommand s (QueryStringTuned _ str) =
+>	  executeCommand s (QueryString str)
+
 > instance Statement QueryStringTuned Session Query where
->   executeDML s (QueryStringTuned _ str) = executeDML s (QueryString str)
->   executeDDL s (QueryStringTuned _ str) = executeDDL s (QueryString str)
 >   -- Currently just ignore the tuning parameter. This is the stub
 >   -- anyway. We only wish to test different types of statements
 >   makeQuery s (QueryStringTuned _ str) = makeQuery s (QueryString str)
