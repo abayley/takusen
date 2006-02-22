@@ -89,9 +89,9 @@ Use this (execDrop) when it's likely to raise an error.
 >   [ selectNoRows, selectTerminatesEarly, selectFloatsAndInts
 >   , selectNullString -- , selectUnhandledNull --, selectNullDate dateFn
 > --   , selectDate dateFn, selectBoundaryDates dateFn
-> --  , selectCursor
-> --  , selectExhaustCursor
-> --  , selectBindInt
+>  , selectCursor
+>  , selectExhaustCursor
+>  , selectBindInt
 > --  , selectBindDate
 > --  , polymorphicFetchTest
 >   , updateRollback
@@ -272,10 +272,9 @@ the exception is not raised.
 >     ) (\e -> return () )
 
 
-> {-
 > selectBindInt _ = do
 >   let
->     query = "select ? from tdual union select ? from tdual order by 1"
+>     query = "select cast($1 as int) from tdual union select cast($2 as int) from tdual order by 1"
 >     -- Oracle only understands :x style placeholders
 >     --query = "select :x from tdual union select :x from tdual order by 1"
 >     iter :: (Monad m) => Int -> IterAct m [Int]
@@ -284,12 +283,16 @@ the exception is not raised.
 >     expect = [2, 1]
 >     bindVals :: [Int]
 >     bindVals = [1, 2]
->   actual <- runSession sess (doQueryTuned defaultResourceUsage query bindVals iter [])
->   assertEqual query expect actual
+>   stmt <- executePreparation $ prepareStmt "mystmt" (sql query)
+>   withBoundStatement stmt (map bindP bindVals) (\bs -> do
+>	actual <- doQuery bs iter []
+>       liftIO $ assertEqual query expect actual)
 
 For Sqlite we use a 99999999999999 :: Int64 to represent a null date,
 so this is sorted after non-null dates, which is the same behaviour as
 SQL nulls. SQL nulls come last in the collation order.
+
+> {-
 
 > selectBindDate sess = do
 >   let

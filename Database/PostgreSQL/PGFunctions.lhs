@@ -297,6 +297,22 @@ result in text
 >     ntuples <- fPQntuples stmt
 >     return (stmt, fromIntegral ntuples)
 
+Execute a previously prepared statement, with text params. Ask for the
+result in text
+
+> stmtExecNT :: DBHandle -> String -> [Maybe String] -> IO (StmtHandle, Int)
+> stmtExecNT db stmt'name params =
+>   withCString stmt'name $ \csn ->
+>     do 
+>     let np = fromIntegral $ length params
+>     vals <- mapM (maybe (return nullPtr) newCString) params
+>     stmt <- withArray vals (\cvals ->
+>         fPQexecPrepared db csn np cvals nullPtr nullPtr 0 >>=
+>		   check'stmt db ePGRES_TUPLES_OK)
+>     mapM_ (\p -> if p == nullPtr then return () else free p) vals
+>     ntuples <- fPQntuples stmt
+>     return (stmt, fromIntegral ntuples)
+
 
 
 Free storage, that is. No error in Postgres

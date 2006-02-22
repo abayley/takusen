@@ -66,6 +66,10 @@ Additional reading:
 >     , withSession, commit, rollback, beginTransaction
 >     , executeCommand
 >
+>     , PreparedStmt  -- data constructor not exported
+>     , executePreparation
+>     , withBoundStatement, IE.bindP
+>
 >     , doQuery
 >
 >     -- * A Query monad and cursors.
@@ -191,8 +195,30 @@ marked objects.
 > executeCommand :: IE.Command stmt s => stmt -> DBM mark s Int
 > executeCommand stmt = DBM( ask >>= \s -> lift $ IE.executeCommand s stmt )
 
- --   bindParameters :: stmt -> [stmt -> Position -> ms ()] -> ms ()
 
+--------------------------------------------------------------------
+-- ** Prepared statements
+--------------------------------------------------------------------
+
+> newtype PreparedStmt mark stmt = PreparedStmt stmt
+> executePreparation :: IE.IPrepared stmt s bstmt bo =>
+>		IE.PreparationA s stmt -> DBM mark s (PreparedStmt mark stmt)
+> executePreparation (IE.PreparationA action) =
+>     DBM( ask >>= \s -> lift $ action s >>= return . PreparedStmt)
+
+
+The Typeable constraint is to prevent the leakage of marked things.
+The type of bound statements should not be exported (and should not be
+in Typeable) so the bound statement can't leak either.
+
+> withBoundStatement :: (Typeable a, IE.IPrepared stmt s bstmt bo) =>
+>		 PreparedStmt mark stmt -> [IE.BindA s stmt bo] ->
+>				   (bstmt -> DBM mark s a) ->
+>				   DBM mark s a
+> withBoundStatement (PreparedStmt stmt) ba f =
+>     DBM ( ask >>= \s -> 
+>            lift $ IE.bindRun s stmt ba (\b -> runReaderT (unDBM (f b)) s))
+>
 
 
 --------------------------------------------------------------------

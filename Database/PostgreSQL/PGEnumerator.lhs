@@ -20,6 +20,7 @@ PostgreSQL implementation of Database.Enumerator.
 >   ( Session, connect, ConnectAttr(..)
 >    , sql
 >    , QueryResourceUsage(..), sql_tuned
+>    , PreparedStmt, prepareStmt
 >   )
 > where
 
@@ -95,8 +96,6 @@ because they never throw exceptions.
 > convertEx action = catchPG action (\e -> print e >> convertAndRethrow e)
 
 > {-
-> prepareStmt :: DBHandle -> String -> IO StmtHandle
-> prepareStmt db sqltext = convertEx $ DBAPI.stmtPrepare db sqltext
 
 > fetchRow :: DBHandle -> StmtHandle -> IO CInt
 > fetchRow db stmt = convertEx $ DBAPI.stmtFetch db stmt
@@ -200,6 +199,37 @@ tuning parameters later.
 > defaultResourceUsage = QueryResourceUsage 100
 
 
+Simple prepared statement: the analogue of QueryString. It is useful
+for DDL and DML statements, and for simple queries (that is, queries
+that do not need cursors and result in a small enough dataset -- because
+it will be fetched entirely in one shot).
+
+The data constructor is not exported.
+
+> data PreparedStmt = PreparedStmt String
+> prepareStmt :: String -> QueryString -> PreparationA Session PreparedStmt
+> prepareStmt [] _ = error "Prepared statement name must be non-empty"
+> prepareStmt name (QueryString str) = 
+>     PreparationA (\sess -> 
+>	    convertEx $ DBAPI.stmtPrepare (dbHandle sess) name str
+>	    >>= return . PreparedStmt)
+
+This kind of statement supports textual parameter binding interface
+(that is, everything is done via a string). We use Maybe String
+so we can represent NULLs.
+
+> newtype BOString = BOString (Maybe String)
+
+> instance IPrepared PreparedStmt Session BoundStmt BOString
+>     where
+>     bindRun sess stmt@(PreparedStmt stmt'name) bas body =
+>         convertEx $ DBAPI.stmtExecNT (dbHandle sess) stmt'name params
+>         >>= body . BoundStmt
+>       where 
+>       params = map (\(BindA ba) -> case ba sess stmt of BOString x ->x) bas
+>
+> newtype BoundStmt = BoundStmt (StmtHandle, Int)
+
 
 --------------------------------------------------------------------
 -- ** Queries
@@ -242,6 +272,17 @@ and prepare the buffers accordingly. We don't do that at the moment.
 >   makeQuery sess (QueryString sqltext) = commence'query'simple sess sqltext
 
 
+Simple prepared statements
+
+> instance Statement BoundStmt Session Query where
+>   makeQuery sess (BoundStmt (handle,ntuples)) = do
+>	  sqr <- newIORef $ SubQuery handle ntuples 0
+>         return Query {subquery = sqr,
+>		        advance'action = Nothing,
+>	                cleanup'action = Nothing,
+>	                session = sess}
+
+
 -- Statements with resource usage
 
 > data QueryStringTuned = QueryStringTuned QueryResourceUsage String
@@ -250,6 +291,7 @@ and prepare the buffers accordingly. We don't do that at the moment.
 > instance Statement QueryStringTuned Session Query where
 >   makeQuery sess (QueryStringTuned resource_usage sqltext) = 
 >	commence'query sess resource_usage sqltext
+
 
 
 > default'cursor'name = "takusenp"
@@ -513,3 +555,25 @@ and uses Read to convert the String to a Haskell data value.
 >     case v of
 >       Just s -> return (Just (read s))
 >       Nothing -> return Nothing
+
+
+-- Serialization (binding)
+-- If our statement supports only text parameters, serialization is trivial,
+-- just to a string
+
+
+> instance DBBind String Session PreparedStmt BOString where
+>   bindP x = BindA (\ses st -> BOString . Just $ x)
+
+> instance DBBind a Session PreparedStmt BOString
+>     => DBBind (Maybe a) Session PreparedStmt BOString where
+>   bindP x = BindA (\ses st -> maybe (BOString Nothing) ((un ses st).bindP) x)
+>       where un ses st (BindA f) = f ses st 
+
+
+The default instance, uses generic Show
+
+> instance (Show a) => DBBind a Session PreparedStmt BOString where
+>   bindP x = BindA (\ses st -> BOString . Just . show $ x)
+
+

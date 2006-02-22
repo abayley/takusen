@@ -12,6 +12,8 @@ Only the programmer for a new back-end needs to consult this file.
 >     -- * Session object.
 >     ISession(..), ConnectA(..), 
 >    , Statement(..), Command(..),
+>    , PreparationA(..), IPrepared(..),
+>    , BindA(..), DBBind(..),
 >    , IsolationLevel(..)
 >    , Position
 >    , IQuery(..)
@@ -185,7 +187,7 @@ are typed (e.g., Integer, CalendarDate, etc), column buffers hide that
 type. Think of the column buffer as Dynamics. The class DBType below
 describes marshalling functions, to fetch a typed value out of the
 `untyped' columnBuffer.
- 
+
 Different DBMS's (that is, different session objects) have, in
 general, columnBuffers of different types: the type of Column Buffer
 is specific to a database.
@@ -201,9 +203,6 @@ A database-specific library must provide a set of instances for DBType.
 >   allocBufferFor :: a -> q -> Position -> IO b
 >   fetchCol   :: q -> b -> IO a
 
- class DBBind a ms stmt | ms -> stmt where
-   bindPos :: stmt -> a -> Position -> ms ()
-
 |Used by instances of DBType to throw an exception
 when a null (Nothing) is returned.
 Will work for any type, as you pass the fetch action in the fetcher arg.
@@ -215,3 +214,47 @@ Will work for any type, as you pass the fetch action in the fetcher arg.
 >       (row,col) <- pos
 >       throwDB (DBUnexpectedNull row col)
 >     Just m -> return m
+
+
+------------------------------------------------------------------------
+Prepared commands and statements
+
+
+This type is not visible to the end user (cf. ConnectA). It forms a private
+`communication channel' between Database.Enumerator and a back end.
+
+Why don't we make a user-visible class with a `prepare' method?
+Because it means to standardize the preparation method signature
+across all databases. Some databases need more parameters, some
+fewer. There may be several statement preparation functions within one
+database.  So, instead of standardizing the signature of the
+preparation function, we standardize on the _result_ of that
+function. To be more precise, we standardize on the properties of the
+result: whatever it is, the eventual prepared statement should be
+suitable to be passed to 'bindRun'.
+
+
+> newtype PreparationA sess stmt = PreparationA (sess -> IO stmt)
+
+
+> class ISession sess => IPrepared stmt sess bound_stmt bo
+>     | stmt -> bound_stmt, stmt -> bo
+>     where
+>     bindRun :: sess -> stmt -> [BindA sess stmt bo] ->
+>	 (bound_stmt -> IO a) -> IO a
+
+The binding object (bo) below is very abstract, on purpose. It may
+be |IO a|, it may be String, it may be a function, etc. The binding
+object can hold the result of marshalling, or bo can hold the current
+counter, etc. Different databases do thinsg very differently: compare
+PostgreSQL and the Stub (which models Oracle).
+
+> newtype BindA sess stmt bo = BindA (sess -> stmt -> bo)
+
+The class DBBind is not used by the end-user.
+It is used to tie up low-level database access and the enumerator.
+A database-specific library must provide a set of instances for DBBind.
+The latter are the dual of DBType.
+
+> class ISession sess => DBBind a sess stmt bo | stmt -> bo where
+>   bindP :: a -> BindA sess stmt bo
