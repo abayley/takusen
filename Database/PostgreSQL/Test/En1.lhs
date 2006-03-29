@@ -17,6 +17,7 @@ You must to use a DBMS-specific library to create the Session
 
 > {-# OPTIONS -fglasgow-exts #-}
 > {-# OPTIONS -fallow-overlapping-instances #-}
+> {-# OPTIONS -ddump-hi #-}
 
 > module Database.PostgreSQL.Test.En1 where
 

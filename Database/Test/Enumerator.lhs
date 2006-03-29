@@ -24,15 +24,22 @@ You must to use a DBMS-specific library to create the Session
 > import Database.Enumerator
 > import System.Time  -- CalendarTime
 > import Data.Int
-> import Test.HUnit
+> --import Test.HUnit
+> import Test.MiniUnit
 
 
-> runTests dateFn sess = do
->   makeFixture sess
->   runTestTT (TestList (makeTests sess (testList dateFn)))
->   destroyFixture sess
+> runTests :: (Typeable a, IE.ISession sess) => 
+>	 (Int64 -> String) -> IE.ConnectA sess -> (forall mark. DBM mark sess a) -> IO a
+> runTests dateFn = do
+>   makeFixture
+>   --runTestTT (TestList (makeTests (testList dateFn)))
+>   runTestTT (testList dateFn)
+>   destroyFixture
 
 > testTable = "takusen_test"
+
+> --makeTests list = map TestCase list
+
 
 Oracle has a table called "dual" built-in, but other DBMS's don't.
 We'll create one here called "tdual".
@@ -48,33 +55,33 @@ So if we know that a dual table will always be present
 (and containing a single row) then we can use the same
 sql statements for all DBMS's.
 
-> makeFixture :: (MonadSession m IO s q) => s -> IO ()
-> makeFixture sess = do
->   execDrop sess "drop table tdual"
->   execDDL_ sess "create table tdual (dummy varchar(1) primary key)"
->   runSession sess (beginTransaction Serialisable)
->   execDDL_ sess "insert into tdual values ('X')"
->   runSession sess commit
->   execDrop sess $ "drop table " ++ testTable
->   execDDL_ sess $ "create table " ++ testTable ++ " (id integer, v varchar(1000))"
->   runSession sess (beginTransaction Serialisable)
->   execDDL_ sess $ "insert into " ++ testTable ++ " (id, v) values (1, '2')"
->   execDDL_ sess $ "insert into " ++ testTable ++ " (id, v) values (2, '2')"
->   execDDL_ sess $ "insert into " ++ testTable ++ " (id, v) values (3, '3')"
->   runSession sess commit
+> --makeFixture :: (MonadSession m IO s q) => s -> IO ()
+> withSession :: (Typeable a, IE.ISession sess) => 
+>	 IE.ConnectA sess -> (forall mark. DBM mark sess a) -> IO a
+> makeFixture = do
+>   execDrop "drop table tdual"
+>   execDDL_ "create table tdual (dummy varchar(1) primary key)"
+>   beginTransaction Serialisable
+>   execDDL_ "insert into tdual values ('X')"
+>   commit
+>   execDrop $ "drop table " ++ testTable
+>   execDDL_ $ "create table " ++ testTable ++ " (id integer, v varchar(1000))"
+>   beginTransaction Serialisable
+>   execDDL_ $ "insert into " ++ testTable ++ " (id, v) values (1, '2')"
+>   execDDL_ $ "insert into " ++ testTable ++ " (id, v) values (2, '2')"
+>   execDDL_ $ "insert into " ++ testTable ++ " (id, v) values (3, '3')"
+>   commit
 
-> destroyFixture sess = do
->   execDDL_ sess "drop table tdual"
->   execDDL_ sess $ "drop table " ++ testTable
+> destroyFixture = do
+>   execDDL_ "drop table tdual"
+>   execDDL_ ("drop table " ++ testTable)
 
 
-> execDDL_ sess sql =
->   catchDB (runSession sess (executeDDL sql [])) (reportError sql)
+> execDDL_ sql = catchDB (execDDL sql) (liftIO . reportError sql)
 
 Use this (execDrop) when it's likely to raise an error.
 
-> execDrop sess sql =
->   catchDB (runSession sess (executeDDL sql [])) (\e -> return undefined)
+> execDrop sql = catchDB (execDDL sql) (\e -> return undefined)
 
 
 > reportError sql (DBFatal (ssc, sssc) e m) = do
@@ -87,13 +94,36 @@ Use this (execDrop) when it's likely to raise an error.
 >   putStrLn $ "Unexpected null in row " ++ (show r) ++ ", column " ++ (show c) ++ "."
 > reportError sql (DBNoData) = putStrLn "Fetch: no more data."
 
-> makeTests sess list = map (\f -> TestCase (f sess)) list
+
+> dateSqlite :: Int64 -> String
+> dateSqlite i = if i == 0 then "99999999999999" else show i
+
+> dateOracle :: Int64 -> String
+> dateOracle i
+>   | i == 0 = "to_date(null)"
+>   | i > 0  = "to_date('" ++ (zeroPad 14 i) ++ "', 'yyyymmddhh24miss')"
+>   | i < 0  = "to_date('" ++ (zeroPad 14 i) ++ "', 'syyyymmddhh24miss')"
+
+> zeroPad :: Int -> Int64 -> String
+> zeroPad n i =
+>   if i < 0
+>   then "-" ++ (zeroPad n (abs i))
+>   else (take taken (repeat '0')) ++ (showi)
+>   where
+>     showi = show i
+>     taken = if leni > n then 0 else n - leni
+>     leni = length showi
+
+
+
 
 testList has a particularly nasty type, which wouldn't be feasable
 to copy into here.
 
 > testList (dateFn::(Int64 -> String)) =
->   [ selectNoRows, selectTerminatesEarly, selectFloatsAndInts
+>   [ selectNoRows
+> {-
+>   , selectNoRows, selectTerminatesEarly, selectFloatsAndInts
 >   , selectNullString, selectEmptyString, selectUnhandledNull, selectNullDate dateFn
 >   , selectDate dateFn, selectBoundaryDates dateFn
 >   , selectCursor
@@ -101,22 +131,22 @@ to copy into here.
 >   , selectBindInt, selectBindIntDoubleString, selectBindDate
 >   , polymorphicFetchTest
 >   , updateRollback, preparedStatement
+> -}
 >   ]
 
 
-> selectTest sess query iter expect = do
->   let
->     --bindVals :: [Int]
->     bindVals = []
->   actual <- runSession sess (doQueryTuned defaultResourceUsage query bindVals iter [])
+> selectTest query iter expect = do
+>   actual <- doQuery query iter []
 >   assertEqual query expect actual
 
-> selectNoRows sess = selectTest sess query iter expect
+> selectNoRows = selectTest query iter expect
 >   where
 >     query = "select dummy from tdual where dummy = 'a' or dummy = '2' "
 >     iter (c1::String) acc = result $ c1:acc
 >     expect = []::[String]
 
+
+> {-
 
 This is the example of enough context being provided so that
 no signature for the iteratee is necessary.
@@ -172,26 +202,6 @@ and exception when it receives a null.
 >     iter c1 c2 c3 acc = result $ (c1, c2, c3):acc
 >     expect = []
 
-
-> zeroPad :: Int -> Int64 -> String
-> zeroPad n i =
->   if i < 0
->   then "-" ++ (zeroPad n (abs i))
->   else (take taken (repeat '0')) ++ (showi)
->   where
->     showi = show i
->     taken = if leni > n then 0 else n - leni
->     leni = length showi
-
-
-> dateSqlite :: Int64 -> String
-> dateSqlite i = if i == 0 then "99999999999999" else show i
-
-> dateOracle :: Int64 -> String
-> dateOracle i
->   | i == 0 = "to_date(null)"
->   | i > 0  = "to_date('" ++ (zeroPad 14 i) ++ "', 'yyyymmddhh24miss')"
->   | i < 0  = "to_date('" ++ (zeroPad 14 i) ++ "', 'syyyymmddhh24miss')"
 
 
 > selectNullDate dateFn sess = selectTest sess query iter expect
@@ -430,3 +440,5 @@ SQL nulls. SQL nulls come last in the collation order.
 >     , ctTZ = 0
 >     , ctIsDST = False
 >     }
+
+> -}

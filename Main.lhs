@@ -27,11 +27,12 @@ Invoke main like this (assuming compiled to takusen.exe):
 > module Main (main) where
 
 
-> import Database.Sqlite.Test.Enumerator as Sqlite
-> import Database.Oracle.Test.Enumerator as Oracle
-> import Database.Test.MultiConnect as Multi
-> import Database.Stub.Test.Enumerator as Stub
+> --import Database.Sqlite.Test.Enumerator as Sqlite
+> --import Database.Oracle.Test.Enumerator as Oracle
+> --import Database.Test.MultiConnect as Multi
+> --import Database.Stub.Test.Enumerator as Stub
 > --import Database.MSSqlServer.Test.Enumerator as MSSql
+> import Database.PostgreSQL.Test.Enumerator as PGSql
 > import System.Environment (getArgs)
 > import Database.Test.Performance as Perf
 
@@ -45,10 +46,13 @@ Invoke main like this (assuming compiled to takusen.exe):
 >     Just test -> test runPerf args
 
 > backendTests :: [(String, Perf.ShouldRunTests -> [String] -> IO ())]
-> backendTests =
+> backendTests = [ ("pgsql", PGSql.runTest) ]
+> {-
 >   [ ("stub", Stub.runTest)
 >   , ("sqlite", Sqlite.runTest)
+>   , ("pgsql", PGSql.runTest)
 >   --, ("mssql", MSSql.runTest)
 >   , ("oracle", Oracle.runTest)
 >   , ("multi", Multi.runTest)
 >   ]
+> -}

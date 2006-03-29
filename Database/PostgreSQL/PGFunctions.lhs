@@ -22,13 +22,17 @@ wrappers (in the second part of this file)
 > import Control.Exception
 > import Data.Dynamic
 > import Data.Int
+> import System.Time
 
 
 > data DBHandleStruct = PGconn
 > type DBHandle = Ptr DBHandleStruct
 > data StmtStruct = PGresult
-> type StmtHandle = Ptr StmtStruct
+> type ResultSetHandle = Ptr StmtStruct
 > type Oid = CUInt -- from postgres_ext.h
+> type Format = CInt
+> type Void = ()
+> type ParamLen = CInt
 > invalidOid = 0
 > -- type Blob = Ptr Word8
 
@@ -52,6 +56,11 @@ wrappers (in the second part of this file)
 > cStrLen :: CStringLen -> CInt
 > cStrLen = fromIntegral . snd
 
+
+include C:\MinGW\include\winsock.h
+
+> foreign import stdcall "winsock.h htonl" htonl :: Word32 -> Word32
+> foreign import stdcall "winsock.h ntohl" ntohl :: Word32 -> Word32
 
 > foreign import ccall "libpq-fe.h PQconnectdb" fPQconnectdb
 >   :: CString -> IO DBHandle
@@ -91,22 +100,22 @@ connection.
 Execution of commands
 
 > foreign import ccall "libpq-fe.h PQexec" fPQexec
->   :: DBHandle -> CString -> IO StmtHandle
+>   :: DBHandle -> CString -> IO ResultSetHandle
 
 
 One can also use SQL PREPARE for that
 
 > foreign import ccall "libpq-fe.h PQprepare" fPQprepare
->   :: DBHandle -> CString -> CString -> CInt -> Ptr Oid -> IO StmtHandle
+>   :: DBHandle -> CString -> CString -> CInt -> Ptr Oid -> IO ResultSetHandle
 
 > foreign import ccall "libpq-fe.h PQexecPrepared" fPQexecPrepared
->   :: DBHandle -> CString -> CInt -> Ptr CString -> Ptr CInt -> Ptr CInt ->
->      CInt -> IO StmtHandle
+>   :: DBHandle -> CString -> CInt -> Ptr Void -> Ptr ParamLen -> Ptr Format ->
+>      CInt -> IO ResultSetHandle
 
 
 
 > foreign import ccall "libpq-fe.h PQresultStatus" fPQresultStatus
->   :: StmtHandle -> IO ExecStatusType
+>   :: ResultSetHandle -> IO ExecStatusType
 
 > type ExecStatusType = CInt -- enumeration, see libpq-fe.h
 > (ePGRES_EMPTY_QUERY : 
@@ -120,46 +129,49 @@ One can also use SQL PREPARE for that
 >  _)
 >  = [0..] :: [ExecStatusType]
 
+> (textResultSet:binaryResultSet:_) = [0,1] :: [CInt]
+> (textParameters:binaryParameters:_) = [0,1] :: [CInt]
+
 > foreign import ccall "libpq-fe.h PQresultErrorMessage" fPQresultErrorMessage
->   :: StmtHandle -> IO CString
+>   :: ResultSetHandle -> IO CString
 
 > foreign import ccall "libpq-fe.h PQclear" fPQclear
->   :: StmtHandle -> IO ()
+>   :: ResultSetHandle -> IO ()
 
 
 Retrieving Query Result Information
 
 > foreign import ccall "libpq-fe.h PQntuples" fPQntuples
->   :: StmtHandle -> IO CInt
+>   :: ResultSetHandle -> IO CInt
 > foreign import ccall "libpq-fe.h PQnfields" fPQnfields
->   :: StmtHandle -> IO CInt
+>   :: ResultSetHandle -> IO CInt
 
 Inquiry about a column; Column numbers start at 0
 
 > foreign import ccall "libpq-fe.h PQfname" fPQfname
->   :: StmtHandle -> CInt -> IO CString
+>   :: ResultSetHandle -> CInt -> IO CString
 > foreign import ccall "libpq-fe.h PQfformat" fPQfformat
->   :: StmtHandle -> CInt -> IO CInt
+>   :: ResultSetHandle -> CInt -> IO CInt
 > foreign import ccall "libpq-fe.h PQftype" fPQftype
->   :: StmtHandle -> CInt -> IO Oid
+>   :: ResultSetHandle -> CInt -> IO Oid
 
 Really getting the values
 
 > foreign import ccall "libpq-fe.h PQgetvalue" fPQgetvalue
->   :: StmtHandle -> CInt -> CInt -> IO (Ptr Word8)
+>   :: ResultSetHandle -> CInt -> CInt -> IO (Ptr Word8)
 > foreign import ccall "libpq-fe.h PQgetisnull" fPQgetisnull
->   :: StmtHandle -> CInt -> CInt -> IO CInt
+>   :: ResultSetHandle -> CInt -> CInt -> IO CInt
 > foreign import ccall "libpq-fe.h PQgetlength" fPQgetlength
->   :: StmtHandle -> CInt -> CInt -> IO CInt
+>   :: ResultSetHandle -> CInt -> CInt -> IO CInt
 
 27.3.3. Retrieving Result Information for Other Commands
 
 > foreign import ccall "libpq-fe.h PQcmdStatus" fPQcmdStatus
->   :: StmtHandle -> IO CString
+>   :: ResultSetHandle -> IO CString
 > foreign import ccall "libpq-fe.h PQcmdTuples" fPQcmdTuples
->   :: StmtHandle -> IO CString
+>   :: ResultSetHandle -> IO CString
 > foreign import ccall "libpq-fe.h PQoidValue" fPQoidValue
->   :: StmtHandle -> IO Oid
+>   :: ResultSetHandle -> IO Oid
 
 27.9. Control Functions
 
@@ -228,21 +240,23 @@ conn'parm is a string with all the attributes
 > closeDb :: DBHandle -> IO ()
 > closeDb db = fPQfinish db
 
-Check the StmtHandle returned by fPQexec and similar functions
+Check the ResultSetHandle returned by fPQexec and similar functions
 
-> check'stmt :: DBHandle -> ExecStatusType -> StmtHandle -> IO StmtHandle
-> check'stmt db _ stmt | stmt == nullPtr = -- something is really wrong
->      do emsg <- getError db 
->         rc   <- fPQstatus db
->         throwPG rc emsg
-> check'stmt _ expected'status stmt = 
->      do 
->         rc <- fPQresultStatus stmt
->         if rc == expected'status then return stmt
->            else do
->                    msg <- fPQresultErrorMessage stmt >>= peekCString
->                    fPQclear stmt
->                    throwPG rc msg
+> check'stmt :: DBHandle -> ExecStatusType -> ResultSetHandle -> IO ResultSetHandle
+> check'stmt db _ stmt
+>   | stmt == nullPtr = do -- something is really wrong
+>       emsg <- getError db 
+>       rc <- fPQstatus db
+>       --putStrLn $ "Oops, no result-set: " ++ show rc ++ " " ++ show emsg
+>       throwPG rc emsg
+> check'stmt _ expected'status stmt =  do
+>   rc <- fPQresultStatus stmt
+>   if rc == expected'status then return stmt
+>     else do
+>       msg <- fPQresultErrorMessage stmt >>= peekCString
+>       fPQclear stmt
+>       --putStrLn $ "bad return code: " ++ show rc ++ ", expecting " ++ show expected'status
+>       throwPG rc msg
 
 
 
@@ -263,7 +277,7 @@ Execute some kind of statement that returns no tuples
 
 Prepare and Execute a query
 
-> stmtExecImm :: DBHandle -> String -> IO (StmtHandle, Int)
+> stmtExecImm :: DBHandle -> String -> IO (ResultSetHandle, Int)
 > stmtExecImm db sqlText =
 >   withCString sqlText $ \cstr ->
 >     do 
@@ -271,83 +285,257 @@ Prepare and Execute a query
 >     ntuples <- fPQntuples stmt
 >     return (stmt, fromIntegral ntuples)
 
+-----------------------------------------------------------
 
-Currently assume all parameters, if any, are text
+Here we define some classes which are useful in marshalling
+Haskell values to and from their Postgres counterparts.
+Useful for binding and defining.
 
-> stmtPrepare :: DBHandle -> String -> String -> IO String
-> stmtPrepare db stmt'name sqlText =
->   withCString stmt'name $ \csn ->
->     withCString sqlText $ \cstr ->
->       do
->       stmt <- fPQprepare db csn cstr 0 nullPtr >>= 
->                     check'stmt db ePGRES_COMMAND_OK
->       fPQclear stmt			-- doesn't have any useful info
->       return stmt'name
+TypeOID is a class to convert types to their OIDs.
+We need this for the prepare functions,
+which take an array of OIDs to indicate parameter types.
+We can find the OIDs with this query:
+select typname, oid from pg_type
+
+> {-
+> class TypeOID a where typeOid :: a -> Oid
+
+> instance TypeOID a => TypeOID (Maybe a) where
+>   typeOid Nothing = typeOid (undefined::a)
+>   typeOid (Just v) = typeOid v
+
+> instance TypeOID String where typeOid _ = 25
+> instance TypeOID Char where typeOid _ = 18
+> instance TypeOID Int where typeOid _ = 23
+> instance TypeOID Int16 where typeOid _ = 21
+> instance TypeOID Int32 where typeOid _ = 23
+> instance TypeOID Int64 where typeOid _ = 20
+> instance TypeOID Float where typeOid _ = 700  -- float4
+> instance TypeOID Double where typeOid _ = 701  -- float8
+> instance TypeOID CalendarTime where typeOid _ = 1114  -- timestamp
+
+> -}
+
+
+> class PGType a where
+>   pgTypeFormat :: a -> Format
+>   pgTypeOid :: a -> Oid
+>   pgNewValue :: a -> IO (Ptr Word8)
+>   pgPeek :: Ptr Word8 -> IO a
+>   pgSize :: a -> CInt
+>   -- do we need these?...
+>   --pgToCValue :: Storable b => a -> b
+>   --pgFromCValue :: Storable b => b -> a
+>   -- default impls
+>   pgTypeFormat _ = 1
+>   pgTypeOid _ = 23
+
+> instance PGType a => PGType (Maybe a) where
+>   pgTypeFormat Nothing = pgTypeFormat (undefined::a)
+>   pgTypeFormat (Just v) = pgTypeFormat v
+>   pgTypeOid Nothing = pgTypeOid (undefined::a)
+>   pgTypeOid (Just v) = pgTypeOid v
+>   pgNewValue Nothing = return nullPtr
+>   pgNewValue (Just v) = pgNewValue v
+>   pgPeek ptr = if ptr == nullPtr then return Nothing else pgPeek ptr >>= return . Just
+>   pgSize _ = pgSize (undefined::a)
+
+> instance PGType String where
+>   pgTypeFormat _ = 0
+>   pgTypeOid _ = 25
+>   pgNewValue s = newCString s >>= return . castPtr
+>   pgPeek = peekCString . castPtr
+>   pgSize s = clength s
+
+> instance PGType Char where
+>   pgTypeFormat _ = 1
+>   pgTypeOid _ = 18
+>   pgNewValue v = createNewValue toCChar v
+>   pgPeek p = peekValue fromCChar p
+>   pgSize c = toCInt (sizeOf (toCChar c))
+
+> instance PGType Int where
+>   pgTypeFormat _ = 1
+>   pgTypeOid _ = 23
+>   pgNewValue v = createNewValue toCInt v
+>   pgPeek p = peekValueRev undefined fromCInt p
+>   pgSize v = toCInt (sizeOf (toCInt v))
+
+> instance PGType Int64 where
+>   pgTypeFormat _ = 1
+>   pgTypeOid _ = 20
+>   pgNewValue v = createNewValue toCInt64 v
+>   pgPeek p = peekValueRev undefined fromCInt64 p
+>   pgSize v = toCInt (sizeOf (toCInt64 v))
+
+> instance PGType Double where
+>   pgTypeFormat _ = 1
+>   pgTypeOid _ = 701
+>   pgNewValue v = createNewValue toCDouble v
+>   pgPeek p = peekValueRev undefined fromCDouble p
+>   pgSize v = toCInt (sizeOf (toCDouble v))
+
+> instance PGType Float where
+>   pgTypeFormat _ = 1
+>   pgTypeOid _ = 700
+>   pgNewValue v = createNewValue toCFloat v
+>   pgPeek p = peekValueRev undefined fromCFloat p
+>   pgSize v = toCInt (sizeOf (toCFloat v))
+
+> createNewValue :: (Storable a, PGType b) => (b -> a) -> b -> IO (Ptr Word8)
+> createNewValue fn v =
+>   malloc >>= \p -> do poke p (fn v); return p >>= return . castPtr
+
+> peekValue :: (Storable a, PGType b) => (a -> b) -> Ptr Word8 -> IO b
+> peekValue fn p = peek (castPtr p) >>= return . fn
+
+Postgres's binary representations are in network-byte-order;
+we call reverseBytes to fix it.
+
+> peekValueRev :: (Storable a, PGType b) => a -> (a -> b) -> Ptr Word8 -> IO b
+> peekValueRev v fn fromptr = do
+>   let sz = sizeOf v
+>   allocaArray sz $ \toptr -> do
+>     reverseBytes sz (castPtr fromptr) (plusPtr toptr (sz-1))
+>     peek toptr >>= return . fn
+
+> clength = fromIntegral . length
+
+> toCInt :: Int -> CInt; toCInt = fromIntegral
+> fromCInt :: CInt -> Int; fromCInt = fromIntegral
+> toCInt64 :: Int64 -> CLLong; toCInt64 = fromIntegral
+> fromCInt64 :: CLLong -> Int64; fromCInt64 = fromIntegral
+> toCChar :: Char -> CChar; toCChar = toEnum . fromEnum
+> fromCChar :: CChar -> Char; fromCChar = toEnum . fromEnum
+> toCDouble :: Double -> CDouble; toCDouble = realToFrac
+> fromCDouble :: CDouble -> Double; fromCDouble = realToFrac
+> toCFloat :: Float -> CFloat; toCFloat = realToFrac
+> fromCFloat :: CFloat -> Float; fromCFloat = realToFrac
+
+> reverseBytes :: Int -> Ptr Word8 -> Ptr Word8 -> IO ()
+> reverseBytes 0 _ _ = return ()
+> reverseBytes n buffrom bufto = do
+>   b <- peek buffrom
+>   poke bufto b
+>   reverseBytes (n-1) (plusPtr buffrom 1) (plusPtr bufto (-1))
+
+
+-----------------------------------------------------------
+
+
+> stmtPrepare :: DBHandle -> String -> String -> [Oid] -> IO String
+> stmtPrepare db stmt'name sqlText types =
+>   withCString stmt'name $ \csn -> do
+>   withCString sqlText $ \cstr -> do
+>   withArray types $ \ctypearray -> do
+>     let np = fromIntegral $ length types
+>     stmt <- fPQprepare db csn cstr np ctypearray
+>     check'stmt db ePGRES_COMMAND_OK stmt
+>     fPQclear stmt			-- doesn't have any useful info
+>     return stmt'name
 
 
 Execute a previously prepared statement, with no params. Ask for the
 result in text
 
-> stmtExec0 :: DBHandle -> String -> IO (StmtHandle, Int)
+> stmtExec0 :: DBHandle -> String -> IO (ResultSetHandle, Int)
 > stmtExec0 db stmt'name =
 >   withCString stmt'name $ \csn ->
 >     do 
->     stmt <- fPQexecPrepared db csn 0 nullPtr nullPtr nullPtr 0 >>=
+>     stmt <- fPQexecPrepared db csn 0 nullPtr nullPtr nullPtr binaryResultSet >>=
 >		   check'stmt db ePGRES_TUPLES_OK
 >     ntuples <- fPQntuples stmt
 >     return (stmt, fromIntegral ntuples)
 
-Execute a previously prepared statement, with text params. Ask for the
-result in text
+Execute a previously prepared statement, with text params.
+Ask for the result in text.
 
-> stmtExecNT :: DBHandle -> String -> [Maybe String] -> IO (StmtHandle, Int)
-> stmtExecNT db stmt'name params =
->   withCString stmt'name $ \csn ->
->     do 
->     let np = fromIntegral $ length params
->     vals <- mapM (maybe (return nullPtr) newCString) params
->     stmt <- withArray vals (\cvals ->
->         fPQexecPrepared db csn np cvals nullPtr nullPtr 0 >>=
->		   check'stmt db ePGRES_TUPLES_OK)
->     mapM_ (\p -> if p == nullPtr then return () else free p) vals
->     ntuples <- fPQntuples stmt
->     return (stmt, fromIntegral ntuples)
+> stmtExecNT :: DBHandle -> String -> [Maybe String] -> IO (ResultSetHandle, Int)
+> stmtExecNT db stmt'name params = do
+>   let np = fromIntegral $ length params
+>   cparams <- mapM (maybe (return nullPtr) newCString) params
+>   withArray cparams $ \cparamarray -> do
+>   withCString stmt'name $ \cstmtname -> do
+>     rs <- fPQexecPrepared db cstmtname np (castPtr cparamarray) nullPtr nullPtr binaryResultSet
+>     check'stmt db ePGRES_TUPLES_OK rs
+>     mapM_ (\p -> if p == nullPtr then return () else free p) cparams
+>     ntuples <- fPQntuples rs
+>     return (rs, fromIntegral ntuples)
+
+
+> stmtExec :: DBHandle -> String -> [Ptr Void] -> [ParamLen] -> [Format] -> IO (ResultSetHandle, Int)
+> stmtExec db stmt'name cparams lens formats = do
+>   let np = fromIntegral $ length cparams
+>   withCString stmt'name $ \cstmtname -> do
+>   withArray cparams $ \cparamarray -> do
+>   withArray lens $ \clenarray -> do
+>   withArray formats $ \cformatarray -> do
+>     rs <- fPQexecPrepared db cstmtname np (castPtr cparamarray) clenarray cformatarray binaryResultSet
+>     check'stmt db ePGRES_TUPLES_OK rs
+>     --mapM_ (\p -> if p == nullPtr then return () else free p) cparams
+>     ntuples <- fPQntuples rs
+>     return (rs, fromIntegral ntuples)
+
+> prepare'n'exec :: DBHandle -> String -> String -> [Ptr Word8] -> [Oid] -> [ParamLen] -> [Format] -> IO (ResultSetHandle, Int)
+> prepare'n'exec db stmtname stmt cparams oids lens formats = do
+>   let np = fromIntegral $ length cparams
+>   withCString stmtname $ \cstmtname -> do
+>   withCString stmt $ \cstmt -> do
+>   withArray cparams $ \paramarray -> do
+>   withArray oids $ \coidarray -> do
+>   withArray lens $ \clenarray -> do
+>   withArray formats $ \cformatarray -> do
+>     rs <- fPQprepare db cstmtname cstmt np coidarray
+>     check'stmt db ePGRES_COMMAND_OK rs
+>     rs <- fPQexecPrepared db cstmtname np (castPtr paramarray) clenarray cformatarray binaryResultSet
+>     check'stmt db ePGRES_TUPLES_OK rs
+>     --mapM_ (\p -> if p == nullPtr then return () else free p) cparams
+>     ntuples <- fPQntuples rs
+>     return (rs, fromIntegral ntuples)
 
 
 
 Free storage, that is. No error in Postgres
 
-> stmtFinalise :: StmtHandle -> IO ()
+> stmtFinalise :: ResultSetHandle -> IO ()
 > stmtFinalise = fPQclear
 
 |Column numbers are zero-indexed, so subtract one
 from given index (we present a one-indexed interface).
 So are the row numbers
 
-> colValString :: StmtHandle -> Int -> Int -> IO String
-> colValString stmt rownum colnum = do
->   ptr <- fPQgetvalue stmt (fromIntegral (rownum - 1))
->                           (fromIntegral (colnum - 1))
+> colValPtr :: ResultSetHandle -> Int -> Int -> IO (Ptr Word8)
+> colValPtr rs row col =
+>   fPQgetvalue rs (toCInt (row-1)) (toCInt (col-1)) >>= return . castPtr
+
+> colValBinary rs row col = colValPtr rs row col >>= pgPeek
+
+
+> colValString :: ResultSetHandle -> Int -> Int -> IO String
+> colValString rs row col = do
+>   ptr <- colValPtr rs row col
 >   peekCString (castPtr ptr)
 
-> colValNull :: StmtHandle -> Int -> Int -> IO Bool
-> colValNull stmt rownum colnum = do
->   ind <- fPQgetisnull stmt (fromIntegral (rownum - 1))
->                            (fromIntegral (colnum - 1))
->   return $ ind /= 0
+> colValInt :: ResultSetHandle -> Int -> Int -> IO Int
+> colValInt = colValBinary
+
+> colValInt64 :: ResultSetHandle -> Int -> Int -> IO Int64
+> colValInt64 = colValBinary
+
+> colValDouble :: ResultSetHandle -> Int -> Int -> IO Double
+> colValDouble = colValBinary
+
+> colValFloat :: ResultSetHandle -> Int -> Int -> IO Float
+> colValFloat = colValBinary
+
+
+> colValNull :: ResultSetHandle -> Int -> Int -> IO Bool
+> colValNull rs row col = do
+>   ind <- fPQgetisnull rs (toCInt (row-1)) (toCInt (col-1))
+>   return (ind /= 0)
 
 > {-
-> colValInt64 :: StmtHandle -> Int -> IO Int64
-> colValInt64 stmt colnum = do
->   cllong <- sqliteColumnInt64 stmt (fromIntegral (colnum - 1))
->   return (fromIntegral cllong)
-
-> colValDouble :: StmtHandle -> Int -> IO Double
-> colValDouble stmt colnum = do
->   cdbl <- sqliteColumnDouble stmt (fromIntegral (colnum - 1))
->   return (realToFrac cdbl)
-
-> colValBlob :: StmtHandle -> Int -> IO (ForeignPtr Blob)
+> colValBlob :: ResultSetHandle -> Int -> IO (ForeignPtr Blob)
 > colValBlob stmt colnum = do
 >   let ccolnum = fromIntegral (colnum - 1)
 >   bytes <- sqliteColumnBytes stmt ccolnum
@@ -355,40 +543,4 @@ So are the row numbers
 >   buffer <- mallocForeignPtrBytes bytes
 >   withForeignPtr buffer $ \dest -> copyBytes dest src bytes
 >   return (castForeignPtr buffer)
-
-
-Unlike column numbers, bind positions are 1-indexed,
-so there's no need to subtract one from the given position.
-
-> bindDouble :: DBHandle -> StmtHandle -> Int -> Double -> IO ()
-> bindDouble db stmt pos value = do
->   rc <- sqliteBindDouble stmt (fromIntegral pos) (realToFrac value)
->   testForError db rc ()
-
-> bindInt :: DBHandle -> StmtHandle -> Int -> Int -> IO ()
-> bindInt db stmt pos value = do
->   rc <- sqliteBindInt stmt (fromIntegral pos) (fromIntegral value)
->   testForError db rc ()
-
-> bindInt64 :: DBHandle -> StmtHandle -> Int -> Int64 -> IO ()
-> bindInt64 db stmt pos value = do
->   rc <- sqliteBindInt64 stmt (fromIntegral pos) (fromIntegral value)
->   testForError db rc ()
-
-> bindNull :: DBHandle -> StmtHandle -> Int -> IO ()
-> bindNull db stmt pos = do
->   rc <- sqliteBindNull stmt (fromIntegral pos)
->   testForError db rc ()
-
-> bindString :: DBHandle -> StmtHandle -> Int -> String -> IO ()
-> bindString db stmt pos value =
->   withUTF8StringLen value $ \(cstr, clen) -> do
->     rc <- sqliteBindText stmt (fromIntegral pos) cstr (fromIntegral clen) nullFunPtr
->     testForError db rc ()
-
-> bindBlob :: DBHandle -> StmtHandle -> Int -> Blob -> Int -> IO ()
-> bindBlob db stmt pos value size = do
->   rc <- sqliteBindBlob stmt (fromIntegral pos) value (fromIntegral size) nullFunPtr
->   testForError db rc ()
-
 > -}

@@ -21,16 +21,18 @@ PostgreSQL implementation of Database.Enumerator.
 >    , sql
 >    , QueryResourceUsage(..), sql_tuned
 >    , PreparedStmt, prepareStmt
+>    , module Database.Enumerator
 >   )
 > where
 
 
+> import qualified Database.Enumerator
 > import Database.InternalEnumerator
 > import Foreign.C
 > import Control.Monad
 > import Control.Exception (catchDyn, throwDyn, throwIO)
 > import Database.PostgreSQL.PGFunctions
->   (DBHandle, StmtHandle, PGException(..), catchPG, throwPG)
+>   (DBHandle, ResultSetHandle, PGException(..), catchPG, throwPG)
 > import qualified Database.PostgreSQL.PGFunctions as DBAPI
 > import Data.IORef
 > import Data.Int
@@ -97,7 +99,7 @@ because they never throw exceptions.
 
 > {-
 
-> fetchRow :: DBHandle -> StmtHandle -> IO CInt
+> fetchRow :: DBHandle -> ResultSetHandle -> IO CInt
 > fetchRow db stmt = convertEx $ DBAPI.stmtFetch db stmt
 
 > -}
@@ -141,8 +143,8 @@ Session objects are created by 'connect'.
 >   encode (CAservice s)         = "service=" ++ enc s
 >   enc s = "'" ++ qu  s ++ "'"
 >   qu s = case break ( \c -> c == '\'' || c == '"' ) s of
->	             (s,"") -> s
->                    (s,(c:t))  -> s ++ ('\\' : c : qu t)
+>           (s,"") -> s
+>           (s,(c:t))  -> s ++ ('\\' : c : qu t)
 
 
 > test_connect host = do
@@ -211,7 +213,7 @@ The data constructor is not exported.
 > prepareStmt [] _ = error "Prepared statement name must be non-empty"
 > prepareStmt name (QueryString str) = 
 >     PreparationA (\sess -> 
->	    convertEx $ DBAPI.stmtPrepare (dbHandle sess) name str
+>	    convertEx $ DBAPI.stmtPrepare (dbHandle sess) name str []
 >	    >>= return . PreparedStmt)
 
 This kind of statement supports textual parameter binding interface
@@ -228,7 +230,7 @@ so we can represent NULLs.
 >       where 
 >       params = map (\(BindA ba) -> case ba sess stmt of BOString x ->x) bas
 >
-> newtype BoundStmt = BoundStmt (StmtHandle, Int)
+> newtype BoundStmt = BoundStmt (ResultSetHandle, Int)
 
 
 --------------------------------------------------------------------
@@ -236,14 +238,14 @@ so we can represent NULLs.
 --------------------------------------------------------------------
 
 > data SubQuery = SubQuery
->   { stmtHandle :: StmtHandle
+>   { stmtHandle :: ResultSetHandle
 >   , ntuples  :: Int  -- number of tuples to process in this subquery
 >   , curr'row :: Int  -- current row, one-based. Should increment before use
 >   }
 > 
 > data Query = Query
 >   { subquery :: IORef SubQuery
->   , advance'action :: Maybe (IO (StmtHandle, Int))
+>   , advance'action :: Maybe (IO (ResultSetHandle, Int))
 >   , cleanup'action :: Maybe (IO ())
 >   , session :: Session
 >   }
@@ -270,6 +272,9 @@ and prepare the buffers accordingly. We don't do that at the moment.
 
 > instance Statement QueryString Session Query where
 >   makeQuery sess (QueryString sqltext) = commence'query'simple sess sqltext
+
+> instance Statement String Session Query where
+>   makeQuery sess sqltext = commence'query'simple sess sqltext
 
 
 Simple prepared statements
@@ -322,7 +327,7 @@ Now, prepare and open the cursor
 >     let fetchq = "FETCH FORWARD " ++ (show $ prefetchRowCount resourceUsage)
 >	           ++ " FROM " ++ cursor
 >     sn <- convertEx $ DBAPI.stmtPrepare (dbHandle sess) 
->                          prepared'statement'name fetchq
+>                          prepared'statement'name fetchq []
 >     let advanceA = convertEx $ DBAPI.stmtExec0 (dbHandle sess) sn
 >     let cleanupA = convertEx $ DBAPI.nqExec (dbHandle sess) 
 >	                                ("CLOSE " ++ cursor)
@@ -475,7 +480,7 @@ so that we get sensible behaviour for -ve numbers.
 
 
 > class PGBind a where
->   stmtBind :: DBHandle -> StmtHandle -> Int -> a -> IO ()
+>   stmtBind :: DBHandle -> ResultSetHandle -> Int -> a -> IO ()
 
 > instance PGBind Int where stmtBind = DBAPI.bindInt
 > instance PGBind String where stmtBind = DBAPI.bindString
@@ -485,7 +490,7 @@ so that we get sensible behaviour for -ve numbers.
 >     DBAPI.bindInt64 db stmt pos (makeInt64 val)
 
 > bindMaybe :: (PGBind a)
->   => DBHandle -> StmtHandle -> Int -> Maybe a -> IO ()
+>   => DBHandle -> ResultSetHandle -> Int -> Maybe a -> IO ()
 > bindMaybe db stmt pos mv = convertEx $
 >   case mv of
 >     Nothing -> DBAPI.bindNull db stmt pos
@@ -500,7 +505,7 @@ If we have a null datetime, convert it to 99999999999999, rather than 0.
 This ensures that dates have the same sorting behaviour as SQL,
 which is to have nulls come last in the sort order.
 
-> bindDatetime :: DBHandle -> StmtHandle -> Int -> Maybe CalendarTime -> IO ()
+> bindDatetime :: DBHandle -> ResultSetHandle -> Int -> Maybe CalendarTime -> IO ()
 > bindDatetime db stmt pos mbval =  convertEx $
 >   case mbval of
 >     Nothing -> DBAPI.bindInt64 db stmt pos nullDatetimeInt64

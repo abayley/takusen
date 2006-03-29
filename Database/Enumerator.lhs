@@ -64,7 +64,7 @@ Additional reading:
 >
 >     -- * Session monad.
 >     , withSession, commit, rollback, beginTransaction
->     , executeCommand
+>     , executeCommand, execDDL, execDML
 >
 >     , PreparedStmt  -- data constructor not exported
 >     , executePreparation
@@ -91,6 +91,7 @@ Additional reading:
 >		    dynExceptions, throwDyn, throwIO, bracket, Exception)
 > import qualified Control.Exception (catch)
 > import Control.Monad.Reader
+> import Control.Exception.MonadIO
 
 > import qualified Database.InternalEnumerator as IE
 > import Database.InternalEnumerator (DBException(..))
@@ -99,13 +100,6 @@ Additional reading:
 > type IterResult seedType = Either seedType seedType
 > type IterAct m seedType = seedType -> m (IterResult seedType)
 
-> class MonadIO m => CaughtMonadIO m where
->   gcatch :: m a -> (Control.Exception.Exception -> m a) -> m a
-> instance CaughtMonadIO IO where
->   gcatch = Control.Exception.catch
-> instance CaughtMonadIO m => CaughtMonadIO (ReaderT a m) where
->   gcatch m f = ReaderT $ 
->	 \r -> gcatch (runReaderT m r) (\e -> runReaderT (f e) r)
 
 > catchDB :: CaughtMonadIO m => m a -> (DBException -> m a) -> m a
 > catchDB m f = gcatch m (\e -> maybe (throw e) f 
@@ -114,14 +108,14 @@ Additional reading:
 |This simple handler reports the error to @stdout@ and swallows it
 i.e. it doesn't propagate.
 
-> basicDBExceptionReporter :: DBException -> IO ()
+> basicDBExceptionReporter :: CaughtMonadIO m => DBException -> m ()
 > basicDBExceptionReporter (DBError (ssc, sssc) e m) =
->   putStrLn $ ssc ++ sssc ++ " " ++ (show e) ++ ": " ++ m
+>   liftIO $ putStrLn $ ssc ++ sssc ++ " " ++ (show e) ++ ": " ++ m
 > basicDBExceptionReporter (DBFatal (ssc, sssc) e m) =
->   putStrLn $ ssc ++ sssc ++ " " ++ (show e) ++ ": " ++ m
+>   liftIO $ putStrLn $ ssc ++ sssc ++ " " ++ (show e) ++ ": " ++ m
 > basicDBExceptionReporter (DBUnexpectedNull r c) =
->   putStrLn $ "Unexpected null in row " ++ (show r) ++ ", column " ++ (show c) ++ "."
-> basicDBExceptionReporter (DBNoData) = putStrLn "Fetch: no more data."
+>   liftIO $ putStrLn $ "Unexpected null in row " ++ (show r) ++ ", column " ++ (show c) ++ "."
+> basicDBExceptionReporter (DBNoData) = liftIO $ putStrLn "Fetch: no more data."
 
 |If you want to trap a specific error number, use this.
 It passes anything else up.
@@ -136,18 +130,6 @@ It passes anything else up.
 
 > ignoreDBError :: Int -> IO a -> IO a
 > ignoreDBError n action = catchDBError n action (\e -> return undefined)
-
-
-|'shakeReaderT' and 'catchReaderT' let us catch (and rethrow) exceptions in the ReaderT monad.
-We need these because 'Control.Exception.catch' is in the IO monad, but /not/ MonadIO.
-
- shakeReaderT :: ((ReaderT r m1 a1 -> m1 a1) -> m a) -> ReaderT r m a
- shakeReaderT f = ReaderT $ \r -> f (\lm -> runReaderT lm r)
-
- catchReaderT :: ReaderT r IO a -> (Control.Exception.Exception -> ReaderT r IO a) -> ReaderT r IO a
- catchReaderT m h = shakeReaderT $ \sinker -> Control.Exception.catch (sinker m) (sinker . h)
-
-
 
 --------------------------------------------------------------------
 -- ** Session monad
@@ -164,15 +146,15 @@ all class constraints for the Session (like IQuery, DBType, etc).
 >     deriving (Monad, MonadIO, MonadReader sess)
 > unDBM (DBM x) = x
 
->{-
-> instance Monad (DBM mark si) where
->   return x = DBM (return x)
->   m >>= f  = DBM (unDBM m >>= unDBM . f)
-> instance MonadIO (DBM mark si) where
->   liftIO x = DBM (liftIO x)
-> -}
+ instance Monad (DBM mark si) where
+   return x = DBM (return x)
+   m >>= f  = DBM (unDBM m >>= unDBM . f)
+ instance MonadIO (DBM mark si) where
+   liftIO x = DBM (liftIO x)
+
 > instance CaughtMonadIO (DBM mark si) where
->   gcatch m f = DBM ( gcatch (unDBM m) (unDBM . f) )
+>   gcatch a h = DBM ( gcatch (unDBM a) (unDBM . h) )
+>   gcatchJust p a h = DBM ( gcatchJust p (unDBM a) (unDBM . h) )
 
 Typeable constraint is to prevent the leakage of Session and other
 marked objects.
@@ -195,6 +177,11 @@ marked objects.
 > executeCommand :: IE.Command stmt s => stmt -> DBM mark s Int
 > executeCommand stmt = DBM( ask >>= \s -> lift $ IE.executeCommand s stmt )
 
+> execDDL :: IE.Command stmt s => stmt -> DBM mark s ()
+> execDDL stmt = executeCommand stmt >> return ()
+
+> execDML :: IE.Command stmt s => stmt -> DBM mark s Int
+> execDML = executeCommand
 
 --------------------------------------------------------------------
 -- ** Prepared statements
