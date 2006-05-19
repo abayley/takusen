@@ -54,7 +54,7 @@ test__reportResults = do
 
 
 test__runTestTT = do
-  r <- runTestTT [assertFailure "test__runSingleTest", return (), throwUserError "boo"]
+  r <- runTestTT "MiniUnitTest" [assertFailure "test__runSingleTest", return (), throwUserError "boo"]
   return ()
 
 ----

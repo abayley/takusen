@@ -30,10 +30,21 @@ Additional reading:
  * <http://pobox.com/~oleg/ftp/papers/LL3-collections-enumerators.txt>
  
  * <http://www.eros-os.org/pipermail/e-lang/2004-March/009643.html>
+ 
+Note that there are a few functions that are exported from each backend
+implementation which *are* exposed to the API user, and which are useful,
+but are not (necessarily) in this module. They include:
+ 
+ * connect (obviously DBMS specific)
+ 
+ * prepareStmt
+ 
+ * withPreparedStatement
 
 
 > {-# OPTIONS -fglasgow-exts #-}
 > {-# OPTIONS -fallow-overlapping-instances #-}
+> {-# OPTIONS -fallow-undecidable-instances #-}
 
 > module Database.Enumerator
 >   (
@@ -60,17 +71,18 @@ Additional reading:
 >
 >     -- * Exceptions and handlers
 >     , DBException(..)
->     , catchDB, basicDBExceptionReporter, catchDBError, ignoreDBError
+>     , catchDB, basicDBExceptionReporter, reportRethrow, catchDBError, ignoreDBError
+>     , IE.throwDB
 >
 >     -- * Session monad.
 >     , withSession, commit, rollback, beginTransaction
 >     , executeCommand, execDDL, execDML
 >
 >     , PreparedStmt  -- data constructor not exported
->     , executePreparation
+>     , executePreparation, withPreparedStatement
 >     , withBoundStatement, IE.bindP
 >
->     , doQuery
+>     , doQuery, IE.currentRowNum
 >
 >     -- * A Query monad and cursors.
 >     , DBCursor, -- need to export this?
@@ -81,14 +93,14 @@ Additional reading:
 >
 >     -- * Misc.
 >     , ifNull, result, result'
->     , liftIO, throwIO
+>     , liftIO, throwIO, print_
 >   ) where
 
 > import Data.Dynamic
 > import Data.IORef
 > import Control.Monad.Trans
 > import Control.Exception (throw, 
->		    dynExceptions, throwDyn, throwIO, bracket, Exception)
+>            dynExceptions, throwDyn, throwIO, bracket, Exception, finally)
 > import qualified Control.Exception (catch)
 > import Control.Monad.Reader
 > import Control.Exception.MonadIO
@@ -100,10 +112,16 @@ Additional reading:
 > type IterResult seedType = Either seedType seedType
 > type IterAct m seedType = seedType -> m (IterResult seedType)
 
+> class Show a => MyShow a where show_ :: a -> String
+> instance MyShow String where show_ s = s
+> instance (Show a) => MyShow a where show_ s = show s
+> print_ s = liftIO (putStrLn (show_ s))
+
 
 > catchDB :: CaughtMonadIO m => m a -> (DBException -> m a) -> m a
-> catchDB m f = gcatch m (\e -> maybe (throw e) f 
->		                      ((dynExceptions e) >>= fromDynamic))
+> catchDB action handler = gcatch action $ \e ->
+>   maybe (throw e) handler (dynExceptions e >>= fromDynamic)
+
 
 |This simple handler reports the error to @stdout@ and swallows it
 i.e. it doesn't propagate.
@@ -116,6 +134,12 @@ i.e. it doesn't propagate.
 > basicDBExceptionReporter (DBUnexpectedNull r c) =
 >   liftIO $ putStrLn $ "Unexpected null in row " ++ (show r) ++ ", column " ++ (show c) ++ "."
 > basicDBExceptionReporter (DBNoData) = liftIO $ putStrLn "Fetch: no more data."
+
+| This handler reports the error and propagates it
+(usually to force the program to halt).
+
+> reportRethrow :: CaughtMonadIO m => DBException -> m ()
+> reportRethrow e = basicDBExceptionReporter e >> IE.throwDB e
 
 |If you want to trap a specific error number, use this.
 It passes anything else up.
@@ -160,11 +184,9 @@ Typeable constraint is to prevent the leakage of Session and other
 marked objects.
 
 > withSession :: (Typeable a, IE.ISession sess) => 
->	 IE.ConnectA sess -> (forall mark. DBM mark sess a) -> IO a
+>     IE.ConnectA sess -> (forall mark. DBM mark sess a) -> IO a
 > withSession (IE.ConnectA connecta) m = 
->     bracket (connecta)
->	      (IE.disconnect)
->             (runReaderT $ unDBM m)
+>   bracket (connecta) (IE.disconnect) (runReaderT $ unDBM m)
 
 
 
@@ -183,29 +205,45 @@ marked objects.
 > execDML :: IE.Command stmt s => stmt -> DBM mark s Int
 > execDML = executeCommand
 
+
 --------------------------------------------------------------------
--- ** Prepared statements
+-- ** Statements; Prepared statements
 --------------------------------------------------------------------
 
 > newtype PreparedStmt mark stmt = PreparedStmt stmt
-> executePreparation :: IE.IPrepared stmt s bstmt bo =>
->		IE.PreparationA s stmt -> DBM mark s (PreparedStmt mark stmt)
+> executePreparation :: IE.IPrepared stmt sess bstmt bo =>
+>        IE.PreparationA sess stmt -> DBM mark sess (PreparedStmt mark stmt)
 > executePreparation (IE.PreparationA action) =
->     DBM( ask >>= \s -> lift $ action s >>= return . PreparedStmt)
+>     DBM( ask >>= \sess -> lift $ action sess >>= return . PreparedStmt)
 
+Also include Typeable constraint to prevent type leakage,
+assuming it's necessary here...?
+
+> withPreparedStatement ::
+>  (Typeable a, IE.IPrepared stmt sess bstmt bo)
+>  => IE.PreparationA sess stmt
+>  -> (PreparedStmt mark stmt -> DBM mark sess a)
+>  -> DBM mark sess a
+> withPreparedStatement pa action =
+>   gbracket (executePreparation pa) destroyStmt action
+
+
+> destroyStmt :: (IE.ISession sess, IE.IPrepared stmt sess bstmt bo)
+>   => PreparedStmt mark stmt -> DBM mark sess ()
+> destroyStmt (PreparedStmt stmt) = DBM( ask >>= \s -> lift $ IE.destroyStmt s stmt )
 
 The Typeable constraint is to prevent the leakage of marked things.
 The type of bound statements should not be exported (and should not be
 in Typeable) so the bound statement can't leak either.
 
-> withBoundStatement :: (Typeable a, IE.IPrepared stmt s bstmt bo) =>
->		 PreparedStmt mark stmt -> [IE.BindA s stmt bo] ->
->				   (bstmt -> DBM mark s a) ->
->				   DBM mark s a
+> withBoundStatement ::
+>   (Typeable a, IE.IPrepared stmt s bstmt bo) =>
+>   PreparedStmt mark stmt -> [IE.BindA s stmt bo] ->
+>   (bstmt -> DBM mark s a) ->
+>   DBM mark s a
 > withBoundStatement (PreparedStmt stmt) ba f =
->     DBM ( ask >>= \s -> 
->            lift $ IE.bindRun s stmt ba (\b -> runReaderT (unDBM (f b)) s))
->
+>   DBM ( ask >>= \s -> 
+>     lift $ IE.bindRun s stmt ba (\b -> runReaderT (unDBM (f b)) s))
 
 
 --------------------------------------------------------------------
@@ -232,7 +270,7 @@ The argument is applied, and the result returned.
 >     v <- liftIO $ IE.fetchCol q buf
 >     fn v seed
 >   allocBuffers q _ n = liftIO $ 
->		 sequence [IE.allocBufferFor (undefined::a) q n]
+>         sequence [IE.allocBufferFor (undefined::a) q n]
 
 
 |This instance of the class implements the starting and continuation cases.
@@ -356,7 +394,6 @@ You can nest them to get interleaving, if you desire:
 Note that the type of the functions below is set up so to perpetuate
 the mark.
 
-> -- cursorIsEOF :: (MonadIO m) => DBCursor mark ms a -> m Bool
 > cursorIsEOF :: DBCursor mark (DBM mark s) a -> DBM mark s Bool
 > cursorIsEOF (DBCursor ref) = do
 >   (_, maybeF) <- liftIO $ readIORef ref
@@ -364,7 +401,6 @@ the mark.
 
 |Returns the results fetched so far, processed by iteratee function.
 
-> -- cursorCurrent :: (MonadIO m) => DBCursor ms a -> m a
 > cursorCurrent :: DBCursor mark (DBM mark s) a -> DBM mark s a
 > cursorCurrent (DBCursor ref) = do
 >   (v, _) <- liftIO $ readIORef ref
@@ -372,7 +408,6 @@ the mark.
 
 |Advance the cursor. Returns the cursor. The return value is usually ignored.
 
-> -- cursorNext :: (MonadIO ms) => DBCursor ms a -> ms (DBCursor ms a)
 > cursorNext :: DBCursor mark (DBM mark s) a
 >     -> DBM mark s (DBCursor mark (DBM mark s) a)
 > cursorNext (DBCursor ref) = do
@@ -394,40 +429,35 @@ Propagates exceptions after closing cursor.
 The Typeable constraint is to prevent cursors and other marked values
 (like cursor computations) from escaping.
 
-> withCursor :: (Typeable a, IE.Statement stmt sess q,
->	         QueryIteratee (DBM mark sess) q i seed b,
->                IE.IQuery q sess b) =>
->     stmt -> i -> seed
->     -> (DBCursor mark (DBM mark sess) seed -> DBM mark sess a)
->     -> DBM mark sess a
-> withCursor stmt iteratee seed action = do
->   do c <- openCursor stmt iteratee seed
->      gcatch
->        (do v <- action c
->            cursorClose c
->            return v) 
->        (\e -> cursorClose c >> (liftIO$ throwIO e))
+> withCursor ::
+>   ( Typeable a, IE.Statement stmt sess q
+>   , QueryIteratee (DBM mark sess) q i seed b
+>   , IE.IQuery q sess b
+>   ) =>
+>      stmt -> i -> seed
+>   -> (DBCursor mark (DBM mark sess) seed -> DBM mark sess a)
+>   -> DBM mark sess a
+> withCursor stmt iteratee seed action =
+>   gbracket (openCursor stmt iteratee seed) cursorClose action
 
+
+Although withTransaction has the same structure as a bracket,
+we can't use bracket because the resource-release action
+(commit or rollback) differs between the success and failure cases.
 
 |Perform an action as a transaction: commit afterwards,
 unless there was an exception, in which case rollback.
 
-> withTransaction ::
->   ( IE.ISession s
->   ) =>
+> withTransaction :: (IE.ISession s) =>
 >   IE.IsolationLevel -> DBM mark s a -> DBM mark s a
 > 
 > withTransaction isolation action = do
->     commit
 >     beginTransaction isolation
 >     gcatch ( do
 >         v <- action
 >         commit
 >         return v
->       ) (\e -> do
->         rollback
->         liftIO $ throwIO e
->       )
+>       ) (\e -> rollback >> throw e )
 
 
 --------------------------------------------------------------------
@@ -475,47 +505,62 @@ and arithmetic operations (counting, summing, etc).
 
 -- $usage_example
  
-You should always import this module (which contains all of the useful
-functions), and the DBMS-specific modules for the DBMS's you need to use.
-The DBMS-specific modules export only connect + disconnect + Session,
-where Session is a DBMS-specific type.
- 
  > -- sample code, doesn't necessarily compile
  > module MyDbExample is
  >
- > import Database.Enumerator
  > import Database.Oracle.Enumerator
+ > import Database.Enumerator
+ > ...
  >
  > query1Iteratee :: (Monad m) => Int -> String -> Double -> IterAct m [(Int, String, Double)]
- > query1Iteratee a b c accum = result' $ (a, b, c):accum
+ > query1Iteratee a b c accum = result' ((a, b, c):accum)
  >
- > -- simple query, returning reversed list of rows.
- > query1 = doQuery "select a, b, c from x" query1Iteratee []
- >
- > -- non-query actions. Use runSession to execute.
- > otherActions :: Session -> IO ()
+ > -- non-query actions.
  > otherActions session = do
- >   runSession session ( do
- >       executeDDL "create table blah"
- >       executeDML "insert into blah ..."
- >       commit
- >     )
+ >   executeDDL "create table blah"
+ >   executeDML "insert into blah ..."
+ >   commit
+ >   -- Use withTransaction to delimit a transaction.
+ >   -- It will commit at the end, or rollback if an error occurs.
+ >   withTransaction Serialisable $ do
+ >     execDML "update blah ..."
+ >     execDML "insert into blah ..."
  >
  > main :: IO ()
  > main = do
- >   session <- connect "user" "password" "server"
- >   -- use runSession to execute query (it has type SessionQuery)
- >   r <- runSession session query1
- >   putStrLn $ show r
- >   otherActions session
- >   disconnect session
+ >   withSession (connect "user" "password" "server") $ do
+ >     -- simple query, returning reversed list of rows.
+ >     r <- doQuery (sql "select a, b, c from x") query1Iteratee []
+ >     putStrLn $ show r
+ >     otherActions session
+ >     disconnect
  
-@Session@ is an opaque type returned by the connect function.
 @connect@ is only exported by the DBMS-specific module,
 not from this module ('Database.Enumerator').
-@Session@ is an instance of 'ISession',
-and to use the 'ISession' functions you invoke them via runSession.
  
+The first argument to doQuery must be an instance of  
+'Database.InternalEnumerator.Statement'.
+Each back-end will provide a useful set of @Statement@ instances
+and associated constructor functions for them.
+For example, the Sqlite back-end has:
+  -- for basic, all-text statements (no bind vars):
+    sql "select ..."
+  -- for a select with bind variables and row caching:
+    prefetch 100 "select ..." [bindP ..., bindP ...]
+  -- for a reusable prepared statement:
+    prepareStmt (sql "select ...")
+  -- The Postgres backend requires that you name prepared statements,
+  -- and also specify types for the bind parameters.
+  -- The list of bind-types is created by applying the bindType functions
+  -- to dummy, or sample, values of the correct types.
+    prepareStmt "stmtname" (sql "select ...") [bindType dummy1, ...]
+ 
+There are a couple of withXXX functions to aid with resource management.
+withPreparedStatement creates a prepared statement that can be reused many
+times within its scope, and deallocates it from the server when it goes
+out of scope.
+withBoundStatement applies bind values to an already prepared statement
+so that it is ready for processing by doQuery.
 
 -- $usage_iteratee
  
@@ -537,9 +582,9 @@ to the front of the accumulator. The initial seed passed to @doQuery@ was an emp
 Consing the rows to the front of the list results in a list that is the result set
 with the rows in reverse order.
  
-The iteratee function exists in the 'MonadQuery' monad,
+The iteratee function exists in the 'DBM' monad,
 so if you want to do IO in it you must use 'Control.Monad.Trans.liftIO'
-(e.g. @liftIO $ putStrLn \"boo\"@ ) to lift the IO action into 'MonadQuery'.
+(e.g. @liftIO $ putStrLn \"boo\"@ ) to lift the IO action into 'DBM'.
  
 The iteratee function is not restricted to just constructing lists.
 For example, a simple counter function would ignore its arguments,

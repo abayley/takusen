@@ -1,4 +1,3 @@
-> {-# OPTIONS -fglasgow-exts #-}
 
 |
 Module      :  Database.Sqlite.Test.SqliteFunctions
@@ -9,6 +8,7 @@ Stability   :  experimental
 Portability :  non-portable
  
 
+> {-# OPTIONS -fglasgow-exts #-}
 
 > module Database.Sqlite.Test.SqliteFunctions (runTest) where
 
@@ -21,7 +21,7 @@ Portability :  non-portable
 > import Data.Dynamic
 > import Database.Sqlite.SqliteFunctions
 > import System.Environment (getArgs)
-> import Test.HUnit
+> import Test.MiniUnit
 
 
 
@@ -31,12 +31,13 @@ Portability :  non-portable
 >   testOpen dbname
 >   db <- openDb dbname
 >   createFixture db
->   runTestTT (testlist db)
+>   runTestTT "Sqlite low-level tests" (testlist db)
 >   destroyFixture db
 >   closeDb db
 
 
-> testlist db = TestList $ map (\t -> TestCase (t db))
+> --testlist db = TestList $ map (\t -> TestCase (t db))
+> testlist db = map (\t -> t db)
 >   [ testSelectInts
 >   , testSelectDouble
 >   , testSelectInt64
@@ -164,6 +165,8 @@ Portability :  non-portable
 >   stmt <- printPropagateError $
 >     stmtPrepare db "select ''"
 >   rc <- stmtFetch db stmt
+>   -- what is rc after row fetch? sqliteOK or sqliteROW?
+>   assertEqual "testSelectString: row 1" sqliteROW rc
 >   n <- colValString stmt 1
 >   assertEqual "testSelectString: ''" (Just "") n
 >   rc <- stmtFetch db stmt

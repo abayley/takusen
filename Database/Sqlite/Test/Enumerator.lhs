@@ -13,19 +13,113 @@ Portability :  non-portable
 > module Database.Sqlite.Test.Enumerator (runTest) where
 
 > import qualified Database.Sqlite.Test.SqliteFunctions as Low
-> import Database.Sqlite.Enumerator (connect, disconnect, Session)
-> import Database.Test.Enumerator as Enum
+> import Database.Sqlite.Enumerator
 > import Database.Test.Performance as Perf
-> import Database.Enumerator
+> import Database.Test.Enumerator
 > import Control.Monad (when)
+> import Control.Exception (throwDyn)
+> import Test.MiniUnit
+> import Database.Enumerator
+> import Data.Int
+> import System.Time
 
 
 > runTest :: Perf.ShouldRunTests -> [String] -> IO ()
-> runTest runPerf args = catchDB ( do
->     let [_, _, dbname] = args
->     Low.runTest dbname
->     sess <- connect dbname 
->     Enum.runTests dateSqlite sess
->     when (runPerf == Perf.RunTests) (Perf.runTests sess)
->     disconnect sess
->   ) basicDBExceptionReporter
+> runTest runPerf args = do
+>   let (user:pswd:dbname:_) = args
+>   Low.runTest dbname
+>   flip catchDB basicDBExceptionReporter $ withSession (connect dbname) (testBody runPerf)
+
+> testBody runPerf = do
+>   runFixture SqliteFunctions
+>   when (runPerf == Perf.RunTests) runPerformanceTests
+
+> runPerformanceTests = do
+>   makeFixture execDrop execDDL_
+>   beginTransaction RepeatableRead
+>   {-# SCC "runPerformanceTests:runTestTT" #-}
+>    runTestTT "Sqlite performance tests" (map (flip catchDB reportRethrow)
+>     [ timedSelect (prefetch 1000 sqlRows2Power20 []) 35 (2^20)
+>     , timedSelect (prefetch 1 sqlRows2Power17 []) 4 (2^17)
+>     , timedSelect (prefetch 1000 sqlRows2Power17 []) 4 (2^17)
+>     , timedCursor (prefetch 1 sqlRows2Power17 []) 4 (2^17)
+>     , timedCursor (prefetch 1000 sqlRows2Power17 []) 4 (2^17)
+>     ]
+>     )
+>   commit
+>   destroyFixture execDDL_
+
+
+> runFixture :: DBLiteralValue a => a -> DBM mark Session ()
+> runFixture fns = do
+>   makeFixture execDrop execDDL_
+>   runTestTT "Sqlite tests" (map (runOneTest fns) testList)
+>   destroyFixture execDDL_
+
+> runOneTest fns t = catchDB (t fns) reportRethrow
+
+-----------------------------------------------------------
+
+> selectNoRows _ = selectTest sqlNoRows iterNoRows expectNoRows
+
+> selectTerminatesEarly _ = selectTest sqlTermEarly iterTermEarly expectTermEarly
+
+> selectFloatsAndInts fns = selectTest (sqlFloatsAndInts fns) iterFloatsAndInts expectFloatsAndInts
+
+> selectNullString _ = selectTest sqlNullString iterNullString expectNullString
+
+> selectEmptyString _ = selectTest sqlEmptyString iterEmptyString expectEmptyString
+
+> selectUnhandledNull _ = catchDB ( do
+>       selectTest sqlUnhandledNull iterUnhandledNull expectUnhandledNull
+>       assertFailure sqlUnhandledNull
+>   ) (\e -> return () )
+
+
+
+> selectNullDate dateFn = selectTest (sqlNullDate dateFn) iterNullDate expectNullDate
+
+> selectDate dateFn = selectTest (sqlDate dateFn) iterDate expectDate
+
+> selectBoundaryDates dateFn = selectTest (sqlBoundaryDates dateFn) iterBoundaryDates expectBoundaryDates
+
+> selectCursor fns = actionCursor (sqlCursor fns)
+> selectExhaustCursor fns = actionExhaustCursor (sqlCursor fns)
+
+> selectBindString _ = actionBindString
+>     (prepareStmt (sql sqlBindString))
+>     [bindP "a2", bindP "b1"]
+
+> selectBindInt _ = actionBindInt
+>   (prepareStmt (sql sqlBindInt))
+>   [bindP (1::Int), bindP (2::Int)]
+
+
+> selectBindIntDoubleString _ = actionBindIntDoubleString
+>   (prefetch 1 sqlBindIntDoubleString [bindP (1::Int), bindP (2.2::Double), bindP "row 1", bindP (3::Int), bindP (4.4::Double), bindP "row 2"])
+
+> selectBindDate _ = actionBindDate
+>   (prefetch 1 sqlBindDate (map bindP expectBindDate))
+
+> selectRebindStmt _ = actionRebind (prepareStmt (sql sqlRebind))
+>    [bindP (1::Int)] [bindP (2::Int)]
+
+> polymorphicFetchTest _ = actionPolymorphicFetch
+>   (prefetch 1 sqlPolymorphicFetch [bindP expectPolymorphicFetch])
+
+> polymorphicFetchTestNull _ = actionPolymorphicFetchNull
+>   (prefetch 1 sqlPolymorphicFetchNull [])
+
+> exceptionRollback _ = actionExceptionRollback sqlInsertTest4 sqlExceptionRollback
+
+> testList :: DBLiteralValue a => [a -> DBM mark Session ()]
+> testList =
+>   [ selectNoRows, selectTerminatesEarly, selectFloatsAndInts
+>   , selectNullString, selectEmptyString, selectUnhandledNull
+>   , selectNullDate, selectDate, selectBoundaryDates
+>   , selectCursor, selectExhaustCursor
+>   , selectBindString, selectBindInt, selectBindIntDoubleString
+>   , selectBindDate, selectRebindStmt
+>   , polymorphicFetchTest, polymorphicFetchTestNull
+>   , exceptionRollback
+>   ]

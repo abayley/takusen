@@ -12,12 +12,10 @@ Performance tests. Currently just tests large result sets.
 
 > {-# OPTIONS -fglasgow-exts #-}
 > {-# OPTIONS -fallow-overlapping-instances #-}
-> {-# OPTIONS -fno-monomorphism-restriction #-}
 
-> module Database.Test.Performance (runTests, ShouldRunTests(..)) where
+> module Database.Test.Performance where
 
 > import Database.Enumerator
-> --import qualified Database.Test.Enumerator as DBTest
 > import System.Environment (getArgs)
 > import Control.Monad
 > import System.Time
@@ -26,30 +24,40 @@ Performance tests. Currently just tests large result sets.
 
 > data ShouldRunTests = RunTests | Don'tRunTests deriving (Show, Eq)
 
-> runTests = return ()
-
-> {-
-
-> runTests ::
->   ( MonadSession (ReaderT r IO) IO r stmt
->   , MonadQuery m (ReaderT r IO) stmt b q
->   , DBType Int m b
->   , QueryIteratee m (Int -> IterAct m Int) Int b
->   ) => r -> IO ()
-> runTests sess = do
->   DBTest.makeFixture sess
->   runTestTT (TestList (makeTests sess testList))
->   DBTest.destroyFixture sess
+> timedCursor stmt limit rows = do
+>   withCursor stmt (rowCounter rows) 0 $ \c -> do
+>     ct1 <- liftIO getClockTime
+>     replicateM_ rows (cursorNext c)
+>     ct2 <- liftIO getClockTime
+>     let diffCt = diffClockTimes ct2 ct1
+>     let secsDiff = TimeDiff 0 0 0 0 0 limit 0
+>     print_ $ "timedCursor: " ++ timeDiffToString diffCt
+>     assertBool ("timedCursor: time " ++ (timeDiffToString diffCt)) (diffCt < secsDiff)
 
 
-> makeTests sess list = map (\f -> TestCase (f sess)) list
+> timedSelect stmt limit rows = do
+>   ct1 <- liftIO getClockTime
+>   r <- doQuery stmt (rowCounter rows) 0
+>   ct2 <- liftIO getClockTime
+>   let diffCt = diffClockTimes ct2 ct1
+>   -- assume it must complete within limit seconds
+>   let limitDiff = TimeDiff 0 0 0 0 0 limit 0
+>   print_ $ "timedSelect: " ++ timeDiffToString diffCt
+>   assertBool ("timedSelect: time " ++ (timeDiffToString diffCt) ++ " (limit " ++ (timeDiffToString limitDiff) ++ ")")
+>     (diffCt < limitDiff)
+>   assertEqual ("timedSelect: rows " ++ (show r)) rows r
 
-> testList =
->   [ selectLargeResultSet
->   , cursorLargeResultSetPrefetch
->   , cursorLargeResultSetNoPrefetch
->   ]
 
+|This counter takes the maximum number of rows to fetch as its first argument,
+so don't forget to curry it when using it as an iteratee function.
+We also try to ensure that it is strict in the counter;
+we don't want thousands or millions of unevaluated '+' thunks sitting
+on the stack.
+
+> rowCounter :: (Monad m) => Int -> Int -> IterAct m Int
+> rowCounter n _ i = result' (i+1)
+>   --if i >= n then return (Left $! i) else return (Right $! (1 + i))
+>   --if i >= n then return (Left i) else return (Right (1 + i))
 
 
 2 ^ 16 = 65536
@@ -62,66 +70,29 @@ You start to notice the pause around 2^13,
 and 2^16 blows out the standard 1M stack
 if you use the lazy version of result. Bummer.
 
-> manyRows :: String
-> manyRows = 
+> sqlRows2Power17 :: String
+> sqlRows2Power17 = 
 >   "select 1 from"
->   ++ "  ( select 1 from tdual union select 0 from tdual)"
->   ++ ", ( select 2 from tdual union select 0 from tdual)"
->   ++ ", ( select 3 from tdual union select 0 from tdual)"
->   ++ ", ( select 4 from tdual union select 0 from tdual)"
->   ++ ", ( select 5 from tdual union select 0 from tdual)"
->   ++ ", ( select 6 from tdual union select 0 from tdual)"
->   ++ ", ( select 7 from tdual union select 0 from tdual)"
->   ++ ", ( select 8 from tdual union select 0 from tdual)"
->   ++ ", ( select 9 from tdual union select 0 from tdual)"
->   ++ ", ( select 10 from tdual union select 0 from tdual)"
->   ++ ", ( select 11 from tdual union select 0 from tdual)"
->   ++ ", ( select 12 from tdual union select 0 from tdual)"
->   ++ ", ( select 13 from tdual union select 0 from tdual)"
->   ++ ", ( select 14 from tdual union select 0 from tdual)"
->   ++ ", ( select 15 from tdual union select 0 from tdual)"
->   ++ ", ( select 16 from tdual union select 0 from tdual)"
->   ++ ", ( select 17 from tdual union select 0 from tdual)"
->   ++ ", ( select 18 from tdual union select 0 from tdual)"
->   ++ ", ( select 19 from tdual union select 0 from tdual)"
->   ++ ", ( select 20 from tdual union select 0 from tdual)"
+>   ++ "  ( select 1 from tdual union select 0 from tdual) t1"
+>   ++ ", ( select 2 from tdual union select 0 from tdual) t2"
+>   ++ ", ( select 3 from tdual union select 0 from tdual) t3"
+>   ++ ", ( select 4 from tdual union select 0 from tdual) t4"
+>   ++ ", ( select 5 from tdual union select 0 from tdual) t5"
+>   ++ ", ( select 6 from tdual union select 0 from tdual) t6"
+>   ++ ", ( select 7 from tdual union select 0 from tdual) t7"
+>   ++ ", ( select 8 from tdual union select 0 from tdual) t8"
+>   ++ ", ( select 9 from tdual union select 0 from tdual) t9"
+>   ++ ", ( select 10 from tdual union select 0 from tdual) t10"
+>   ++ ", ( select 11 from tdual union select 0 from tdual) t11"
+>   ++ ", ( select 12 from tdual union select 0 from tdual) t12"
+>   ++ ", ( select 13 from tdual union select 0 from tdual) t13"
+>   ++ ", ( select 14 from tdual union select 0 from tdual) t14"
+>   ++ ", ( select 15 from tdual union select 0 from tdual) t15"
+>   ++ ", ( select 16 from tdual union select 0 from tdual) t16"
+>   ++ ", ( select 17 from tdual union select 0 from tdual) t17"
 
-
-
-> rowCounter :: (Monad m) => Int -> IterAct m Int
-> rowCounter _ i = result' (1 + i)  -- strict
-> --rowCounter _ i = result (1 + i)  -- lazy
-
-
-> prefetch1 = QueryResourceUsage 1
-> prefetch1000 = QueryResourceUsage 1000
-
-> selectLargeResultSet sess = runSession sess $ do
->   ct1 <- liftIO getClockTime
->   r <- doQueryTuned prefetch1000 manyRows [] rowCounter 0
->   let r = 1
->   ct2 <- liftIO getClockTime
->   let diffCt = diffClockTimes ct2 ct1
->   let secsDiff = TimeDiff 0 0 0 0 0 30 0
->   liftIO $ assertBool ("selectLargeResultSet: time " ++ (timeDiffToString diffCt)) (diffCt < secsDiff)
->   --liftIO $ assertEqual ("selectLargeResultSet: rows " ++ (show r)) 1048576 r
->   return ()
-
-
-> cursorHelper msg resourceUsage secs = do
->   withCursorTuned resourceUsage manyRows [] rowCounter 0 $ \c -> do
->     ct1 <- liftIO getClockTime
->     replicateM_ 100000 (cursorNext c)
->     ct2 <- liftIO getClockTime
->     let diffCt = diffClockTimes ct2 ct1
->     let secsDiff = TimeDiff 0 0 0 0 0 secs 0
->     liftIO $ assertBool ("cursorLargeResultSet: time " ++ (timeDiffToString diffCt)) (diffCt < secsDiff)
->     --liftIO $ assertEqual ("cursorLargeResultSet: rows " ++ (show r)) 1048576 r
-
-> cursorLargeResultSetNoPrefetch sess = runSession sess $ do
->   cursorHelper "no-prefetch" prefetch1 30
-
-> cursorLargeResultSetPrefetch sess = runSession sess $ do
->   cursorHelper "prefetch-1000" prefetch1000 4
-
-> -}
+> sqlRows2Power20 :: String
+> sqlRows2Power20 = sqlRows2Power17
+>   ++ ", ( select 18 from tdual union select 0 from tdual) t18"
+>   ++ ", ( select 19 from tdual union select 0 from tdual) t19"
+>   ++ ", ( select 20 from tdual union select 0 from tdual) t20"

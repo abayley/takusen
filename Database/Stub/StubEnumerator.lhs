@@ -263,6 +263,5 @@ and uses Read to convert the String to a Haskell data value.
 >   fetchCol q buffer = do
 >     v <- bufferToString buffer
 >     case v of
->       Just s -> return (Just (read s))
+>       Just s -> if s == "" then return Nothing else return (Just (read s))
 >       Nothing -> return Nothing
-

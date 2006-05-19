@@ -9,6 +9,7 @@ Portability :  non-portable
  
 Sqlite implementation of Database.Enumerator.
 
+> {-
 
 > {-# OPTIONS -fglasgow-exts #-}
 > {-# OPTIONS -fallow-undecidable-instances #-}
@@ -408,3 +409,4 @@ and uses Read to convert the String to a Haskell data value.
 >     v <- liftIO$ bufferToString buffer
 >     return $ maybe Nothing (Just . read) v
 
+> -}

@@ -23,12 +23,23 @@ Invoke main like this (assuming compiled to takusen.exe):
  > takusen oracle noperf "" "" dbname  -- no username, so os-authenticated
  > takusen mssql noperf user paswd dbname
 
+GHC compiler/linker options:
+
+Postgres: -I"C:\Program Files\PostgreSQL\8.1\include" -lpq -L"C:\Program Files\PostgreSQL\8.1\bin"
+Sqlite  : -I"C:\Program Files\sqlite" -lsqlite3 -L"C:\Program Files\sqlite"
+Oracle  : -I"C:\Program Files\Oracle\OraHome817\oci\include" -loci -L"C:\Program Files\Oracle\OraHome817\bin"
+Oracle  : -I"%ORACLE_HOME%\oci\include" -loci -L"%ORACLE_HOME%\bin"
+
+Unwritten tests:
+ - various failure cases?
+   * incorrect fold function (doesn't match result-set)
+
 
 > module Main (main) where
 
 
-> --import Database.Sqlite.Test.Enumerator as Sqlite
-> --import Database.Oracle.Test.Enumerator as Oracle
+> import Database.Sqlite.Test.Enumerator as Sqlite
+> import Database.Oracle.Test.Enumerator as Oracle
 > --import Database.Test.MultiConnect as Multi
 > --import Database.Stub.Test.Enumerator as Stub
 > --import Database.MSSqlServer.Test.Enumerator as MSSql
@@ -46,13 +57,11 @@ Invoke main like this (assuming compiled to takusen.exe):
 >     Just test -> test runPerf args
 
 > backendTests :: [(String, Perf.ShouldRunTests -> [String] -> IO ())]
-> backendTests = [ ("pgsql", PGSql.runTest) ]
-> {-
->   [ ("stub", Stub.runTest)
->   , ("sqlite", Sqlite.runTest)
+> backendTests =
+>   [ ("sqlite", Sqlite.runTest)
 >   , ("pgsql", PGSql.runTest)
 >   --, ("mssql", MSSql.runTest)
 >   , ("oracle", Oracle.runTest)
->   , ("multi", Multi.runTest)
+>   --, ("multi", Multi.runTest)
+>   --, ("stub", Stub.runTest)
 >   ]
-> -}

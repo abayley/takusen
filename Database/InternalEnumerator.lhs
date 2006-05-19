@@ -7,6 +7,7 @@ low-level, Database-specific layer. This file is not exported to the end user.
 Only the programmer for a new back-end needs to consult this file.
 
 > {-# OPTIONS -fglasgow-exts #-}
+
 > module Database.InternalEnumerator
 >   (
 >     -- * Session object.
@@ -83,12 +84,8 @@ If we can't derive Typeable then the following code should do the trick:
 >   | DBNoData
 >   deriving (Typeable, Show)
 
-
 > throwDB :: DBException -> a
 > throwDB = throwDyn
-
-> -- dbBind :: (DBBind a ms q) => a -> q -> Position -> ms ()
-> -- dbBind v = (\q p -> bindPos q v p)
 
 
 --------------------------------------------------------------------
@@ -130,21 +127,9 @@ BTW, statement with unbound variables should have a different type
 from that of the statement without bound variables or the statement
 with all bound variables.
 
-  freeStatement should not be a part of the general interface.
-  Only prepared statements can be freed. So, freeStatement is not polymorphic.
-  
-   -- I think that we don't need prepareStatement and freeStatement,
-   -- but I'll leave them in for now, just in case.
-   prepareStatement :: QueryText -> QueryResourceUsage -> ms stmt
-   freeStatement :: stmt -> ms ()
-
-
--- instances of Statements are defined by a particular database.
-
-
 Command is not a query: command deletes or updates rows, creates/drops
-tables, or changes database state. Command returns the number of affected
-rows (or 0).
+tables, or changes database state.
+Command returns the number of affected rows (or 0 if DDL i.e. not DML).
 
 > class ISession sess => Command stmt sess where
 >   -- insert/update/delete; returns number of rows affected
@@ -238,15 +223,19 @@ suitable to be passed to 'bindRun'.
 
 
 > class ISession sess => IPrepared stmt sess bound_stmt bo
->     | stmt -> bound_stmt, stmt -> bo
->     where
->     bindRun :: sess -> stmt -> [BindA sess stmt bo] ->
->	 (bound_stmt -> IO a) -> IO a
+>   | stmt -> bound_stmt, stmt -> bo  where
+>   bindRun :: sess -> stmt -> [BindA sess stmt bo] -> (bound_stmt -> IO a) -> IO a
+>   -- Should this be here? we have a need to free statements
+>   -- separately from result-sets (which are handled by IQuery.destroyQuery).
+>   -- It might be useful to prepare a statement, use it a number of times
+>   -- (so many result-sets are created+destroyed), and then destroy it,
+>   -- so it has a lifecycle independent of Queries.
+>   destroyStmt :: sess -> stmt -> IO ()
 
 The binding object (bo) below is very abstract, on purpose. It may
 be |IO a|, it may be String, it may be a function, etc. The binding
 object can hold the result of marshalling, or bo can hold the current
-counter, etc. Different databases do thinsg very differently: compare
+counter, etc. Different databases do things very differently: compare
 PostgreSQL and the Stub (which models Oracle).
 
 > newtype BindA sess stmt bo = BindA (sess -> stmt -> bo)

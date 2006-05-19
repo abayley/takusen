@@ -1,4 +1,3 @@
-> {-# OPTIONS -fglasgow-exts #-}
 
 |
 Module      :  Database.PostgreSQL.Test.PGFunctions
@@ -9,6 +8,7 @@ Stability   :  experimental
 Portability :  non-portable
  
 
+> {-# OPTIONS -fglasgow-exts #-}
 
 > module Database.PostgreSQL.Test.PGFunctions (runTest) where
 
@@ -26,11 +26,12 @@ Portability :  non-portable
 
 
 > runTest :: String -> IO ()
-> runTest dbname = do
+> runTest dbname = printPropagateError $ do
 >   testOpen ("user=" ++ dbname)
 >   db <- openDb ("user=" ++ dbname)
+>   disableNoticeReporting db
 >   createFixture db
->   runTestTT (testlist db)
+>   runTestTT "Postgres low-level tests" (testlist db)
 >   destroyFixture db
 >   closeDb db
 
@@ -40,6 +41,7 @@ Portability :  non-portable
 >   map ($ db)
 >   [ testSelectInts
 >   , testSelectDouble
+>   , testSelectDate
 >   --, testSelectNumeric
 >   , testSelectStrings
 >   , testSelectInt64
@@ -47,7 +49,7 @@ Portability :  non-portable
 >   , testUnion
 >   , testSelectManyRows
 >   , testBindString
->   -- , testBindDouble
+>   , testBindDouble
 >   , testCreateDual
 >   ]
 
@@ -68,12 +70,13 @@ Portability :  non-portable
 >   -- ignoreError $ ddlExec db "drop table t_natural"
 >   -- ignoreError $ ddlExec db "drop table t_blob"
 >   printPropagateError $
->       ddlExec db "create temp table tdual (dummy text)"
+>       ddlExec db "create temp table tdual (dummy text primary key)"
 >   printPropagateError $
 >       ddlExec db "insert into tdual (dummy) values ('X')"
 >   printPropagateError $ ddlExec db 
 >		    "create temp table t_natural (n integer primary key)"
->   mapM_ (insertNatural db) [1..65536]
+>   mapM_ (insertNatural db) [1,2,64,65534,65535,65536]
+>   --mapM_ (insertNatural db) [1..65536]
 >   printPropagateError $
 >       ddlExec db "create temp table t_blob (b bytea)"
 >   printPropagateError $
@@ -112,7 +115,8 @@ Portability :  non-portable
 >   sn <- printPropagateError $
 >     stmtPrepare db "" "select n from t_natural where n < 65536 order by n;" []
 >   (rs,ntuples) <- stmtExec0 db sn
->   assertEqual "testSelectInts: ntuples" 65535 ntuples
+>   --assertEqual "testSelectInts: ntuples" 65535 ntuples
+>   assertEqual "testSelectInts: ntuples" 5 ntuples
 >   --fmt0 <- fPQfformat stmt 0
 >   --ct0  <- fPQftype stmt 0
 >   --putStrLn $ "\nt_natural: format " ++ (show fmt0) ++ ", type (oid) " ++ (show ct0)
@@ -120,10 +124,10 @@ Portability :  non-portable
 >   assertEqual "testSelectInts: 1" 1 n
 >   n <- colValInt rs 2 1
 >   assertEqual "testSelectInts: 2" 2 n
->   n <- colValInt rs 64 1
+>   n <- colValInt rs 3 1
 >   assertEqual "testSelectInts: 64" 64 n
->   n <- colValInt rs 65534 1
->   assertEqual "testSelectInts: 64" 65534 n
+>   n <- colValInt rs 4 1
+>   assertEqual "testSelectInts: 65534" 65534 n
 >   stmtFinalise rs
 
 > testSelectInt64 db = do
@@ -141,6 +145,19 @@ Portability :  non-portable
 >   (stmt,ntuples) <- stmtExec0 db sn
 >   n <- colValDouble stmt 1 1
 >   assertEqual "testSelectDouble: 1.2" 1.2 n
+>   stmtFinalise stmt
+
+> testSelectDate db = do
+>   sn <- printPropagateError $ stmtPrepare db ""
+>     ("select timestamp with time zone '2000-01-01'"
+>      ++ "union select timestamp with time zone '2001-01-01'"
+>     )
+>     []
+>   (stmt,ntuples) <- stmtExec0 db sn
+>   n <- colValDouble stmt 1 1
+>   assertEqual "testSelectDate: 0.0" 0.0 n
+>   n <- colValDouble stmt 2 1
+>   assertEqual "testSelectDate: 1.0" 1.0 n
 >   stmtFinalise stmt
 
 If we don't specify the type, Postgres gives the number the NUMERIC type.
@@ -161,7 +178,7 @@ convert it to an appropriate Haskell type.
 
 > testUnion db = do
 >   (stmt,ntuples) <- printPropagateError $
->     stmtExecImm db "select 'h1' from tdual union select 'h2' from tdual union select 'h3' from tdual"
+>     stmtExecImm db "select 'h1' from tdual union select 'h2' from tdual union select 'h3' from tdual" []
 >   assertEqual "testUnion: ntuples" 3 ntuples
 >   s <- colValString stmt 1 1
 >   assertEqual "testUnion: h1" "h1" s
@@ -174,7 +191,7 @@ convert it to an appropriate Haskell type.
 
 > testSelectNoRows db = do
 >   (stmt,ntuples) <- printPropagateError $
->     stmtExecImm db "select 'h1' from tdual where dummy = '2'"
+>     stmtExecImm db "select 'h1' from tdual where dummy = '2'" []
 >   stmtFinalise stmt
 >   assertEqual "testSelectNoRows: done" 0 ntuples
 
@@ -205,7 +222,7 @@ convert it to an appropriate Haskell type.
 >     else countRows db sn (n+ntuples)
 
 > testSelectManyRows db = do
->   let prefetch = 2
+>   let prefetch = 200
 >   _ <- printPropagateError $ nqExec db "Begin work"
 >   let q = "DECLARE " ++ cursor'name ++ " NO SCROLL CURSOR FOR " ++
 >		  manyRows
@@ -219,10 +236,8 @@ convert it to an appropriate Haskell type.
 
 
 > testBindString db = do
->   --p1 <- newCString "h1" >>= return . castPtr
->   p1 <- pgNewValue "h1"
 >   (rs, ntuples) <- printPropagateError $
->     prepare'n'exec db "" "select $1 from tdual" [p1] [pgTypeOid ""] [clength "h1"] [pgTypeFormat ""] 
+>     prepare'n'exec db "" (substituteBindPlaceHolders "select ? from tdual") [newBindVal "h1"]
 >   n <- colValString rs 1 1
 >   assertEqual "testBindString: h1" "h1" n
 >   stmtFinalise rs
@@ -232,14 +247,10 @@ convert it to an appropriate Haskell type.
 >   let
 >     v1 :: Double; v1 = 2.3
 >     v2 :: Int; v2 = 2001
->     v3 :: Int64; v3 = 2001
->   p1 <- pgNewValue v1; p2 <- pgNewValue v2; p3 <- pgNewValue v3
+>     v3 :: Int; v3 = 2001
+>     bindvals = [newBindVal v1, newBindVal v2, newBindVal v3]
 >   (rs, ntuples) <- printPropagateError $
->     prepare'n'exec db "" "select $1 from tdual where $2 = $3"
->       [p1, p2, p3]
->       [pgTypeOid v1, pgTypeOid v2, pgTypeOid v3]
->       [pgSize v1, pgSize v2, pgSize v3]
->       [pgTypeFormat v1, pgTypeFormat v2, pgTypeFormat v1] 
+>     prepare'n'exec db "" (substituteBindPlaceHolders "select ? from tdual where ? = ?") bindvals
 >   n <- colValDouble rs 1 1
 >   assertEqual "testBindDouble: 2.3" 2.3 n
 >   stmtFinalise rs

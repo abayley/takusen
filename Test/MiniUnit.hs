@@ -27,7 +27,7 @@ throwUserError :: CaughtMonadIO m => String -> m ()
 throwUserError msg = liftIO (throwIO (IOException (userError msg)))
 
 -- When an assertion fails, we throw an IOException with a special
--- prefix, which the exception handler will detect.
+-- text prefix, which the exception handler will detect.
 assertFailure :: CaughtMonadIO m => String -> m ()
 assertFailure msg = throwUserError (exceptionPrefix ++ msg)
 
@@ -75,7 +75,7 @@ infixl 9 |>
 infixl 8 |>>
 (|>>) = flip ($)
 
-reportFilter pred = zip [1..] |> filter (snd |> pred) |> map testReporter |> concat
+--reportFilter pred = zip [1..] |> filter (snd |> pred) |> map testReporter |> concat
 
 testReporter (n, TestSuccess) = ""
 testReporter (n, TestException s) = "Test " ++ show n ++ " failed with exception:\n" ++ s ++ "\n"
@@ -89,7 +89,6 @@ reportResults list =
   in "Test cases: " ++ show (length list)
   ++ "  Failures: " ++ show f
   ++ "  Errors: " ++ show e
-  ++ "\n"
   -- ++ reportFilter isFailure list
   -- ++ reportFilter isError list
 
@@ -98,15 +97,15 @@ reportResults list =
 contains p l = maybe False (const True) (find p l)
 
 -- | Return 0 if everything is rosy,
--- 1 if there were test failures (but no exceptions),
+-- 1 if there were assertion failures (but no exceptions),
 -- 2 if there were any exceptions.
 -- You could use this return code as the return code from
 -- your program, if you're driving from the command line.
-runTestTT :: CaughtMonadIO m => [m ()] -> m Int
-runTestTT list = do
+runTestTT :: CaughtMonadIO m => String -> [m ()] -> m Int
+runTestTT desc list = do
   liftIO (putStrLn "")
+  when (desc /= "") (liftIO (putStr (desc ++ " - ")))
   liftIO (putStrLn ("Test case count: " ++ show (length list)))
-  --r <- mapM (\t -> liftIO (putStr ".") >> runSingleTest n t) list
   r <- mapM (\(n, t) -> liftIO (putStr ".") >> runSingleTestTT n t) (zip [1..] list)
   liftIO (putStrLn "")
   liftIO (putStrLn (reportResults r))

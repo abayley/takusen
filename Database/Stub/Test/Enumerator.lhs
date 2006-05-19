@@ -21,19 +21,18 @@ returns a somewhat contrived result set.
 > import Database.Stub.Enumerator
 > -- import Database.Test.Performance as Perf
 > import System.Time  -- CalendarTime
-> import Test.HUnit
+> import Test.MiniUnit
 > import Data.Int
 
 
 
 
-> -- runTest :: Perf.ShouldRunTests -> [String] -> IO ()
-> runTest _ _ = runTestTT $ TestCase $ catchDB (withSession (connect (ConnParm "" "" "")) (
->     sequence_ (map (\t -> liftIO (putStrLn "testing") >> t ()) testList))
->   ) basicDBExceptionReporter
+> runTest :: a -> [String] -> IO ()
+> runTest _ _ =
+>   withSession (connect (ConnParm "" "" ""))
+>     (runTestTT "Stub tests" (map runOneTest testList) >> return ())
 
-
-> -- makeTests sess = map (\f -> TestCase (f sess))
+> runOneTest t = catchDB (t ()) reportRethrow
 
 > testList :: [() -> DBM mark Session ()]
 > testList =
@@ -75,7 +74,7 @@ The following test illustrates doing IO in the iteratee itself.
 >     --iter :: String -> IterAct  (ReaderT Query SessionQuery) ()
 >     iter (c1::String) seed = do
 >       ct <- liftIO $ getClockTime
->       liftIO $ print "here"
+>       liftIO $ putStr "<look: IO>"
 >       result seed
 
 

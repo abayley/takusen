@@ -10,6 +10,33 @@ Portability :  non-portable
 PostgreSQL implementation of Database.Enumerator.
 
 
+Can we support database functions that return/create multiple result-sets?
+Oracle, MS Sql Server, and Sybase have them,
+and we can simulate them in Postgres with the code below.
+
+CREATE TRUSTED PROCEDURAL LANGUAGE 'plpgsql'
+  HANDLER plpgsql_call_handler;
+
+DROP FUNCTION myfunc() ;
+
+CREATE FUNCTION myfunc() RETURNS SETOF refcursor AS $$
+DECLARE
+    refc1 refcursor;
+    refc2 refcursor;
+BEGIN
+
+    OPEN refc1 FOR SELECT * FROM pg_database;
+    RETURN NEXT refc1;
+    OPEN refc2 FOR SELECT * FROM pg_proc;
+    RETURN NEXT refc2;
+END;
+$$ LANGUAGE plpgsql;
+
+-- this select returns two values (rows), both strings (well, refcursors),
+-- which are the cursor names.
+select * from myfunc();
+
+
 > {-# OPTIONS -fglasgow-exts #-}
 > {-# OPTIONS -fallow-undecidable-instances #-}
 > {-# OPTIONS -fallow-overlapping-instances #-}
@@ -19,14 +46,15 @@ PostgreSQL implementation of Database.Enumerator.
 >   -- (so the end user could write type signatures). 
 >   ( Session, connect, ConnectAttr(..)
 >    , sql
->    , QueryResourceUsage(..), sql_tuned
->    , PreparedStmt, prepareStmt
+>    , QueryResourceUsage(..), prefetch
+>    , PreparedStmt, prepareStmt, bindType
 >    , module Database.Enumerator
 >   )
 > where
 
 
 > import qualified Database.Enumerator
+> import Database.Enumerator (print_)
 > import Database.InternalEnumerator
 > import Foreign.C
 > import Control.Monad
@@ -95,14 +123,8 @@ because they never throw exceptions.
 |Common case: wrap an action with a convertAndRethrow.
 
 > convertEx :: IO a -> IO a
-> convertEx action = catchPG action (\e -> print e >> convertAndRethrow e)
+> convertEx action = catchPG action convertAndRethrow
 
-> {-
-
-> fetchRow :: DBHandle -> ResultSetHandle -> IO CInt
-> fetchRow db stmt = convertEx $ DBAPI.stmtFetch db stmt
-
-> -}
 
 --------------------------------------------------------------------
 -- ** Sessions
@@ -124,10 +146,11 @@ Session objects are created by 'connect'.
 >  | CAoptions String
 >  | CAsslmode String
 >  | CAservice String
->	   
+>           
 > connect :: [ConnectAttr] -> ConnectA Session
 > connect attrs = ConnectA $ convertEx $ do
 >   db <- DBAPI.openDb (unwords $ map encode attrs)
+>   DBAPI.disableNoticeReporting db
 >   return (Session db)
 >  where 
 >   -- process attributes into a string name=value
@@ -147,18 +170,17 @@ Session objects are created by 'connect'.
 >           (s,(c:t))  -> s ++ ('\\' : c : qu t)
 
 
-> test_connect host = do
->  let (ConnectA ca) = connect [CAhostaddr host,CAuser "oleg",CAdbname "test"]
->  db <- ca
->  putStrLn $ "Database name: " ++ (show (DBAPI.fPQdb (dbHandle db)))
->  disconnect db
->  putStrLn "Done"
+> isolationLevelText ReadUncommitted = "read uncomitted"
+> isolationLevelText ReadCommitted = "read comitted"
+> isolationLevelText RepeatableRead = "repeatable read"
+> isolationLevelText Serialisable = "serializable"
+> isolationLevelText Serializable = "serializable" 
 
 
 > instance ISession Session where
 >   disconnect sess = convertEx $ DBAPI.closeDb (dbHandle sess)
->   beginTransaction sess isolation =
->	executeCommand sess (sql "begin") >> return ()
+>   beginTransaction sess isolation = do
+>     executeCommand sess (sql ("begin isolation level " ++ isolationLevelText isolation)) >> return ()
 >   commit sess   = executeCommand sess (sql "commit") >> return ()
 >   rollback sess = executeCommand sess (sql "rollback") >> return ()
 
@@ -170,25 +192,21 @@ Session objects are created by 'connect'.
 The simplest kind of a statement: no tuning parameters, all default,
 little overhead
 
-> data QueryString = QueryString String
+> newtype QueryString = QueryString String
 > sql str = QueryString str
 
 > instance Command QueryString Session where
->   executeCommand s (QueryString str)  = do
+>   executeCommand s (QueryString str) = executeCommand s str
+
+> instance Command String Session where
+>   executeCommand s str = do
 >     (_,ntuple_str,_) <- convertEx $ DBAPI.nqExec (dbHandle s) str
 >     return $ if ntuple_str == "" then 0 else read ntuple_str
 
-> test_ddl :: String -> IO ()
-> test_ddl host = do
->  let (ConnectA ca) = connect [CAhostaddr host,CAuser "oleg",CAdbname "test"]
->  db <- ca
->  putStrLn "Connected"
->  do
->    executeCommand db (sql "create table tdual (dummy text)")
->    executeCommand db (sql "insert into tdual values ('aaa')") >>= print
->    executeCommand db (sql "drop table tdual")
->  disconnect db
->  putStrLn "Done"
+> instance Command BoundStmt Session where
+>   executeCommand s (BoundStmt (rs, count) _) = return count
+
+
 
 |At present the only resource tuning we support is the number of rows
 prefetched by the FFI library.
@@ -198,7 +216,7 @@ tuning parameters later.
 > data QueryResourceUsage = QueryResourceUsage { prefetchRowCount :: Int }
 
 > defaultResourceUsage :: QueryResourceUsage
-> defaultResourceUsage = QueryResourceUsage 100
+> defaultResourceUsage = QueryResourceUsage 0  -- get it all at once
 
 
 Simple prepared statement: the analogue of QueryString. It is useful
@@ -208,30 +226,77 @@ it will be fetched entirely in one shot).
 
 The data constructor is not exported.
 
-> data PreparedStmt = PreparedStmt String
-> prepareStmt :: String -> QueryString -> PreparationA Session PreparedStmt
-> prepareStmt [] _ = error "Prepared statement name must be non-empty"
-> prepareStmt name (QueryString str) = 
->     PreparationA (\sess -> 
->	    convertEx $ DBAPI.stmtPrepare (dbHandle sess) name str []
->	    >>= return . PreparedStmt)
+> data PreparedStmt = PreparedStmt { stmtName :: String }
 
-This kind of statement supports textual parameter binding interface
-(that is, everything is done via a string). We use Maybe String
-so we can represent NULLs.
+> prepareStmt ::
+>   String -> QueryString -> [DBAPI.Oid] -> PreparationA Session PreparedStmt
+> prepareStmt [] _ _ = error "Prepared statement name must be non-empty"
+> prepareStmt name (QueryString str) types = 
+>   PreparationA (\sess -> 
+>     convertEx $ DBAPI.stmtPrepare (dbHandle sess) name (DBAPI.substituteBindPlaceHolders str) types
+>       >>= return . PreparedStmt)
 
-> newtype BOString = BOString (Maybe String)
 
-> instance IPrepared PreparedStmt Session BoundStmt BOString
->     where
->     bindRun sess stmt@(PreparedStmt stmt'name) bas body =
->         convertEx $ DBAPI.stmtExecNT (dbHandle sess) stmt'name params
->         >>= body . BoundStmt
->       where 
->       params = map (\(BindA ba) -> case ba sess stmt of BOString x ->x) bas
->
-> newtype BoundStmt = BoundStmt (ResultSetHandle, Int)
+|bindType is useful when constructing the list of Oids for stmtPrepare.
+You don't need to pass the actual bind values, just dummy values
+of the same type (the value isn't used, so undefined is OK here).
 
+> bindType v = DBAPI.pgTypeOid v
+
+> data BoundStmt = BoundStmt (ResultSetHandle, Int) String
+
+
+The bindRun method returns a BoundStmt,
+which contains just the result-set (and row count).
+
+How do we bind a statement that will use prefetching?
+We can't, because the prefetching code must surround the query text
+with a cursor declaration.
+
+Peraps we could use the same code, but have the no-prefetch case
+create an empty advance action...
+
+> type BindObj = DBAPI.PGBindVal
+
+> instance IPrepared PreparedStmt Session BoundStmt BindObj where
+>   bindRun sess stmt@(PreparedStmt stmt'name) bas action = do
+>     let params = map (\(BindA ba) -> ba sess stmt) bas
+>     rs <- convertEx $ DBAPI.stmtExec (dbHandle sess) stmt'name params
+>     action (BoundStmt rs stmt'name)
+>   destroyStmt sess stmt = do
+>     executeCommand sess ("deallocate \"" ++ stmtName stmt ++ "\"")
+>     return ()
+
+
+
+-- Serialization (binding)
+
+> makeBindAction x = BindA (\_ _ -> DBAPI.newBindVal x)
+
+> instance DBBind (Maybe String) Session PreparedStmt BindObj where
+>   bindP = makeBindAction
+
+> instance DBBind (Maybe Int) Session PreparedStmt BindObj where
+>   bindP = makeBindAction
+
+> instance DBBind (Maybe Int64) Session PreparedStmt BindObj where
+>   bindP = makeBindAction
+
+> instance DBBind (Maybe Float) Session PreparedStmt BindObj where
+>   bindP = makeBindAction
+
+> instance DBBind (Maybe Double) Session PreparedStmt BindObj where
+>   bindP = makeBindAction
+
+> instance DBBind (Maybe a) Session PreparedStmt BindObj
+>     => DBBind a Session PreparedStmt BindObj where
+>   bindP x = bindP (Just x)
+
+The default instance, uses generic Show
+
+> instance (Show a) => DBBind (Maybe a) Session PreparedStmt BindObj where
+>   bindP (Just x) = bindP (Just (show x))
+>   bindP Nothing = bindP (Nothing `asTypeOf` Just "")
 
 --------------------------------------------------------------------
 -- ** Queries
@@ -242,7 +307,10 @@ so we can represent NULLs.
 >   , ntuples  :: Int  -- number of tuples to process in this subquery
 >   , curr'row :: Int  -- current row, one-based. Should increment before use
 >   }
-> 
+
+
+FIXME: need to save cursor name and deallocate when query done?
+
 > data Query = Query
 >   { subquery :: IORef SubQuery
 >   , advance'action :: Maybe (IO (ResultSetHandle, Int))
@@ -271,73 +339,77 @@ and prepare the buffers accordingly. We don't do that at the moment.
 
 
 > instance Statement QueryString Session Query where
->   makeQuery sess (QueryString sqltext) = commence'query'simple sess sqltext
+>   makeQuery sess (QueryString sqltext) = makeQuery sess sqltext
 
 > instance Statement String Session Query where
->   makeQuery sess sqltext = commence'query'simple sess sqltext
+>   makeQuery sess sqltext = commence'query'simple sess sqltext []
 
 
-Simple prepared statements
+Simple prepared statements.
+Query has been executed and result-set is in handle.
 
 > instance Statement BoundStmt Session Query where
->   makeQuery sess (BoundStmt (handle,ntuples)) = do
->	  sqr <- newIORef $ SubQuery handle ntuples 0
->         return Query {subquery = sqr,
->		        advance'action = Nothing,
->	                cleanup'action = Nothing,
->	                session = sess}
+>   makeQuery sess (BoundStmt (handle,ntuples) stmtName) = do
+>     sqr <- newIORef $ SubQuery handle ntuples 0
+>     return Query
+>       { subquery = sqr
+>       , advance'action = Nothing
+>       , cleanup'action = Nothing
+>       , session = sess
+>       }
 
 
--- Statements with resource usage
+Statements with resource usage
 
-> data QueryStringTuned = QueryStringTuned QueryResourceUsage String
-> sql_tuned resource_usage str = QueryStringTuned resource_usage str
->
+> data QueryStringTuned = QueryStringTuned QueryResourceUsage String [BindA Session PreparedStmt BindObj]
+
+> prefetch count sql parms = QueryStringTuned (QueryResourceUsage count) sql parms
+
 > instance Statement QueryStringTuned Session Query where
->   makeQuery sess (QueryStringTuned resource_usage sqltext) = 
->	commence'query sess resource_usage sqltext
+>   makeQuery sess (QueryStringTuned resource_usage sqltext bas) = do
+>     let params = map (\(BindA ba) -> ba sess undefined) bas
+>     commence'query sess resource_usage sqltext params
 
 
 
 > default'cursor'name = "takusenp"
 > prepared'statement'name = "" -- meaning anonymous
 
-> commence'query'simple sess sqltext 
->     = do
->       subq <- create'subq sess
->	                 (convertEx $ 
->			    DBAPI.stmtExecImm (dbHandle sess) sqltext)
->	sqr <- newIORef subq
->       return Query {subquery = sqr,
->	              advance'action = Nothing,
->	              cleanup'action = Nothing,
->	              session = sess}
+> commence'query'simple sess sqltext params = do
+>   subq <- create'subq sess $
+>     convertEx $ DBAPI.stmtExecImm (dbHandle sess) (DBAPI.substituteBindPlaceHolders sqltext) params
+>   sqr <- newIORef subq
+>   return Query
+>     { subquery = sqr
+>     , advance'action = Nothing
+>     , cleanup'action = Nothing
+>     , session = sess
+>     }
 
-> commence'query sess resourceUsage sqltext 
+> commence'query sess resourceUsage sqltext params
 >     | QueryResourceUsage{prefetchRowCount = 0} <- resourceUsage
->              = commence'query'simple sess sqltext
+>              = commence'query'simple sess sqltext params
 
 Now, prepare and open the cursor
 
-> commence'query sess resourceUsage sqltext =
->     do
->     let cursor = default'cursor'name
->     let q = sql ("DECLARE " ++ cursor ++ " NO SCROLL CURSOR FOR " ++ sqltext)
->     executeCommand sess q
->     let fetchq = "FETCH FORWARD " ++ (show $ prefetchRowCount resourceUsage)
->	           ++ " FROM " ++ cursor
->     sn <- convertEx $ DBAPI.stmtPrepare (dbHandle sess) 
->                          prepared'statement'name fetchq []
->     let advanceA = convertEx $ DBAPI.stmtExec0 (dbHandle sess) sn
->     let cleanupA = convertEx $ DBAPI.nqExec (dbHandle sess) 
->	                                ("CLOSE " ++ cursor)
->		     >> return ()
->     subq <- create'subq sess advanceA
->     sqr <- newIORef subq
->     return Query {subquery = sqr,
->	            advance'action = Just advanceA,
->	            cleanup'action = Just cleanupA,
->	            session = sess}
+> commence'query sess resourceUsage sqltext params = do
+>   let cursor = default'cursor'name
+>   let q = "DECLARE " ++ cursor ++ " NO SCROLL CURSOR FOR " ++ sqltext
+>   pstmt <- convertEx $ DBAPI.execCommand (dbHandle sess)
+>     (DBAPI.substituteBindPlaceHolders q) params
+>   let fetchq = "FETCH FORWARD " ++ (show $ prefetchRowCount resourceUsage) ++ " FROM " ++ cursor
+>   sn <- convertEx $ DBAPI.stmtPrepare (dbHandle sess) prepared'statement'name fetchq []
+>   let advanceA = convertEx $ DBAPI.stmtExec0 (dbHandle sess) sn
+>   let cleanupA =
+>         convertEx $ DBAPI.nqExec (dbHandle sess) ("CLOSE " ++ cursor) >> return ()
+>   subq <- create'subq sess advanceA
+>   sqr <- newIORef subq
+>   return Query
+>     { subquery = sqr
+>     , advance'action = Just advanceA
+>     , cleanup'action = Just cleanupA
+>     , session = sess
+>     }
 
 > create'subq sess action = do
 >     (stmt,ntuples) <- action
@@ -360,16 +432,16 @@ Now, prepare and open the cursor
 >        then return False
 >        else if curr'row subq > ntuples subq 
 >        then maybe
->              (return False)		-- no advance action: we're done
+>              (return False)                -- no advance action: we're done
 >              (\action -> destroy'subq sess subq   >>
->	                   create'subq  sess action >>=
->	                   (writeIORef (subquery query)) >>
->	                   fetchOneRow query)
->	       (advance'action query)
+>                           create'subq  sess action >>=
+>                           (writeIORef (subquery query)) >>
+>                           fetchOneRow query)
+>               (advance'action query)
 >        else writeIORef (subquery query) subq >> return True
 >
 >   -- want to add a counter, so we can support this properly
->   currentRowNum q = return 0
+>   currentRowNum q = readIORef (subquery q) >>= return . curr'row
 >
 >   freeBuffer q buffer = return ()
 
@@ -380,164 +452,47 @@ Now, prepare and open the cursor
 |There aren't really Buffers to speak of with PostgreSQL,
 so we just record the position of each column.
 
-> data ColumnBuffer = ColumnBuffer
->   { colPos :: Int
->   }
+> data ColumnBuffer = ColumnBuffer { colPos :: Int }
 
-> buffer_pos q buffer = 
->     do 
->     let col = colPos buffer
->     row <- currentRowNum q
->     return (row,col)
+> buffer_pos q buffer = do 
+>   row <- currentRowNum q
+>   return (row, colPos buffer)
 
 An auxiliary function: buffer allocation
 
-> allocBuffer q colpos = do
->     return $ ColumnBuffer
->       { colPos = colpos
->       }
+> allocBuffer q colpos = return $ ColumnBuffer { colPos = colpos }
+
+ nullIf :: Bool -> a -> Maybe a
+ nullIf test v = if test then Nothing else Just v
 
 
-20040822073512
-   10000000000 (10 ^ 10) * year
-     100000000 (10 ^ 8) * month
-       1000000 (10 ^ 6) * day
-         10000  (10^4) * hour
-
-Use quot and rem, /not/ div and mod,
-so that we get sensible behaviour for -ve numbers.
-
-> makeCalTime :: Int64 -> CalendarTime
-> makeCalTime i =
->   let
->     year = (i `quot` 10000000000)
->     month = ((abs i) `rem` 10000000000) `quot` 100000000
->     day = ((abs i) `rem` 100000000) `quot` 1000000
->     hour = ((abs i) `rem` 1000000) `quot` 10000
->     minute = ((abs i) `rem` 10000) `quot` 100
->     second = ((abs i) `rem` 100)
->   in CalendarTime
->     { ctYear = fromIntegral year
->     , ctMonth = toEnum (fromIntegral month - 1)
->     , ctDay = fromIntegral day
->     , ctHour = fromIntegral hour
->     , ctMin = fromIntegral minute
->     , ctSec = fromIntegral second
->     , ctPicosec = 0
->     , ctWDay = Sunday
->     , ctYDay = -1
->     , ctTZName = "UTC"
->     , ctTZ = 0
->     , ctIsDST = False
->     }
-
-> makeInt64 :: CalendarTime -> Int64
-> makeInt64 ct =
->   let
->     yearm :: Int64
->     yearm = 10000000000
->   in  yearm * fromIntegral (ctYear ct)
->   + 100000000 * fromIntegral ((fromEnum (ctMonth ct) + 1))
->   + 1000000 * fromIntegral (ctDay ct)
->   + 10000 * fromIntegral (ctHour ct)
->   + 100 * fromIntegral (ctMin ct)
->   + fromIntegral (ctSec ct)
-
-
-
-
-
-> nullIf :: Bool -> a -> Maybe a
-> nullIf test v = if test then Nothing else Just v
-
-> bufferToString query buffer = do
+> bufferToAny fn query buffer = do
 >   subq <- readIORef (subquery query)
->   ind  <- DBAPI.colValNull (stmtHandle subq) (curr'row subq) 
->                            (colPos buffer)
+>   ind <- DBAPI.colValNull (stmtHandle subq) (curr'row subq) (colPos buffer)
 >   if ind then return Nothing
->      else 
->        DBAPI.colValString (stmtHandle subq) (curr'row subq) 
->	                    (colPos buffer)
->        >>= return . Just
-
-> {-
-> bufferToInt buffer = do
->   v <- DBAPI.colValInt (stmtHandle (query buffer)) (colPos buffer)
->   return (Just v)
-
-> bufferToDouble buffer = do
->   v <- DBAPI.colValDouble (stmtHandle (query buffer)) (colPos buffer)
->   return (Just v)
-
-> nullDatetimeInt64 :: Int64
-> nullDatetimeInt64 = 99999999999999
-
-> bufferToDatetime :: (MonadIO m) => ColumnBuffer -> m (Maybe CalendarTime)
-> bufferToDatetime buffer = do
->   v <- DBAPI.colValInt64 (stmtHandle (query buffer)) (colPos buffer)
->   return (nullIf (v == 0 || v == nullDatetimeInt64) (makeCalTime v))
-
-
-
-> class PGBind a where
->   stmtBind :: DBHandle -> ResultSetHandle -> Int -> a -> IO ()
-
-> instance PGBind Int where stmtBind = DBAPI.bindInt
-> instance PGBind String where stmtBind = DBAPI.bindString
-> instance PGBind Double where stmtBind = DBAPI.bindDouble
-> instance PGBind CalendarTime where
->   stmtBind db stmt pos val =
->     DBAPI.bindInt64 db stmt pos (makeInt64 val)
-
-> bindMaybe :: (PGBind a)
->   => DBHandle -> ResultSetHandle -> Int -> Maybe a -> IO ()
-> bindMaybe db stmt pos mv = convertEx $
->   case mv of
->     Nothing -> DBAPI.bindNull db stmt pos
->     Just val -> stmtBind db stmt pos val
-
-> bindMb pos val = do
->   sess <- lift getSession
->   query <- getQuery
->   bindMaybe (dbHandle sess) (stmtHandle query) pos val
-
-If we have a null datetime, convert it to 99999999999999, rather than 0.
-This ensures that dates have the same sorting behaviour as SQL,
-which is to have nulls come last in the sort order.
-
-> bindDatetime :: DBHandle -> ResultSetHandle -> Int -> Maybe CalendarTime -> IO ()
-> bindDatetime db stmt pos mbval =  convertEx $
->   case mbval of
->     Nothing -> DBAPI.bindInt64 db stmt pos nullDatetimeInt64
->     Just val -> stmtBind db stmt pos val
-> -}
+>     else 
+>       fn (stmtHandle subq) (curr'row subq) (colPos buffer)
+>         >>= return . Just
 
 > instance DBType (Maybe String) Query ColumnBuffer where
 >   allocBufferFor _ q n = allocBuffer q n
->   fetchCol = bufferToString
+>   fetchCol = bufferToAny DBAPI.colValString
 
+> instance DBType (Maybe Int) Query ColumnBuffer where
+>   allocBufferFor _ q n = allocBuffer q n
+>   fetchCol = bufferToAny DBAPI.colValInt
 
-> --   bindPos p v = return () -- bindMb
+> instance DBType (Maybe Double) Query ColumnBuffer where
+>   allocBufferFor _ q n = allocBuffer q n
+>   fetchCol = bufferToAny DBAPI.colValDouble
 
-> {-
-> instance DBType (Maybe Int) PGMonadQuery ColumnBuffer where
->   allocBufferFor _ n = allocBuffer undefined n
->   fetchCol buffer = bufferToInt buffer
->   bindPos = bindMb
+> instance DBType (Maybe Float) Query ColumnBuffer where
+>   allocBufferFor _ q n = allocBuffer q n
+>   fetchCol = bufferToAny DBAPI.colValFloat
 
-> instance DBType (Maybe Double) PGMonadQuery ColumnBuffer where
->   allocBufferFor _ n = allocBuffer undefined n
->   fetchCol buffer = bufferToDouble buffer
->   bindPos = bindMb
-
-> instance DBType (Maybe CalendarTime) PGMonadQuery ColumnBuffer where
->   allocBufferFor _ n = allocBuffer undefined n
->   fetchCol buffer = bufferToDatetime buffer
->   bindPos pos val = do
->     sess <- lift getSession
->     query <- getQuery
->     bindDatetime (dbHandle sess) (stmtHandle query) pos val
-> -}
+> instance DBType (Maybe Int64) Query ColumnBuffer where
+>   allocBufferFor _ q n = allocBuffer q n
+>   fetchCol = bufferToAny DBAPI.colValInt64
 
 |This single polymorphic instance replaces all of the type-specific non-Maybe instances
 e.g. String, Int, Double, etc.
@@ -547,8 +502,6 @@ e.g. String, Int, Double, etc.
 >   allocBufferFor _ = allocBufferFor (undefined::Maybe a)
 >   fetchCol q buffer = throwIfDBNull (buffer_pos q buffer) $ fetchCol q buffer
 
->  -- bindPos pos val = bindPos pos (Just val)
-
 
 |This polymorphic instance assumes that the value is in a String column,
 and uses Read to convert the String to a Haskell data value.
@@ -556,29 +509,7 @@ and uses Read to convert the String to a Haskell data value.
 > instance (Show a, Read a) => DBType (Maybe a) Query ColumnBuffer where
 >   allocBufferFor _  = allocBufferFor (undefined::String)
 >   fetchCol q buffer = do
->     v <- bufferToString q buffer
+>     v <- bufferToAny DBAPI.colValString q buffer
 >     case v of
->       Just s -> return (Just (read s))
+>       Just s -> if s == "" then return Nothing else return (Just (read s))
 >       Nothing -> return Nothing
-
-
--- Serialization (binding)
--- If our statement supports only text parameters, serialization is trivial,
--- just to a string
-
-
-> instance DBBind String Session PreparedStmt BOString where
->   bindP x = BindA (\ses st -> BOString . Just $ x)
-
-> instance DBBind a Session PreparedStmt BOString
->     => DBBind (Maybe a) Session PreparedStmt BOString where
->   bindP x = BindA (\ses st -> maybe (BOString Nothing) ((un ses st).bindP) x)
->       where un ses st (BindA f) = f ses st 
-
-
-The default instance, uses generic Show
-
-> instance (Show a) => DBBind a Session PreparedStmt BOString where
->   bindP x = BindA (\ses st -> BOString . Just . show $ x)
-
-

@@ -26,7 +26,7 @@ so it should only use functions from there (and "Database.Oracle.OCIConstants").
 > import System.IO
 > import System.Environment (getArgs)
 > import Control.Monad
-> import Test.HUnit
+> import Test.MiniUnit
 
 
 > nullAction :: IO ()
@@ -166,7 +166,7 @@ so it should only use functions from there (and "Database.Oracle.OCIConstants").
 >       stmt <- OCI.handleAlloc oci_HTYPE_STMT (castPtr env)
 >       -- Oracle can't cope with ? as a bind variable placeholder.
 >       -- We must use the :x style instead.
->       -- Sqlite can cope with either. I think the ANSI/ISO standard is ?.
+>       -- Sqlite can cope with either. I think the ANSI/ISO standard is :n.
 >       OCI.stmtPrepare err (castPtr stmt) (OCI.substituteBindPlaceHolders "select :1 from dual union select :2 from dual")
 >       withCStringLen "hello" $ \(cstr, clen) ->
 >         OCI.bindByPos err (castPtr stmt) 1 0 (castPtr cstr) clen oci_SQLT_CHR
@@ -224,7 +224,7 @@ so it should only use functions from there (and "Database.Oracle.OCIConstants").
 >    let [u, p, d] = args
 >    return (u, p, d)
 
-> testlist args = TestList $ map TestCase
+> testlist args =
 >     [ testCreateEnv
 >     , testConnect args
 >     , testBeginTrans args
@@ -238,5 +238,5 @@ so it should only use functions from there (and "Database.Oracle.OCIConstants").
 > runTest :: [String] -> IO ()
 > runTest as = do
 >   args <- parseArgs as
->   counts <- runTestTT (testlist args)
+>   counts <- runTestTT "Oracle low-level tests" (testlist args)
 >   return ()
