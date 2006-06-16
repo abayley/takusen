@@ -78,11 +78,11 @@ but are not (necessarily) in this module. They include:
 >     , withSession, commit, rollback, beginTransaction
 >     , executeCommand, execDDL, execDML
 >
->     , PreparedStmt  -- data constructor not exported
+>     , PreparedStmt(..)  -- data constructor not exported
 >     , executePreparation, withPreparedStatement
 >     , withBoundStatement, IE.bindP
 >
->     , doQuery, IE.currentRowNum
+>     , doQuery, IE.currentRowNum, NextResultSet(..), RefCursor(..)
 >
 >     -- * A Query monad and cursors.
 >     , DBCursor, -- need to export this?
@@ -186,7 +186,7 @@ marked objects.
 > withSession :: (Typeable a, IE.ISession sess) => 
 >     IE.ConnectA sess -> (forall mark. DBM mark sess a) -> IO a
 > withSession (IE.ConnectA connecta) m = 
->   bracket (connecta) (IE.disconnect) (runReaderT $ unDBM m)
+>   bracket (connecta) (IE.disconnect) (runReaderT (unDBM m))
 
 
 
@@ -211,26 +211,47 @@ marked objects.
 --------------------------------------------------------------------
 
 > newtype PreparedStmt mark stmt = PreparedStmt stmt
+
 > executePreparation :: IE.IPrepared stmt sess bstmt bo =>
 >        IE.PreparationA sess stmt -> DBM mark sess (PreparedStmt mark stmt)
 > executePreparation (IE.PreparationA action) =
 >     DBM( ask >>= \sess -> lift $ action sess >>= return . PreparedStmt)
 
+> data NextResultSet mark stmt = NextResultSet (PreparedStmt mark stmt)
+> data RefCursor = RefCursor String deriving Show
+
+
 Also include Typeable constraint to prevent type leakage,
 assuming it's necessary here...?
+
+The exception handling here looks awkward, but there's a good reason...
+Let's say there's some sort of error when we call destroyStmt.
+The exception handler also must call destroyStmt (because the exception
+might have also come from the invocation of action), but this call
+might also raise a new exception (for example, a different error is raised
+if you re-try a failed CLOSE-cursor, because the transaction is aborted).
+So we wrap this call with a catch, and ensure that the original exception
+is preserved and re-raised.
 
 > withPreparedStatement ::
 >  (Typeable a, IE.IPrepared stmt sess bstmt bo)
 >  => IE.PreparationA sess stmt
 >  -> (PreparedStmt mark stmt -> DBM mark sess a)
 >  -> DBM mark sess a
-> withPreparedStatement pa action =
->   gbracket (executePreparation pa) destroyStmt action
+> withPreparedStatement pa action = do
+>   ps <- executePreparation pa
+>   gcatch ( do
+>        v <- action ps
+>        destroyStmt ps
+>        return v
+>     ) (\e -> gcatch (destroyStmt ps >> throw e) (\_ -> throw e))
 
 
 > destroyStmt :: (IE.ISession sess, IE.IPrepared stmt sess bstmt bo)
 >   => PreparedStmt mark stmt -> DBM mark sess ()
 > destroyStmt (PreparedStmt stmt) = DBM( ask >>= \s -> lift $ IE.destroyStmt s stmt )
+
+
 
 The Typeable constraint is to prevent the leakage of marked things.
 The type of bound statements should not be exported (and should not be
@@ -330,8 +351,9 @@ for the end user.
 >     query <- liftIO $ IE.makeQuery sess stmt
 >     buffers <- allocBuffers query iteratee 1
 >     let
->       finaliser = liftIO (mapM_ (IE.freeBuffer query) buffers) >>
->                   liftIO (IE.destroyQuery query)
+>       finaliser =
+>            liftIO (mapM_ (IE.freeBuffer query) buffers)
+>         >> liftIO (IE.destroyQuery query)
 >       hFoldLeft self iteratee initialSeed = do
 >         let
 >           handle seed True = iterApply query buffers seed iteratee

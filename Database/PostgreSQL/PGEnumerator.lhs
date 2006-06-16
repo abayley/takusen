@@ -24,7 +24,6 @@ DECLARE
     refc1 refcursor;
     refc2 refcursor;
 BEGIN
-
     OPEN refc1 FOR SELECT * FROM pg_database;
     RETURN NEXT refc1;
     OPEN refc2 FOR SELECT * FROM pg_proc;
@@ -35,6 +34,10 @@ $$ LANGUAGE plpgsql;
 -- this select returns two values (rows), both strings (well, refcursors),
 -- which are the cursor names.
 select * from myfunc();
+
+fetch all from "<unnamed portal 1>";
+fetch all from "<unnamed portal 2>";
+commit;
 
 
 > {-# OPTIONS -fglasgow-exts #-}
@@ -53,14 +56,12 @@ select * from myfunc();
 > where
 
 
-> import qualified Database.Enumerator
-> import Database.Enumerator (print_)
+> import Database.Enumerator (print_, RefCursor(..), NextResultSet(..))
+> import qualified Database.Enumerator as Enum (PreparedStmt(..))
 > import Database.InternalEnumerator
 > import Foreign.C
 > import Control.Monad
 > import Control.Exception (catchDyn, throwDyn, throwIO)
-> import Database.PostgreSQL.PGFunctions
->   (DBHandle, ResultSetHandle, PGException(..), catchPG, throwPG)
 > import qualified Database.PostgreSQL.PGFunctions as DBAPI
 > import Data.IORef
 > import Data.Int
@@ -77,8 +78,8 @@ We don't need wrappers for the colValXxx functions
 because they never throw exceptions.
 
 
-> convertAndRethrow :: PGException -> IO a
-> convertAndRethrow (PGException e m) = do
+> convertAndRethrow :: DBAPI.PGException -> IO a
+> convertAndRethrow (DBAPI.PGException e m) = do
 >   let
 >     s@(ssc,sssc) = errorSqlState e
 >     ec = case ssc of
@@ -123,7 +124,7 @@ because they never throw exceptions.
 |Common case: wrap an action with a convertAndRethrow.
 
 > convertEx :: IO a -> IO a
-> convertEx action = catchPG action convertAndRethrow
+> convertEx action = DBAPI.catchPG action convertAndRethrow
 
 
 --------------------------------------------------------------------
@@ -133,7 +134,7 @@ because they never throw exceptions.
 We don't need much in an PostgreSQL Session record.
 Session objects are created by 'connect'.
 
-> newtype Session = Session { dbHandle :: DBHandle }
+> newtype Session = Session { dbHandle :: DBAPI.DBHandle }
 
 > data ConnectAttr = 
 >    CAhost String
@@ -204,7 +205,7 @@ little overhead
 >     return $ if ntuple_str == "" then 0 else read ntuple_str
 
 > instance Command BoundStmt Session where
->   executeCommand s (BoundStmt (rs, count) _) = return count
+>   executeCommand s bs = return (boundCount bs)
 
 
 
@@ -226,15 +227,36 @@ it will be fetched entirely in one shot).
 
 The data constructor is not exported.
 
-> data PreparedStmt = PreparedStmt { stmtName :: String }
+What happens if we push the cursor list into the PreparedStmt object?
+We can only use multiple result-sets with prepared statements.
+This means we have to find some way of supporting prefetch with
+prepared statements, I think.
+
+> data PreparedStmt = PreparedStmt
+>   { stmtName :: String
+>   , stmtPrefetch :: Int
+>   , stmtCursors :: IORef [RefCursor]
+>   }
 
 > prepareStmt ::
 >   String -> QueryString -> [DBAPI.Oid] -> PreparationA Session PreparedStmt
 > prepareStmt [] _ _ = error "Prepared statement name must be non-empty"
 > prepareStmt name (QueryString str) types = 
->   PreparationA (\sess -> 
->     convertEx $ DBAPI.stmtPrepare (dbHandle sess) name (DBAPI.substituteBindPlaceHolders str) types
->       >>= return . PreparedStmt)
+>   PreparationA (\sess -> do
+>     psname <- convertEx $ DBAPI.stmtPrepare (dbHandle sess) name (DBAPI.substituteBindPlaceHolders str) types
+>     c <- newIORef []
+>     return (PreparedStmt psname 0 c)
+>     )
+
+> preparePrefetch ::
+>   Int -> String -> String -> [DBAPI.Oid] -> PreparationA Session PreparedStmt
+> preparePrefetch count name sqltext types =
+>   PreparationA (\sess -> do
+>     let q = "DECLARE " ++ name ++ " NO SCROLL CURSOR FOR " ++ sqltext
+>     psname <- convertEx $ DBAPI.stmtPrepare (dbHandle sess) name (DBAPI.substituteBindPlaceHolders q) types
+>     c <- newIORef []
+>     return (PreparedStmt psname count c)
+>     )
 
 
 |bindType is useful when constructing the list of Oids for stmtPrepare.
@@ -243,26 +265,28 @@ of the same type (the value isn't used, so undefined is OK here).
 
 > bindType v = DBAPI.pgTypeOid v
 
-> data BoundStmt = BoundStmt (ResultSetHandle, Int) String
+We store the parent prepared-statement in here.
+This is used by the BoundStmt instance of Statement to set up
+the parent PreparedStmt object in the Query object.
+
+> data BoundStmt = BoundStmt
+>   { boundHandle :: DBAPI.ResultSetHandle
+>   , boundCount :: Int
+>   , boundParentStmt :: PreparedStmt
+>   }
 
 
 The bindRun method returns a BoundStmt,
 which contains just the result-set (and row count).
 
-How do we bind a statement that will use prefetching?
-We can't, because the prefetching code must surround the query text
-with a cursor declaration.
-
-Peraps we could use the same code, but have the no-prefetch case
-create an empty advance action...
-
 > type BindObj = DBAPI.PGBindVal
 
 > instance IPrepared PreparedStmt Session BoundStmt BindObj where
->   bindRun sess stmt@(PreparedStmt stmt'name) bas action = do
+>   bindRun sess stmt bas action = do
 >     let params = map (\(BindA ba) -> ba sess stmt) bas
->     rs <- convertEx $ DBAPI.stmtExec (dbHandle sess) stmt'name params
->     action (BoundStmt rs stmt'name)
+>     (rs, count) <- convertEx $ DBAPI.stmtExec (dbHandle sess) (stmtName stmt) params
+>     writeIORef (stmtCursors stmt) []
+>     action (BoundStmt rs count stmt)
 >   destroyStmt sess stmt = do
 >     executeCommand sess ("deallocate \"" ++ stmtName stmt ++ "\"")
 >     return ()
@@ -303,20 +327,21 @@ The default instance, uses generic Show
 --------------------------------------------------------------------
 
 > data SubQuery = SubQuery
->   { stmtHandle :: ResultSetHandle
+>   { stmtHandle :: DBAPI.ResultSetHandle
 >   , ntuples  :: Int  -- number of tuples to process in this subquery
 >   , curr'row :: Int  -- current row, one-based. Should increment before use
 >   }
 
 
-FIXME: need to save cursor name and deallocate when query done?
-
 > data Query = Query
 >   { subquery :: IORef SubQuery
->   , advance'action :: Maybe (IO (ResultSetHandle, Int))
+>   , advance'action :: Maybe (IO (DBAPI.ResultSetHandle, Int))
 >   , cleanup'action :: Maybe (IO ())
->   , session :: Session
+>   , querySession :: Session
+>   , queryStmt :: Maybe PreparedStmt
 >   }
+
+
 
 The following function creates the Query record. It has a few
 decisions to make:
@@ -338,26 +363,34 @@ out 0 rows) so that later on, we could determine the type of data in columns
 and prepare the buffers accordingly. We don't do that at the moment.
 
 
-> instance Statement QueryString Session Query where
->   makeQuery sess (QueryString sqltext) = makeQuery sess sqltext
-
 > instance Statement String Session Query where
->   makeQuery sess sqltext = commence'query'simple sess sqltext []
+>   makeQuery sess sqltext = makeQuery sess (QueryString sqltext)
+
+> instance Statement QueryString Session Query where
+>   makeQuery sess (QueryString sqltext) = commence'query'simple sess sqltext []
 
 
 Simple prepared statements.
 Query has been executed and result-set is in handle.
 
 > instance Statement BoundStmt Session Query where
->   makeQuery sess (BoundStmt (handle,ntuples) stmtName) = do
->     sqr <- newIORef $ SubQuery handle ntuples 0
->     return Query
->       { subquery = sqr
->       , advance'action = Nothing
->       , cleanup'action = Nothing
->       , session = sess
->       }
+>   makeQuery sess bs = do
+>     sqr <- newIORef $ SubQuery (boundHandle bs) (boundCount bs) 0
+>     return (Query sqr Nothing Nothing sess (Just (boundParentStmt bs)))
 
+Here we need to pop the next cursor name from the head of the list,
+and use it to open 
+
+
+> instance Statement (NextResultSet mark PreparedStmt) Session Query where
+>   makeQuery sess (NextResultSet (Enum.PreparedStmt pstmt)) = do
+>     cursors <- readIORef (stmtCursors pstmt)
+>     let (RefCursor cursor) = head cursors
+>     writeIORef (stmtCursors pstmt) (tail cursors)
+>     --putStrLn ("makeQuery(NextResultSet): cursor " ++ cursor)
+>     --putStrLn ("makeQuery(NextResultSet): remaining " ++ (show (tail cursors)))
+>     let ru = QueryResourceUsage (stmtPrefetch pstmt)
+>     commencePreparedQuery sess ru (Just pstmt) "" [] cursor cursor
 
 Statements with resource usage
 
@@ -372,60 +405,72 @@ Statements with resource usage
 
 
 
-> default'cursor'name = "takusenp"
-> prepared'statement'name = "" -- meaning anonymous
-
 > commence'query'simple sess sqltext params = do
 >   subq <- create'subq sess $
 >     convertEx $ DBAPI.stmtExecImm (dbHandle sess) (DBAPI.substituteBindPlaceHolders sqltext) params
 >   sqr <- newIORef subq
->   return Query
->     { subquery = sqr
->     , advance'action = Nothing
->     , cleanup'action = Nothing
->     , session = sess
->     }
+>   return (Query sqr Nothing Nothing sess Nothing)
+
+Now, prepare and open the cursor
 
 > commence'query sess resourceUsage sqltext params
 >     | QueryResourceUsage{prefetchRowCount = 0} <- resourceUsage
 >              = commence'query'simple sess sqltext params
 
-Now, prepare and open the cursor
-
 > commence'query sess resourceUsage sqltext params = do
->   let cursor = default'cursor'name
->   let q = "DECLARE " ++ cursor ++ " NO SCROLL CURSOR FOR " ++ sqltext
->   pstmt <- convertEx $ DBAPI.execCommand (dbHandle sess)
->     (DBAPI.substituteBindPlaceHolders q) params
->   let fetchq = "FETCH FORWARD " ++ (show $ prefetchRowCount resourceUsage) ++ " FROM " ++ cursor
->   sn <- convertEx $ DBAPI.stmtPrepare (dbHandle sess) prepared'statement'name fetchq []
->   let advanceA = convertEx $ DBAPI.stmtExec0 (dbHandle sess) sn
->   let cleanupA =
->         convertEx $ DBAPI.nqExec (dbHandle sess) ("CLOSE " ++ cursor) >> return ()
+>   let prepared'statement'name = "" -- meaning anonymous
+>   let default'cursor'name = "takusenp"
+>   let q = "DECLARE " ++ default'cursor'name ++ " NO SCROLL CURSOR FOR " ++ sqltext
+>   psname <- convertEx $ DBAPI.stmtPrepare (dbHandle sess) prepared'statement'name
+>     (DBAPI.substituteBindPlaceHolders q) (DBAPI.bindTypes params)
+>   convertEx $ DBAPI.execPreparedCommand (dbHandle sess) psname params
+>   commencePreparedQuery sess resourceUsage Nothing psname params default'cursor'name default'cursor'name
+
+
+
+commencePreparedQueryn assumes that the DECLARE CURSOR statement
+has been prepared and executed.
+Note there are two statement names (and therefore two statements) in scope here.
+The first is the name we give to the DECLARE CURSOR statement;
+currently this is just "" (it passed in by commence'query).
+The second is the name given to the FETCH FORWARD statement, so that it can
+be re-executed quickly and easily.
+This is also passed in by commence'query, but if you look at commence'query,
+you'll see that it is the same as the cursor name (currently "takusenp").
+
+> commencePreparedQuery sess resourceUsage parentStmt psname params cursorName prefetchStmtName = do
+>   let countStr = if (prefetchRowCount resourceUsage) <= 0 then "ALL" else (show $ prefetchRowCount resourceUsage)
+>   let fetchq = "FETCH FORWARD " ++ countStr ++ " FROM \"" ++ cursorName ++ "\""
+>   sn <- convertEx $ DBAPI.stmtPrepare (dbHandle sess) prefetchStmtName fetchq []
+>   let
+>     advanceA = convertEx (DBAPI.stmtExec0 (dbHandle sess) sn)
+>     cleanupA = do
+>       executeCommand sess ("CLOSE \"" ++ cursorName ++ "\"")
+>       when (psname /= "") (executeCommand sess ("deallocate \"" ++ psname ++ "\"") >> return ())
 >   subq <- create'subq sess advanceA
 >   sqr <- newIORef subq
->   return Query
->     { subquery = sqr
->     , advance'action = Just advanceA
->     , cleanup'action = Just cleanupA
->     , session = sess
->     }
+>   return (Query sqr (Just advanceA) (Just cleanupA) sess parentStmt)
 
 > create'subq sess action = do
 >     (stmt,ntuples) <- action
 >     return $ SubQuery stmt ntuples 0
 > destroy'subq sess subq = convertEx $ DBAPI.stmtFinalise (stmtHandle subq)
 
+
+> appendRefCursor query cname = do
+>   case queryStmt query of
+>     Nothing -> error "appendRefCursor: no parent statement to hold RefCursor list."
+>     Just pstmt -> modifyIORef (stmtCursors pstmt) (++ [cname])
   
 > instance IQuery Query Session ColumnBuffer where
 >
 >   destroyQuery query = do
 >     subq <- readIORef (subquery query)
->     destroy'subq (session query) subq
+>     destroy'subq (querySession query) subq
 >     maybe (return ()) id (cleanup'action query)
 >
 >   fetchOneRow query = do
->     let sess  = session query
+>     let sess = querySession query
 >     subq'  <- readIORef (subquery query)
 >     let subq = subq' { curr'row = succ (curr'row subq') }
 >     if ntuples subq == 0
@@ -477,6 +522,14 @@ An auxiliary function: buffer allocation
 > instance DBType (Maybe String) Query ColumnBuffer where
 >   allocBufferFor _ q n = allocBuffer q n
 >   fetchCol = bufferToAny DBAPI.colValString
+
+> instance DBType RefCursor Query ColumnBuffer where
+>   allocBufferFor _ q n = allocBuffer q n
+>   fetchCol query buffer = do
+>     subq <- readIORef (subquery query)
+>     v <- DBAPI.colValString (stmtHandle subq) (curr'row subq) (colPos buffer)
+>     appendRefCursor query (RefCursor v)
+>     return (RefCursor v)
 
 > instance DBType (Maybe Int) Query ColumnBuffer where
 >   allocBufferFor _ q n = allocBuffer q n

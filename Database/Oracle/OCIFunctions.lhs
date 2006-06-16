@@ -530,7 +530,7 @@ If you want to use this library and use :x style syntax, you can.
 >     testForError rc "bindByPos" ()
 
 
-|stmtFetch takes a lot of run-time
+|stmtFetch takes a lot of wall-clock time
 because it involves a network trip to the DBMS for each call.
 
 > stmtFetch :: ErrorHandle -> StmtHandle -> IO CInt

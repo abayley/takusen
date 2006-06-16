@@ -12,14 +12,14 @@ Only the programmer for a new back-end needs to consult this file.
 >   (
 >     -- * Session object.
 >     ISession(..), ConnectA(..), 
->    , Statement(..), Command(..),
->    , PreparationA(..), IPrepared(..),
->    , BindA(..), DBBind(..),
->    , IsolationLevel(..)
->    , Position
->    , IQuery(..)
->    , DBType(..)
->    , throwIfDBNull
+>     , Statement(..), Command(..),
+>     , PreparationA(..), IPrepared(..),
+>     , BindA(..), DBBind(..),
+>     , IsolationLevel(..)
+>     , Position
+>     , IQuery(..)
+>     , DBType(..)
+>     , throwIfDBNull
 >     -- * Exceptions and handlers
 >     , DBException(..)
 >     , throwDB,
@@ -110,7 +110,7 @@ nor any of its methods.
 
 The ISession class describes the mapping from connection object to
 the session object. The connection object is created by the end user
-(and this is how the end user tells which particulat back end he wants).
+(and this is how the end user tells which particular back end he wants).
 The session object is not accessible by the end user in any way.
 Even the type of the session object should be hidden!
 
@@ -199,6 +199,7 @@ Will work for any type, as you pass the fetch action in the fetcher arg.
 >       (row,col) <- pos
 >       throwDB (DBUnexpectedNull row col)
 >     Just m -> return m
+
 
 
 ------------------------------------------------------------------------

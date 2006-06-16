@@ -397,6 +397,3 @@ values as Strings. We create our own datatype for the test.
 >     ) (\e -> return () )
 >   count <- doQuery selectStmt iterExceptionRollback []
 >   assertEqual sqlExceptionRollback [3] count
-
-> sqlMultiResultSet = ""
-> actionMultiResultSet = ""

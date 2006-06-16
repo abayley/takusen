@@ -26,48 +26,32 @@ to change these in a hurry (that would break compiled programs, wouldn't it?).
 
 ** Handle types:
 
-> oci_HTYPE_ENV :: CInt
-> oci_HTYPE_ENV = 1
-> oci_HTYPE_ERROR :: CInt
-> oci_HTYPE_ERROR = 2
-> oci_HTYPE_SVCCTX :: CInt
-> oci_HTYPE_SVCCTX = 3
-> oci_HTYPE_STMT :: CInt
-> oci_HTYPE_STMT = 4
-> oci_HTYPE_BIND :: CInt
-> oci_HTYPE_BIND = 5
-> oci_HTYPE_DEFINE :: CInt
-> oci_HTYPE_DEFINE = 6
-> oci_HTYPE_DESCRIBE :: CInt
-> oci_HTYPE_DESCRIBE = 7
-> oci_HTYPE_SERVER :: CInt
-> oci_HTYPE_SERVER = 8
-> oci_HTYPE_SESSION :: CInt
-> oci_HTYPE_SESSION = 9
-> oci_HTYPE_TRANS :: CInt
-> oci_HTYPE_TRANS = 10
+> [ oci_HTYPE_ENV
+>   , oci_HTYPE_ERROR
+>   , oci_HTYPE_SVCCTX
+>   , oci_HTYPE_STMT
+>   , oci_HTYPE_BIND
+>   , oci_HTYPE_DEFINE
+>   , oci_HTYPE_DESCRIBE
+>   , oci_HTYPE_SERVER
+>   , oci_HTYPE_SESSION
+>   , oci_HTYPE_TRANS
+>   ] = [1..10] :: [CInt]
 
 
 ** Error code types:
 
-> oci_SUCCESS :: CInt
-> oci_SUCCESS = 0
-> oci_SUCCESS_WITH_INFO :: CInt
-> oci_SUCCESS_WITH_INFO = 1
-> oci_RESERVED_FOR_INT_USE :: CInt
-> oci_RESERVED_FOR_INT_USE = 200
-> oci_NO_DATA :: CInt
-> oci_NO_DATA = 100
-> oci_ERROR :: CInt
-> oci_ERROR = -1
-> oci_INVALID_HANDLE :: CInt
-> oci_INVALID_HANDLE = -2
-> oci_NEED_DATA :: CInt
-> oci_NEED_DATA = 99
-> oci_STILL_EXECUTING :: CInt
-> oci_STILL_EXECUTING = -3123
-> oci_CONTINUE :: CInt
-> oci_CONTINUE = -24200
+> [ oci_SUCCESS
+>   , oci_SUCCESS_WITH_INFO
+>   , oci_RESERVED_FOR_INT_USE
+>   , oci_NO_DATA
+>   , oci_ERROR
+>   , oci_INVALID_HANDLE
+>   , oci_NEED_DATA
+>   , oci_STILL_EXECUTING
+>   , oci_CONTINUE
+>   ] =
+>   [0, 1, 200, 100, -1, -2, 99, -3123, -24200] :: [CInt]
 
 
 

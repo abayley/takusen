@@ -41,7 +41,7 @@ Portability :  non-portable
 >   map ($ db)
 >   [ testSelectInts
 >   , testSelectDouble
->   , testSelectDate
+>   --, testSelectDate
 >   --, testSelectNumeric
 >   , testSelectStrings
 >   , testSelectInt64
