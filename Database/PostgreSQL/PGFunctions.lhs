@@ -111,6 +111,7 @@ connection.
 > foreign import ccall "libpq-fe.h PQerrorMessage" fPQerrorMessage
 >   :: DBHandle -> IO CString
 
+
 28.10. Notice Processing
 We have a couple of callback hooks for server notice messages.
 
@@ -274,6 +275,8 @@ conn'parm is a string with all the attributes
 > enableNoticeReporting db = do
 >   r <- mkNoticeProcessor reportNotices
 >   fPQsetNoticeProcessor db r nullPtr
+
+> setErrorVerbosity db verb = fPQsetErrorVerbosity db verb >> return ()
 
 -----------------------------------------------------------
 

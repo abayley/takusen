@@ -8,13 +8,14 @@ Stability   :  experimental
 Portability :  non-portable
  
 Simple driver module, mainly for testing.
-Import test modules and run test suites.
+Imports test modules and runs test suites.
  
-This project is hosted by Haskell-libs:
-  <http://sf.net/projects/haskell-libs>
+This project is now hosted at haskell.org:
  
-Source code for this project is at:
-  <http://cvs.sf.net/viewcvs.py/haskell-libs/libs/takusen/>
+@darcs get <http://darcs.haskell.org/takusen/main>@
+ 
+Currently this is a source-only distribution;
+we haven't cabalised it yet.
  
 Invoke main like this (assuming compiled to takusen.exe):
  
@@ -41,7 +42,7 @@ Unwritten tests:
 > import Database.Sqlite.Test.Enumerator as Sqlite
 > import Database.Oracle.Test.Enumerator as Oracle
 > --import Database.Test.MultiConnect as Multi
-> --import Database.Stub.Test.Enumerator as Stub
+> import Database.Stub.Test.Enumerator as Stub
 > --import Database.MSSqlServer.Test.Enumerator as MSSql
 > import Database.PostgreSQL.Test.Enumerator as PGSql
 > import System.Environment (getArgs)
@@ -63,5 +64,5 @@ Unwritten tests:
 >   --, ("mssql", MSSql.runTest)
 >   , ("oracle", Oracle.runTest)
 >   --, ("multi", Multi.runTest)
->   --, ("stub", Stub.runTest)
+>   , ("stub", Stub.runTest)
 >   ]

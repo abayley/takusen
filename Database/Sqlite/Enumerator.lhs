@@ -16,7 +16,7 @@ Sqlite implementation of Database.Enumerator.
 
 > module Database.Sqlite.Enumerator
 >   ( Session, connect
->   , PreparedStmt, prepareStmt, prefetch, sql
+>   , prepareStmt, sql, sqlbind, prefetch
 >   , module Database.Enumerator
 >   )
 > where
@@ -137,6 +137,8 @@ Session objects are created by 'connect'.
 --------------------------------------------------------------------
 
 > newtype QueryString = QueryString String
+
+> sql :: String -> QueryString
 > sql str = QueryString str
 
 > instance Command QueryString Session where
@@ -318,6 +320,11 @@ so that we get sensible behaviour for -ve numbers.
 >   }
 
 > data StmtBind = StmtBind String [BindA Session PreparedStmt BindObj]
+
+> sqlbind :: String -> [BindA Session PreparedStmt BindObj] -> StmtBind
+> sqlbind sql bas = StmtBind sql bas
+
+> prefetch :: Int -> String -> [BindA Session PreparedStmt BindObj] -> StmtBind
 > prefetch n sql bas = StmtBind sql bas
 
 

@@ -1,9 +1,30 @@
 
-module Test.MiniUnit where
+-- |
+-- Module      :  Database.Enumerator
+-- Copyright   :  (c) 2004 Oleg Kiselyov, Alistair Bayley
+-- License     :  BSD-style
+-- Maintainer  :  oleg@pobox.com, alistair@abayley.org
+-- Stability   :  experimental
+-- Portability :  portable
+--
+-- This is just a simple one-module unit tets framework, with the same
+-- API as 'Test.HUnit' (albeit with a lot of stuff missing).
+-- We use it because it works in 'Control.Exception.MonadIO.CaughtMonadIO'
+-- instead of IO
+-- (and because I couldn't convert HUnit to use 'Control.Exception.MonadIO.CaughtMonadIO').
+
+
+module Test.MiniUnit
+  ( runTestTT, assertFailure, assertBool, assertString, assertEqual
+  -- ** exposed for self-testing only; see 'Test.MiniUnitTest'
+  , TestResult(..), throwUserError, runSingleTest, reportResults
+  )
+where
 
 import Control.Exception.MonadIO
 import Control.Exception
 import Control.Monad
+import Control.Monad.Trans (liftIO)
 import System.IO.Error (ioeGetErrorString)
 import Data.List
 import Data.IORef
@@ -12,16 +33,14 @@ import Data.IORef
 data TestResult = TestSuccess | TestFailure String | TestException String
   deriving (Show, Eq)
 
-{-
-We'll use HUnit's trick of throwing an IOError when an assertion fails.
-This will terminate the test case, obviously, but we catch the exception
-and record that it haa failed so that we can continue with other
-test cases.
+-- We'll use HUnit's trick of throwing an IOError when an assertion fails.
+-- This will terminate the test case, obviously, but we catch the exception
+-- and record that it haa failed so that we can continue with other
+-- test cases.
 
-Unlike HUnit, we catch all exceptions; any that are not thrown by
-failed assertions are recorded as test errors (as opposed to test failures),
-and the testing continues...
--}
+-- Unlike HUnit, we catch all exceptions; any that are not thrown by
+-- failed assertions are recorded as test errors (as opposed to test failures),
+-- and the testing continues...
 
 throwUserError :: CaughtMonadIO m => String -> m ()
 throwUserError msg = liftIO (throwIO (IOException (userError msg)))
@@ -128,7 +147,7 @@ runSingleTestTT n test = do
 
 ---------------------------------------------
 -- That's the basic framework; now for some sugar...
--- ... stolen straight from Dean's HUnit code.
+-- ... stolen straight from Dean Herrington's HUnit code.
 -- Shall we steal his infix operators, too?
 
 assertBool :: CaughtMonadIO m => String -> Bool -> m ()
@@ -137,7 +156,11 @@ assertBool msg b = unless b (assertFailure msg)
 assertString :: CaughtMonadIO m => String -> m ()
 assertString s = unless (null s) (assertFailure s)
 
-assertEqual :: (Eq a, Show a, CaughtMonadIO m) => String -> a -> a -> m ()
+assertEqual :: (Eq a, Show a, CaughtMonadIO m) =>
+     String  -- ^ message preface
+  -> a  -- ^ expected
+  -> a  -- ^ actual
+  -> m ()
 assertEqual preface expected actual = do
   let
     msg =

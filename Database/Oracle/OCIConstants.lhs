@@ -26,6 +26,8 @@ to change these in a hurry (that would break compiled programs, wouldn't it?).
 
 ** Handle types:
 
+| Found in $ORAHOME\/oci\/include\/oci.h
+
 > [ oci_HTYPE_ENV
 >   , oci_HTYPE_ERROR
 >   , oci_HTYPE_SVCCTX
@@ -40,6 +42,8 @@ to change these in a hurry (that would break compiled programs, wouldn't it?).
 
 
 ** Error code types:
+
+| Found in $ORAHOME\/oci\/include\/oci.h
 
 > [ oci_SUCCESS
 >   , oci_SUCCESS_WITH_INFO
@@ -57,26 +61,21 @@ to change these in a hurry (that would break compiled programs, wouldn't it?).
 
 ** Attribute types:
 
-> oci_ATTR_ENV :: CInt
-> oci_ATTR_ENV = 5
-> oci_ATTR_SERVER :: CInt
-> oci_ATTR_SERVER = 6
-> oci_ATTR_SESSION :: CInt
-> oci_ATTR_SESSION = 7
-> oci_ATTR_TRANS :: CInt
-> oci_ATTR_TRANS = 8
-> oci_ATTR_ROW_COUNT :: CInt
-> oci_ATTR_ROW_COUNT = 9
-> oci_ATTR_PREFETCH_ROWS :: CInt
-> oci_ATTR_PREFETCH_ROWS = 11
-> oci_ATTR_USERNAME :: CInt
-> oci_ATTR_USERNAME = 22
-> oci_ATTR_PASSWORD :: CInt
-> oci_ATTR_PASSWORD= 23
+| Found in $ORAHOME\/oci\/include\/oci.h
 
-
+> [ oci_ATTR_ENV
+>   , oci_ATTR_SERVER
+>   , oci_ATTR_SESSION
+>   , oci_ATTR_TRANS
+>   , oci_ATTR_ROW_COUNT
+>   , oci_ATTR_PREFETCH_ROWS
+>   , oci_ATTR_USERNAME
+>   , oci_ATTR_PASSWORD
+>   ] = [5,6,7,8,9,11,22,23] :: [CInt]
 
 ** Authentication options:
+
+| Found in $ORAHOME\/oci\/include\/oci.h
 
 > oci_CRED_RDBMS :: CInt
 > oci_CRED_RDBMS = 1
@@ -89,12 +88,16 @@ to change these in a hurry (that would break compiled programs, wouldn't it?).
 
 ** Syntax types (i.e. does the DBMS understand v7 or v8 syntax, etc):
 
+| Found in $ORAHOME\/oci\/include\/oci.h
+
 > oci_NTV_SYNTAX :: CInt
 > oci_NTV_SYNTAX = 1
 
 
 
 ** Scrollable Cursor Options:
+
+| Found in $ORAHOME\/oci\/include\/oci.h
 
 > oci_FETCH_NEXT :: CInt
 > oci_FETCH_NEXT = 2
@@ -115,6 +118,8 @@ to change these in a hurry (that would break compiled programs, wouldn't it?).
 
 
 ** OCI datatypes:
+
+| Found in $ORAHOME\/oci\/include\/ocidfn.h
 
 > oci_SQLT_CHR :: CInt
 > oci_SQLT_CHR = 1
@@ -151,14 +156,17 @@ to change these in a hurry (that would break compiled programs, wouldn't it?).
 > oci_SQLT_AFC :: CInt
 > oci_SQLT_AFC = 96
 > oci_SQLT_AVC :: CInt
-> oci_SQLT_AVC = 96
+> oci_SQLT_AVC = 97
+> oci_SQLT_RSET :: CInt
+> oci_SQLT_RSET = 116
 
 
 
-**Transaction types; parameters for ociTransStart.
+** Transaction types; parameters for ociTransStart.
 
-There are more than this, but they're related to complicated transaction-management stuff
-in the OCI libraries that I don't understand.
+| Found in $ORAHOME\/oci\/include\/oci.h.
+There are more than this, but they're related to complicated
+transaction-management stuff in the OCI libraries that I don't understand.
 These should be sufficient to support the simple transaction model
 understood by most developers.
 

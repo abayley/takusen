@@ -53,7 +53,8 @@ See 'formatErrorCodeDesc' for the set of possible values for the OCI error numbe
 > data OCIBuffer = OCIBuffer  -- generic buffer. Could hold anything: value or pointer.
 > type BufferPtr = Ptr OCIBuffer
 > type ColumnResultBuffer = ForeignPtr OCIBuffer  -- use ForeignPtr to ensure GC'd
-
+> data Context = Context
+> type ContextPtr = Ptr Context
 
 > data EnvStruct = EnvStruct
 > type EnvHandle = Ptr EnvStruct
@@ -159,6 +160,20 @@ plsqlArrayMaxLen, plsqlCurrEltPtr, mode
 >   -> CUShort -> Ptr CShort -> Ptr CUShort -> Ptr CUShort
 >   -> Ptr CUInt -> Ptr CUInt -> CUInt -> IO CInt
 
+> foreign import ccall "oci.h OCIBindDynamic" ociBindDynamic ::
+>   BindHandle -> ErrorHandle -> ContextPtr -> FunPtr OCICallbackInBind
+>   -> ContextPtr -> FunPtr OCICallbackOutBind -> IO CInt
+
+> type OCICallbackInBind = ContextPtr -> BindHandle -> CInt -> CInt
+>   -> Ptr BufferPtr -> CInt -> Ptr Word8 -> Ptr CShort -> IO CInt
+
+> type OCICallbackOutBind = ContextPtr -> BindHandle -> CInt -> CInt
+>   -> Ptr BufferPtr -> Ptr CInt -> Ptr Word8 -> Ptr CShort -> Ptr (Ptr CShort) -> IO CInt
+
+> foreign import ccall "wrapper" mkOCICallbackInBind ::
+>   OCICallbackInBind -> IO (FunPtr OCICallbackInBind)
+> foreign import ccall "wrapper" mkOCICallbackOutBind ::
+>   OCICallbackOutBind -> IO (FunPtr OCICallbackOutBind)
 
 ---------------------------------------------------------------------------------
 -- ** OCI error reporting
@@ -493,9 +508,9 @@ Most other DBMS's use ? as a placeholder,
 so we have this function to substitute ? with :n,
 where n starts at one and increases with each ?.
  
-We don't hook this in function into this library though;
+We don't use this function into this library though;
 it's used in the higher-level implementation of Enumerator.
-I like to retain flexibility at this lower-level,
+We prefer to retain flexibility at this lower-level,
 and not force arbitrary implementation choices too soon.
 If you want to use this library and use :x style syntax, you can.
 
@@ -529,6 +544,26 @@ If you want to use this library and use :x style syntax, you can.
 >             indPtr nullPtr nullPtr nullPtr nullPtr (fromIntegral oci_DEFAULT)
 >     testForError rc "bindByPos" ()
 
+> bindOutputByPos ::
+>   ErrorHandle
+>   -> StmtHandle
+>   -> Int   -- ^ Position
+>   -> ForeignPtr CShort   -- ^ Null ind: 0 == not null, -1 == null
+>   -> ForeignPtr OCIBuffer  -- ^ payload
+>   -> Int   -- ^ payload size in bytes
+>   -> CInt  -- ^ SQL Datatype (from "Database.Oracle.OCIConstants")
+>   -> IO BindHandle
+> bindOutputByPos err stmt pos nullIndFPtr bufFPtr sze sqltype =
+>   alloca $ \bindHdl ->
+>   withForeignPtr nullIndFPtr $ \indPtr -> do
+>   withForeignPtr bufFPtr $ \bufPtr -> do
+>     -- we don't use the bind handle returned; I think it's freed when the stmt is.
+>     rc <- ociBindByPos stmt bindHdl err (fromIntegral pos) bufPtr
+>             (fromIntegral sze) (fromIntegral sqltype)
+>             indPtr nullPtr nullPtr nullPtr nullPtr (fromIntegral oci_DEFAULT)
+>     testForError rc "bindOutputByPos" ()
+>     bptr <- peek bindHdl
+>     return bptr
 
 |stmtFetch takes a lot of wall-clock time
 because it involves a network trip to the DBMS for each call.
@@ -540,3 +575,36 @@ because it involves a network trip to the DBMS for each call.
 >   if rc == oci_NO_DATA
 >     then return rc
 >     else testForError rc "stmtFetch" rc
+
+From the "Bindind and Defining" chapter in the OCI docs:
+
+Binding RETURNING...INTO variables
+
+An OCI application implements the placeholders in the RETURNING clause
+as pure OUT bind variables. However, all binds in the RETURNING clause
+are initially IN and must be properly initialized.
+To provide a valid value, you can provide a NULL indicator
+and set that indicator to -1 (NULL).
+
+An application must adhere to the following rules when working with
+bind variables in a RETURNING clause:
+
+   1. Bind RETURNING clause placeholders in OCI_DATA_AT_EXEC mode using
+      OCIBindByName() or OCIBindByPos(), followed by a call to
+      OCIBindDynamic() for each placeholder.
+
+      Note: The OCI only supports the callback mechanism for
+      RETURNING clause binds. The polling mechanism is not supported.
+
+   2. When binding RETURNING clause placeholders, you must supply a valid out
+      bind function as the ocbfp parameter of the OCIBindDynamic() call.
+      This function must provide storage to hold the returned data.
+
+   3. The icbfp parameter of OCIBindDynamic() call should provide a
+      "dummy" function which returns NULL values when called.
+
+   4. The piecep parameter of OCIBindDynamic() must be set to OCI_ONE_PIECE.
+
+   5. No duplicate binds are allowed in a DML statement with a
+      RETURNING clause, such as no duplication between bind variables
+      in the DML section and the RETURNING section of the statement.

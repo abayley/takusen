@@ -28,6 +28,7 @@ functions and types. See the various backend-specific test modules for examples.
 > import System.Time  -- CalendarTime
 > import Data.Int
 > import Control.Exception.MonadIO
+> import Control.Monad.Trans (liftIO)
 > --import Test.HUnit
 > import Test.MiniUnit
 
@@ -352,8 +353,8 @@ through unmolested.
 >     actual <- doQuery stmt iterBindDate []
 >     assertEqual sqlBindDate expectBindDate actual
 
-Here we test the ability to send and receive arbtrary Show-able
-values as Strings. We create our own datatype for the test.
+With 'MyTree' we test the ability to send and receive arbtrary Show-able
+values as Strings i.e. we create our own datatype for the test.
 
 > data MyTree a = Leaf a | Branch [MyTree a] deriving (Eq, Show, Read)
 

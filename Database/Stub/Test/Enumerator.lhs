@@ -23,6 +23,7 @@ returns a somewhat contrived result set.
 > import System.Time  -- CalendarTime
 > import Test.MiniUnit
 > import Data.Int
+> import Control.Monad.Trans (liftIO)
 
 
 

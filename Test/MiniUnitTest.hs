@@ -6,7 +6,9 @@ module Test.MiniUnitTest where
 import Test.MiniUnit
 import Data.IORef
 import Control.Exception.MonadIO
+import Control.Monad.Trans (liftIO)
 
+main :: IO ()
 main = tests
 
 

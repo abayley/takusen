@@ -1,15 +1,19 @@
 
 module Control.Exception.MonadIO
 (
-  MonadIO(..), CaughtMonadIO(..)
-  , gtry, gtryJust, gbracket, gfinally, ioErrors
+  CaughtMonadIO(..)
+  , gtry, gtryJust, gbracket, gfinally
 ) where
 
 import Control.Monad.Trans
 import Control.Exception
 import Control.Monad.Reader
 
+gtry :: (CaughtMonadIO m) => m b -> m (Either Exception b)
 gtry a = gcatch (liftM Right a) (return . Left)
+
+gtryJust :: (CaughtMonadIO m) =>
+  (Exception -> Maybe b) -> m b1 -> m (Either b b1)
 gtryJust p a = gcatchJust p (liftM Right a) (return . Left)
 
 gbracket :: (CaughtMonadIO m) =>

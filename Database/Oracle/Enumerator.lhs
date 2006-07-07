@@ -7,7 +7,28 @@ Maintainer  :  oleg@pobox.com, alistair@abayley.org
 Stability   :  experimental
 Portability :  non-portable
  
-Exports just what you need from "Database.Oracle.Enumerator".
+Oracle OCI implementation of Database.Enumerator.
+
+Oracle has two ways to create additional result-sets.
+ 1. with nested cursors in the SQL select-statement (bind variables optional)
+    This gives us the RefCursor as a result-set column
+    i.e. we get it back in the buffer passed to defineByPos.
+ 2. as output parameters in a PL/SQL block
+    This gives us the RefCursor as an output bind variables
+    i.e. we get it back in the buffer passed to bindByPos.
+
+Problems:
+ - need to prepare anonymous PL/SQL block with bind placeholders for parameters
+ - need to have number of parameters when preparing
+ - need actual bind values when binding = number must match prepare number
+ - need to specify In, Out, In/Out - always use OCIBindByPos
+ - when executed (in withBoundStatement/bindRun) need to get return values
+   and save them... where? Do we create a tuple; Do we allow a single row fetch?
+
+So we need to add an instance to OracleBind for (RefCursor StmtHandle).
+When this binds we will have to save a list of the output bind buffers
+somewhere in the statement object (I suppose these can be reused).
+How do we return output values back to the program?
 
 
 > {-# OPTIONS -fglasgow-exts #-}
@@ -16,13 +37,15 @@ Exports just what you need from "Database.Oracle.Enumerator".
 
 > module Database.Oracle.Enumerator
 >   ( Session, connect
->   , PreparedStmt, prepareStmt, sql, prefetch
+>   , prepareStmt, sql, sqlbind, prefetch
 >   , module Database.Enumerator
 >   )
 > where
 
 
 > import qualified Database.Enumerator
+> import Database.Enumerator (print_, RefCursor(..), NextResultSet(..))
+> import qualified Database.Enumerator as Enum (PreparedStmt(..))
 > import Database.InternalEnumerator
 > import Database.Oracle.OCIConstants
 > import qualified Database.Oracle.OCIFunctions as OCI
@@ -50,6 +73,8 @@ Exports just what you need from "Database.Oracle.Enumerator".
 
 
 > between i (l, u) = i >= l && i <= u
+
+Where did I find these mappings?...
 
 > errorSqlState :: Int -> (String, String)
 > errorSqlState 0 = ("00", "000")
@@ -134,7 +159,7 @@ Still throws DBException.
 -- ** OCI Function Wrappers
 --------------------------------------------------------------------
 
-|These wrappers ensure that only DBExceptions are thrown,
+These wrappers ensure that only DBExceptions are thrown,
 and never OCIExceptions.
 
 > data Session = Session 
@@ -397,18 +422,20 @@ there's no equivalent for ReadUncommitted.
 --------------------------------------------------------------------
 
 > newtype QueryString = QueryString String
+
+> sql :: String -> QueryString
 > sql str = QueryString str
 
 > instance Command QueryString Session where
->   executeCommand s (QueryString str) = executeCommand s str
-
-> instance Command String Session where
->   executeCommand sess str = do
+>   executeCommand sess (QueryString str) = do
 >     stmt <- getStmt sess
 >     stmtPrepare sess stmt str
 >     n <- execute sess stmt 1
 >     closeStmt sess stmt
 >     return (fromIntegral n)
+
+> instance Command String Session where
+>   executeCommand sess str = executeCommand sess (sql str)
 
 > instance Command BoundStmt Session where
 >   executeCommand s (BoundStmt pstmt) = do
@@ -435,46 +462,81 @@ PreparedStmts can also be created internally by various instances
 of makeQuery (in class Statement), and these will usually have the
 same lifetime/scope as that of the Query (result-set).
 
-This lifetime distinction should probably be handled by having
-separate types for the two types of prepared statement...
+> data PreparedStmt =
+>     PreparedStmt
+>       { stmtHandle :: StmtHandle
+>       , stmtSession :: Session
+>       , stmtCursors :: IORef [RefCursor StmtHandle]
+>       , stmtBuffers :: IORef [ForeignPtr Word8]
+>       }
+>   | PreparedStmtFreeWithQuery
+>       { stmtHandle :: StmtHandle
+>       , stmtSession :: Session
+>       , stmtCursors :: IORef [RefCursor StmtHandle]
+>       , stmtBuffers :: IORef [ForeignPtr Word8]
+>       }
 
-
-> data PreparedStmt = PreparedStmt
->   { stmtHandle :: StmtHandle
->   , stmtSession :: Session
->   , stmtFreeWithQuery :: Bool
->   }
 
 > prepareStmt :: QueryString -> PreparationA Session PreparedStmt
-> prepareStmt (QueryString sqltext) = prepareStmt' sqltext False
+> prepareStmt (QueryString sqltext) = prepareStmt' sqltext PreparedStmt
 
-> prepareStmt' sqltext free =
+> prepareStmt' sqltext constr =
 >   PreparationA (\sess -> do
 >     stmt <- getStmt sess
 >     stmtPrepare sess stmt (OCI.substituteBindPlaceHolders sqltext)
->     return (PreparedStmt stmt sess free))
+>     newPreparedStmt constr sess stmt
+>     )
+
+> newPreparedStmt constr sess stmt = do
+>   c <- newIORef []
+>   b <- newIORef []
+>   return (constr stmt sess c b)
 
 --------------------------------------------------------------------
 -- ** Binding
 --------------------------------------------------------------------
 
 > newtype BoundStmt = BoundStmt { boundStmt :: PreparedStmt }
+
+We might need to change this, to keep track of the binding-object
+returned by the bind call. What type should the bind object be?
+Some kind of buffer pointer, I guess... or a function
+that returns the value (from the buffer)?
+
 > type BindObj = Int -> IO ()
+> newtype Out a = Out a
 
 > instance IPrepared PreparedStmt Session BoundStmt BindObj where
 >   bindRun sess stmt bas action = do
 >     sequence_ (zipWith (\i (BindA ba) -> ba sess stmt i) [1..] bas)
 >     execute sess (stmtHandle stmt) 0
+>     writeIORef (stmtCursors stmt) []
+>     -- after execute, save any RefCursor Out values...
+>     -- or should we save all Out values?
 >     action (BoundStmt stmt)
->   destroyStmt sess stmt = do
->     when (not (stmtFreeWithQuery stmt)) $
->       closeStmt sess (stmtHandle stmt)
+>   destroyStmt sess (PreparedStmtFreeWithQuery stmth _ _ _) = closeStmt sess stmth
+>   destroyStmt sess (PreparedStmt _ _ _ _) = return ()
 
 > instance DBBind (Maybe String) Session PreparedStmt BindObj where
 >   bindP = makeBindAction
 
 > instance DBBind (Maybe Int) Session PreparedStmt BindObj where
 >   bindP = makeBindAction
+
+> instance DBBind (Out (Maybe Int)) Session PreparedStmt BindObj where
+>   bindP (Out v) = BindA (\sess stmt pos -> do
+>       buffer <- mallocForeignPtrBytes (bindSize v)
+>       withForeignPtr buffer (\ptr -> do
+>         case v of
+>           Nothing -> return ()
+>           Just i -> poke (castPtr ptr) (toCInt i)
+>         bindByPos sess stmt pos (bindNullInd v) (castPtr ptr) (bindSize v) (bindType v)
+>         )
+>       appendOutputBindBuffer stmt buffer
+>     )
+
+> appendOutputBindBuffer stmt buffer = do
+>   modifyIORef (stmtBuffers stmt) (++ [buffer])
 
  instance DBBind (Maybe Int64) Session PreparedStmt BindObj where
    bindP = makeBindAction
@@ -502,7 +564,7 @@ The default instance, uses generic Show
 > bindMaybe :: (OracleBind a)
 >   => Session -> PreparedStmt -> Maybe a -> Int -> IO ()
 > bindMaybe sess stmt v pos =
->   bindWithValue v $ \ptrv ->
+>   bindWithValue v $ \ptrv -> do
 >     bindByPos sess stmt pos (bindNullInd v) (castPtr ptrv) (bindSize v) (bindType v)
 
 
@@ -547,10 +609,10 @@ The default instance, uses generic Show
 >   bindType _ = oci_SQLT_DAT
 
 > withBinaryValue :: (OracleBind b) =>
->   (b -> a)
->   -> b
->   -> (Ptr Word8 -> a -> IO ())
->   -> (Ptr Word8 -> IO ())
+>   (b -> a)  -- ^ convert Haskell value to C value
+>   -> b      -- ^ value to convert (we call bindSize on this value to get buffer size)
+>   -> (Ptr Word8 -> a -> IO ())  -- ^ action to place converted value into buffer
+>   -> (Ptr Word8 -> IO ())       -- ^ action to run over buffer; buffer will be freed on completion
 >   -> IO ()
 > withBinaryValue fn v pok action =
 >   allocaBytes (bindSize v) $ \p -> do
@@ -629,9 +691,15 @@ so that we get sensible behaviour for -ve numbers.
 -- ** Queries
 --------------------------------------------------------------------
 
+We save a reference to the parent PreparedStmt.
+In a lot of cases (the simple ones) the parent is that same
+as the PreparedStmt.
+It only differs wen we use the NextResultSet instance of makeQuery.
+
 > data Query = Query
 >   { queryStmt :: PreparedStmt
 >   , querySess :: Session
+>   , queryParent :: Maybe PreparedStmt
 >   }
 
 
@@ -642,14 +710,18 @@ so that we get sensible behaviour for -ve numbers.
 
 > data StmtBind = StmtBind String [BindA Session PreparedStmt BindObj]
 > data QueryStringTuned = QueryStringTuned QueryResourceUsage String [BindA Session PreparedStmt BindObj]
-> sql_tuned resource_usage str = QueryStringTuned resource_usage str []
+
+> sqlbind :: String -> [BindA Session PreparedStmt BindObj] -> QueryStringTuned
+> sqlbind sql parms = QueryStringTuned defaultResourceUsage sql parms
+
+> prefetch :: Int -> String -> [BindA Session PreparedStmt BindObj] -> QueryStringTuned
 > prefetch count sql parms = QueryStringTuned (QueryResourceUsage count) sql parms
 
 > instance Statement BoundStmt Session Query where
->   makeQuery sess bstmt = return (Query (boundStmt bstmt) sess)
+>   makeQuery sess bstmt = return (Query (boundStmt bstmt) sess (Just (boundStmt bstmt)))
 
 > instance Statement PreparedStmt Session Query where
->   makeQuery sess pstmt = return (Query pstmt sess)
+>   makeQuery sess pstmt = return (Query pstmt sess (Just pstmt))
 
 > instance Statement QueryString Session Query where
 >   makeQuery sess (QueryString sqltext) = makeQuery sess sqltext
@@ -657,6 +729,17 @@ so that we get sensible behaviour for -ve numbers.
 > instance Statement String Session Query where
 >   makeQuery sess sqltext = makeQuery sess (StmtBind sqltext [])
 
+> instance Statement (RefCursor StmtHandle) Session Query where
+>   makeQuery sess (RefCursor stmt) = do
+>     pstmt <- newPreparedStmt PreparedStmtFreeWithQuery sess stmt
+>     return (Query pstmt sess Nothing)
+
+> instance Statement (NextResultSet mark PreparedStmt) Session Query where
+>   makeQuery sess (NextResultSet (Enum.PreparedStmt pstmt)) = do
+>     cursors <- readIORef (stmtCursors pstmt)
+>     if null cursors then throwDB (DBError ("02", "000") (-1) "No more result sets to process.") else return ()
+>     writeIORef (stmtCursors pstmt) (tail cursors)
+>     makeQuery sess (head cursors)
 
 > instance Statement StmtBind Session Query where
 >   makeQuery sess (StmtBind sqltext bas) =
@@ -664,12 +747,12 @@ so that we get sensible behaviour for -ve numbers.
 
 > instance Statement QueryStringTuned Session Query where
 >   makeQuery sess (QueryStringTuned resUsage sqltext bas) = do
->     let (PreparationA action) = prepareStmt' sqltext True
+>     let (PreparationA action) = prepareStmt' sqltext PreparedStmtFreeWithQuery
 >     pstmt <- action sess
 >     sequence_ (zipWith (\i (BindA ba) -> ba sess pstmt i) [1..] bas)
 >     setPrefetchCount sess (stmtHandle pstmt) (prefetchRowCount resUsage)
 >     execute sess (stmtHandle pstmt) 0
->     return (Query pstmt sess)
+>     return (Query pstmt sess (Just pstmt))
 
 
 > data ColumnBuffer = ColumnBuffer 
@@ -683,8 +766,9 @@ so that we get sensible behaviour for -ve numbers.
 
 > instance IQuery Query Session ColumnBuffer where
 >   destroyQuery query =
->     when (stmtFreeWithQuery (queryStmt query))
->       (closeStmt (querySess query) (stmtHandle (queryStmt query)))
+>     case (queryStmt query) of
+>       PreparedStmtFreeWithQuery stmth sess _ _ -> closeStmt sess stmth
+>       _ -> return ()
 >   fetchOneRow query = do
 >     rc <- fetchRow (querySess query) (queryStmt query)
 >     return (rc /= oci_NO_DATA)
@@ -855,6 +939,27 @@ y = (year mod 100) + 100.
 >   cdbl <- bufferToCDouble b
 >   return $ maybe Nothing (Just . realToFrac) cdbl
 
+> bufferToStmtHandle :: ColumnBuffer -> IO (RefCursor StmtHandle)
+> bufferToStmtHandle buffer = do
+>   withForeignPtr (bufferFPtr buffer) $ \bufferPtr -> do
+>     v <- peek (castPtr bufferPtr)
+>     return (RefCursor v)
+
+
+> instance DBType (RefCursor StmtHandle) Query ColumnBuffer where
+>   allocBufferFor _ q n = allocBuffer q (8, oci_SQLT_RSET) n
+>   fetchCol q buffer = do
+>     rc <- bufferToStmtHandle buffer
+>     appendRefCursor q rc
+>     return rc
+
+> appendRefCursor query stmth = do
+>   case queryParent query of
+>     -- no parent stmt => probably just a doQuery over a RefCursor.
+>     -- Don't bother saving returned RefCursors.
+>     Nothing -> return ()
+>     Just pstmt -> modifyIORef (stmtCursors pstmt) (++ [stmth])
+
 
 > instance DBType (Maybe String) Query ColumnBuffer where
 >   allocBufferFor _ q n = allocBuffer q (16000, oci_SQLT_CHR) n
@@ -862,7 +967,12 @@ y = (year mod 100) + 100.
 
 > instance DBType (Maybe Int) Query ColumnBuffer where
 >   allocBufferFor _ q n = allocBuffer q (4, oci_SQLT_INT) n
->   fetchCol q buffer = bufferToInt buffer
+>   fetchCol q buffer = do
+>     outputBuffers <- readIORef (stmtBuffers (queryStmt q))
+>     if null outputBuffers then bufferToInt buffer
+>       else outputBufferToInt (outputBuffers !! ((colPos buffer) - 1))
+
+> outputBufferToInt buffer = return undefined
 
 > instance DBType (Maybe Double) Query ColumnBuffer where
 >   allocBufferFor _ q n = allocBuffer q (8, oci_SQLT_FLT) n

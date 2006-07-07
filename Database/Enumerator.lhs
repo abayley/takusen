@@ -9,17 +9,7 @@ Portability :  non-portable
  
 Abstract database interface, providing a left-fold enumerator
 and cursor operations.
- 
-?? Should we even mention the stuff below? The functions below are
-part of the implementation rather than the interface. The enumerator
-interface is what exported by this module.??
-Some functions in this module are not strictly part of the Enumerator interface
-e.g. @iterApply@, @allocBuffers@.
-They are in here because they are generic i.e. they do not depend
-on any particular DBMS implementation.
-They are a part of the middle layer - enumerator -
-which is database-independent.
- 
+  
 There is a stub: "Database.Stub.Enumerator".
 This lets you run the test cases without having a working DBMS installation.
  
@@ -37,9 +27,8 @@ but are not (necessarily) in this module. They include:
  
  * connect (obviously DBMS specific)
  
- * prepareStmt
+ * prepareStmt, sql, prefetch
  
- * withPreparedStatement
 
 
 > {-# OPTIONS -fglasgow-exts #-}
@@ -64,43 +53,44 @@ but are not (necessarily) in this module. They include:
 >
 >     -- $usage_bindparms
 >
->       DBM  -- The data constructor is not exported
+>     -- ** Multiple (and nested) Result Sets
 >
+>     -- $usage_multiresultset
+>
+>     -- * Sessions and Transactions
+>       DBM  -- The data constructor is not exported
+>     , withSession, commit, rollback, beginTransaction
+>     , withTransaction
 >     , IE.IsolationLevel(..)
->     , IterResult, IterAct
+>     , execDDL, execDML
 >
 >     -- * Exceptions and handlers
 >     , DBException(..)
->     , catchDB, basicDBExceptionReporter, reportRethrow, catchDBError, ignoreDBError
->     , IE.throwDB
+>     , basicDBExceptionReporter, reportRethrow, formatDBException
+>     , catchDB, catchDBError, ignoreDBError, IE.throwDB
 >
->     -- * Session monad.
->     , withSession, commit, rollback, beginTransaction
->     , executeCommand, execDDL, execDML
->
+>     -- * Preparing and Binding
 >     , PreparedStmt(..)  -- data constructor not exported
->     , executePreparation, withPreparedStatement
+>     , withPreparedStatement
 >     , withBoundStatement, IE.bindP
 >
->     , doQuery, IE.currentRowNum, NextResultSet(..), RefCursor(..)
->
->     -- * A Query monad and cursors.
->     , DBCursor, -- need to export this?
->     , cursorIsEOF, cursorCurrent, cursorNext, 
+>     -- * Iteratees and Cursors
+>     , doQuery
+>     , IterResult, IterAct
+>     , IE.currentRowNum, NextResultSet(..), RefCursor(..)
+>     , cursorIsEOF, cursorCurrent, cursorNext
 >     , withCursor
 >
->     , withTransaction
->
->     -- * Misc.
+>     -- * Utilities
 >     , ifNull, result, result'
->     , liftIO, throwIO, print_
+>     , print_
 >   ) where
 
 > import Data.Dynamic
 > import Data.IORef
-> import Control.Monad.Trans
+> import Control.Monad.Trans (liftIO)
 > import Control.Exception (throw, 
->            dynExceptions, throwDyn, throwIO, bracket, Exception, finally)
+>            dynExceptions, throwDyn, bracket, Exception, finally)
 > import qualified Control.Exception (catch)
 > import Control.Monad.Reader
 > import Control.Exception.MonadIO
@@ -108,15 +98,26 @@ but are not (necessarily) in this module. They include:
 > import qualified Database.InternalEnumerator as IE
 > import Database.InternalEnumerator (DBException(..))
 
+| 'IterResult' and 'IterAct' give us some type sugar.
+Without them, the types of iteratee functions become
+quite unwieldy.
 
 > type IterResult seedType = Either seedType seedType
 > type IterAct m seedType = seedType -> m (IterResult seedType)
 
+MyShow requires overlapping instances.
+
 > class Show a => MyShow a where show_ :: a -> String
 > instance MyShow String where show_ s = s
 > instance (Show a) => MyShow a where show_ s = show s
+
+| Like 'System.IO.print', except that Strings are not escaped or quoted.
+
+> print_ :: (MonadIO m, MyShow a) => a -> m ()
 > print_ s = liftIO (putStrLn (show_ s))
 
+| Catch 'Database.InteralEnumerator.DBException's thrown in the 'DBM'
+monad.
 
 > catchDB :: CaughtMonadIO m => m a -> (DBException -> m a) -> m a
 > catchDB action handler = gcatch action $ \e ->
@@ -127,13 +128,7 @@ but are not (necessarily) in this module. They include:
 i.e. it doesn't propagate.
 
 > basicDBExceptionReporter :: CaughtMonadIO m => DBException -> m ()
-> basicDBExceptionReporter (DBError (ssc, sssc) e m) =
->   liftIO $ putStrLn $ ssc ++ sssc ++ " " ++ (show e) ++ ": " ++ m
-> basicDBExceptionReporter (DBFatal (ssc, sssc) e m) =
->   liftIO $ putStrLn $ ssc ++ sssc ++ " " ++ (show e) ++ ": " ++ m
-> basicDBExceptionReporter (DBUnexpectedNull r c) =
->   liftIO $ putStrLn $ "Unexpected null in row " ++ (show r) ++ ", column " ++ (show c) ++ "."
-> basicDBExceptionReporter (DBNoData) = liftIO $ putStrLn "Fetch: no more data."
+> basicDBExceptionReporter e = liftIO (putStrLn (formatDBException e))
 
 | This handler reports the error and propagates it
 (usually to force the program to halt).
@@ -141,10 +136,21 @@ i.e. it doesn't propagate.
 > reportRethrow :: CaughtMonadIO m => DBException -> m ()
 > reportRethrow e = basicDBExceptionReporter e >> IE.throwDB e
 
+> formatDBException :: DBException -> String
+> formatDBException (DBError (ssc, sssc) e m) =
+>   ssc ++ sssc ++ " " ++ (show e) ++ ": " ++ m
+> formatDBException (DBFatal (ssc, sssc) e m) =
+>   ssc ++ sssc ++ " " ++ (show e) ++ ": " ++ m
+> formatDBException (DBUnexpectedNull r c) =
+>   "Unexpected null in row " ++ (show r) ++ ", column " ++ (show c) ++ "."
+> formatDBException (DBNoData) = "Fetch: no more data."
+
+
 |If you want to trap a specific error number, use this.
 It passes anything else up.
 
-> catchDBError :: Int -> IO a -> (IE.DBException -> IO a) -> IO a
+> catchDBError :: (CaughtMonadIO m) =>
+>   Int -> m a -> (DBException -> m a) -> m a
 > catchDBError n action handler = catchDB action
 >   (\dberror ->
 >     case dberror of
@@ -152,7 +158,10 @@ It passes anything else up.
 >       _ | otherwise -> IE.throwDB dberror
 >   )
 
-> ignoreDBError :: Int -> IO a -> IO a
+| Analogous to catchDBError, but ignores specific errors instead
+(propagates anything else).
+
+> ignoreDBError :: (CaughtMonadIO m) => Int -> m a -> m a
 > ignoreDBError n action = catchDBError n action (\e -> return undefined)
 
 --------------------------------------------------------------------
@@ -166,21 +175,26 @@ any mark then, I gather.
 The quantification over Session is quite bothersome: need to enumerate
 all class constraints for the Session (like IQuery, DBType, etc).
 
-> newtype IE.ISession sess => DBM mark sess a = DBM (ReaderT sess IO a) 
->     deriving (Monad, MonadIO, MonadReader sess)
+> newtype IE.ISession sess => DBM mark sess a = DBM (ReaderT sess IO a)
+>   -- Haddock can't cope with the "MonadReader sess" instance
+>   --deriving (Monad, MonadIO)
+>   deriving (Monad, MonadIO, MonadReader sess)
 > unDBM (DBM x) = x
+
 
  instance Monad (DBM mark si) where
    return x = DBM (return x)
    m >>= f  = DBM (unDBM m >>= unDBM . f)
  instance MonadIO (DBM mark si) where
    liftIO x = DBM (liftIO x)
+ instance MonadReader sess (ReaderT sess (DBM mark si)) where ...
+
 
 > instance CaughtMonadIO (DBM mark si) where
 >   gcatch a h = DBM ( gcatch (unDBM a) (unDBM . h) )
 >   gcatchJust p a h = DBM ( gcatchJust p (unDBM a) (unDBM . h) )
 
-Typeable constraint is to prevent the leakage of Session and other
+| Typeable constraint is to prevent the leakage of Session and other
 marked objects.
 
 > withSession :: (Typeable a, IE.ISession sess) => 
@@ -189,7 +203,9 @@ marked objects.
 >   bracket (connecta) (IE.disconnect) (runReaderT (unDBM m))
 
 
-
+> beginTransaction ::
+>   (MonadReader s (ReaderT s IO), IE.ISession s) =>
+>   IE.IsolationLevel -> DBM mark s ()
 > beginTransaction il = DBM (ask >>= \s -> lift $ IE.beginTransaction s il)
 > commit :: IE.ISession s => DBM mark s ()
 > commit = DBM( ask >>= lift . IE.commit )
@@ -205,7 +221,6 @@ marked objects.
 > execDML :: IE.Command stmt s => stmt -> DBM mark s Int
 > execDML = executeCommand
 
-
 --------------------------------------------------------------------
 -- ** Statements; Prepared statements
 --------------------------------------------------------------------
@@ -218,11 +233,8 @@ marked objects.
 >     DBM( ask >>= \sess -> lift $ action sess >>= return . PreparedStmt)
 
 > data NextResultSet mark stmt = NextResultSet (PreparedStmt mark stmt)
-> data RefCursor = RefCursor String deriving Show
+> data RefCursor a = RefCursor a
 
-
-Also include Typeable constraint to prevent type leakage,
-assuming it's necessary here...?
 
 The exception handling here looks awkward, but there's a good reason...
 Let's say there's some sort of error when we call destroyStmt.
@@ -233,10 +245,21 @@ if you re-try a failed CLOSE-cursor, because the transaction is aborted).
 So we wrap this call with a catch, and ensure that the original exception
 is preserved and re-raised.
 
+| Prepare a statement and run a DBM action over it.
+This gives us the ability to re-use a statement,
+for example by passing different bind values for each execution.
+ 
+The Typeable constraint is to prevent the leakage of marked things.
+The type of bound statements should not be exported (and should not be
+in Typeable) so the bound statement can't leak either.
+
 > withPreparedStatement ::
 >  (Typeable a, IE.IPrepared stmt sess bstmt bo)
 >  => IE.PreparationA sess stmt
+>  -- ^ preparation action to create prepared statement;
+>  --   this action is usually created by @prepareStmt@
 >  -> (PreparedStmt mark stmt -> DBM mark sess a)
+>  -- ^ DBM action that takes a prepared statement
 >  -> DBM mark sess a
 > withPreparedStatement pa action = do
 >   ps <- executePreparation pa
@@ -247,21 +270,38 @@ is preserved and re-raised.
 >     ) (\e -> gcatch (destroyStmt ps >> throw e) (\_ -> throw e))
 
 
+Not exported.
+
 > destroyStmt :: (IE.ISession sess, IE.IPrepared stmt sess bstmt bo)
 >   => PreparedStmt mark stmt -> DBM mark sess ()
 > destroyStmt (PreparedStmt stmt) = DBM( ask >>= \s -> lift $ IE.destroyStmt s stmt )
 
 
 
+| Applies a prepared statement to bind variables to get a bound statement,
+which is passed to the provided action.
+Note that by the time it is passed to the action, the query or command
+has usually been executed.
+A bound statement would normally be an instance of
+'Database.InternalEnumerator.Statement', so it can be passed to
+'Database.Enumerator.doQuery'
+in order to process the result-set, and also an instance of
+'Database.InternalEnumerator.Command', so that we can write
+re-usable DML statements (inserts, updates, deletes).
+ 
 The Typeable constraint is to prevent the leakage of marked things.
 The type of bound statements should not be exported (and should not be
 in Typeable) so the bound statement can't leak either.
 
 > withBoundStatement ::
->   (Typeable a, IE.IPrepared stmt s bstmt bo) =>
->   PreparedStmt mark stmt -> [IE.BindA s stmt bo] ->
->   (bstmt -> DBM mark s a) ->
->   DBM mark s a
+>   (Typeable a, IE.IPrepared stmt s bstmt bo)
+>   => PreparedStmt mark stmt
+>   -- ^ prepared statement created by withPreparedStatement
+>   -> [IE.BindA s stmt bo]
+>   -- ^ bind values
+>   -> (bstmt -> DBM mark s a)
+>   -- ^ action to run over bound statement
+>   -> DBM mark s a
 > withBoundStatement (PreparedStmt stmt) ba f =
 >   DBM ( ask >>= \s -> 
 >     lift $ IE.bindRun s stmt ba (\b -> runReaderT (unDBM (f b)) s))
@@ -274,7 +314,7 @@ in Typeable) so the bound statement can't leak either.
 
 |The class QueryIteratee is not for the end user. It provides the
 interface between the low- and the middle-layers of Takusen. The
-middle-layer -- enumerator -- is database-independent then.
+middle-layer - enumerator - is database-independent then.
 
 > class MonadIO m => QueryIteratee m q i seed b |
 >     i -> m, i -> seed, q -> b where
@@ -318,7 +358,7 @@ The argument is applied, and the result returned.
 > type CFoldLeft      i m s = Self i m s -> CollEnumerator i m s
 
 |A DBCursor is an IORef-mutable-pair @(a, Maybe f)@, where @a@ is the result-set so far,
-and @f@ is a function that fetches and returns the next row (when applied to True),
+and @f@ is an IO action that fetches and returns the next row (when applied to True),
 or closes the cursor (when applied to False).
 If @Maybe@ f is @Nothing@, then the result-set has been exhausted
 (or the iteratee function terminated early),
@@ -328,23 +368,25 @@ and the cursor has already been closed.
 >     DBCursor (IORef (a, Maybe (Bool-> ms (DBCursor mark ms a))))
 
 
-The following functions provide the high-level query interface,
-for the end user.
+| The left-fold interface.
 
 > doQuery :: (IE.Statement stmt sess q,
 >             QueryIteratee (DBM mark sess) q i seed b,
 >             IE.IQuery q sess b) =>
->     stmt -> i -> seed -> DBM mark sess seed
+>      stmt  -- ^ query
+>   -> i     -- ^ iteratee function
+>   -> seed  -- ^ seed value
+>   -> DBM mark sess seed
 > doQuery stmt iteratee seed = do
 >   (lFoldLeft, finalizer) <- doQueryMaker stmt iteratee
 >   gcatch (fix lFoldLeft iteratee seed)
 >       (\e -> do
 >         finalizer
->         liftIO $ throw e
+>         liftIO (throw e)
 >       )
 
 
-|This is the auxiliary function.
+An auxiliary function, not seen by the user.
 
 > doQueryMaker stmt iteratee = do
 >     sess <- ask
@@ -365,17 +407,17 @@ for the end user.
 >     return (hFoldLeft, finaliser)
 
 
-Cursor stuff. First, an auxiliary function, not seen by the user.
+Another auxiliary function, also not seen by the user.
 
 > openCursor stmt iteratee seed = do
->     ref <- liftIO$ newIORef (seed,Nothing)
+>     ref <- liftIO (newIORef (seed,Nothing))
 >     (lFoldLeft, finalizer) <- doQueryMaker stmt iteratee
 >     let update v = liftIO $ modifyIORef ref (\ (_, f) -> (v, f))
 >     let
 >       close finalseed = do
 >         liftIO$ modifyIORef ref (\_ -> (finalseed, Nothing))
 >         finalizer
->         return $ DBCursor ref
+>         return (DBCursor ref)
 >     let
 >       k' fni seed' = 
 >         let
@@ -438,8 +480,8 @@ the mark.
 
 
 Returns the cursor. The return value is usually ignored.
-This function is not available to the end user. The cursor is closed
-automatically when its region exits. 
+This function is not available to the end user (i.e. not exported).
+The cursor is closed automatically when its region exits. 
 
 > cursorClose c@(DBCursor ref) = do
 >   (_, maybeF) <- liftIO $ readIORef ref
@@ -456,8 +498,10 @@ The Typeable constraint is to prevent cursors and other marked values
 >   , QueryIteratee (DBM mark sess) q i seed b
 >   , IE.IQuery q sess b
 >   ) =>
->      stmt -> i -> seed
->   -> (DBCursor mark (DBM mark sess) seed -> DBM mark sess a)
+>      stmt  -- ^ query
+>   -> i     -- ^ iteratee function
+>   -> seed  -- ^ seed value
+>   -> (DBCursor mark (DBM mark sess) seed -> DBM mark sess a)  -- ^ action taking cursor parameter
 >   -> DBM mark sess a
 > withCursor stmt iteratee seed action =
 >   gbracket (openCursor stmt iteratee seed) cursorClose action
@@ -497,7 +541,8 @@ unless there was an exception, in which case rollback.
 
 
 | Another useful utility function.
-Use this to return a value from an iteratee function (the one passed to doQuery).
+Use this to return a value from an iteratee function (the one passed to
+'Database.Enumerator.doQuery').
 Note that you should probably nearly always use the strict version.
 
 > result :: (Monad m) => IterAct m a
@@ -517,15 +562,17 @@ and arithmetic operations (counting, summing, etc).
 > result' x = return (Right $! x)
 
 
+That's the code... now for the documentation.
 
 
-
---------------------------------------------------------------------
--- Usage notes
---------------------------------------------------------------------
+====================================================================
+== Usage notes
+====================================================================
 
 
 -- $usage_example
+ 
+Let's look at some example code:
  
  > -- sample code, doesn't necessarily compile
  > module MyDbExample is
@@ -539,8 +586,8 @@ and arithmetic operations (counting, summing, etc).
  >
  > -- non-query actions.
  > otherActions session = do
- >   executeDDL "create table blah"
- >   executeDML "insert into blah ..."
+ >   execDDL "create table blah"
+ >   execDML "insert into blah ..."
  >   commit
  >   -- Use withTransaction to delimit a transaction.
  >   -- It will commit at the end, or rollback if an error occurs.
@@ -555,38 +602,66 @@ and arithmetic operations (counting, summing, etc).
  >     r <- doQuery (sql "select a, b, c from x") query1Iteratee []
  >     putStrLn $ show r
  >     otherActions session
- >     disconnect
  
-@connect@ is only exported by the DBMS-specific module,
-not from this module ('Database.Enumerator').
+ Notes:
  
-The first argument to doQuery must be an instance of  
+ * connection is made by 'Database.Enumerator.withSession',
+   which also disconnects when done i.e. 'Database.Enumerator.withSession'
+   delimits the connection.
+   You must pass it a connection action, which is back-end specific,
+   and created by calling the 'Database.Sqlite.Enumerator.connect'
+   function from the relevant back-end.
+ 
+ * inside the session, the usual transaction delimiter commands are usable
+   e.g. 'Database.Enumerator.beginTransaction' @[isolation-level]@,
+   'Database.Enumerator.commit', 'Database.Enumerator.rollback', and
+   'Database.Enumerator.withTransaction'.
+   We also provide 'Database.Enumerator.execDML' and 'Database.Enumerator.execDDL'.
+ 
+ * non-DML and -DDL commands - i.e. queries - are processed by
+   'Database.Enumerator.doQuery' (this is the API for our left-fold).
+   See more explanation and examples below in /Iteratee Functions/ and
+   /Bind Parameters/ sections.
+  
+The first argument to 'Database.Enumerator.doQuery' must be an instance of  
 'Database.InternalEnumerator.Statement'.
 Each back-end will provide a useful set of @Statement@ instances
 and associated constructor functions for them.
-For example, the Sqlite back-end has:
-  -- for basic, all-text statements (no bind vars):
-    sql "select ..."
-  -- for a select with bind variables and row caching:
-    prefetch 100 "select ..." [bindP ..., bindP ...]
-  -- for a reusable prepared statement:
-    prepareStmt (sql "select ...")
-  -- The Postgres backend requires that you name prepared statements,
-  -- and also specify types for the bind parameters.
-  -- The list of bind-types is created by applying the bindType functions
-  -- to dummy, or sample, values of the correct types.
-    prepareStmt "stmtname" (sql "select ...") [bindType dummy1, ...]
+For example, the Sqlite and Oracle back-ends have:
  
-There are a couple of withXXX functions to aid with resource management.
-withPreparedStatement creates a prepared statement that can be reused many
-times within its scope, and deallocates it from the server when it goes
-out of scope.
-withBoundStatement applies bind values to an already prepared statement
-so that it is ready for processing by doQuery.
+  * for basic, all-text statements (no bind variables):
+  
+    > sql "select ..."
+    
+  * for a select with bind variables and row caching:
+  
+    > prefetch 100 "select ..." [bindP ..., bindP ...]
+    
+  * for a reusable prepared statement: we have to first create the
+    prepared statement, and then bind in a separate step.
+    This separation lets us re-use prepared statements:
+ 
+    > let stmt = prepareStmt (sql "select ...")
+    > withPreparedStatement stmt $ \pstmt ->
+    >   withBoundStatement pstmt [bindP ..., bindP ...] $ \bstmt -> do
+    >     result <- doQuery bstmt iter seed
+    >     ...
+ 
+The PostgreSQL backend additionally requires that when preparing statements,
+you (1) give a name to the prepared statement,
+and (2) specify types for the bind parameters.
+The list of bind-types is created by applying the bindType functions
+to dummy values of the appropriate types.
+ 
+ > let stmt = prepareStmt "stmtname" (sql "select ...") [bindType "", bindType (0::Int)]
+ > withPreparedStatement stmt $ \pstmt -> ...
+ 
+A longer explanation of bind variables is in the Bind Parametes section below.
+
 
 -- $usage_iteratee
  
-@doQuery@ takes an iteratee function, of n arguments.
+'Database.Enumerator.doQuery' takes an iteratee function, of n arguments.
 Argument n is the accumulator (or seed).
 For each row that is returned by the query,
 the iteratee function is called with the data from that row in
@@ -600,11 +675,28 @@ If the value is @Right@, then the query will continue, with the next row
 begin fed to the iteratee function, along with the new accumulator\/seed.
  
 In the example above, @query1Iteratee@ simply conses the new row (as a tuple)
-to the front of the accumulator. The initial seed passed to @doQuery@ was an empty list.
+to the front of the accumulator.
+The initial seed passed to 'Database.Enumerator.doQuery' was an empty list.
 Consing the rows to the front of the list results in a list that is the result set
 with the rows in reverse order.
  
-The iteratee function exists in the 'DBM' monad,
+The types of values that can be used as arguments to the iteratee function
+are back-end specific; they must be instances of the class
+'Database.InternalEnumerator.DBType'.
+Most backends directly support the usual lowest-common-denominator set
+supported by most DBMS's: 'Data.Int.Int', 'Data.Char.String',
+'Prelude.Double', 'System.Time.CalendarTime'.
+By directly support we mean there is type-specific marshalling code
+implemented.
+'Data.Int.Int64' is often, but not always, supported.
+ 
+Indirect support for 'Text.Read.Read'- and 'Text.Show.Show'-able types
+is supported by marshalling to and from 'Data.Char.String's.
+This is done automatically by the back-end;
+there is no need for user-code to perform the marshalling,
+as long as instances of 'Text.Read.Read' and 'Text.Show.Show' are defined.
+ 
+The iteratee function operates in the 'DBM' monad,
 so if you want to do IO in it you must use 'Control.Monad.Trans.liftIO'
 (e.g. @liftIO $ putStrLn \"boo\"@ ) to lift the IO action into 'DBM'.
  
@@ -615,11 +707,32 @@ and the accumulator would simply be the count e.g.
  > counterIteratee :: (Monad m) => Int -> IterAct m Int
  > counterIteratee _ i = result' $ (1 + i)
  
-The iteratee function that you pass to @doQuery@ needs type information,
+The iteratee function that you pass to 'Database.Enumerator.doQuery'
+needs type information,
 at least for the arguments if not the return type (which is typically
 determined by the type of the seed).
-There is a type synonym @IterAct@, which gives some convenience
+The type synonyms 'IterAct' and 'IterResult' give some convenience
 in writing type signatures for iteratee functions.
+ 
+ > type IterResult seedType = Either seedType seedType
+ > type IterAct m seedType = seedType -> m (IterResult seedType)
+ 
+Without them, the type for @counterIteratee@ would be:
+ 
+ > counterIteratee :: (Monad m) => Int -> Int -> m (Either Int Int)
+ 
+which doesn't seem so onerous, but for more elaborate seed types
+(think large tuples) it certainly helps e.g.
+ 
+ > iter :: Monad m =>
+ >      String -> Double -> CalendarTime -> [(String, Double, CalendarTime)]
+ >   -> m (Either [(String, Double, CalendarTime)] [(String, Double, CalendarTime)] )
+ 
+becomes:
+ 
+ > iter :: Monad m =>
+ >      String -> Double -> CalendarTime -> IterAct m [(String, Double, CalendarTime)]
+ 
 
 
 -- $usage_result
@@ -646,7 +759,7 @@ and will happen even for simple arithmetic operations such as counting or summin
 If you use the lazy function and you have stack\/memory problems, do some profiling.
 With GHC:
  
- * ensure the iteratee is a top-level function so that it has its own cost-centre
+ * ensure the iteratee has its own cost-centre (make it a top-level function)
  
  * compile with @-prof -auto-all@
  
@@ -664,32 +777,99 @@ which is why we recommend the strict function.
 
 -- $usage_bindparms
  
-Bind variables are specified by using the 'doQueryBind' or 'withCursorBind'
-interface functions. The bind parameters are a list of bind actions
-@s -> Position -> m ()@ .
-The 'doQueryBind'\/'withCursorBind' functions invoke each
-action, passing the statement object and position in the list.
-Having the actions return () allows us to create lists of binds to
-values of different types.
+Support for bind variables varies between backends.
+ 
+We call 'Database.Enumerator.withPreparedStatement' function to prepare
+the statement, and then call 'Database.Enumerator.withBoundStatement'
+to provide the bind values and execute the query.
+The value returned by 'Database.Enumerator.withBoundStatement'
+is an instance of the Statement class, so it can be passed to
+'Database.Enumerator.doQuery' for result-set processing.
+ 
+When we call 'Database.Enumerator.withPreparedStatement', we must pass
+it a \"preparation action\", which is simply an action that returns
+the prepared query. The function to create this action varies between
+backends, and by convention is called prepareStmt (although it may
+also have differently-named variations; see
+'Database.PostgreSQL.Enumerator.preparePrefetch', for example.
+ 
+With PostgreSQL, we must specify the type of the bind parameters
+when the query is prepared, so the 'Database.PostgreSQL.Enumerator.prepareStmt'
+function takes a list of 'Database.PostgreSQL.Enumerator.bindType' values.
+Also, PostgreSQL requires that prepared statements are named,
+although you can use \"\" as the name.
+ 
+With Sqlite and Oracle, we simply pass the query text to prepareStmt,
+so things are slightly simpler for these backends.
  
 Perhaps an example will explain it better:
  
- > bindExample sess = do
+ > postgresBindExample = do
  >   let
- >     query = "select blah from blahblah where id = ? and code = ?"
+ >     query = sql "select blah from blahblah where id = ? and code = ?"
  >     iter :: (Monad m) => String -> IterAct m [String]
  >     iter s acc = result $ s:acc
- >     bindVals = [dbBind (12345::Int), dbBind "CODE123"]
- >   actual <- runSession sess (doQueryBind query bindVals iter [])
- >   print actual
+ >     bindVals = [bindP (12345::Int), bindP "CODE123"]
+ >     bindTypes = [bindType (0::Int), bindType ""]
+ >   withPreparedStatement (prepareStmt "stmt1" query bindTypes) $ \pstmt -> do
+ >     withBoundStatement pstmt bindVals $ \bstmt -> do
+ >       actual <- doQuery query iter []
+ >       liftIO (print actual)
  
-More examples can be found in "Database.Test.Enumerator";
-see 'Database.Test.Enumerator.selectBindInt',
-'Database.Test.Enumerator.selectBindIntDoubleString', and
-'Database.Test.Enumerator.selectBindDate'.
+There is also a statement preparation function
+'Database.PostgreSQL.Enumerator.preparePrefetch' which takes
+an extra parameter: the number of rows to prefetch
+(from each call to the server).
  
-For Int and Double bind values, we have to tell the compiler about the types.
-This is due to interaction (which I don't fully understand and therefore
+The Oracle\/Sqlite example code is almost the same, except for the
+call to @prepareStmt@:
+ 
+ > sqliteBindExample = do
+ >   let
+ >     query = sql "select blah from blahblah where id = ? and code = ?"
+ >     iter :: (Monad m) => String -> IterAct m [String]
+ >     iter s acc = result $ s:acc
+ >     bindVals = [bindP (12345::Int), bindP "CODE123"]
+ >   withPreparedStatement (prepareStmt query) $ \pstmt -> do
+ >     withBoundStatement pstmt bindVals $ \bstmt -> do
+ >       actual <- doQuery query iter []
+ >       liftIO (print actual)
+ 
+It can be a bit tedious to always use the @withPreparedStatement+withBoundStatement@
+combination, so for the case where you don't plan to re-use the query,
+we support a short-cut for bundling the query text and parameters.
+The next example is valid for PostgreSQL, Sqlite, and Oracle;
+for Sqlite we provide a dummy 'Database.Sqlite.Enumerator.prefetch'
+function to ensure we have a consistent API.
+Sqlite has no facility for prefetching - it's an embedded database, so no
+network round-trip - so Sqlite the back-end ignores the prefetch count:
+ 
+ > bindShortcutExample = do
+ >   let
+ >     iter :: (Monad m) => String -> IterAct m [String]
+ >     iter s acc = result $ s:acc
+ >     bindVals = [bindP (12345::Int), bindP "CODE123"]
+ >     query = prefetch 1000 "select blah from blahblah where id = ? and code = ?" bindVals
+ >   actual <- doQuery query iter []
+ >   liftIO (print actual)
+ 
+A caveat of using prefetch with PostgreSQL is that you must be inside a transaction.
+This is because the PostgreSQL implementation uses a cursor and \"FETCH FORWARD\"
+to implement fetching blocks of rows in network calls,
+and PostgreSQL requires that cursors are only used inside transactions.
+It can be as simple as wrapping calls to 'Database.Enumerator.doQuery' by
+'Database.Enumerator.withTransaction',
+or you may prefer to delimit your transactions elsewhere (the API supports
+'Database.InternalEnumerator.beginTransaction' and
+'Database.InternalEnumerator.commit', if you prefer to use them):
+ 
+ >   withTransaction RepeatableRead $ do
+ >     actual <- doQuery query iter []
+ >     liftIO (print actual)
+ 
+For 'Data.Int.Int' and 'Prelude.Double' bind values,
+we have to tell the compiler about the types.
+I assume this is due to interaction (which I don't fully understand and therefore
 cannot explain in any detail) with the numeric literal defaulting mechanism.
 Note that for non-numeric literals the compiler can determine the correct
 types to use.
@@ -697,24 +877,136 @@ types to use.
 If you omit type information for numeric literals, from GHC the error
 message looks something like this:
  
- > Database\/Sqlite\/Test\/Enumerator.lhs:28:5:
- >    Overlapping instances for DBType a4
- >                                     Database.Sqlite.SqliteEnumerator.SqliteMonadQuery
- >                                     Database.Sqlite.SqliteEnumerator.ColumnBuffer
- >      arising from use of `Database.Test.Enumerator.runTests' at Database\/Sqlite\/Test\/Enumerator.lhs:28:5-17
- >    Matching instances:
- >      Imported from Database.Sqlite.SqliteEnumerator:
- >        instance (DBType (Maybe a)
- >                         Database.Sqlite.SqliteEnumerator.SqliteMonadQuery
- >                         Database.Sqlite.SqliteEnumerator.ColumnBuffer) =>
- >                 DBType a
- >                        Database.Sqlite.SqliteEnumerator.SqliteMonadQuery
- >                        Database.Sqlite.SqliteEnumerator.ColumnBuffer
- >      Imported from Database.Sqlite.SqliteEnumerator:
- >        instance DBType (Maybe Int)
+ > Database/PostgreSQL/Test/Enumerator.lhs:194:4:
+ >     Overlapping instances for Database.InternalEnumerator.DBBind a
+ >                                  Session
+ >                                  Database.PostgreSQL.PGEnumerator.PreparedStmt
+ >                                  Database.PostgreSQL.PGEnumerator.BindObj
+ >       arising from use of `bindP' at Database/PostgreSQL/Test/Enumerator.lhs:194:4-8
+ >     Matching instances:
+ >       Imported from Database.PostgreSQL.PGEnumerator:
+ >     instance (Database.InternalEnumerator.DBBind (Maybe a)
+ >                              Session
+ >                              Database.PostgreSQL.PGEnumerator.PreparedStmt
+ >                              Database.PostgreSQL.PGEnumerator.BindObj) =>
+ >          Database.InternalEnumerator.DBBind a
+ >                             Session
+ >                             Database.PostgreSQL.PGEnumerator.PreparedStmt
+ >                             Database.PostgreSQL.PGEnumerator.BindObj
+ >       Imported from Database.PostgreSQL.PGEnumerator:
+ >     instance Database.InternalEnumerator.DBBind (Maybe Double)
  >                        ....
 
 
+-- $usage_multiresultset
+ 
+Initial support for returning multiple result sets from a single
+statement exists in PostgreSQL, and will be added to Oracle and
+other backends (except Sqlite, where such functionality does not exist)
+ 
+The general idea is to invoke a database procedure or function which
+returns cursor variables. The variables can be processed by
+'Database.Enumerator.doQuery' in one of two styles: linear or nested.
+ 
+/Linear style:/
+ 
+Here we assume the existence of the following PostgreSQL function
+(this function is used in the test suite in "Database.PostgreSQL.Test.Enumerator".):
+ 
+ > CREATE OR REPLACE FUNCTION takusenTestFunc() RETURNS SETOF refcursor AS $$
+ > DECLARE refc1 refcursor; refc2 refcursor;
+ > BEGIN
+ >     OPEN refc1 FOR SELECT n*n from t_natural where n < 10 order by 1;
+ >     RETURN NEXT refc1;
+ >     OPEN refc2 FOR SELECT n, n*n, n*n*n from t_natural where n < 10 order by 1;
+ >     RETURN NEXT refc2;
+ > END;$$ LANGUAGE plpgsql;
+ 
+... then this code shows how linear processing of cursors would be done:
+ 
+ >   withTransaction RepeatableRead $ do
+ >   withPreparedStatement (prepareStmt "stmt1" (sql "select * from takusenTestFunc()") []) $ \pstmt -> do
+ >   withBoundStatement pstmt [] $ \bstmt -> do
+ >     dummy <- doQuery bstmt iterMain []
+ >     result1 <- doQuery (NextResultSet pstmt) iterRS1 []
+ >     result2 <- doQuery (NextResultSet pstmt) iterRS2 []
+ >   where
+ >     iterMain :: (Monad m) => (RefCursor String) -> IterAct m [RefCursor String]
+ >     iterMain c acc = result (acc ++ [c])
+ >     iterRS1 :: (Monad m) => Int -> IterAct m [Int]
+ >     iterRS1 i acc = result (acc ++ [i])
+ >     iterRS2 :: (Monad m) => Int -> Int -> Int -> IterAct m [(Int, Int, Int)]
+ >     iterRS2 i i2 i3 acc = result (acc ++ [(i, i2, i3)])
+ 
+Notes:
+ 
+ * the results of the first iteratee are discarded (this is not required,
+   but in this case all the only column is a 'Database.Enumerator.RefCursor',
+   and its values are already saved elsewhere).
+ 
+ * the use of a 'Database.Enumerator.RefCursor' 'Data.Char.String'
+   type in the iteratee function indicates
+   to the backend that it should save each cursor value returned,
+   which it does by stuffing them into a list attached to the
+   prepared statement object.
+ 
+ * saved cursors are consumed one-at-a-time by calling 'Database.Enumerator.doQuery',
+   passing 'Database.Enumerator.NextResultSet' @pstmt@.
+   This simply pulls the next cursor of the list
+   - they're processed in the order they were pushed on (FIFO) -
+   and processes it with the given iteratee.
+ 
+ * if you try to process too many cursors i.e. make too many calls
+   to 'Database.Enumerator.doQuery' passing 'Database.Enumerator.NextResultSet' @pstmt@,
+   then an exception will be thrown.
+   OTOH, failing to process returned cursors will not raise errors,
+   but the cursors will remain open on the server until either the transaction
+   or session ends.
+ 
+/Nested style:/
+ 
+The linear style of cursor processing is the only style supported by
+MS SQL Server and ODBC. However, PostgreSQL and Oracle also support
+using nested cursors in queries.
+ 
+Assuming we have these functions in the database:
+ 
+ > CREATE OR REPLACE FUNCTION takusenTestFunc(lim int4) RETURNS refcursor AS $$
+ > DECLARE refc refcursor;
+ > BEGIN
+ >     OPEN refc FOR SELECT n, takusenTestFunc2(n) from t_natural where n < lim order by n;
+ >     RETURN refc;
+ > END; $$ LANGUAGE plpgsql;
+ 
+ > CREATE OR REPLACE FUNCTION takusenTestFunc2(lim int4) RETURNS refcursor AS $$
+ > DECLARE refc refcursor;
+ > BEGIN
+ >     OPEN refc FOR SELECT n from t_natural where n < lim order by n;
+ >     RETURN refc;
+ > END; $$ LANGUAGE plpgsql;
+ 
+... then this code shows how nested queries mights work in PostgreSQL:
+ 
+ > selectNestedMultiResultSet = do
+ >   let
+ >     q = "SELECT n, takusenTestFunc(n) from t_natural where n < 10 order by n"
+ >     iterMain   (i::Int) (c::RefCursor String) acc = result' ((i,c):acc)
+ >     iterInner  (i::Int) (c::RefCursor String) acc = result' ((i,c):acc)
+ >     iterInner2 (i::Int) acc = result' (i:acc)
+ >   withTransaction RepeatableRead $ do
+ >     rs <- doQuery (sql q) iterMain []
+ >     flip mapM_ rs $ \(outer, c) -> do
+ >       rs <- doQuery c iterInner []
+ >       flip mapM_ rs $ \(inner, c) -> do
+ >         rs <- doQuery c iterInner2 []
+ >         flip mapM_ rs $ \i -> do
+ >           liftIO (putStrLn (show outer ++ " " ++ show inner ++ " " ++ show i))
+ 
+Just to make it clear: the outer query returns a result-set that includes
+a 'Database.Enumerator.RefCursor' column. Each cursor from that column is passed to
+'Database.Enumerator.doQuery' to process it's result-set;
+here we use mapM_ to apply an IO action to the list returned by
+'Database.Enumerator.doQuery'.
 
 
 
@@ -726,9 +1018,10 @@ The best way (that I've found) to get a decent introductory/explanatory
 section for the module is to break the explanation into named chunks,
 put the named chunks at the end, and reference them in the export list.
 
-You can write the introduction inline, as part of the module description,
-but Haddock has no way to make headings. If you make an explicit export-list,
-you can use the "-- *", "-- **", etc, syntax to give section headings.
+You *can* write the introduction inline, as part of the module description,
+but Haddock has no way to make headings.
+Instead, if you make an explicit export-list then you can use
+the "-- *", "-- **", etc, syntax to give section headings.
 
 (Note: if you don't use an explicit export list, then Haddock will use "-- *" etc
 comments to make headings. The headings will appear in the docs in the the locations
@@ -746,8 +1039,6 @@ as they do in the source, as do functions, data types, etc.)
      - use " >" rather than @...@, because "@" allows markup translation, where " >" doesn't.
  - @inline code (monospaced font)@
  - /emphasised text/
- - link to "Another.Module".
- - link to 'SomeType' in same module.
- - link to 'Another.Module.SomeType'.
- - <http:/www.haskell.org/haddock>
+ - links: "Another.Module", 'someIdentifier' (same module),
+   'Another.Module.someIdentifier', <http:/www.haskell.org/haddock>
 
