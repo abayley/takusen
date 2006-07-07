@@ -1,0 +1,2902 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!--Rendered using the Haskell Html Library v0.2-->
+<HTML
+><HEAD
+><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8"
+><TITLE
+>Database.InternalEnumerator</TITLE
+><LINK HREF="haddock.css" REL="stylesheet" TYPE="text/css"
+><SCRIPT SRC="haddock.js" TYPE="text/javascript"
+></SCRIPT
+></HEAD
+><BODY
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="topbar"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD
+><IMG SRC="haskell_icon.gif" WIDTH="16" HEIGHT="16" ALT=" "
+></TD
+><TD CLASS="title"
+></TD
+><TD CLASS="topbut"
+><A HREF="index.html"
+>Contents</A
+></TD
+><TD CLASS="topbut"
+><A HREF="doc-index.html"
+>Index</A
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="modulebar"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD
+><FONT SIZE="6"
+>Database.InternalEnumerator</FONT
+></TD
+><TD ALIGN="right"
+><TABLE CLASS="narrow" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="infohead"
+>Portability</TD
+><TD CLASS="infoval"
+>non-portable</TD
+></TR
+><TR
+><TD CLASS="infohead"
+>Stability</TD
+><TD CLASS="infoval"
+>experimental</TD
+></TR
+><TR
+><TD CLASS="infohead"
+>Maintainer</TD
+><TD CLASS="infoval"
+>oleg@pobox.com, alistair@abayley.org</TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="section4"
+><B
+>Contents</B
+></TD
+></TR
+><TR
+><TD
+><DL
+><DT
+><A HREF="#1"
+>Session object.
+</A
+></DT
+><DT
+><A HREF="#2"
+>Exceptions and handlers
+</A
+></DT
+></DL
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section1"
+>Description</TD
+></TR
+><TR
+><TD CLASS="doc"
+><P
+>This is the interface between the middle Enumerator layer and the
+ low-level, Database-specific layer. This file is not exported to the end user.
+</P
+><P
+>Only the programmer for a new back-end needs to consult this file.
+</P
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section1"
+>Synopsis</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="#t%3AISession"
+>ISession</A
+> sess  <SPAN CLASS="keyword"
+>where</SPAN
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Adisconnect"
+>disconnect</A
+> :: sess -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AbeginTransaction"
+>beginTransaction</A
+> :: sess -&gt; <A HREF="Database-InternalEnumerator.html#t%3AIsolationLevel"
+>IsolationLevel</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Acommit"
+>commit</A
+> :: sess -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Arollback"
+>rollback</A
+> :: sess -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>newtype</SPAN
+> <A HREF="#t%3AConnectA"
+>ConnectA</A
+> sess = <A HREF="#v%3AConnectA"
+>ConnectA</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> sess)</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> sess =&gt; <A HREF="#t%3AStatement"
+>Statement</A
+> stmt sess q | stmt sess -&gt; q <SPAN CLASS="keyword"
+>where</SPAN
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AmakeQuery"
+>makeQuery</A
+> :: sess -&gt; stmt -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> q</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> sess =&gt; <A HREF="#t%3ACommand"
+>Command</A
+> stmt sess  <SPAN CLASS="keyword"
+>where</SPAN
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AexecuteCommand"
+>executeCommand</A
+> :: sess -&gt; stmt -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>newtype</SPAN
+> <A HREF="#t%3APreparationA"
+>PreparationA</A
+> sess stmt = <A HREF="#v%3APreparationA"
+>PreparationA</A
+> (sess -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> stmt)</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> sess =&gt; <A HREF="#t%3AIPrepared"
+>IPrepared</A
+> stmt sess bound_stmt bo | stmt -&gt; bound_stmt, stmt -&gt; bo <SPAN CLASS="keyword"
+>where</SPAN
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AbindRun"
+>bindRun</A
+> :: sess -&gt; stmt -&gt; [<A HREF="Database-InternalEnumerator.html#t%3ABindA"
+>BindA</A
+> sess stmt bo] -&gt; (bound_stmt -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> a) -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> a</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AdestroyStmt"
+>destroyStmt</A
+> :: sess -&gt; stmt -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>newtype</SPAN
+> <A HREF="#t%3ABindA"
+>BindA</A
+> sess stmt bo = <A HREF="#v%3ABindA"
+>BindA</A
+> (sess -&gt; stmt -&gt; bo)</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> sess =&gt; <A HREF="#t%3ADBBind"
+>DBBind</A
+> a sess stmt bo | stmt -&gt; bo <SPAN CLASS="keyword"
+>where</SPAN
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AbindP"
+>bindP</A
+> :: a -&gt; <A HREF="Database-InternalEnumerator.html#t%3ABindA"
+>BindA</A
+> sess stmt bo</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3AIsolationLevel"
+>IsolationLevel</A
+> </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+>= <A HREF="#v%3AReadUncommitted"
+>ReadUncommitted</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+>| <A HREF="#v%3AReadCommitted"
+>ReadCommitted</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+>| <A HREF="#v%3ARepeatableRead"
+>RepeatableRead</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+>| <A HREF="#v%3ASerialisable"
+>Serialisable</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+>| <A HREF="#v%3ASerializable"
+>Serializable</A
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3APosition"
+>Position</A
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> sess =&gt; <A HREF="#t%3AIQuery"
+>IQuery</A
+> q sess b | q -&gt; sess, q -&gt; b <SPAN CLASS="keyword"
+>where</SPAN
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AfetchOneRow"
+>fetchOneRow</A
+> :: q -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Bool.html#t%3ABool"
+>Bool</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AcurrentRowNum"
+>currentRowNum</A
+> :: q -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AfreeBuffer"
+>freeBuffer</A
+> :: q -&gt; b -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AdestroyQuery"
+>destroyQuery</A
+> :: q -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="#t%3ADBType"
+>DBType</A
+> a q b | q -&gt; b <SPAN CLASS="keyword"
+>where</SPAN
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AallocBufferFor"
+>allocBufferFor</A
+> :: a -&gt; q -&gt; <A HREF="Database-InternalEnumerator.html#t%3APosition"
+>Position</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> b</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AfetchCol"
+>fetchCol</A
+> :: q -&gt; b -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> a</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AthrowIfDBNull"
+>throwIfDBNull</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Monad.html#t%3AMonad"
+>Monad</A
+> m =&gt; m (<A HREF="Database-InternalEnumerator.html#t%3ARowNum"
+>RowNum</A
+>, <A HREF="Database-InternalEnumerator.html#t%3AColNum"
+>ColNum</A
+>) -&gt; m (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> a) -&gt; m a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3ADBException"
+>DBException</A
+> </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+>= <A HREF="#v%3ADBError"
+>DBError</A
+> <A HREF="Database-InternalEnumerator.html#t%3ASqlState"
+>SqlState</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+>| <A HREF="#v%3ADBFatal"
+>DBFatal</A
+> <A HREF="Database-InternalEnumerator.html#t%3ASqlState"
+>SqlState</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+>| <A HREF="#v%3ADBUnexpectedNull"
+>DBUnexpectedNull</A
+> <A HREF="Database-InternalEnumerator.html#t%3ARowNum"
+>RowNum</A
+> <A HREF="Database-InternalEnumerator.html#t%3AColNum"
+>ColNum</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+>| <A HREF="#v%3ADBNoData"
+>DBNoData</A
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AthrowDB"
+>throwDB</A
+> :: <A HREF="Database-InternalEnumerator.html#t%3ADBException"
+>DBException</A
+> -&gt; a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3AColNum"
+>ColNum</A
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3ARowNum"
+>RowNum</A
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3ASqlState"
+>SqlState</A
+> = (<A HREF="Database-InternalEnumerator.html#t%3ASqlStateClass"
+>SqlStateClass</A
+>, <A HREF="Database-InternalEnumerator.html#t%3ASqlStateSubClass"
+>SqlStateSubClass</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3ASqlStateClass"
+>SqlStateClass</A
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3ASqlStateSubClass"
+>SqlStateSubClass</A
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section1"
+><A NAME="1"
+>Session object.
+</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A NAME="t%3AISession"
+></A
+><B
+>ISession</B
+> sess  <SPAN CLASS="keyword"
+>where</SPAN
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="ndoc"
+><P
+>The <TT
+><A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+></TT
+> class describes a database session to a particular
+ DBMS.  Oracle has its own Session object, SQLite has its own
+ session object (which maintains the connection handle to the database
+ engine and other related stuff). Session objects for different databases
+ normally have different types -- yet they all belong to the class ISession
+ so we can do generic operations like <TT
+>commit</TT
+>, <TT
+>execDDL</TT
+>, etc. 
+ in a database-independent manner.
+</P
+><P
+>Session objects per se are created by database connection/login functions.
+</P
+><P
+>The class <TT
+><A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+></TT
+> is thus an interface between low-level (and
+ database-specific) code and the Enumerator, database-independent
+ code.
+ The <TT
+><A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+></TT
+> class is NOT visible to the end user -- neither the class,
+ nor any of its methods.
+</P
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+>Methods</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Adisconnect"
+></A
+><B
+>disconnect</B
+> :: sess -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AbeginTransaction"
+></A
+><B
+>beginTransaction</B
+> :: sess -&gt; <A HREF="Database-InternalEnumerator.html#t%3AIsolationLevel"
+>IsolationLevel</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Acommit"
+></A
+><B
+>commit</B
+> :: sess -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Arollback"
+></A
+><B
+>rollback</B
+> :: sess -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:ISession')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:ISession" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> <A HREF="Database-Stub-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>newtype</SPAN
+> <A NAME="t%3AConnectA"
+></A
+><B
+>ConnectA</B
+> sess</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="ndoc"
+>A wrapper around the action to open the database. That wrapper is not
+ exported to the end user. The only reason for the wrapper is to
+ guarantee that the only thing to do with the result of
+ <TT
+><A HREF="Database-Enumerator-Sqlite.html#v%3Aconnect"
+>connect</A
+></TT
+> function is to pass it out
+ directly to <TT
+><A HREF="Database-Enumerator.html#v%3AwithSession"
+>withSession</A
+></TT
+>.
+</TD
+></TR
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3AConnectA"
+></A
+><B
+>ConnectA</B
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> sess)</TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> sess =&gt; <A NAME="t%3AStatement"
+></A
+><B
+>Statement</B
+> stmt sess q | stmt sess -&gt; q <SPAN CLASS="keyword"
+>where</SPAN
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="ndoc"
+><TT
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+></TT
+> defines the API for query objects i.e.
+ which types can be queries.
+</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+>Methods</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AmakeQuery"
+></A
+><B
+>makeQuery</B
+> :: sess -&gt; stmt -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> q</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:Statement')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:Statement" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> BoundStmt <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> BoundStmt <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> BoundStmt <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> PreparedStmt <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> PreparedStmt <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> QueryString <A HREF="Database-Stub-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> QueryString <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> QueryString <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> QueryString <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> QueryStringTuned <A HREF="Database-Stub-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> QueryStringTuned <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> QueryStringTuned <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> StmtBind <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> StmtBind <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> (<A HREF="Database-Enumerator.html#t%3ARefCursor"
+>RefCursor</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+>) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> (<A HREF="Database-Enumerator.html#t%3ARefCursor"
+>RefCursor</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+>) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> (<A HREF="Database-Enumerator.html#t%3ANextResultSet"
+>NextResultSet</A
+> mark PreparedStmt) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> (<A HREF="Database-Enumerator.html#t%3ANextResultSet"
+>NextResultSet</A
+> mark PreparedStmt) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> sess =&gt; <A NAME="t%3ACommand"
+></A
+><B
+>Command</B
+> stmt sess  <SPAN CLASS="keyword"
+>where</SPAN
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="ndoc"
+><TT
+><A HREF="Database-InternalEnumerator.html#t%3ACommand"
+>Command</A
+></TT
+> is not a query: command deletes or updates rows, creates/drops
+ tables, or changes database state.
+ <TT
+><A HREF="Database-InternalEnumerator.html#v%3AexecuteCommand"
+>executeCommand</A
+></TT
+> returns the number of affected rows (or 0 if DDL i.e. not DML).
+</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+>Methods</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AexecuteCommand"
+></A
+><B
+>executeCommand</B
+> :: sess -&gt; stmt -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:Command')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:Command" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ACommand"
+>Command</A
+> BoundStmt <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ACommand"
+>Command</A
+> BoundStmt <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ACommand"
+>Command</A
+> BoundStmt <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ACommand"
+>Command</A
+> QueryString <A HREF="Database-Stub-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ACommand"
+>Command</A
+> QueryString <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ACommand"
+>Command</A
+> QueryString <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ACommand"
+>Command</A
+> QueryString <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ACommand"
+>Command</A
+> QueryStringTuned <A HREF="Database-Stub-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ACommand"
+>Command</A
+> StmtBind <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ACommand"
+>Command</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ACommand"
+>Command</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ACommand"
+>Command</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>newtype</SPAN
+> <A NAME="t%3APreparationA"
+></A
+><B
+>PreparationA</B
+> sess stmt</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="ndoc"
+><P
+>This type is not visible to the end user (cf. ConnectA). It forms a private
+ `communication channel' between Database.Enumerator and a back end.
+</P
+><P
+>Why don't we make a user-visible class with a <TT
+>prepare</TT
+> method?
+ Because it means to standardize the preparation method signature
+ across all databases. Some databases need more parameters, some
+ fewer. There may be several statement preparation functions within one
+ database.  So, instead of standardizing the signature of the
+ preparation function, we standardize on the _result_ of that
+ function. To be more precise, we standardize on the properties of the
+ result: whatever it is, the eventual prepared statement should be
+ suitable to be passed to <TT
+><A HREF="Database-InternalEnumerator.html#v%3AbindRun"
+>bindRun</A
+></TT
+>.
+</P
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3APreparationA"
+></A
+><B
+>PreparationA</B
+> (sess -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> stmt)</TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> sess =&gt; <A NAME="t%3AIPrepared"
+></A
+><B
+>IPrepared</B
+> stmt sess bound_stmt bo | stmt -&gt; bound_stmt, stmt -&gt; bo <SPAN CLASS="keyword"
+>where</SPAN
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+>Methods</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AbindRun"
+></A
+><B
+>bindRun</B
+> :: sess -&gt; stmt -&gt; [<A HREF="Database-InternalEnumerator.html#t%3ABindA"
+>BindA</A
+> sess stmt bo] -&gt; (bound_stmt -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> a) -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AdestroyStmt"
+></A
+><B
+>destroyStmt</B
+> :: sess -&gt; stmt -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:IPrepared')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:IPrepared" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AIPrepared"
+>IPrepared</A
+> PreparedStmt <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> BoundStmt BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AIPrepared"
+>IPrepared</A
+> PreparedStmt <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> BoundStmt BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AIPrepared"
+>IPrepared</A
+> PreparedStmt <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> BoundStmt BindObj</TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>newtype</SPAN
+> <A NAME="t%3ABindA"
+></A
+><B
+>BindA</B
+> sess stmt bo</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="ndoc"
+>The binding object (bo) below is very abstract, on purpose.
+ It may be |IO a|, it may be String, it may be a function, etc.
+ The binding object can hold the result of marshalling,
+ or bo can hold the current counter, etc.
+ Different databases do things very differently:
+ compare PostgreSQL and the Stub (which models Oracle).
+</TD
+></TR
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3ABindA"
+></A
+><B
+>BindA</B
+> (sess -&gt; stmt -&gt; bo)</TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> sess =&gt; <A NAME="t%3ADBBind"
+></A
+><B
+>DBBind</B
+> a sess stmt bo | stmt -&gt; bo <SPAN CLASS="keyword"
+>where</SPAN
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="ndoc"
+>The class DBBind is not used by the end-user.
+ It is used to tie up low-level database access and the enumerator.
+ A database-specific library must provide a set of instances for DBBind.
+ The latter are the dual of DBType.
+</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+>Methods</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AbindP"
+></A
+><B
+>bindP</B
+> :: a -&gt; <A HREF="Database-InternalEnumerator.html#t%3ABindA"
+>BindA</A
+> sess stmt bo</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:DBBind')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:DBBind" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> a) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmt BindObj =&gt; <A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>DBBind</A
+> a <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmt BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> a) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmt BindObj =&gt; <A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>DBBind</A
+> a <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmt BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> a) <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmt BindObj =&gt; <A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>DBBind</A
+> a <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmt BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-Time.html#t%3ACalendarTime"
+>CalendarTime</A
+>) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmt BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-Time.html#t%3ACalendarTime"
+>CalendarTime</A
+>) <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmt BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Prelude.html#t%3ADouble"
+>Double</A
+>) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmt BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Prelude.html#t%3ADouble"
+>Double</A
+>) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmt BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Prelude.html#t%3ADouble"
+>Double</A
+>) <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmt BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Prelude.html#t%3AFloat"
+>Float</A
+>) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmt BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+>) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmt BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+>) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmt BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+>) <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmt BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt64"
+>Int64</A
+>) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmt BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt64"
+>Int64</A
+>) <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmt BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+>) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmt BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+>) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmt BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+>) <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmt BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Show.html#t%3AShow"
+>Show</A
+> a =&gt; <A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> a) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmt BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Show.html#t%3AShow"
+>Show</A
+> a =&gt; <A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> a) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmt BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Show.html#t%3AShow"
+>Show</A
+> a =&gt; <A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> a) <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmt BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>DBBind</A
+> (Out (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+>)) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmt BindObj</TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A NAME="t%3AIsolationLevel"
+></A
+><B
+>IsolationLevel</B
+> </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3AReadUncommitted"
+></A
+><B
+>ReadUncommitted</B
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+><A NAME="v%3AReadCommitted"
+></A
+><B
+>ReadCommitted</B
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+><A NAME="v%3ARepeatableRead"
+></A
+><B
+>RepeatableRead</B
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+><A NAME="v%3ASerialisable"
+></A
+><B
+>Serialisable</B
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+><A NAME="v%3ASerializable"
+></A
+><B
+>Serializable</B
+></TD
+><TD CLASS="rdoc"
+>for alternative spellers
+</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:IsolationLevel')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:IsolationLevel" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Show.html#t%3AShow"
+>Show</A
+> <A HREF="Database-InternalEnumerator.html#t%3AIsolationLevel"
+>IsolationLevel</A
+></TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3APosition"
+></A
+><B
+>Position</B
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> sess =&gt; <A NAME="t%3AIQuery"
+></A
+><B
+>IQuery</B
+> q sess b | q -&gt; sess, q -&gt; b <SPAN CLASS="keyword"
+>where</SPAN
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="ndoc"
+><P
+>The class IQuery describes the class of query objects. Each
+ database (that is, each Session object) has its own Query object. 
+ We may assume that a Query object includes (at least, conceptually)
+ a (pointer to) a Session object, so a Query object determines the
+ Session object.
+ A back-end provides an instance (or instances) of IQuery.
+ The end user never seens the IQuery class (let alone its methods).
+</P
+><P
+>Can a session have several types of query objects?
+ Let's assume that it can: but a statement plus the session uniquely
+ determine the query,
+</P
+><P
+>Note that we explicitly use IO monad because we will have to explicitly
+ do FFI.
+</P
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+>Methods</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AfetchOneRow"
+></A
+><B
+>fetchOneRow</B
+> :: q -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Bool.html#t%3ABool"
+>Bool</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AcurrentRowNum"
+></A
+><B
+>currentRowNum</B
+> :: q -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AfreeBuffer"
+></A
+><B
+>freeBuffer</B
+> :: q -&gt; b -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AdestroyQuery"
+></A
+><B
+>destroyQuery</B
+> :: q -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:IQuery')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:IQuery" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AIQuery"
+>IQuery</A
+> Query <A HREF="Database-Stub-Enumerator.html#t%3ASession"
+>Session</A
+> ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AIQuery"
+>IQuery</A
+> Query <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AIQuery"
+>IQuery</A
+> Query <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AIQuery"
+>IQuery</A
+> Query <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> ColumnBuffer</TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A NAME="t%3ADBType"
+></A
+><B
+>DBType</B
+> a q b | q -&gt; b <SPAN CLASS="keyword"
+>where</SPAN
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="ndoc"
+><P
+>A 'buffer' means a column buffer: a data structure that points to a
+ block of memory allocated for the values of one particular
+ column. Since a query normally fetches a row of several columns, we
+ typically deal with a list of column buffers. Although the column data
+ are typed (e.g., Integer, CalendarDate, etc), column buffers hide that
+ type. Think of the column buffer as Dynamics. The class DBType below
+ describes marshalling functions, to fetch a typed value out of the
+ 'untyped' columnBuffer.
+</P
+><P
+>Different DBMS's (that is, different session objects) have, in
+ general, columnBuffers of different types: the type of Column Buffer
+ is specific to a database.
+ So, ISession (m) uniquely determines the buffer type (b)??
+ Or, actually, a query uniquely determines the buffer.
+</P
+><P
+>The class DBType is not used by the end-user.
+ It is used to tie up low-level database access and the enumerator.
+ A database-specific library must provide a set of instances for DBType.
+</P
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+>Methods</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AallocBufferFor"
+></A
+><B
+>allocBufferFor</B
+> :: a -&gt; q -&gt; <A HREF="Database-InternalEnumerator.html#t%3APosition"
+>Position</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> b</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AfetchCol"
+></A
+><B
+>fetchCol</B
+> :: q -&gt; b -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> a</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:DBType')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:DBType" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> a) Query ColumnBuffer =&gt; <A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> a Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> a) Query ColumnBuffer =&gt; <A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> a Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> a) Query ColumnBuffer =&gt; <A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> a Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> a) Query ColumnBuffer =&gt; <A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> a Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-Time.html#t%3ACalendarTime"
+>CalendarTime</A
+>) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-Time.html#t%3ACalendarTime"
+>CalendarTime</A
+>) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-Time.html#t%3ACalendarTime"
+>CalendarTime</A
+>) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Prelude.html#t%3ADouble"
+>Double</A
+>) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Prelude.html#t%3ADouble"
+>Double</A
+>) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Prelude.html#t%3ADouble"
+>Double</A
+>) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Prelude.html#t%3ADouble"
+>Double</A
+>) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Prelude.html#t%3AFloat"
+>Float</A
+>) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+>) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+>) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+>) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+>) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt64"
+>Int64</A
+>) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt64"
+>Int64</A
+>) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+>) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+>) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+>) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+>) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+>(<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Show.html#t%3AShow"
+>Show</A
+> a, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Read.html#t%3ARead"
+>Read</A
+> a) =&gt; <A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> a) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+>(<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Show.html#t%3AShow"
+>Show</A
+> a, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Read.html#t%3ARead"
+>Read</A
+> a) =&gt; <A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> a) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+>(<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Show.html#t%3AShow"
+>Show</A
+> a, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Read.html#t%3ARead"
+>Read</A
+> a) =&gt; <A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> a) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+>(<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Show.html#t%3AShow"
+>Show</A
+> a, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Read.html#t%3ARead"
+>Read</A
+> a) =&gt; <A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> a) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="Database-Enumerator.html#t%3ARefCursor"
+>RefCursor</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+>) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="Database-Enumerator.html#t%3ARefCursor"
+>RefCursor</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+>) Query ColumnBuffer</TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AthrowIfDBNull"
+></A
+><B
+>throwIfDBNull</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Monad.html#t%3AMonad"
+>Monad</A
+> m =&gt; m (<A HREF="Database-InternalEnumerator.html#t%3ARowNum"
+>RowNum</A
+>, <A HREF="Database-InternalEnumerator.html#t%3AColNum"
+>ColNum</A
+>) -&gt; m (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> a) -&gt; m a</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Used by instances of DBType to throw an exception
+ when a null (Nothing) is returned.
+ Will work for any type, as you pass the fetch action in the fetcher arg.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section1"
+><A NAME="2"
+>Exceptions and handlers
+</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A NAME="t%3ADBException"
+></A
+><B
+>DBException</B
+> </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3ADBError"
+></A
+><B
+>DBError</B
+> <A HREF="Database-InternalEnumerator.html#t%3ASqlState"
+>SqlState</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TD
+><TD CLASS="rdoc"
+>DBMS error message.
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+><A NAME="v%3ADBFatal"
+></A
+><B
+>DBFatal</B
+> <A HREF="Database-InternalEnumerator.html#t%3ASqlState"
+>SqlState</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+><A NAME="v%3ADBUnexpectedNull"
+></A
+><B
+>DBUnexpectedNull</B
+> <A HREF="Database-InternalEnumerator.html#t%3ARowNum"
+>RowNum</A
+> <A HREF="Database-InternalEnumerator.html#t%3AColNum"
+>ColNum</A
+></TD
+><TD CLASS="rdoc"
+>the iteratee function used for queries accepts both nullable (Maybe) and
+ non-nullable types. If the query itself returns a null in a column where a
+ non-nullable type was specified, we can't handle it, so DBUnexpectedNull is thrown.
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+><A NAME="v%3ADBNoData"
+></A
+><B
+>DBNoData</B
+></TD
+><TD CLASS="rdoc"
+>Thrown by cursor functions if you try to fetch after the end.
+</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:DBException')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:DBException" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Show.html#t%3AShow"
+>Show</A
+> <A HREF="Database-InternalEnumerator.html#t%3ADBException"
+>DBException</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Typeable.html#t%3ATypeable"
+>Typeable</A
+> <A HREF="Database-InternalEnumerator.html#t%3ADBException"
+>DBException</A
+></TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AthrowDB"
+></A
+><B
+>throwDB</B
+> :: <A HREF="Database-InternalEnumerator.html#t%3ADBException"
+>DBException</A
+> -&gt; a</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Throw a DBException. It's just a type-specific <TT
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Exception.html#v%3AthrowDyn"
+>throwDyn</A
+></TT
+>.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3AColNum"
+></A
+><B
+>ColNum</B
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3ARowNum"
+></A
+><B
+>RowNum</B
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3ASqlState"
+></A
+><B
+>SqlState</B
+> = (<A HREF="Database-InternalEnumerator.html#t%3ASqlStateClass"
+>SqlStateClass</A
+>, <A HREF="Database-InternalEnumerator.html#t%3ASqlStateSubClass"
+>SqlStateSubClass</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3ASqlStateClass"
+></A
+><B
+>SqlStateClass</B
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3ASqlStateSubClass"
+></A
+><B
+>SqlStateSubClass</B
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="botbar"
+>Produced by <A HREF="http://www.haskell.org/haddock/"
+>Haddock</A
+> version 0.7</TD
+></TR
+></TABLE
+></BODY
+></HTML
+>

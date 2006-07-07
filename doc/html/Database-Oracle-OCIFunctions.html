@@ -1,0 +1,5162 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!--Rendered using the Haskell Html Library v0.2-->
+<HTML
+><HEAD
+><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8"
+><TITLE
+>Database.Oracle.OCIFunctions</TITLE
+><LINK HREF="haddock.css" REL="stylesheet" TYPE="text/css"
+><SCRIPT SRC="haddock.js" TYPE="text/javascript"
+></SCRIPT
+></HEAD
+><BODY
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="topbar"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD
+><IMG SRC="haskell_icon.gif" WIDTH="16" HEIGHT="16" ALT=" "
+></TD
+><TD CLASS="title"
+></TD
+><TD CLASS="topbut"
+><A HREF="index.html"
+>Contents</A
+></TD
+><TD CLASS="topbut"
+><A HREF="doc-index.html"
+>Index</A
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="modulebar"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD
+><FONT SIZE="6"
+>Database.Oracle.OCIFunctions</FONT
+></TD
+><TD ALIGN="right"
+><TABLE CLASS="narrow" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="infohead"
+>Portability</TD
+><TD CLASS="infoval"
+>non-portable</TD
+></TR
+><TR
+><TD CLASS="infohead"
+>Stability</TD
+><TD CLASS="infoval"
+>experimental</TD
+></TR
+><TR
+><TD CLASS="infohead"
+>Maintainer</TD
+><TD CLASS="infoval"
+>oleg@pobox.com, alistair@abayley.org</TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="section4"
+><B
+>Contents</B
+></TD
+></TR
+><TR
+><TD
+><DL
+><DT
+><A HREF="#1"
+>Foreign OCI functions
+</A
+></DT
+><DT
+><A HREF="#2"
+>OCI error reporting
+</A
+></DT
+><DT
+><A HREF="#3"
+>Allocating Handles (i.e. creating OCI data structures, and memory management)
+</A
+></DT
+><DT
+><A HREF="#4"
+>Connecting and detaching
+</A
+></DT
+><DT
+><A HREF="#5"
+>Transactions
+</A
+></DT
+><DT
+><A HREF="#6"
+>Issuing queries
+</A
+></DT
+></DL
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section1"
+>Description</TD
+></TR
+><TR
+><TD CLASS="doc"
+><P
+>Simple wrappers for OCI functions (FFI).
+</P
+><P
+>The functions in this file are simple wrappers for OCI functions.
+ The wrappers add error detection and exceptions;
+ functions in this module raise <TT
+><A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIException"
+>OCIException</A
+></TT
+>.
+ The next layer up traps these and turns them into <TT
+><A HREF="Database-Enumerator.html#t%3ADBException"
+>DBException</A
+></TT
+>.
+</P
+><P
+>Note that <TT
+><A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIException"
+>OCIException</A
+></TT
+> <EM
+>does not</EM
+> contain the error number and text
+ returned by <TT
+><A HREF="Database-Oracle-OCIFunctions.html#v%3AgetOCIErrorMsg"
+>getOCIErrorMsg</A
+></TT
+>.
+ It is the job of the next layer (module) up to catch the <TT
+><A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIException"
+>OCIException</A
+></TT
+>
+ and then call <TT
+><A HREF="Database-Oracle-OCIFunctions.html#v%3AgetOCIErrorMsg"
+>getOCIErrorMsg</A
+></TT
+> to get the actual error details.
+ The <TT
+><A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIException"
+>OCIException</A
+></TT
+> simply contains the error number returned by
+ the OCI call, and some text identifying the wrapper function.
+ See <TT
+><A HREF="Database-Oracle-OCIFunctions.html#v%3AformatErrorCodeDesc"
+>formatErrorCodeDesc</A
+></TT
+> for the set of possible values for the OCI error numbers.
+</P
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section1"
+>Synopsis</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3AOCIStruct"
+>OCIStruct</A
+>  = <A HREF="#v%3AOCIStruct"
+>OCIStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3AOCIHandle"
+>OCIHandle</A
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIStruct"
+>OCIStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3AOCIBuffer"
+>OCIBuffer</A
+>  = <A HREF="#v%3AOCIBuffer"
+>OCIBuffer</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3ABufferPtr"
+>BufferPtr</A
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIBuffer"
+>OCIBuffer</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3AColumnResultBuffer"
+>ColumnResultBuffer</A
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIBuffer"
+>OCIBuffer</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3AContext"
+>Context</A
+>  = <A HREF="#v%3AContext"
+>Context</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3AContextPtr"
+>ContextPtr</A
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AContext"
+>Context</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3AEnvStruct"
+>EnvStruct</A
+>  = <A HREF="#v%3AEnvStruct"
+>EnvStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3AEnvHandle"
+>EnvHandle</A
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AEnvStruct"
+>EnvStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3AErrorStruct"
+>ErrorStruct</A
+>  = <A HREF="#v%3AErrorStruct"
+>ErrorStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3AErrorHandle"
+>ErrorHandle</A
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorStruct"
+>ErrorStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3AServerStruct"
+>ServerStruct</A
+>  = <A HREF="#v%3AServerStruct"
+>ServerStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3AServerHandle"
+>ServerHandle</A
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AServerStruct"
+>ServerStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3AUserStruct"
+>UserStruct</A
+>  = <A HREF="#v%3AUserStruct"
+>UserStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3AUserHandle"
+>UserHandle</A
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AUserStruct"
+>UserStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3AConnStruct"
+>ConnStruct</A
+>  = <A HREF="#v%3AConnStruct"
+>ConnStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3AConnHandle"
+>ConnHandle</A
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnStruct"
+>ConnStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3ASessStruct"
+>SessStruct</A
+>  = <A HREF="#v%3ASessStruct"
+>SessStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3ASessHandle"
+>SessHandle</A
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3ASessStruct"
+>SessStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3AStmtStruct"
+>StmtStruct</A
+>  = <A HREF="#v%3AStmtStruct"
+>StmtStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3AStmtHandle"
+>StmtHandle</A
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtStruct"
+>StmtStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3ADefnStruct"
+>DefnStruct</A
+>  = <A HREF="#v%3ADefnStruct"
+>DefnStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3ADefnHandle"
+>DefnHandle</A
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3ADefnStruct"
+>DefnStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3AParamStruct"
+>ParamStruct</A
+>  = <A HREF="#v%3AParamStruct"
+>ParamStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3AParamHandle"
+>ParamHandle</A
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AParamStruct"
+>ParamStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3ABindStruct"
+>BindStruct</A
+>  = <A HREF="#v%3ABindStruct"
+>BindStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3ABindHandle"
+>BindHandle</A
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3ABindStruct"
+>BindStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3AColumnInfo"
+>ColumnInfo</A
+> = (<A HREF="Database-Oracle-OCIFunctions.html#t%3ADefnHandle"
+>DefnHandle</A
+>, <A HREF="Database-Oracle-OCIFunctions.html#t%3AColumnResultBuffer"
+>ColumnResultBuffer</A
+>, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+>, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3AOCIException"
+>OCIException</A
+>  = <A HREF="#v%3AOCIException"
+>OCIException</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AcatchOCI"
+>catchOCI</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> a -&gt; (<A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIException"
+>OCIException</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> a) -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AthrowOCI"
+>throwOCI</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIException"
+>OCIException</A
+> -&gt; a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AmkCInt"
+>mkCInt</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AmkCShort"
+>mkCShort</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AcStrLen"
+>cStrLen</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-String.html#t%3ACStringLen"
+>CStringLen</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AcStr"
+>cStr</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-String.html#t%3ACStringLen"
+>CStringLen</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-String.html#t%3ACString"
+>CString</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AociEnvCreate"
+>ociEnvCreate</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AEnvHandle"
+>EnvHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3AFunPtr"
+>FunPtr</A
+> a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3AFunPtr"
+>FunPtr</A
+> a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3AFunPtr"
+>FunPtr</A
+> a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> a) -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AociHandleAlloc"
+>ociHandleAlloc</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AociHandleFree"
+>ociHandleFree</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AociErrorGet"
+>ociErrorGet</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-String.html#t%3ACString"
+>CString</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-String.html#t%3ACString"
+>CString</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AociParamGet"
+>ociParamGet</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AociAttrGet"
+>ociAttrGet</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferPtr"
+>BufferPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AociAttrSet"
+>ociAttrSet</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferPtr"
+>BufferPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AociLogon"
+>ociLogon</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AEnvHandle"
+>EnvHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-String.html#t%3ACString"
+>CString</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-String.html#t%3ACString"
+>CString</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-String.html#t%3ACString"
+>CString</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AociLogoff"
+>ociLogoff</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AociSessionBegin"
+>ociSessionBegin</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ASessHandle"
+>SessHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AociSessionEnd"
+>ociSessionEnd</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ASessHandle"
+>SessHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AociServerAttach"
+>ociServerAttach</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AServerHandle"
+>ServerHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-String.html#t%3ACString"
+>CString</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AociServerDetach"
+>ociServerDetach</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AServerHandle"
+>ServerHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AociTerminate"
+>ociTerminate</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AociTransStart"
+>ociTransStart</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Word.html#t%3AWord8"
+>Word8</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AociTransCommit"
+>ociTransCommit</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AociTransRollback"
+>ociTransRollback</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AociStmtPrepare"
+>ociStmtPrepare</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-String.html#t%3ACString"
+>CString</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AociDefineByPos"
+>ociDefineByPos</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3ADefnHandle"
+>DefnHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferPtr"
+>BufferPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AociStmtExecute"
+>ociStmtExecute</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AociStmtFetch"
+>ociStmtFetch</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AociBindByPos"
+>ociBindByPos</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3ABindHandle"
+>BindHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUInt"
+>CUInt</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferPtr"
+>BufferPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUShort"
+>CUShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUShort"
+>CUShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUShort"
+>CUShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUInt"
+>CUInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUInt"
+>CUInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUInt"
+>CUInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AociBindDynamic"
+>ociBindDynamic</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3ABindHandle"
+>BindHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AContextPtr"
+>ContextPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3AFunPtr"
+>FunPtr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCICallbackInBind"
+>OCICallbackInBind</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AContextPtr"
+>ContextPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3AFunPtr"
+>FunPtr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCICallbackOutBind"
+>OCICallbackOutBind</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3AOCICallbackInBind"
+>OCICallbackInBind</A
+> = <A HREF="Database-Oracle-OCIFunctions.html#t%3AContextPtr"
+>ContextPtr</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABindHandle"
+>BindHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferPtr"
+>BufferPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Word.html#t%3AWord8"
+>Word8</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3AOCICallbackOutBind"
+>OCICallbackOutBind</A
+> = <A HREF="Database-Oracle-OCIFunctions.html#t%3AContextPtr"
+>ContextPtr</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABindHandle"
+>BindHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferPtr"
+>BufferPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Word.html#t%3AWord8"
+>Word8</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+>) -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AmkOCICallbackInBind"
+>mkOCICallbackInBind</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCICallbackInBind"
+>OCICallbackInBind</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3AFunPtr"
+>FunPtr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCICallbackInBind"
+>OCICallbackInBind</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AmkOCICallbackOutBind"
+>mkOCICallbackOutBind</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCICallbackOutBind"
+>OCICallbackOutBind</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3AFunPtr"
+>FunPtr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCICallbackOutBind"
+>OCICallbackOutBind</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AgetOCIErrorMsg2"
+>getOCIErrorMsg2</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-String.html#t%3ACString"
+>CString</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+>, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AgetOCIErrorMsg"
+>getOCIErrorMsg</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+>, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AfromEnumOCIErrorCode"
+>fromEnumOCIErrorCode</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AformatErrorCodeDesc"
+>formatErrorCodeDesc</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AformatOCIMsg"
+>formatOCIMsg</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+>, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AformatMsgCommon"
+>formatMsgCommon</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIException"
+>OCIException</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+>, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AformatErrorMsg"
+>formatErrorMsg</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIException"
+>OCIException</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+>, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AformatEnvMsg"
+>formatEnvMsg</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIException"
+>OCIException</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AEnvHandle"
+>EnvHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+>, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AtestForError"
+>testForError</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> -&gt; a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AtestForErrorWithPtr"
+>testForErrorWithPtr</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Storable.html#t%3AStorable"
+>Storable</A
+> a =&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AenvCreate"
+>envCreate</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AEnvHandle"
+>EnvHandle</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AhandleAlloc"
+>handleAlloc</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AhandleFree"
+>handleFree</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AsetHandleAttr"
+>setHandleAttr</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AsetHandleAttrString"
+>setHandleAttrString</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AgetHandleAttr"
+>getHandleAttr</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Storable.html#t%3AStorable"
+>Storable</A
+> a =&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AgetParam"
+>getParam</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AParamHandle"
+>ParamHandle</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AdbLogon"
+>dbLogon</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AEnvHandle"
+>EnvHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AdbLogoff"
+>dbLogoff</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Aterminate"
+>terminate</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AserverDetach"
+>serverDetach</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AServerHandle"
+>ServerHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AserverAttach"
+>serverAttach</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AServerHandle"
+>ServerHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AgetSession"
+>getSession</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3ASessHandle"
+>SessHandle</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AsessionBegin"
+>sessionBegin</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ASessHandle"
+>SessHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AsessionEnd"
+>sessionEnd</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ASessHandle"
+>SessHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AbeginTrans"
+>beginTrans</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AcommitTrans"
+>commitTrans</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3ArollbackTrans"
+>rollbackTrans</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AstmtPrepare"
+>stmtPrepare</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AstmtExecute"
+>stmtExecute</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AdefineByPos"
+>defineByPos</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AColumnInfo"
+>ColumnInfo</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Asbph"
+>sbph</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Bool.html#t%3ABool"
+>Bool</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AbindByPos"
+>bindByPos</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferPtr"
+>BufferPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AbindOutputByPos"
+>bindOutputByPos</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIBuffer"
+>OCIBuffer</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3ABindHandle"
+>BindHandle</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AstmtFetch"
+>stmtFetch</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section1"
+>Documentation</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A NAME="t%3AOCIStruct"
+></A
+><B
+>OCIStruct</B
+> </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="ndoc"
+><UL
+><LI
+> Each handle type has its own data type, to prevent stupid errors
+    i.e. using the wrong handle at the wrong time.
+</LI
+><LI
+> In GHC you can simply say <TT
+>data OCIStruct</TT
+> i.e. there's no need for <TT
+>= OCIStruct</TT
+>.
+    I've decided to be more portable, as it doesn't cost much.
+</LI
+><LI
+> Use castPtr if you need to convert handles (say <TT
+><A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+></TT
+> to a more specific type, or vice versa).
+</LI
+></UL
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3AOCIStruct"
+></A
+><B
+>OCIStruct</B
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3AOCIHandle"
+></A
+><B
+>OCIHandle</B
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIStruct"
+>OCIStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A NAME="t%3AOCIBuffer"
+></A
+><B
+>OCIBuffer</B
+> </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3AOCIBuffer"
+></A
+><B
+>OCIBuffer</B
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3ABufferPtr"
+></A
+><B
+>BufferPtr</B
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIBuffer"
+>OCIBuffer</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3AColumnResultBuffer"
+></A
+><B
+>ColumnResultBuffer</B
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIBuffer"
+>OCIBuffer</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A NAME="t%3AContext"
+></A
+><B
+>Context</B
+> </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3AContext"
+></A
+><B
+>Context</B
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3AContextPtr"
+></A
+><B
+>ContextPtr</B
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AContext"
+>Context</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A NAME="t%3AEnvStruct"
+></A
+><B
+>EnvStruct</B
+> </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3AEnvStruct"
+></A
+><B
+>EnvStruct</B
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3AEnvHandle"
+></A
+><B
+>EnvHandle</B
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AEnvStruct"
+>EnvStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A NAME="t%3AErrorStruct"
+></A
+><B
+>ErrorStruct</B
+> </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3AErrorStruct"
+></A
+><B
+>ErrorStruct</B
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3AErrorHandle"
+></A
+><B
+>ErrorHandle</B
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorStruct"
+>ErrorStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A NAME="t%3AServerStruct"
+></A
+><B
+>ServerStruct</B
+> </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3AServerStruct"
+></A
+><B
+>ServerStruct</B
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3AServerHandle"
+></A
+><B
+>ServerHandle</B
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AServerStruct"
+>ServerStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A NAME="t%3AUserStruct"
+></A
+><B
+>UserStruct</B
+> </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3AUserStruct"
+></A
+><B
+>UserStruct</B
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3AUserHandle"
+></A
+><B
+>UserHandle</B
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AUserStruct"
+>UserStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A NAME="t%3AConnStruct"
+></A
+><B
+>ConnStruct</B
+> </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3AConnStruct"
+></A
+><B
+>ConnStruct</B
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3AConnHandle"
+></A
+><B
+>ConnHandle</B
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnStruct"
+>ConnStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A NAME="t%3ASessStruct"
+></A
+><B
+>SessStruct</B
+> </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3ASessStruct"
+></A
+><B
+>SessStruct</B
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3ASessHandle"
+></A
+><B
+>SessHandle</B
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3ASessStruct"
+>SessStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A NAME="t%3AStmtStruct"
+></A
+><B
+>StmtStruct</B
+> </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3AStmtStruct"
+></A
+><B
+>StmtStruct</B
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3AStmtHandle"
+></A
+><B
+>StmtHandle</B
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtStruct"
+>StmtStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A NAME="t%3ADefnStruct"
+></A
+><B
+>DefnStruct</B
+> </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3ADefnStruct"
+></A
+><B
+>DefnStruct</B
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3ADefnHandle"
+></A
+><B
+>DefnHandle</B
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3ADefnStruct"
+>DefnStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A NAME="t%3AParamStruct"
+></A
+><B
+>ParamStruct</B
+> </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3AParamStruct"
+></A
+><B
+>ParamStruct</B
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3AParamHandle"
+></A
+><B
+>ParamHandle</B
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AParamStruct"
+>ParamStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A NAME="t%3ABindStruct"
+></A
+><B
+>BindStruct</B
+> </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3ABindStruct"
+></A
+><B
+>BindStruct</B
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3ABindHandle"
+></A
+><B
+>BindHandle</B
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3ABindStruct"
+>BindStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3AColumnInfo"
+></A
+><B
+>ColumnInfo</B
+> = (<A HREF="Database-Oracle-OCIFunctions.html#t%3ADefnHandle"
+>DefnHandle</A
+>, <A HREF="Database-Oracle-OCIFunctions.html#t%3AColumnResultBuffer"
+>ColumnResultBuffer</A
+>, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+>, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A NAME="t%3AOCIException"
+></A
+><B
+>OCIException</B
+> </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="ndoc"
+>Low-level, OCI library errors.
+</TD
+></TR
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3AOCIException"
+></A
+><B
+>OCIException</B
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:OCIException')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:OCIException" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Show.html#t%3AShow"
+>Show</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIException"
+>OCIException</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Typeable.html#t%3ATypeable"
+>Typeable</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIException"
+>OCIException</A
+></TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AcatchOCI"
+></A
+><B
+>catchOCI</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> a -&gt; (<A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIException"
+>OCIException</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> a) -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> a</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AthrowOCI"
+></A
+><B
+>throwOCI</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIException"
+>OCIException</A
+> -&gt; a</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AmkCInt"
+></A
+><B
+>mkCInt</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AmkCShort"
+></A
+><B
+>mkCShort</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AcStrLen"
+></A
+><B
+>cStrLen</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-String.html#t%3ACStringLen"
+>CStringLen</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AcStr"
+></A
+><B
+>cStr</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-String.html#t%3ACStringLen"
+>CStringLen</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-String.html#t%3ACString"
+>CString</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section2"
+><A NAME="1"
+>Foreign OCI functions
+</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AociEnvCreate"
+></A
+><B
+>ociEnvCreate</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AEnvHandle"
+>EnvHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3AFunPtr"
+>FunPtr</A
+> a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3AFunPtr"
+>FunPtr</A
+> a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3AFunPtr"
+>FunPtr</A
+> a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> a) -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AociHandleAlloc"
+></A
+><B
+>ociHandleAlloc</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AociHandleFree"
+></A
+><B
+>ociHandleFree</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AociErrorGet"
+></A
+><B
+>ociErrorGet</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-String.html#t%3ACString"
+>CString</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-String.html#t%3ACString"
+>CString</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AociParamGet"
+></A
+><B
+>ociParamGet</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AociAttrGet"
+></A
+><B
+>ociAttrGet</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferPtr"
+>BufferPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AociAttrSet"
+></A
+><B
+>ociAttrSet</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferPtr"
+>BufferPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AociLogon"
+></A
+><B
+>ociLogon</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AEnvHandle"
+>EnvHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-String.html#t%3ACString"
+>CString</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-String.html#t%3ACString"
+>CString</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-String.html#t%3ACString"
+>CString</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AociLogoff"
+></A
+><B
+>ociLogoff</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AociSessionBegin"
+></A
+><B
+>ociSessionBegin</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ASessHandle"
+>SessHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AociSessionEnd"
+></A
+><B
+>ociSessionEnd</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ASessHandle"
+>SessHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AociServerAttach"
+></A
+><B
+>ociServerAttach</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AServerHandle"
+>ServerHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-String.html#t%3ACString"
+>CString</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AociServerDetach"
+></A
+><B
+>ociServerDetach</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AServerHandle"
+>ServerHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AociTerminate"
+></A
+><B
+>ociTerminate</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AociTransStart"
+></A
+><B
+>ociTransStart</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Word.html#t%3AWord8"
+>Word8</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AociTransCommit"
+></A
+><B
+>ociTransCommit</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AociTransRollback"
+></A
+><B
+>ociTransRollback</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AociStmtPrepare"
+></A
+><B
+>ociStmtPrepare</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-String.html#t%3ACString"
+>CString</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AociDefineByPos"
+></A
+><B
+>ociDefineByPos</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3ADefnHandle"
+>DefnHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferPtr"
+>BufferPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AociStmtExecute"
+></A
+><B
+>ociStmtExecute</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AociStmtFetch"
+></A
+><B
+>ociStmtFetch</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AociBindByPos"
+></A
+><B
+>ociBindByPos</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3ABindHandle"
+>BindHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUInt"
+>CUInt</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferPtr"
+>BufferPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUShort"
+>CUShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUShort"
+>CUShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUShort"
+>CUShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUInt"
+>CUInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUInt"
+>CUInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUInt"
+>CUInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AociBindDynamic"
+></A
+><B
+>ociBindDynamic</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3ABindHandle"
+>BindHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AContextPtr"
+>ContextPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3AFunPtr"
+>FunPtr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCICallbackInBind"
+>OCICallbackInBind</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AContextPtr"
+>ContextPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3AFunPtr"
+>FunPtr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCICallbackOutBind"
+>OCICallbackOutBind</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3AOCICallbackInBind"
+></A
+><B
+>OCICallbackInBind</B
+> = <A HREF="Database-Oracle-OCIFunctions.html#t%3AContextPtr"
+>ContextPtr</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABindHandle"
+>BindHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferPtr"
+>BufferPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Word.html#t%3AWord8"
+>Word8</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3AOCICallbackOutBind"
+></A
+><B
+>OCICallbackOutBind</B
+> = <A HREF="Database-Oracle-OCIFunctions.html#t%3AContextPtr"
+>ContextPtr</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABindHandle"
+>BindHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferPtr"
+>BufferPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Word.html#t%3AWord8"
+>Word8</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+>) -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AmkOCICallbackInBind"
+></A
+><B
+>mkOCICallbackInBind</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCICallbackInBind"
+>OCICallbackInBind</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3AFunPtr"
+>FunPtr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCICallbackInBind"
+>OCICallbackInBind</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AmkOCICallbackOutBind"
+></A
+><B
+>mkOCICallbackOutBind</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCICallbackOutBind"
+>OCICallbackOutBind</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3AFunPtr"
+>FunPtr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCICallbackOutBind"
+>OCICallbackOutBind</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section2"
+><A NAME="2"
+>OCI error reporting
+</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AgetOCIErrorMsg2"
+></A
+><B
+>getOCIErrorMsg2</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-String.html#t%3ACString"
+>CString</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+>, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+>)</TD
+></TR
+><TR
+><TD CLASS="doc"
+>This is just an auxiliary function for getOCIErrorMsg.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AgetOCIErrorMsg"
+></A
+><B
+>getOCIErrorMsg</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+>, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AfromEnumOCIErrorCode"
+></A
+><B
+>fromEnumOCIErrorCode</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AformatErrorCodeDesc"
+></A
+><B
+>formatErrorCodeDesc</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AformatOCIMsg"
+></A
+><B
+>formatOCIMsg</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+>, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+>)</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Given the two parts of an <TT
+><A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIException"
+>OCIException</A
+></TT
+> (the error number and text)
+ get the actual error message from the DBMS and construct an error message
+ from all of these pieces.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AformatMsgCommon"
+></A
+><B
+>formatMsgCommon</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIException"
+>OCIException</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+>, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+>)</TD
+></TR
+><TR
+><TD CLASS="doc"
+>We have two format functions: <TT
+><A HREF="Database-Oracle-OCIFunctions.html#v%3AformatEnvMsg"
+>formatEnvMsg</A
+></TT
+> takes the <TT
+><A HREF="Database-Oracle-OCIFunctions.html#t%3AEnvHandle"
+>EnvHandle</A
+></TT
+>,
+ <TT
+><A HREF="Database-Oracle-OCIFunctions.html#v%3AformatErrorMsg"
+>formatErrorMsg</A
+></TT
+> takes the <TT
+><A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+></TT
+>.
+ They're just type-safe wrappers for <TT
+><A HREF="Database-Oracle-OCIFunctions.html#v%3AformatMsgCommon"
+>formatMsgCommon</A
+></TT
+>.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AformatErrorMsg"
+></A
+><B
+>formatErrorMsg</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIException"
+>OCIException</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+>, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AformatEnvMsg"
+></A
+><B
+>formatEnvMsg</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIException"
+>OCIException</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AEnvHandle"
+>EnvHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+>, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AtestForError"
+></A
+><B
+>testForError</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> -&gt; a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> a</TD
+></TR
+><TR
+><TD CLASS="doc"
+><P
+>The testForError functions are the only places where OCIException is thrown,
+ so if you want to change or embellish it, your changes will be localised here.
+ These functions factor out common error handling code
+ from the OCI wrapper functions that follow.
+</P
+><P
+>Typically an OCI wrapper function would look like:
+</P
+><PRE
+> handleAlloc handleType env = alloca ptr -&gt; do
+   rc &lt;- ociHandleAlloc env ptr handleType 0 nullPtr
+   if rc &lt; 0
+     then throwOCI (OCIException rc msg)
+     else return ()
+</PRE
+><P
+>where the code from <TT
+>if rc &lt; 0</TT
+> onwards was identical.
+ <TT
+><A HREF="Database-Oracle-OCIFunctions.html#v%3AtestForError"
+>testForError</A
+></TT
+> replaces the code from <TT
+>if rc &lt; 0 ...</TT
+> onwards.
+</P
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AtestForErrorWithPtr"
+></A
+><B
+>testForErrorWithPtr</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Storable.html#t%3AStorable"
+>Storable</A
+> a =&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> a</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Like <TT
+><A HREF="Database-Oracle-OCIFunctions.html#v%3AtestForError"
+>testForError</A
+></TT
+> but when the value you want to return
+ is at the end of a pointer.
+ Either there was an error, in which case the pointer probably isn't valid,
+ or there is something at the end of the pointer to return.
+ See <TT
+><A HREF="Database-Oracle-OCIFunctions.html#v%3AdbLogon"
+>dbLogon</A
+></TT
+> and <TT
+><A HREF="Database-Oracle-OCIFunctions.html#v%3AgetHandleAttr"
+>getHandleAttr</A
+></TT
+> for example usage.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section2"
+><A NAME="3"
+>Allocating Handles (i.e. creating OCI data structures, and memory management)
+</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AenvCreate"
+></A
+><B
+>envCreate</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AEnvHandle"
+>EnvHandle</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AhandleAlloc"
+></A
+><B
+>handleAlloc</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AhandleFree"
+></A
+><B
+>handleFree</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AsetHandleAttr"
+></A
+><B
+>setHandleAttr</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AsetHandleAttrString"
+></A
+><B
+>setHandleAttrString</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AgetHandleAttr"
+></A
+><B
+>getHandleAttr</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Storable.html#t%3AStorable"
+>Storable</A
+> a =&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIHandle"
+>OCIHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> a</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AgetParam"
+></A
+><B
+>getParam</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AParamHandle"
+>ParamHandle</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section2"
+><A NAME="4"
+>Connecting and detaching
+</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AdbLogon"
+></A
+><B
+>dbLogon</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AEnvHandle"
+>EnvHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+></TD
+></TR
+><TR
+><TD CLASS="doc"
+>The OCI Logon function doesn't behave as you'd expect when the password is due to expire.
+ <TT
+><A HREF="Database-Oracle-OCIFunctions.html#v%3AociLogon"
+>ociLogon</A
+></TT
+> returns <TT
+><A HREF="Database-Oracle-OCIConstants.html#v%3Aoci_SUCCESS_WITH_INFO"
+>oci_SUCCESS_WITH_INFO</A
+></TT
+>,
+ but the <TT
+><A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+></TT
+> returned is not valid.
+ In this case we have to change <TT
+><A HREF="Database-Oracle-OCIConstants.html#v%3Aoci_SUCCESS_WITH_INFO"
+>oci_SUCCESS_WITH_INFO</A
+></TT
+>
+ to <TT
+><A HREF="Database-Oracle-OCIConstants.html#v%3Aoci_ERROR"
+>oci_ERROR</A
+></TT
+>,
+ so that the error handling code will catch it and abort. 
+ I don't know why the handle returned isn't valid,
+ as the logon process should be able to complete successfully in this case.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AdbLogoff"
+></A
+><B
+>dbLogoff</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Aterminate"
+></A
+><B
+>terminate</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AserverDetach"
+></A
+><B
+>serverDetach</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AServerHandle"
+>ServerHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AserverAttach"
+></A
+><B
+>serverAttach</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AServerHandle"
+>ServerHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AgetSession"
+></A
+><B
+>getSession</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3ASessHandle"
+>SessHandle</A
+></TD
+></TR
+><TR
+><TD CLASS="doc"
+>Having established a connection (Service Context), now get the Session.
+ You can have more than one session per connection,
+ but I haven't implemented it yet.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AsessionBegin"
+></A
+><B
+>sessionBegin</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ASessHandle"
+>SessHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AsessionEnd"
+></A
+><B
+>sessionEnd</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ASessHandle"
+>SessHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section2"
+><A NAME="5"
+>Transactions
+</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AbeginTrans"
+></A
+><B
+>beginTrans</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AcommitTrans"
+></A
+><B
+>commitTrans</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3ArollbackTrans"
+></A
+><B
+>rollbackTrans</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section2"
+><A NAME="6"
+>Issuing queries
+</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AstmtPrepare"
+></A
+><B
+>stmtPrepare</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="doc"
+><P
+>With the OCI you do queries with these steps:
+</P
+><UL
+><LI
+> prepare your statement (it's just a String) - no communication with DBMS
+</LI
+><LI
+> execute it (this sends it to the DBMS for parsing etc)
+</LI
+><LI
+> allocate result set buffers by calling <TT
+><A HREF="Database-Oracle-OCIFunctions.html#v%3AdefineByPos"
+>defineByPos</A
+></TT
+> for each column
+</LI
+><LI
+> call fetch for each row.
+</LI
+><LI
+> call <TT
+><A HREF="Database-Oracle-OCIFunctions.html#v%3AhandleFree"
+>handleFree</A
+></TT
+> for the <TT
+><A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+></TT
+>
+    (I assume this is the approved way of terminating the query;
+    the OCI docs aren't explicit about this.)
+</LI
+></UL
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AstmtExecute"
+></A
+><B
+>stmtExecute</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AdefineByPos"
+></A
+><B
+>defineByPos</B
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+>:: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+><TD CLASS="rdoc"
+>Position
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+><TD CLASS="rdoc"
+>Buffer size in bytes
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+><TD CLASS="rdoc"
+>SQL Datatype (from <A HREF="Database-Oracle-OCIConstants.html"
+>Database.Oracle.OCIConstants</A
+>)
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AColumnInfo"
+>ColumnInfo</A
+></TD
+><TD CLASS="rdoc"
+>tuple: (DefnHandle, Ptr to buffer, Ptr to null indicator, Ptr to size of value in buffer)
+</TD
+></TR
+><TR
+><TD CLASS="ndoc" COLSPAN="2"
+><P
+>defineByPos allocates memory for a single column value.
+ The allocated components are:
+</P
+><UL
+><LI
+> the result (i.e. value) - you have to say how big with bufsize.
+</LI
+><LI
+> the null indicator (int16)
+</LI
+><LI
+> the size of the returned data (int16)
+</LI
+></UL
+><P
+>Previously it was the caller's responsibility to free the memory after they're done with it.
+ Now we use <TT
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#v%3AmallocForeignPtr"
+>mallocForeignPtr</A
+></TT
+>, so manual memory management is hopefully
+ a thing of the past.
+ The caller will also have to cast the data in bufferptr to the expected type
+ (using <TT
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#v%3AcastPtr"
+>castPtr</A
+></TT
+>).
+</P
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Asbph"
+></A
+><B
+>sbph</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Bool.html#t%3ABool"
+>Bool</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AbindByPos"
+></A
+><B
+>bindByPos</B
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+>:: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+><TD CLASS="rdoc"
+>Position
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+></TD
+><TD CLASS="rdoc"
+>Null ind: 0 == not null, -1 == null
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferPtr"
+>BufferPtr</A
+></TD
+><TD CLASS="rdoc"
+>payload
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+><TD CLASS="rdoc"
+>payload size in bytes
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+><TD CLASS="rdoc"
+>SQL Datatype (from <A HREF="Database-Oracle-OCIConstants.html"
+>Database.Oracle.OCIConstants</A
+>)
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AbindOutputByPos"
+></A
+><B
+>bindOutputByPos</B
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+>:: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+><TD CLASS="rdoc"
+>Position
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+></TD
+><TD CLASS="rdoc"
+>Null ind: 0 == not null, -1 == null
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIBuffer"
+>OCIBuffer</A
+></TD
+><TD CLASS="rdoc"
+>payload
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+><TD CLASS="rdoc"
+>payload size in bytes
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+><TD CLASS="rdoc"
+>SQL Datatype (from <A HREF="Database-Oracle-OCIConstants.html"
+>Database.Oracle.OCIConstants</A
+>)
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3ABindHandle"
+>BindHandle</A
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AstmtFetch"
+></A
+><B
+>stmtFetch</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AErrorHandle"
+>ErrorHandle</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="doc"
+>stmtFetch takes a lot of wall-clock time
+ because it involves a network trip to the DBMS for each call.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="botbar"
+>Produced by <A HREF="http://www.haskell.org/haddock/"
+>Haddock</A
+> version 0.7</TD
+></TR
+></TABLE
+></BODY
+></HTML
+>

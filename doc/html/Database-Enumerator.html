@@ -1,0 +1,3270 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!--Rendered using the Haskell Html Library v0.2-->
+<HTML
+><HEAD
+><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8"
+><TITLE
+>Database.Enumerator</TITLE
+><LINK HREF="haddock.css" REL="stylesheet" TYPE="text/css"
+><SCRIPT SRC="haddock.js" TYPE="text/javascript"
+></SCRIPT
+></HEAD
+><BODY
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="topbar"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD
+><IMG SRC="haskell_icon.gif" WIDTH="16" HEIGHT="16" ALT=" "
+></TD
+><TD CLASS="title"
+></TD
+><TD CLASS="topbut"
+><A HREF="index.html"
+>Contents</A
+></TD
+><TD CLASS="topbut"
+><A HREF="doc-index.html"
+>Index</A
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="modulebar"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD
+><FONT SIZE="6"
+>Database.Enumerator</FONT
+></TD
+><TD ALIGN="right"
+><TABLE CLASS="narrow" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="infohead"
+>Portability</TD
+><TD CLASS="infoval"
+>non-portable</TD
+></TR
+><TR
+><TD CLASS="infohead"
+>Stability</TD
+><TD CLASS="infoval"
+>experimental</TD
+></TR
+><TR
+><TD CLASS="infohead"
+>Maintainer</TD
+><TD CLASS="infoval"
+>oleg@pobox.com, alistair@abayley.org</TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="section4"
+><B
+>Contents</B
+></TD
+></TR
+><TR
+><TD
+><DL
+><DT
+><A HREF="#1"
+>Usage
+</A
+></DT
+><DD
+><DL
+><DT
+><A HREF="#2"
+>Iteratee Functions
+</A
+></DT
+><DT
+><A HREF="#3"
+>result and result'
+</A
+></DT
+><DT
+><A HREF="#4"
+>Bind Parameters
+</A
+></DT
+><DT
+><A HREF="#5"
+>Multiple (and nested) Result Sets
+</A
+></DT
+></DL
+></DD
+><DT
+><A HREF="#6"
+>Sessions and Transactions
+</A
+></DT
+><DT
+><A HREF="#7"
+>Exceptions and handlers
+</A
+></DT
+><DT
+><A HREF="#8"
+>Preparing and Binding
+</A
+></DT
+><DT
+><A HREF="#9"
+>Iteratees and Cursors
+</A
+></DT
+><DT
+><A HREF="#10"
+>Utilities
+</A
+></DT
+></DL
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section1"
+>Description</TD
+></TR
+><TR
+><TD CLASS="doc"
+><P
+>Abstract database interface, providing a left-fold enumerator
+ and cursor operations.
+</P
+><P
+>There is a stub: <A HREF="Database-Stub-Enumerator.html"
+>Database.Stub.Enumerator</A
+>.
+ This lets you run the test cases without having a working DBMS installation.
+</P
+><P
+>Additional reading:
+</P
+><UL
+><LI
+> <A HREF="http://pobox.com/~oleg/ftp/Haskell/misc.html#fold-stream"
+>http://pobox.com/~oleg/ftp/Haskell/misc.html#fold-stream</A
+>
+</LI
+><LI
+> <A HREF="http://pobox.com/~oleg/ftp/papers/LL3-collections-enumerators.txt"
+>http://pobox.com/~oleg/ftp/papers/LL3-collections-enumerators.txt</A
+>
+</LI
+><LI
+> <A HREF="http://www.eros-os.org/pipermail/e-lang/2004-March/009643.html"
+>http://www.eros-os.org/pipermail/e-lang/2004-March/009643.html</A
+>
+</LI
+></UL
+><P
+>Note that there are a few functions that are exported from each backend
+ implementation which *are* exposed to the API user, and which are useful,
+ but are not (necessarily) in this module. They include:
+</P
+><UL
+><LI
+> connect (obviously DBMS specific)
+</LI
+><LI
+> prepareStmt, sql, prefetch
+</LI
+></UL
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section1"
+>Synopsis</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3ADBM"
+>DBM</A
+> mark sess a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AwithSession"
+>withSession</A
+> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Typeable.html#t%3ATypeable"
+>Typeable</A
+> a, <A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> sess) =&gt; <A HREF="Database-InternalEnumerator.html#t%3AConnectA"
+>ConnectA</A
+> sess -&gt; (<SPAN CLASS="keyword"
+>forall</SPAN
+> mark . <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark sess a) -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Acommit"
+>commit</A
+> :: <A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> s =&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Arollback"
+>rollback</A
+> :: <A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> s =&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AbeginTransaction"
+>beginTransaction</A
+> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl//Control-Monad-Reader.html#t%3AMonadReader"
+>MonadReader</A
+> s (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl//Control-Monad-Reader.html#t%3AReaderT"
+>ReaderT</A
+> s <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+>), <A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> s) =&gt; <A HREF="Database-Enumerator.html#t%3AIsolationLevel"
+>IsolationLevel</A
+> -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AwithTransaction"
+>withTransaction</A
+> :: <A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> s =&gt; <A HREF="Database-Enumerator.html#t%3AIsolationLevel"
+>IsolationLevel</A
+> -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s a -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3AIsolationLevel"
+>IsolationLevel</A
+> </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+>= <A HREF="#v%3AReadUncommitted"
+>ReadUncommitted</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+>| <A HREF="#v%3AReadCommitted"
+>ReadCommitted</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+>| <A HREF="#v%3ARepeatableRead"
+>RepeatableRead</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+>| <A HREF="#v%3ASerialisable"
+>Serialisable</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+>| <A HREF="#v%3ASerializable"
+>Serializable</A
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AexecDDL"
+>execDDL</A
+> :: <A HREF="Database-InternalEnumerator.html#t%3ACommand"
+>Command</A
+> stmt s =&gt; stmt -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AexecDML"
+>execDML</A
+> :: <A HREF="Database-InternalEnumerator.html#t%3ACommand"
+>Command</A
+> stmt s =&gt; stmt -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3ADBException"
+>DBException</A
+> </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+>= <A HREF="#v%3ADBError"
+>DBError</A
+> <A HREF="Database-InternalEnumerator.html#t%3ASqlState"
+>SqlState</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+>| <A HREF="#v%3ADBFatal"
+>DBFatal</A
+> <A HREF="Database-InternalEnumerator.html#t%3ASqlState"
+>SqlState</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+>| <A HREF="#v%3ADBUnexpectedNull"
+>DBUnexpectedNull</A
+> <A HREF="Database-InternalEnumerator.html#t%3ARowNum"
+>RowNum</A
+> <A HREF="Database-InternalEnumerator.html#t%3AColNum"
+>ColNum</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+>| <A HREF="#v%3ADBNoData"
+>DBNoData</A
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AbasicDBExceptionReporter"
+>basicDBExceptionReporter</A
+> :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
+>CaughtMonadIO</A
+> m =&gt; <A HREF="Database-Enumerator.html#t%3ADBException"
+>DBException</A
+> -&gt; m ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AreportRethrow"
+>reportRethrow</A
+> :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
+>CaughtMonadIO</A
+> m =&gt; <A HREF="Database-Enumerator.html#t%3ADBException"
+>DBException</A
+> -&gt; m ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AformatDBException"
+>formatDBException</A
+> :: <A HREF="Database-Enumerator.html#t%3ADBException"
+>DBException</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AcatchDB"
+>catchDB</A
+> :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
+>CaughtMonadIO</A
+> m =&gt; m a -&gt; (<A HREF="Database-Enumerator.html#t%3ADBException"
+>DBException</A
+> -&gt; m a) -&gt; m a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AcatchDBError"
+>catchDBError</A
+> :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
+>CaughtMonadIO</A
+> m =&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; m a -&gt; (<A HREF="Database-Enumerator.html#t%3ADBException"
+>DBException</A
+> -&gt; m a) -&gt; m a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AignoreDBError"
+>ignoreDBError</A
+> :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
+>CaughtMonadIO</A
+> m =&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; m a -&gt; m a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AthrowDB"
+>throwDB</A
+> :: <A HREF="Database-Enumerator.html#t%3ADBException"
+>DBException</A
+> -&gt; a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>newtype</SPAN
+> <A HREF="#t%3APreparedStmt"
+>PreparedStmt</A
+> mark stmt = <A HREF="#v%3APreparedStmt"
+>PreparedStmt</A
+> stmt</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AwithPreparedStatement"
+>withPreparedStatement</A
+> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Typeable.html#t%3ATypeable"
+>Typeable</A
+> a, <A HREF="Database-InternalEnumerator.html#t%3AIPrepared"
+>IPrepared</A
+> stmt sess bstmt bo) =&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+>PreparationA</A
+> sess stmt -&gt; (<A HREF="Database-Enumerator.html#t%3APreparedStmt"
+>PreparedStmt</A
+> mark stmt -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark sess a) -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark sess a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AwithBoundStatement"
+>withBoundStatement</A
+> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Typeable.html#t%3ATypeable"
+>Typeable</A
+> a, <A HREF="Database-InternalEnumerator.html#t%3AIPrepared"
+>IPrepared</A
+> stmt s bstmt bo) =&gt; <A HREF="Database-Enumerator.html#t%3APreparedStmt"
+>PreparedStmt</A
+> mark stmt -&gt; [<A HREF="Database-InternalEnumerator.html#t%3ABindA"
+>BindA</A
+> s stmt bo] -&gt; (bstmt -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s a) -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AbindP"
+>bindP</A
+> :: <A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>DBBind</A
+> a sess stmt bo =&gt; a -&gt; <A HREF="Database-InternalEnumerator.html#t%3ABindA"
+>BindA</A
+> sess stmt bo</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AdoQuery"
+>doQuery</A
+> :: (<A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> stmt sess q, QueryIteratee (<A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark sess) q i seed b, <A HREF="Database-InternalEnumerator.html#t%3AIQuery"
+>IQuery</A
+> q sess b) =&gt; stmt -&gt; i -&gt; seed -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark sess seed</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3AIterResult"
+>IterResult</A
+> seedType = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Either.html#t%3AEither"
+>Either</A
+> seedType seedType</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3AIterAct"
+>IterAct</A
+> m seedType = seedType -&gt; m (<A HREF="Database-Enumerator.html#t%3AIterResult"
+>IterResult</A
+> seedType)</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AcurrentRowNum"
+>currentRowNum</A
+> :: <A HREF="Database-InternalEnumerator.html#t%3AIQuery"
+>IQuery</A
+> q sess b =&gt; q -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3ANextResultSet"
+>NextResultSet</A
+> mark stmt = <A HREF="#v%3ANextResultSet"
+>NextResultSet</A
+> (<A HREF="Database-Enumerator.html#t%3APreparedStmt"
+>PreparedStmt</A
+> mark stmt)</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3ARefCursor"
+>RefCursor</A
+> a = <A HREF="#v%3ARefCursor"
+>RefCursor</A
+> a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AcursorIsEOF"
+>cursorIsEOF</A
+> :: DBCursor mark (<A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s) a -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Bool.html#t%3ABool"
+>Bool</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AcursorCurrent"
+>cursorCurrent</A
+> :: DBCursor mark (<A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s) a -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AcursorNext"
+>cursorNext</A
+> :: DBCursor mark (<A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s) a -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s (DBCursor mark (<A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s) a)</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AwithCursor"
+>withCursor</A
+> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Typeable.html#t%3ATypeable"
+>Typeable</A
+> a, <A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> stmt sess q, QueryIteratee (<A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark sess) q i seed b, <A HREF="Database-InternalEnumerator.html#t%3AIQuery"
+>IQuery</A
+> q sess b) =&gt; stmt -&gt; i -&gt; seed -&gt; (DBCursor mark (<A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark sess) seed -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark sess a) -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark sess a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AifNull"
+>ifNull</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> a -&gt; a -&gt; a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Aresult"
+>result</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Monad.html#t%3AMonad"
+>Monad</A
+> m =&gt; <A HREF="Database-Enumerator.html#t%3AIterAct"
+>IterAct</A
+> m a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Aresult%27"
+>result'</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Monad.html#t%3AMonad"
+>Monad</A
+> m =&gt; <A HREF="Database-Enumerator.html#t%3AIterAct"
+>IterAct</A
+> m a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Aprint_"
+>print_</A
+> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl//Control-Monad-Trans.html#t%3AMonadIO"
+>MonadIO</A
+> m, MyShow a) =&gt; a -&gt; m ()</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section1"
+><A NAME="1"
+>Usage
+</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="doc"
+><P
+>Let's look at some example code:
+</P
+><PRE
+> -- sample code, doesn't necessarily compile
+ module MyDbExample is
+
+ import Database.Oracle.Enumerator
+ import Database.Enumerator
+ ...
+
+ query1Iteratee :: (Monad m) =&gt; Int -&gt; String -&gt; Double -&gt; IterAct m [(Int, String, Double)]
+ query1Iteratee a b c accum = result' ((a, b, c):accum)
+
+ -- non-query actions.
+ otherActions session = do
+   execDDL &quot;create table blah&quot;
+   execDML &quot;insert into blah ...&quot;
+   commit
+   -- Use withTransaction to delimit a transaction.
+   -- It will commit at the end, or rollback if an error occurs.
+   withTransaction Serialisable $ do
+     execDML &quot;update blah ...&quot;
+     execDML &quot;insert into blah ...&quot;
+
+ main :: IO ()
+ main = do
+   withSession (connect &quot;user&quot; &quot;password&quot; &quot;server&quot;) $ do
+     -- simple query, returning reversed list of rows.
+     r &lt;- doQuery (sql &quot;select a, b, c from x&quot;) query1Iteratee []
+     putStrLn $ show r
+     otherActions session
+</PRE
+><P
+>Notes:
+</P
+><UL
+><LI
+> connection is made by <TT
+><A HREF="Database-Enumerator.html#v%3AwithSession"
+>withSession</A
+></TT
+>,
+    which also disconnects when done i.e. <TT
+><A HREF="Database-Enumerator.html#v%3AwithSession"
+>withSession</A
+></TT
+>
+    delimits the connection.
+    You must pass it a connection action, which is back-end specific,
+    and created by calling the <TT
+><A HREF="Database-Sqlite-Enumerator.html#v%3Aconnect"
+>connect</A
+></TT
+>
+    function from the relevant back-end.
+</LI
+><LI
+> inside the session, the usual transaction delimiter commands are usable
+    e.g. <TT
+><A HREF="Database-Enumerator.html#v%3AbeginTransaction"
+>beginTransaction</A
+></TT
+> <TT
+>[isolation-level]</TT
+>,
+    <TT
+><A HREF="Database-Enumerator.html#v%3Acommit"
+>commit</A
+></TT
+>, <TT
+><A HREF="Database-Enumerator.html#v%3Arollback"
+>rollback</A
+></TT
+>, and
+    <TT
+><A HREF="Database-Enumerator.html#v%3AwithTransaction"
+>withTransaction</A
+></TT
+>.
+    We also provide <TT
+><A HREF="Database-Enumerator.html#v%3AexecDML"
+>execDML</A
+></TT
+> and <TT
+><A HREF="Database-Enumerator.html#v%3AexecDDL"
+>execDDL</A
+></TT
+>.
+</LI
+><LI
+> non-DML and -DDL commands - i.e. queries - are processed by
+    <TT
+><A HREF="Database-Enumerator.html#v%3AdoQuery"
+>doQuery</A
+></TT
+> (this is the API for our left-fold).
+    See more explanation and examples below in <EM
+>Iteratee Functions</EM
+> and
+    <EM
+>Bind Parameters</EM
+> sections.
+</LI
+></UL
+><P
+>The first argument to <TT
+><A HREF="Database-Enumerator.html#v%3AdoQuery"
+>doQuery</A
+></TT
+> must be an instance of  
+ <TT
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+></TT
+>.
+ Each back-end will provide a useful set of <TT
+>Statement</TT
+> instances
+ and associated constructor functions for them.
+ For example, the Sqlite and Oracle back-ends have:
+</P
+><UL
+><LI
+> for basic, all-text statements (no bind variables):
+</LI
+></UL
+><PRE
+> sql &quot;select ...&quot;
+</PRE
+><UL
+><LI
+> for a select with bind variables and row caching:
+</LI
+></UL
+><PRE
+> prefetch 100 &quot;select ...&quot; [bindP ..., bindP ...]
+</PRE
+><UL
+><LI
+> for a reusable prepared statement: we have to first create the
+     prepared statement, and then bind in a separate step.
+     This separation lets us re-use prepared statements:
+</LI
+></UL
+><PRE
+> let stmt = prepareStmt (sql &quot;select ...&quot;)
+ withPreparedStatement stmt $ \pstmt -&gt;
+   withBoundStatement pstmt [bindP ..., bindP ...] $ \bstmt -&gt; do
+     result &lt;- doQuery bstmt iter seed
+     ...
+</PRE
+><P
+>The PostgreSQL backend additionally requires that when preparing statements,
+ you (1) give a name to the prepared statement,
+ and (2) specify types for the bind parameters.
+ The list of bind-types is created by applying the bindType functions
+ to dummy values of the appropriate types.
+</P
+><PRE
+> let stmt = prepareStmt &quot;stmtname&quot; (sql &quot;select ...&quot;) [bindType &quot;&quot;, bindType (0::Int)]
+ withPreparedStatement stmt $ \pstmt -&gt; ...
+</PRE
+><P
+>A longer explanation of bind variables is in the Bind Parametes section below.
+</P
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section2"
+><A NAME="2"
+>Iteratee Functions
+</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="doc"
+><P
+><TT
+><A HREF="Database-Enumerator.html#v%3AdoQuery"
+>doQuery</A
+></TT
+> takes an iteratee function, of n arguments.
+ Argument n is the accumulator (or seed).
+ For each row that is returned by the query,
+ the iteratee function is called with the data from that row in
+ arguments 1 to n-1, and the current accumulated value in the argument n.
+</P
+><P
+>The iteratee function returns the next value of the accumulator,
+ wrapped in an <TT
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Either.html#t%3AEither"
+>Either</A
+></TT
+>.
+ If the <TT
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Either.html#t%3AEither"
+>Either</A
+></TT
+> value is <TT
+>Left</TT
+>, then the query will terminate,
+ with the new value of the accumulator/seed returned.
+ If the value is <TT
+>Right</TT
+>, then the query will continue, with the next row
+ begin fed to the iteratee function, along with the new accumulator/seed.
+</P
+><P
+>In the example above, <TT
+>query1Iteratee</TT
+> simply conses the new row (as a tuple)
+ to the front of the accumulator.
+ The initial seed passed to <TT
+><A HREF="Database-Enumerator.html#v%3AdoQuery"
+>doQuery</A
+></TT
+> was an empty list.
+ Consing the rows to the front of the list results in a list that is the result set
+ with the rows in reverse order.
+</P
+><P
+>The types of values that can be used as arguments to the iteratee function
+ are back-end specific; they must be instances of the class
+ <TT
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+></TT
+>.
+ Most backends directly support the usual lowest-common-denominator set
+ supported by most DBMS's: <TT
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TT
+>, <TT
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TT
+>,
+ <TT
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Prelude.html#t%3ADouble"
+>Double</A
+></TT
+>, <TT
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-Time.html#t%3ACalendarTime"
+>CalendarTime</A
+></TT
+>.
+ By directly support we mean there is type-specific marshalling code
+ implemented.
+ <TT
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt64"
+>Int64</A
+></TT
+> is often, but not always, supported.
+</P
+><P
+>Indirect support for <TT
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Read.html#t%3ARead"
+>Read</A
+></TT
+>- and <TT
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Show.html#t%3AShow"
+>Show</A
+></TT
+>-able types
+ is supported by marshalling to and from <TT
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TT
+>s.
+ This is done automatically by the back-end;
+ there is no need for user-code to perform the marshalling,
+ as long as instances of <TT
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Read.html#t%3ARead"
+>Read</A
+></TT
+> and <TT
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Show.html#t%3AShow"
+>Show</A
+></TT
+> are defined.
+</P
+><P
+>The iteratee function operates in the <TT
+><A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+></TT
+> monad,
+ so if you want to do IO in it you must use <TT
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl//Control-Monad-Trans.html#v%3AliftIO"
+>liftIO</A
+></TT
+>
+ (e.g. <TT
+>liftIO $ putStrLn &quot;boo&quot;</TT
+> ) to lift the IO action into <TT
+><A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+></TT
+>.
+</P
+><P
+>The iteratee function is not restricted to just constructing lists.
+ For example, a simple counter function would ignore its arguments,
+ and the accumulator would simply be the count e.g.
+</P
+><PRE
+> counterIteratee :: (Monad m) =&gt; Int -&gt; IterAct m Int
+ counterIteratee _ i = result' $ (1 + i)
+</PRE
+><P
+>The iteratee function that you pass to <TT
+><A HREF="Database-Enumerator.html#v%3AdoQuery"
+>doQuery</A
+></TT
+>
+ needs type information,
+ at least for the arguments if not the return type (which is typically
+ determined by the type of the seed).
+ The type synonyms <TT
+><A HREF="Database-Enumerator.html#t%3AIterAct"
+>IterAct</A
+></TT
+> and <TT
+><A HREF="Database-Enumerator.html#t%3AIterResult"
+>IterResult</A
+></TT
+> give some convenience
+ in writing type signatures for iteratee functions.
+</P
+><PRE
+> type IterResult seedType = Either seedType seedType
+ type IterAct m seedType = seedType -&gt; m (IterResult seedType)
+</PRE
+><P
+>Without them, the type for <TT
+>counterIteratee</TT
+> would be:
+</P
+><PRE
+> counterIteratee :: (Monad m) =&gt; Int -&gt; Int -&gt; m (Either Int Int)
+</PRE
+><P
+>which doesn't seem so onerous, but for more elaborate seed types
+ (think large tuples) it certainly helps e.g.
+</P
+><PRE
+> iter :: Monad m =&gt;
+      String -&gt; Double -&gt; CalendarTime -&gt; [(String, Double, CalendarTime)]
+   -&gt; m (Either [(String, Double, CalendarTime)] [(String, Double, CalendarTime)] )
+</PRE
+><P
+>becomes:
+</P
+><PRE
+> iter :: Monad m =&gt;
+      String -&gt; Double -&gt; CalendarTime -&gt; IterAct m [(String, Double, CalendarTime)]
+</PRE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section2"
+><A NAME="3"
+>result and result'
+</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="doc"
+><P
+>The <TT
+><A HREF="Database-Enumerator.html#v%3Aresult"
+>result</A
+></TT
+> (lazy) and <TT
+><A HREF="Database-Enumerator.html#v%3Aresult"
+>result</A
+></TT
+> (strict) functions are another convenient shorthand
+ for returning values from iteratee functions. The return type from an interatee is actually
+ <TT
+>Either seed seed</TT
+>, where you return <TT
+>Right</TT
+> if you want processing to continue,
+ or <TT
+>Left</TT
+> if you want processing to stop before the result-set is exhausted.
+ The common case is:
+</P
+><PRE
+> query1Iteratee a b c accum = return (Right ((a, b, c):accum))
+</PRE
+><P
+>which we can write as
+</P
+><PRE
+> query1Iteratee a b c accum = result $ (a, b, c):accum)
+</PRE
+><P
+>We have lazy and strict versions of <TT
+>result</TT
+>. The strict version is almost certainly
+ the one you want to use. If you come across a case where the lazy function is useful,
+ please tell us about it. The lazy function tends to exhaust the stack for large result-sets,
+ whereas the strict function does not.
+ This is due to the accumulation of a large number of unevaluated thunks,
+ and will happen even for simple arithmetic operations such as counting or summing.
+</P
+><P
+>If you use the lazy function and you have stack/memory problems, do some profiling.
+ With GHC:
+</P
+><UL
+><LI
+> ensure the iteratee has its own cost-centre (make it a top-level function)
+</LI
+><LI
+> compile with <TT
+>-prof -auto-all</TT
+>
+</LI
+><LI
+> run with <TT
+>+RTS -p -hr -RTS</TT
+>
+</LI
+><LI
+> run <TT
+>hp2ps</TT
+> over the resulting <TT
+>.hp</TT
+> file to get a <TT
+>.ps</TT
+> document, and take a look at it.
+    Retainer sets are listed on the RHS, and are prefixed with numbers e.g. (13)CAF, (2)SYSTEM.
+    At the bottom of the <TT
+>.prof</TT
+> file you'll find the full descriptions of the retainer sets.
+    Match the number in parentheses on the <TT
+>.ps</TT
+> graph with a SET in the <TT
+>.prof</TT
+> file;
+    the one at the top of the <TT
+>.ps</TT
+> graph is the one using the most memory.
+</LI
+></UL
+><P
+>You'll probably find that the lazy iteratee is consuming all of the stack with lazy thunks,
+ which is why we recommend the strict function.
+</P
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section2"
+><A NAME="4"
+>Bind Parameters
+</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="doc"
+><P
+>Support for bind variables varies between backends.
+</P
+><P
+>We call <TT
+><A HREF="Database-Enumerator.html#v%3AwithPreparedStatement"
+>withPreparedStatement</A
+></TT
+> function to prepare
+ the statement, and then call <TT
+><A HREF="Database-Enumerator.html#v%3AwithBoundStatement"
+>withBoundStatement</A
+></TT
+>
+ to provide the bind values and execute the query.
+ The value returned by <TT
+><A HREF="Database-Enumerator.html#v%3AwithBoundStatement"
+>withBoundStatement</A
+></TT
+>
+ is an instance of the Statement class, so it can be passed to
+ <TT
+><A HREF="Database-Enumerator.html#v%3AdoQuery"
+>doQuery</A
+></TT
+> for result-set processing.
+</P
+><P
+>When we call <TT
+><A HREF="Database-Enumerator.html#v%3AwithPreparedStatement"
+>withPreparedStatement</A
+></TT
+>, we must pass
+ it a &quot;preparation action&quot;, which is simply an action that returns
+ the prepared query. The function to create this action varies between
+ backends, and by convention is called prepareStmt (although it may
+ also have differently-named variations; see
+ <TT
+><A HREF="Database-PostgreSQL-Enumerator.html#v%3ApreparePrefetch"
+>preparePrefetch</A
+></TT
+>, for example.
+</P
+><P
+>With PostgreSQL, we must specify the type of the bind parameters
+ when the query is prepared, so the <TT
+><A HREF="Database-PostgreSQL-Enumerator.html#v%3AprepareStmt"
+>prepareStmt</A
+></TT
+>
+ function takes a list of <TT
+><A HREF="Database-PostgreSQL-Enumerator.html#v%3AbindType"
+>bindType</A
+></TT
+> values.
+ Also, PostgreSQL requires that prepared statements are named,
+ although you can use &quot;&quot; as the name.
+</P
+><P
+>With Sqlite and Oracle, we simply pass the query text to prepareStmt,
+ so things are slightly simpler for these backends.
+</P
+><P
+>Perhaps an example will explain it better:
+</P
+><PRE
+> postgresBindExample = do
+   let
+     query = sql &quot;select blah from blahblah where id = ? and code = ?&quot;
+     iter :: (Monad m) =&gt; String -&gt; IterAct m [String]
+     iter s acc = result $ s:acc
+     bindVals = [bindP (12345::Int), bindP &quot;CODE123&quot;]
+     bindTypes = [bindType (0::Int), bindType &quot;&quot;]
+   withPreparedStatement (prepareStmt &quot;stmt1&quot; query bindTypes) $ \pstmt -&gt; do
+     withBoundStatement pstmt bindVals $ \bstmt -&gt; do
+       actual &lt;- doQuery query iter []
+       liftIO (print actual)
+</PRE
+><P
+>There is also a statement preparation function
+ <TT
+><A HREF="Database-PostgreSQL-Enumerator.html#v%3ApreparePrefetch"
+>preparePrefetch</A
+></TT
+> which takes
+ an extra parameter: the number of rows to prefetch
+ (from each call to the server).
+</P
+><P
+>The Oracle/Sqlite example code is almost the same, except for the
+ call to <TT
+>prepareStmt</TT
+>:
+</P
+><PRE
+> sqliteBindExample = do
+   let
+     query = sql &quot;select blah from blahblah where id = ? and code = ?&quot;
+     iter :: (Monad m) =&gt; String -&gt; IterAct m [String]
+     iter s acc = result $ s:acc
+     bindVals = [bindP (12345::Int), bindP &quot;CODE123&quot;]
+   withPreparedStatement (prepareStmt query) $ \pstmt -&gt; do
+     withBoundStatement pstmt bindVals $ \bstmt -&gt; do
+       actual &lt;- doQuery query iter []
+       liftIO (print actual)
+</PRE
+><P
+>It can be a bit tedious to always use the <TT
+>withPreparedStatement+withBoundStatement</TT
+>
+ combination, so for the case where you don't plan to re-use the query,
+ we support a short-cut for bundling the query text and parameters.
+ The next example is valid for PostgreSQL, Sqlite, and Oracle;
+ for Sqlite we provide a dummy <TT
+><A HREF="Database-Sqlite-Enumerator.html#v%3Aprefetch"
+>prefetch</A
+></TT
+>
+ function to ensure we have a consistent API.
+ Sqlite has no facility for prefetching - it's an embedded database, so no
+ network round-trip - so Sqlite the back-end ignores the prefetch count:
+</P
+><PRE
+> bindShortcutExample = do
+   let
+     iter :: (Monad m) =&gt; String -&gt; IterAct m [String]
+     iter s acc = result $ s:acc
+     bindVals = [bindP (12345::Int), bindP &quot;CODE123&quot;]
+     query = prefetch 1000 &quot;select blah from blahblah where id = ? and code = ?&quot; bindVals
+   actual &lt;- doQuery query iter []
+   liftIO (print actual)
+</PRE
+><P
+>A caveat of using prefetch with PostgreSQL is that you must be inside a transaction.
+ This is because the PostgreSQL implementation uses a cursor and &quot;FETCH FORWARD&quot;
+ to implement fetching blocks of rows in network calls,
+ and PostgreSQL requires that cursors are only used inside transactions.
+ It can be as simple as wrapping calls to <TT
+><A HREF="Database-Enumerator.html#v%3AdoQuery"
+>doQuery</A
+></TT
+> by
+ <TT
+><A HREF="Database-Enumerator.html#v%3AwithTransaction"
+>withTransaction</A
+></TT
+>,
+ or you may prefer to delimit your transactions elsewhere (the API supports
+ <TT
+><A HREF="Database-InternalEnumerator.html#v%3AbeginTransaction"
+>beginTransaction</A
+></TT
+> and
+ <TT
+><A HREF="Database-InternalEnumerator.html#v%3Acommit"
+>commit</A
+></TT
+>, if you prefer to use them):
+</P
+><PRE
+>   withTransaction RepeatableRead $ do
+     actual &lt;- doQuery query iter []
+     liftIO (print actual)
+</PRE
+><P
+>For <TT
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TT
+> and <TT
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Prelude.html#t%3ADouble"
+>Double</A
+></TT
+> bind values,
+ we have to tell the compiler about the types.
+ I assume this is due to interaction (which I don't fully understand and therefore
+ cannot explain in any detail) with the numeric literal defaulting mechanism.
+ Note that for non-numeric literals the compiler can determine the correct
+ types to use.
+</P
+><P
+>If you omit type information for numeric literals, from GHC the error
+ message looks something like this:
+</P
+><PRE
+> Database/PostgreSQL/Test/Enumerator.lhs:194:4:
+     Overlapping instances for Database.InternalEnumerator.DBBind a
+                                  Session
+                                  Database.PostgreSQL.PGEnumerator.PreparedStmt
+                                  Database.PostgreSQL.PGEnumerator.BindObj
+       arising from use of `bindP' at Database/PostgreSQL/Test/Enumerator.lhs:194:4-8
+     Matching instances:
+       Imported from Database.PostgreSQL.PGEnumerator:
+     instance (Database.InternalEnumerator.DBBind (Maybe a)
+                              Session
+                              Database.PostgreSQL.PGEnumerator.PreparedStmt
+                              Database.PostgreSQL.PGEnumerator.BindObj) =&gt;
+          Database.InternalEnumerator.DBBind a
+                             Session
+                             Database.PostgreSQL.PGEnumerator.PreparedStmt
+                             Database.PostgreSQL.PGEnumerator.BindObj
+       Imported from Database.PostgreSQL.PGEnumerator:
+     instance Database.InternalEnumerator.DBBind (Maybe Double)
+                        ....
+</PRE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section2"
+><A NAME="5"
+>Multiple (and nested) Result Sets
+</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="doc"
+><P
+>Initial support for returning multiple result sets from a single
+ statement exists in PostgreSQL, and will be added to Oracle and
+ other backends (except Sqlite, where such functionality does not exist)
+</P
+><P
+>The general idea is to invoke a database procedure or function which
+ returns cursor variables. The variables can be processed by
+ <TT
+><A HREF="Database-Enumerator.html#v%3AdoQuery"
+>doQuery</A
+></TT
+> in one of two styles: linear or nested.
+</P
+><P
+><EM
+>Linear style:</EM
+>
+</P
+><P
+>Here we assume the existence of the following PostgreSQL function
+ (this function is used in the test suite in <A HREF="Database-PostgreSQL-Test-Enumerator.html"
+>Database.PostgreSQL.Test.Enumerator</A
+>.):
+</P
+><PRE
+> CREATE OR REPLACE FUNCTION takusenTestFunc() RETURNS SETOF refcursor AS $$
+ DECLARE refc1 refcursor; refc2 refcursor;
+ BEGIN
+     OPEN refc1 FOR SELECT n*n from t_natural where n &lt; 10 order by 1;
+     RETURN NEXT refc1;
+     OPEN refc2 FOR SELECT n, n*n, n*n*n from t_natural where n &lt; 10 order by 1;
+     RETURN NEXT refc2;
+ END;$$ LANGUAGE plpgsql;
+</PRE
+><P
+>... then this code shows how linear processing of cursors would be done:
+</P
+><PRE
+>   withTransaction RepeatableRead $ do
+   withPreparedStatement (prepareStmt &quot;stmt1&quot; (sql &quot;select * from takusenTestFunc()&quot;) []) $ \pstmt -&gt; do
+   withBoundStatement pstmt [] $ \bstmt -&gt; do
+     dummy &lt;- doQuery bstmt iterMain []
+     result1 &lt;- doQuery (NextResultSet pstmt) iterRS1 []
+     result2 &lt;- doQuery (NextResultSet pstmt) iterRS2 []
+   where
+     iterMain :: (Monad m) =&gt; (RefCursor String) -&gt; IterAct m [RefCursor String]
+     iterMain c acc = result (acc ++ [c])
+     iterRS1 :: (Monad m) =&gt; Int -&gt; IterAct m [Int]
+     iterRS1 i acc = result (acc ++ [i])
+     iterRS2 :: (Monad m) =&gt; Int -&gt; Int -&gt; Int -&gt; IterAct m [(Int, Int, Int)]
+     iterRS2 i i2 i3 acc = result (acc ++ [(i, i2, i3)])
+</PRE
+><P
+>Notes:
+</P
+><UL
+><LI
+> the results of the first iteratee are discarded (this is not required,
+    but in this case all the only column is a <TT
+><A HREF="Database-Enumerator.html#t%3ARefCursor"
+>RefCursor</A
+></TT
+>,
+    and its values are already saved elsewhere).
+</LI
+><LI
+> the use of a <TT
+><A HREF="Database-Enumerator.html#t%3ARefCursor"
+>RefCursor</A
+></TT
+> <TT
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TT
+>
+    type in the iteratee function indicates
+    to the backend that it should save each cursor value returned,
+    which it does by stuffing them into a list attached to the
+    prepared statement object.
+</LI
+><LI
+> saved cursors are consumed one-at-a-time by calling <TT
+><A HREF="Database-Enumerator.html#v%3AdoQuery"
+>doQuery</A
+></TT
+>,
+    passing <TT
+><A HREF="Database-Enumerator.html#t%3ANextResultSet"
+>NextResultSet</A
+></TT
+> <TT
+>pstmt</TT
+>.
+    This simply pulls the next cursor of the list
+    - they're processed in the order they were pushed on (FIFO) -
+    and processes it with the given iteratee.
+</LI
+><LI
+> if you try to process too many cursors i.e. make too many calls
+    to <TT
+><A HREF="Database-Enumerator.html#v%3AdoQuery"
+>doQuery</A
+></TT
+> passing <TT
+><A HREF="Database-Enumerator.html#t%3ANextResultSet"
+>NextResultSet</A
+></TT
+> <TT
+>pstmt</TT
+>,
+    then an exception will be thrown.
+    OTOH, failing to process returned cursors will not raise errors,
+    but the cursors will remain open on the server until either the transaction
+    or session ends.
+</LI
+></UL
+><P
+><EM
+>Nested style:</EM
+>
+</P
+><P
+>The linear style of cursor processing is the only style supported by
+ MS SQL Server and ODBC. However, PostgreSQL and Oracle also support
+ using nested cursors in queries.
+</P
+><P
+>Assuming we have these functions in the database:
+</P
+><PRE
+> CREATE OR REPLACE FUNCTION takusenTestFunc(lim int4) RETURNS refcursor AS $$
+ DECLARE refc refcursor;
+ BEGIN
+     OPEN refc FOR SELECT n, takusenTestFunc2(n) from t_natural where n &lt; lim order by n;
+     RETURN refc;
+ END; $$ LANGUAGE plpgsql;
+</PRE
+><PRE
+> CREATE OR REPLACE FUNCTION takusenTestFunc2(lim int4) RETURNS refcursor AS $$
+ DECLARE refc refcursor;
+ BEGIN
+     OPEN refc FOR SELECT n from t_natural where n &lt; lim order by n;
+     RETURN refc;
+ END; $$ LANGUAGE plpgsql;
+</PRE
+><P
+>... then this code shows how nested queries mights work in PostgreSQL:
+</P
+><PRE
+> selectNestedMultiResultSet = do
+   let
+     q = &quot;SELECT n, takusenTestFunc(n) from t_natural where n &lt; 10 order by n&quot;
+     iterMain   (i::Int) (c::RefCursor String) acc = result' ((i,c):acc)
+     iterInner  (i::Int) (c::RefCursor String) acc = result' ((i,c):acc)
+     iterInner2 (i::Int) acc = result' (i:acc)
+   withTransaction RepeatableRead $ do
+     rs &lt;- doQuery (sql q) iterMain []
+     flip mapM_ rs $ \(outer, c) -&gt; do
+       rs &lt;- doQuery c iterInner []
+       flip mapM_ rs $ \(inner, c) -&gt; do
+         rs &lt;- doQuery c iterInner2 []
+         flip mapM_ rs $ \i -&gt; do
+           liftIO (putStrLn (show outer ++ &quot; &quot; ++ show inner ++ &quot; &quot; ++ show i))
+</PRE
+><P
+>Just to make it clear: the outer query returns a result-set that includes
+ a <TT
+><A HREF="Database-Enumerator.html#t%3ARefCursor"
+>RefCursor</A
+></TT
+> column. Each cursor from that column is passed to
+ <TT
+><A HREF="Database-Enumerator.html#v%3AdoQuery"
+>doQuery</A
+></TT
+> to process it's result-set;
+ here we use mapM_ to apply an IO action to the list returned by
+ <TT
+><A HREF="Database-Enumerator.html#v%3AdoQuery"
+>doQuery</A
+></TT
+>.
+</P
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section1"
+><A NAME="6"
+>Sessions and Transactions
+</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A NAME="t%3ADBM"
+></A
+><B
+>DBM</B
+> mark sess a</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:DBM')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:DBM" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
+>CaughtMonadIO</A
+> (<A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark si)</TD
+></TR
+><TR
+><TD CLASS="decl"
+>(<A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> sess, ??? a sess) =&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Monad.html#t%3AMonad"
+>Monad</A
+> (<A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark sess a)</TD
+></TR
+><TR
+><TD CLASS="decl"
+>(<A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> sess, ??? a sess) =&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl//Control-Monad-Trans.html#t%3AMonadIO"
+>MonadIO</A
+> (<A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark sess a)</TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AwithSession"
+></A
+><B
+>withSession</B
+> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Typeable.html#t%3ATypeable"
+>Typeable</A
+> a, <A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> sess) =&gt; <A HREF="Database-InternalEnumerator.html#t%3AConnectA"
+>ConnectA</A
+> sess -&gt; (<SPAN CLASS="keyword"
+>forall</SPAN
+> mark . <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark sess a) -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> a</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Typeable constraint is to prevent the leakage of Session and other
+ marked objects.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Acommit"
+></A
+><B
+>commit</B
+> :: <A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> s =&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s ()</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Arollback"
+></A
+><B
+>rollback</B
+> :: <A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> s =&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s ()</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AbeginTransaction"
+></A
+><B
+>beginTransaction</B
+> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl//Control-Monad-Reader.html#t%3AMonadReader"
+>MonadReader</A
+> s (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl//Control-Monad-Reader.html#t%3AReaderT"
+>ReaderT</A
+> s <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+>), <A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> s) =&gt; <A HREF="Database-Enumerator.html#t%3AIsolationLevel"
+>IsolationLevel</A
+> -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s ()</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AwithTransaction"
+></A
+><B
+>withTransaction</B
+> :: <A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> s =&gt; <A HREF="Database-Enumerator.html#t%3AIsolationLevel"
+>IsolationLevel</A
+> -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s a -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s a</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Perform an action as a transaction: commit afterwards,
+ unless there was an exception, in which case rollback.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A NAME="t%3AIsolationLevel"
+></A
+><B
+>IsolationLevel</B
+> </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3AReadUncommitted"
+></A
+><B
+>ReadUncommitted</B
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+><A NAME="v%3AReadCommitted"
+></A
+><B
+>ReadCommitted</B
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+><A NAME="v%3ARepeatableRead"
+></A
+><B
+>RepeatableRead</B
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+><A NAME="v%3ASerialisable"
+></A
+><B
+>Serialisable</B
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+><A NAME="v%3ASerializable"
+></A
+><B
+>Serializable</B
+></TD
+><TD CLASS="rdoc"
+>for alternative spellers
+</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:IsolationLevel')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:IsolationLevel" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Show.html#t%3AShow"
+>Show</A
+> <A HREF="Database-Enumerator.html#t%3AIsolationLevel"
+>IsolationLevel</A
+></TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AexecDDL"
+></A
+><B
+>execDDL</B
+> :: <A HREF="Database-InternalEnumerator.html#t%3ACommand"
+>Command</A
+> stmt s =&gt; stmt -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s ()</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AexecDML"
+></A
+><B
+>execDML</B
+> :: <A HREF="Database-InternalEnumerator.html#t%3ACommand"
+>Command</A
+> stmt s =&gt; stmt -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section1"
+><A NAME="7"
+>Exceptions and handlers
+</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A NAME="t%3ADBException"
+></A
+><B
+>DBException</B
+> </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3ADBError"
+></A
+><B
+>DBError</B
+> <A HREF="Database-InternalEnumerator.html#t%3ASqlState"
+>SqlState</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TD
+><TD CLASS="rdoc"
+>DBMS error message.
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+><A NAME="v%3ADBFatal"
+></A
+><B
+>DBFatal</B
+> <A HREF="Database-InternalEnumerator.html#t%3ASqlState"
+>SqlState</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+><A NAME="v%3ADBUnexpectedNull"
+></A
+><B
+>DBUnexpectedNull</B
+> <A HREF="Database-InternalEnumerator.html#t%3ARowNum"
+>RowNum</A
+> <A HREF="Database-InternalEnumerator.html#t%3AColNum"
+>ColNum</A
+></TD
+><TD CLASS="rdoc"
+>the iteratee function used for queries accepts both nullable (Maybe) and
+ non-nullable types. If the query itself returns a null in a column where a
+ non-nullable type was specified, we can't handle it, so DBUnexpectedNull is thrown.
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+><A NAME="v%3ADBNoData"
+></A
+><B
+>DBNoData</B
+></TD
+><TD CLASS="rdoc"
+>Thrown by cursor functions if you try to fetch after the end.
+</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:DBException')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:DBException" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Show.html#t%3AShow"
+>Show</A
+> <A HREF="Database-Enumerator.html#t%3ADBException"
+>DBException</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Typeable.html#t%3ATypeable"
+>Typeable</A
+> <A HREF="Database-Enumerator.html#t%3ADBException"
+>DBException</A
+></TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AbasicDBExceptionReporter"
+></A
+><B
+>basicDBExceptionReporter</B
+> :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
+>CaughtMonadIO</A
+> m =&gt; <A HREF="Database-Enumerator.html#t%3ADBException"
+>DBException</A
+> -&gt; m ()</TD
+></TR
+><TR
+><TD CLASS="doc"
+>This simple handler reports the error to <TT
+>stdout</TT
+> and swallows it
+ i.e. it doesn't propagate.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AreportRethrow"
+></A
+><B
+>reportRethrow</B
+> :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
+>CaughtMonadIO</A
+> m =&gt; <A HREF="Database-Enumerator.html#t%3ADBException"
+>DBException</A
+> -&gt; m ()</TD
+></TR
+><TR
+><TD CLASS="doc"
+>This handler reports the error and propagates it
+ (usually to force the program to halt).
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AformatDBException"
+></A
+><B
+>formatDBException</B
+> :: <A HREF="Database-Enumerator.html#t%3ADBException"
+>DBException</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AcatchDB"
+></A
+><B
+>catchDB</B
+> :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
+>CaughtMonadIO</A
+> m =&gt; m a -&gt; (<A HREF="Database-Enumerator.html#t%3ADBException"
+>DBException</A
+> -&gt; m a) -&gt; m a</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Catch <TT
+><A HREF="Database-InteralEnumerator.html#t%3ADBException"
+>DBException</A
+></TT
+>s thrown in the <TT
+><A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+></TT
+>
+ monad.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AcatchDBError"
+></A
+><B
+>catchDBError</B
+> :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
+>CaughtMonadIO</A
+> m =&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; m a -&gt; (<A HREF="Database-Enumerator.html#t%3ADBException"
+>DBException</A
+> -&gt; m a) -&gt; m a</TD
+></TR
+><TR
+><TD CLASS="doc"
+>If you want to trap a specific error number, use this.
+ It passes anything else up.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AignoreDBError"
+></A
+><B
+>ignoreDBError</B
+> :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
+>CaughtMonadIO</A
+> m =&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; m a -&gt; m a</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Analogous to catchDBError, but ignores specific errors instead
+ (propagates anything else).
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AthrowDB"
+></A
+><B
+>throwDB</B
+> :: <A HREF="Database-Enumerator.html#t%3ADBException"
+>DBException</A
+> -&gt; a</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Throw a DBException. It's just a type-specific <TT
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Exception.html#v%3AthrowDyn"
+>throwDyn</A
+></TT
+>.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section1"
+><A NAME="8"
+>Preparing and Binding
+</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>newtype</SPAN
+> <A NAME="t%3APreparedStmt"
+></A
+><B
+>PreparedStmt</B
+> mark stmt</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3APreparedStmt"
+></A
+><B
+>PreparedStmt</B
+> stmt</TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AwithPreparedStatement"
+></A
+><B
+>withPreparedStatement</B
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+>:: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Typeable.html#t%3ATypeable"
+>Typeable</A
+> a, <A HREF="Database-InternalEnumerator.html#t%3AIPrepared"
+>IPrepared</A
+> stmt sess bstmt bo)</TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+>=&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+>PreparationA</A
+> sess stmt</TD
+><TD CLASS="rdoc"
+>preparation action to create prepared statement;
+   this action is usually created by <TT
+>prepareStmt</TT
+>
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; (<A HREF="Database-Enumerator.html#t%3APreparedStmt"
+>PreparedStmt</A
+> mark stmt -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark sess a)</TD
+><TD CLASS="rdoc"
+>DBM action that takes a prepared statement
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark sess a</TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="ndoc" COLSPAN="2"
+><P
+>Prepare a statement and run a DBM action over it.
+ This gives us the ability to re-use a statement,
+ for example by passing different bind values for each execution.
+</P
+><P
+>The Typeable constraint is to prevent the leakage of marked things.
+ The type of bound statements should not be exported (and should not be
+ in Typeable) so the bound statement can't leak either.
+</P
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AwithBoundStatement"
+></A
+><B
+>withBoundStatement</B
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+>:: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Typeable.html#t%3ATypeable"
+>Typeable</A
+> a, <A HREF="Database-InternalEnumerator.html#t%3AIPrepared"
+>IPrepared</A
+> stmt s bstmt bo)</TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+>=&gt; <A HREF="Database-Enumerator.html#t%3APreparedStmt"
+>PreparedStmt</A
+> mark stmt</TD
+><TD CLASS="rdoc"
+>prepared statement created by withPreparedStatement
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; [<A HREF="Database-InternalEnumerator.html#t%3ABindA"
+>BindA</A
+> s stmt bo]</TD
+><TD CLASS="rdoc"
+>bind values
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; (bstmt -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s a)</TD
+><TD CLASS="rdoc"
+>action to run over bound statement
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s a</TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="ndoc" COLSPAN="2"
+><P
+>Applies a prepared statement to bind variables to get a bound statement,
+ which is passed to the provided action.
+ Note that by the time it is passed to the action, the query or command
+ has usually been executed.
+ A bound statement would normally be an instance of
+ <TT
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+></TT
+>, so it can be passed to
+ <TT
+><A HREF="Database-Enumerator.html#v%3AdoQuery"
+>doQuery</A
+></TT
+>
+ in order to process the result-set, and also an instance of
+ <TT
+><A HREF="Database-InternalEnumerator.html#t%3ACommand"
+>Command</A
+></TT
+>, so that we can write
+ re-usable DML statements (inserts, updates, deletes).
+</P
+><P
+>The Typeable constraint is to prevent the leakage of marked things.
+ The type of bound statements should not be exported (and should not be
+ in Typeable) so the bound statement can't leak either.
+</P
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AbindP"
+></A
+><B
+>bindP</B
+> :: <A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>DBBind</A
+> a sess stmt bo =&gt; a -&gt; <A HREF="Database-InternalEnumerator.html#t%3ABindA"
+>BindA</A
+> sess stmt bo</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section1"
+><A NAME="9"
+>Iteratees and Cursors
+</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AdoQuery"
+></A
+><B
+>doQuery</B
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+>:: (<A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> stmt sess q, QueryIteratee (<A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark sess) q i seed b, <A HREF="Database-InternalEnumerator.html#t%3AIQuery"
+>IQuery</A
+> q sess b)</TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+>=&gt; stmt</TD
+><TD CLASS="rdoc"
+>query
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; i</TD
+><TD CLASS="rdoc"
+>iteratee function
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; seed</TD
+><TD CLASS="rdoc"
+>seed value
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark sess seed</TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="ndoc" COLSPAN="2"
+>The left-fold interface.
+</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3AIterResult"
+></A
+><B
+>IterResult</B
+> seedType = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Either.html#t%3AEither"
+>Either</A
+> seedType seedType</TD
+></TR
+><TR
+><TD CLASS="doc"
+><TT
+><A HREF="Database-Enumerator.html#t%3AIterResult"
+>IterResult</A
+></TT
+> and <TT
+><A HREF="Database-Enumerator.html#t%3AIterAct"
+>IterAct</A
+></TT
+> give us some type sugar.
+ Without them, the types of iteratee functions become
+ quite unwieldy.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3AIterAct"
+></A
+><B
+>IterAct</B
+> m seedType = seedType -&gt; m (<A HREF="Database-Enumerator.html#t%3AIterResult"
+>IterResult</A
+> seedType)</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AcurrentRowNum"
+></A
+><B
+>currentRowNum</B
+> :: <A HREF="Database-InternalEnumerator.html#t%3AIQuery"
+>IQuery</A
+> q sess b =&gt; q -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A NAME="t%3ANextResultSet"
+></A
+><B
+>NextResultSet</B
+> mark stmt</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3ANextResultSet"
+></A
+><B
+>NextResultSet</B
+> (<A HREF="Database-Enumerator.html#t%3APreparedStmt"
+>PreparedStmt</A
+> mark stmt)</TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:NextResultSet')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:NextResultSet" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> (<A HREF="Database-Enumerator.html#t%3ANextResultSet"
+>NextResultSet</A
+> mark PreparedStmt) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> (<A HREF="Database-Enumerator.html#t%3ANextResultSet"
+>NextResultSet</A
+> mark PreparedStmt) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A NAME="t%3ARefCursor"
+></A
+><B
+>RefCursor</B
+> a</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3ARefCursor"
+></A
+><B
+>RefCursor</B
+> a</TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:RefCursor')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:RefCursor" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="Database-Enumerator.html#t%3ARefCursor"
+>RefCursor</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+>) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="Database-Enumerator.html#t%3ARefCursor"
+>RefCursor</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+>) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> (<A HREF="Database-Enumerator.html#t%3ARefCursor"
+>RefCursor</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+>) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> (<A HREF="Database-Enumerator.html#t%3ARefCursor"
+>RefCursor</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+>) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AcursorIsEOF"
+></A
+><B
+>cursorIsEOF</B
+> :: DBCursor mark (<A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s) a -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Bool.html#t%3ABool"
+>Bool</A
+></TD
+></TR
+><TR
+><TD CLASS="doc"
+><P
+>cursorIsEOF's return value tells you if there are any more rows or not.
+ If you call <TT
+><A HREF="Database-Enumerator.html#v%3AcursorNext"
+>cursorNext</A
+></TT
+> when there are no more rows,
+ a <TT
+><A HREF="Database-Enumerator.html#v%3ADBNoData"
+>DBNoData</A
+></TT
+> exception is thrown.
+ Cursors are automatically closed and freed when:
+</P
+><UL
+><LI
+> the iteratee returns <TT
+>Left a</TT
+>
+</LI
+><LI
+> the query result-set is exhausted.
+</LI
+></UL
+><P
+>To make life easier, we've created a <TT
+><A HREF="Database-Enumerator.html#v%3AwithCursor"
+>withCursor</A
+></TT
+> function,
+ which will clean up if an error (exception) occurs,
+ or the code exits early.
+ You can nest them to get interleaving, if you desire:
+</P
+><PRE
+>  withCursor query1 iter1 [] $ \c1 -&gt; do
+    withCursor query2 iter2 [] $ \c2 -&gt; do
+      r1 &lt;- cursorCurrent c1
+      r2 &lt;- cursorCurrent c2
+      ...
+      return something
+</PRE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AcursorCurrent"
+></A
+><B
+>cursorCurrent</B
+> :: DBCursor mark (<A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s) a -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s a</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Returns the results fetched so far, processed by iteratee function.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AcursorNext"
+></A
+><B
+>cursorNext</B
+> :: DBCursor mark (<A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s) a -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s (DBCursor mark (<A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark s) a)</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Advance the cursor. Returns the cursor. The return value is usually ignored.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AwithCursor"
+></A
+><B
+>withCursor</B
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+>:: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Typeable.html#t%3ATypeable"
+>Typeable</A
+> a, <A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+> stmt sess q, QueryIteratee (<A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark sess) q i seed b, <A HREF="Database-InternalEnumerator.html#t%3AIQuery"
+>IQuery</A
+> q sess b)</TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+>=&gt; stmt</TD
+><TD CLASS="rdoc"
+>query
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; i</TD
+><TD CLASS="rdoc"
+>iteratee function
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; seed</TD
+><TD CLASS="rdoc"
+>seed value
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; (DBCursor mark (<A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark sess) seed -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark sess a)</TD
+><TD CLASS="rdoc"
+>action taking cursor parameter
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark sess a</TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="ndoc" COLSPAN="2"
+>Ensures cursor resource is properly tidied up in exceptional cases.
+ Propagates exceptions after closing cursor.
+ The Typeable constraint is to prevent cursors and other marked values
+ (like cursor computations) from escaping.
+</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section1"
+><A NAME="10"
+>Utilities
+</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AifNull"
+></A
+><B
+>ifNull</B
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+>:: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> a</TD
+><TD CLASS="rdoc"
+>nullable value
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; a</TD
+><TD CLASS="rdoc"
+>value to substitute if first parameter is null
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; a</TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="ndoc" COLSPAN="2"
+>Useful utility function, for SQL weenies.
+</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Aresult"
+></A
+><B
+>result</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Monad.html#t%3AMonad"
+>Monad</A
+> m =&gt; <A HREF="Database-Enumerator.html#t%3AIterAct"
+>IterAct</A
+> m a</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Another useful utility function.
+ Use this to return a value from an iteratee function (the one passed to
+ <TT
+><A HREF="Database-Enumerator.html#v%3AdoQuery"
+>doQuery</A
+></TT
+>).
+ Note that you should probably nearly always use the strict version.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Aresult%27"
+></A
+><B
+>result'</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Monad.html#t%3AMonad"
+>Monad</A
+> m =&gt; <A HREF="Database-Enumerator.html#t%3AIterAct"
+>IterAct</A
+> m a</TD
+></TR
+><TR
+><TD CLASS="doc"
+>A strict version. This is recommended unless you have a specific need for laziness,
+ as the lazy version will gobble stack and heap.
+ If you have a large result-set (in the order of 10-100K rows or more),
+ it is likely to exhaust the standard 1M GHC stack.
+ Whether or not <TT
+><A HREF="Database-Enumerator.html#v%3Aresult"
+>result</A
+></TT
+> eats memory depends on what <TT
+>x</TT
+> does:
+ if it's a delayed computation then it almost certainly will.
+ This includes consing elements onto a list,
+ and arithmetic operations (counting, summing, etc).
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Aprint_"
+></A
+><B
+>print_</B
+> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl//Control-Monad-Trans.html#t%3AMonadIO"
+>MonadIO</A
+> m, MyShow a) =&gt; a -&gt; m ()</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Like <TT
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#v%3Aprint"
+>print</A
+></TT
+>, except that Strings are not escaped or quoted.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="botbar"
+>Produced by <A HREF="http://www.haskell.org/haddock/"
+>Haddock</A
+> version 0.7</TD
+></TR
+></TABLE
+></BODY
+></HTML
+>

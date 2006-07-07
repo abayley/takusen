@@ -1,0 +1,259 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!--Rendered using the Haskell Html Library v0.2-->
+<HTML
+><HEAD
+><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8"
+><TITLE
+>Control.Exception.MonadIO</TITLE
+><LINK HREF="haddock.css" REL="stylesheet" TYPE="text/css"
+><SCRIPT SRC="haddock.js" TYPE="text/javascript"
+></SCRIPT
+></HEAD
+><BODY
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="topbar"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD
+><IMG SRC="haskell_icon.gif" WIDTH="16" HEIGHT="16" ALT=" "
+></TD
+><TD CLASS="title"
+></TD
+><TD CLASS="topbut"
+><A HREF="index.html"
+>Contents</A
+></TD
+><TD CLASS="topbut"
+><A HREF="doc-index.html"
+>Index</A
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="modulebar"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD
+><FONT SIZE="6"
+>Control.Exception.MonadIO</FONT
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section1"
+>Documentation</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl//Control-Monad-Trans.html#t%3AMonadIO"
+>MonadIO</A
+> m =&gt; <A NAME="t%3ACaughtMonadIO"
+></A
+><B
+>CaughtMonadIO</B
+> m  <SPAN CLASS="keyword"
+>where</SPAN
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+>Methods</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Agcatch"
+></A
+><B
+>gcatch</B
+> :: m a -&gt; (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Exception.html#t%3AException"
+>Exception</A
+> -&gt; m a) -&gt; m a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AgcatchJust"
+></A
+><B
+>gcatchJust</B
+> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Exception.html#t%3AException"
+>Exception</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> b) -&gt; m a -&gt; (b -&gt; m a) -&gt; m a</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:CaughtMonadIO')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:CaughtMonadIO" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
+>CaughtMonadIO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
+>CaughtMonadIO</A
+> (<A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark si)</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
+>CaughtMonadIO</A
+> m =&gt; <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
+>CaughtMonadIO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl//Control-Monad-Reader.html#t%3AReaderT"
+>ReaderT</A
+> a m)</TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Agtry"
+></A
+><B
+>gtry</B
+> :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
+>CaughtMonadIO</A
+> m =&gt; m b -&gt; m (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Either.html#t%3AEither"
+>Either</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Exception.html#t%3AException"
+>Exception</A
+> b)</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AgtryJust"
+></A
+><B
+>gtryJust</B
+> :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
+>CaughtMonadIO</A
+> m =&gt; (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Exception.html#t%3AException"
+>Exception</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> b) -&gt; m b1 -&gt; m (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Either.html#t%3AEither"
+>Either</A
+> b b1)</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Agbracket"
+></A
+><B
+>gbracket</B
+> :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
+>CaughtMonadIO</A
+> m =&gt; m t -&gt; (t -&gt; m a) -&gt; (t -&gt; m b) -&gt; m b</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Agfinally"
+></A
+><B
+>gfinally</B
+> :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
+>CaughtMonadIO</A
+> m =&gt; m t -&gt; m a -&gt; m t</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="botbar"
+>Produced by <A HREF="http://www.haskell.org/haddock/"
+>Haddock</A
+> version 0.7</TD
+></TR
+></TABLE
+></BODY
+></HTML
+>
