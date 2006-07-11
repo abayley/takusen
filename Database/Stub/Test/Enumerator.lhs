@@ -47,7 +47,7 @@ returns a somewhat contrived result set.
 >     liftIO $ assertEqual "" expect actual
 >   ) (\e -> return () )
 > selectTest' iter expect = catchDB ( do
->     actual <- doQuery (sql_tuned (QueryResourceUsage 10) "") iter []
+>     actual <- doQuery (prefetch 10 "") iter []
 >     liftIO $ assertEqual "" expect actual
 >   ) (\e -> return () )
 

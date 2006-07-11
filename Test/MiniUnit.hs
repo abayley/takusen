@@ -8,15 +8,16 @@
 -- Portability :  portable
 --
 -- This is just a simple one-module unit tets framework, with the same
--- API as 'Test.HUnit' (albeit with a lot of stuff missing).
+-- API as "Test.HUnit" (albeit with a lot of stuff missing).
 -- We use it because it works in 'Control.Exception.MonadIO.CaughtMonadIO'
 -- instead of IO
--- (and because I couldn't convert HUnit to use 'Control.Exception.MonadIO.CaughtMonadIO').
+-- (and also because I couldn't convert "Test.HUnit"
+-- to use 'Control.Exception.MonadIO.CaughtMonadIO').
 
 
 module Test.MiniUnit
   ( runTestTT, assertFailure, assertBool, assertString, assertEqual
-  -- ** exposed for self-testing only; see 'Test.MiniUnitTest'
+  -- ** Exposed for self-testing only; see "Test.MiniUnitTest"
   , TestResult(..), throwUserError, runSingleTest, reportResults
   )
 where

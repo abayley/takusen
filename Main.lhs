@@ -17,7 +17,7 @@ This project is now hosted at haskell.org:
 Currently this is a source-only distribution;
 we haven't cabalised it yet.
  
-Invoke main like this (assuming compiled to takusen.exe):
+Invoke main like this (assuming the compiled executable is called @takusen@):
  
  > takusen stub noperf
  > takusen sqlite noperf "" "" dbname

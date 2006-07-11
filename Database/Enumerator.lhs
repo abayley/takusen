@@ -586,14 +586,14 @@ Let's look at some example code:
  >
  > -- non-query actions.
  > otherActions session = do
- >   execDDL "create table blah"
- >   execDML "insert into blah ..."
+ >   execDDL (sql "create table blah")
+ >   execDML (sql "insert into blah ...")
  >   commit
  >   -- Use withTransaction to delimit a transaction.
  >   -- It will commit at the end, or rollback if an error occurs.
  >   withTransaction Serialisable $ do
- >     execDML "update blah ..."
- >     execDML "insert into blah ..."
+ >     execDML (sql "update blah ...")
+ >     execDML (sql "insert into blah ...")
  >
  > main :: IO ()
  > main = do
@@ -656,7 +656,7 @@ to dummy values of the appropriate types.
  > let stmt = prepareStmt "stmtname" (sql "select ...") [bindType "", bindType (0::Int)]
  > withPreparedStatement stmt $ \pstmt -> ...
  
-A longer explanation of bind variables is in the Bind Parametes section below.
+A longer explanation of bind variables is in the Bind Parameters section below.
 
 
 -- $usage_iteratee
@@ -670,14 +670,14 @@ arguments 1 to n-1, and the current accumulated value in the argument n.
 The iteratee function returns the next value of the accumulator,
 wrapped in an 'Data.Either.Either'.
 If the 'Data.Either.Either' value is @Left@, then the query will terminate,
-with the new value of the accumulator\/seed returned.
+returning the wrapped accumulator\/seed value.
 If the value is @Right@, then the query will continue, with the next row
-begin fed to the iteratee function, along with the new accumulator\/seed.
+begin fed to the iteratee function, along with the new accumulator\/seed value.
  
 In the example above, @query1Iteratee@ simply conses the new row (as a tuple)
 to the front of the accumulator.
 The initial seed passed to 'Database.Enumerator.doQuery' was an empty list.
-Consing the rows to the front of the list results in a list that is the result set
+Consing the rows to the front of the list results in a list
 with the rows in reverse order.
  
 The types of values that can be used as arguments to the iteratee function
@@ -686,10 +686,10 @@ are back-end specific; they must be instances of the class
 Most backends directly support the usual lowest-common-denominator set
 supported by most DBMS's: 'Data.Int.Int', 'Data.Char.String',
 'Prelude.Double', 'System.Time.CalendarTime'.
+('Data.Int.Int64' is often, but not always, supported.)
+ 
 By directly support we mean there is type-specific marshalling code
 implemented.
-'Data.Int.Int64' is often, but not always, supported.
- 
 Indirect support for 'Text.Read.Read'- and 'Text.Show.Show'-able types
 is supported by marshalling to and from 'Data.Char.String's.
 This is done automatically by the back-end;
@@ -712,7 +712,7 @@ needs type information,
 at least for the arguments if not the return type (which is typically
 determined by the type of the seed).
 The type synonyms 'IterAct' and 'IterResult' give some convenience
-in writing type signatures for iteratee functions.
+in writing type signatures for iteratee functions:
  
  > type IterResult seedType = Either seedType seedType
  > type IterAct m seedType = seedType -> m (IterResult seedType)
@@ -728,7 +728,7 @@ which doesn't seem so onerous, but for more elaborate seed types
  >      String -> Double -> CalendarTime -> [(String, Double, CalendarTime)]
  >   -> m (Either [(String, Double, CalendarTime)] [(String, Double, CalendarTime)] )
  
-becomes:
+reduces (with use of 'IterAct' and 'IterResult') to:
  
  > iter :: Monad m =>
  >      String -> Double -> CalendarTime -> IterAct m [(String, Double, CalendarTime)]
@@ -738,7 +738,7 @@ becomes:
 -- $usage_result
  
 The 'result' (lazy) and 'result\'' (strict) functions are another convenient shorthand
-for returning values from iteratee functions. The return type from an interatee is actually
+for returning values from iteratee functions. The return type from an iteratee is actually
 @Either seed seed@, where you return @Right@ if you want processing to continue,
 or @Left@ if you want processing to stop before the result-set is exhausted.
 The common case is:
@@ -783,8 +783,8 @@ We call 'Database.Enumerator.withPreparedStatement' function to prepare
 the statement, and then call 'Database.Enumerator.withBoundStatement'
 to provide the bind values and execute the query.
 The value returned by 'Database.Enumerator.withBoundStatement'
-is an instance of the Statement class, so it can be passed to
-'Database.Enumerator.doQuery' for result-set processing.
+is an instance of the 'Database.InternalEnumerator.Statement' class,
+so it can be passed to 'Database.Enumerator.doQuery' for result-set processing.
  
 When we call 'Database.Enumerator.withPreparedStatement', we must pass
 it a \"preparation action\", which is simply an action that returns
@@ -901,7 +901,7 @@ message looks something like this:
 -- $usage_multiresultset
  
 Initial support for returning multiple result sets from a single
-statement exists in PostgreSQL, and will be added to Oracle and
+statement exists for PostgreSQL, and will be added to Oracle and
 other backends (except Sqlite, where such functionality does not exist)
  
 The general idea is to invoke a database procedure or function which
@@ -969,7 +969,7 @@ The linear style of cursor processing is the only style supported by
 MS SQL Server and ODBC. However, PostgreSQL and Oracle also support
 using nested cursors in queries.
  
-Assuming we have these functions in the database:
+Again for PostgreSQL, assuming we have these functions in the database:
  
  > CREATE OR REPLACE FUNCTION takusenTestFunc(lim int4) RETURNS refcursor AS $$
  > DECLARE refc refcursor;
@@ -985,7 +985,7 @@ Assuming we have these functions in the database:
  >     RETURN refc;
  > END; $$ LANGUAGE plpgsql;
  
-... then this code shows how nested queries mights work in PostgreSQL:
+... then this code shows how nested queries mights work:
  
  > selectNestedMultiResultSet = do
  >   let
@@ -1005,7 +1005,7 @@ Assuming we have these functions in the database:
 Just to make it clear: the outer query returns a result-set that includes
 a 'Database.Enumerator.RefCursor' column. Each cursor from that column is passed to
 'Database.Enumerator.doQuery' to process it's result-set;
-here we use mapM_ to apply an IO action to the list returned by
+here we use 'Control.Monad.mapM_' to apply an IO action to the list returned by
 'Database.Enumerator.doQuery'.
 
 

@@ -24,8 +24,8 @@ See fetchIntVal.
 > module Database.Stub.Enumerator
 >   -- Only the type constructor of Session is exported
 >   -- (so the end user could write type signatures). 
->   (  Session, ConnParm(..), connect, sql 
->    , QueryResourceUsage(..), sql_tuned
+>   (  Session, ConnParm(..), connect, sql, prefetch
+>    , QueryResourceUsage(..)
 >   )
 > where
 
@@ -112,8 +112,8 @@ tuning parameters later.
 
 -- Statements with resource usage
 
-> sql_tuned :: QueryResourceUsage -> String -> QueryStringTuned
-> sql_tuned resource_usage str = QueryStringTuned resource_usage str
+> prefetch :: Int -> String -> QueryStringTuned
+> prefetch count str = QueryStringTuned (QueryResourceUsage count) str
 
 > instance Command QueryStringTuned Session where
 >   executeCommand s (QueryStringTuned _ str) = executeCommand s (QueryString str)
