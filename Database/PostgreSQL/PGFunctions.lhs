@@ -180,7 +180,7 @@ We don't use fPQexec; the docs suggest fPQexecParams is better anyway
 >  _)
 >  = [0..] :: [ExecStatusType]
 
-> (xxx_textResultSet:binaryResultSet:_) = [0,1] :: [CInt]
+> (textResultSet:binaryResultSet:_) = [0,1] :: [CInt]
 > (xxx_textParameters:binaryParameters:_) = [0,1] :: [CInt]
 
 > foreign import ccall "libpq-fe.h PQresultErrorMessage" fPQresultErrorMessage
@@ -472,10 +472,21 @@ Check the ResultSetHandle returned by fPQexec and similar functions
 
 
 Execute some kind of statement that returns no tuples.
+Because this is a frequently used function, we code it specially
+(rather than invoking a more generic execCommand).
 
 > nqExec :: DBHandle -> String -> IO (String, String, Oid)
-> nqExec db sqlText = execCommand db sqlText []
-
+> nqExec db sqlText =
+>   withCString sqlText $ \cstr -> 
+>     do
+>     stmt <- fPQexecParams db cstr 0 nullPtr nullPtr nullPtr nullPtr 0
+>             >>= check'stmt db ePGRES_COMMAND_OK
+>     -- save all information from PGresult and free it
+>     cmd'status  <- fPQcmdStatus stmt >>= peekCString
+>     cmd'ntuples <- fPQcmdTuples stmt >>= peekCString
+>     cmd'oid     <- fPQoidValue stmt
+>     fPQclear stmt
+>     return (cmd'status, cmd'ntuples, cmd'oid)
 
 > execCommand :: DBHandle -> String -> [PGBindVal] -> IO (String, String, Oid)
 > execCommand db sqlText bindvals = do
@@ -492,7 +503,7 @@ Execute some kind of statement that returns no tuples.
 >   stmtFinalise rs
 >   return (cmd'status, cmd'ntuples, cmd'oid)
 
-Prepare and Execute a query. Returns results as text.
+Prepare and Execute a query. Returns results as binary.
 
 > stmtExecImm :: DBHandle -> String -> [PGBindVal] -> IO (ResultSetHandle, Int)
 > stmtExecImm db sqlText bindvals = do
@@ -513,11 +524,33 @@ Prepare and Execute a query. Returns results as text.
 >     return (rs, fromIntegral ntuples)
 
 
+A simple version with no binding parameters and returning results as text
+
+> stmtExecImm0 :: DBHandle -> String -> IO (ResultSetHandle, Int)
+> stmtExecImm0 db sqlText =
+>   withCString sqlText $ \cstr -> do 
+>     rs <- fPQexecParams db cstr 0 nullPtr nullPtr nullPtr nullPtr 0
+>     check'stmt db ePGRES_TUPLES_OK rs
+>     ntuples <- fPQntuples rs
+>     return (rs, fromIntegral ntuples)
+
 
 Execute a previously prepared query, with no params.
 
 > stmtExec0 :: DBHandle -> String -> IO (ResultSetHandle, Int)
-> stmtExec0 db stmt'name = execPrepared db stmt'name [] ePGRES_TUPLES_OK
+> stmtExec0 db stmt'name = stmtExec0bt db stmt'name binaryResultSet
+
+> stmtExec0t :: DBHandle -> String -> IO (ResultSetHandle, Int)
+> stmtExec0t db stmt'name = stmtExec0bt db stmt'name textResultSet
+
+> stmtExec0bt db stmt'name binary_or_text = 
+>   withCString stmt'name $ \cstmtname -> do
+>     rs <- fPQexecPrepared db cstmtname 0 nullPtr nullPtr nullPtr
+>                           binary_or_text
+>     check'stmt db ePGRES_TUPLES_OK rs
+>     ntuples <- fPQntuples rs
+>     return (rs, fromIntegral ntuples)
+
 
 Execute a previously prepared query, with params.
 
