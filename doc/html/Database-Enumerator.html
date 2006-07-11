@@ -882,14 +882,14 @@
 
  -- non-query actions.
  otherActions session = do
-   execDDL &quot;create table blah&quot;
-   execDML &quot;insert into blah ...&quot;
+   execDDL (sql &quot;create table blah&quot;)
+   execDML (sql &quot;insert into blah ...&quot;)
    commit
    -- Use withTransaction to delimit a transaction.
    -- It will commit at the end, or rollback if an error occurs.
    withTransaction Serialisable $ do
-     execDML &quot;update blah ...&quot;
-     execDML &quot;insert into blah ...&quot;
+     execDML (sql &quot;update blah ...&quot;)
+     execDML (sql &quot;insert into blah ...&quot;)
 
  main :: IO ()
  main = do
@@ -1030,7 +1030,7 @@
  withPreparedStatement stmt $ \pstmt -&gt; ...
 </PRE
 ><P
->A longer explanation of bind variables is in the Bind Parametes section below.
+>A longer explanation of bind variables is in the Bind Parameters section below.
 </P
 ></TD
 ></TR
@@ -1076,11 +1076,11 @@
 > value is <TT
 >Left</TT
 >, then the query will terminate,
- with the new value of the accumulator/seed returned.
+ returning the wrapped accumulator/seed value.
  If the value is <TT
 >Right</TT
 >, then the query will continue, with the next row
- begin fed to the iteratee function, along with the new accumulator/seed.
+ begin fed to the iteratee function, along with the new accumulator/seed value.
 </P
 ><P
 >In the example above, <TT
@@ -1092,7 +1092,7 @@
 >doQuery</A
 ></TT
 > was an empty list.
- Consing the rows to the front of the list results in a list that is the result set
+ Consing the rows to the front of the list results in a list
  with the rows in reverse order.
 </P
 ><P
@@ -1122,16 +1122,16 @@
 >CalendarTime</A
 ></TT
 >.
- By directly support we mean there is type-specific marshalling code
- implemented.
- <TT
+ (<TT
 ><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt64"
 >Int64</A
 ></TT
-> is often, but not always, supported.
+> is often, but not always, supported.)
 </P
 ><P
->Indirect support for <TT
+>By directly support we mean there is type-specific marshalling code
+ implemented.
+ Indirect support for <TT
 ><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Read.html#t%3ARead"
 >Read</A
 ></TT
@@ -1203,7 +1203,7 @@
 >IterResult</A
 ></TT
 > give some convenience
- in writing type signatures for iteratee functions.
+ in writing type signatures for iteratee functions:
 </P
 ><PRE
 > type IterResult seedType = Either seedType seedType
@@ -1227,7 +1227,15 @@
    -&gt; m (Either [(String, Double, CalendarTime)] [(String, Double, CalendarTime)] )
 </PRE
 ><P
->becomes:
+>reduces (with use of <TT
+><A HREF="Database-Enumerator.html#t%3AIterAct"
+>IterAct</A
+></TT
+> and <TT
+><A HREF="Database-Enumerator.html#t%3AIterResult"
+>IterResult</A
+></TT
+>) to:
 </P
 ><PRE
 > iter :: Monad m =&gt;
@@ -1262,7 +1270,7 @@
 >result</A
 ></TT
 > (strict) functions are another convenient shorthand
- for returning values from iteratee functions. The return type from an interatee is actually
+ for returning values from iteratee functions. The return type from an iteratee is actually
  <TT
 >Either seed seed</TT
 >, where you return <TT
@@ -1375,8 +1383,12 @@
 >withBoundStatement</A
 ></TT
 >
- is an instance of the Statement class, so it can be passed to
- <TT
+ is an instance of the <TT
+><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>Statement</A
+></TT
+> class,
+ so it can be passed to <TT
 ><A HREF="Database-Enumerator.html#v%3AdoQuery"
 >doQuery</A
 ></TT
@@ -1581,7 +1593,7 @@
 ><TD CLASS="doc"
 ><P
 >Initial support for returning multiple result sets from a single
- statement exists in PostgreSQL, and will be added to Oracle and
+ statement exists for PostgreSQL, and will be added to Oracle and
  other backends (except Sqlite, where such functionality does not exist)
 </P
 ><P
@@ -1707,7 +1719,7 @@
  using nested cursors in queries.
 </P
 ><P
->Assuming we have these functions in the database:
+>Again for PostgreSQL, assuming we have these functions in the database:
 </P
 ><PRE
 > CREATE OR REPLACE FUNCTION takusenTestFunc(lim int4) RETURNS refcursor AS $$
@@ -1726,7 +1738,7 @@
  END; $$ LANGUAGE plpgsql;
 </PRE
 ><P
->... then this code shows how nested queries mights work in PostgreSQL:
+>... then this code shows how nested queries mights work:
 </P
 ><PRE
 > selectNestedMultiResultSet = do
@@ -1756,7 +1768,11 @@
 >doQuery</A
 ></TT
 > to process it's result-set;
- here we use mapM_ to apply an IO action to the list returned by
+ here we use <TT
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Monad.html#v%3AmapM_"
+>mapM_</A
+></TT
+> to apply an IO action to the list returned by
  <TT
 ><A HREF="Database-Enumerator.html#v%3AdoQuery"
 >doQuery</A
@@ -2612,6 +2628,16 @@
 > a sess stmt bo =&gt; a -&gt; <A HREF="Database-InternalEnumerator.html#t%3ABindA"
 >BindA</A
 > sess stmt bo</TD
+></TR
+><TR
+><TD CLASS="doc"
+>This is really just a wrapper that lets us write lists of
+ heterogenous bind values e.g. <TT
+>[bindP <A HREF="string.html"
+>string</A
+>, bindP (0::Int), ...]</TT
+>
+</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
