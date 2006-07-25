@@ -24,9 +24,9 @@ docstrings = [
  "The program connects to the database and listens on its standard",
  "input for a SQL command. A command is an ASCII sequence terminated by",
  "NL-NULL-NL.",
- "If the command is other than SELECT, we submit it to the database.",
+ "If the command is other than SELECT or COPY, we submit it to the database.",
  "On success, no reply is generated, and we wait for a new command.",
- "If the command starts with a { simple } SELECT, we expect few rows.",
+ "If the command starts with a /*simple*/ SELECT, we expect few rows.",
  "We submit the query to the database and write the result to stdout.",
  "If the command was SELECT, we make a query and write the result,",
  "in groups, to the stdout. Each group of results has the form:",
@@ -38,7 +38,12 @@ docstrings = [
  " <length>NL<value>",
  " where <length> is the length of the value proper (no NL).",
  "",
- "Any error causes termination of this program.",
+ "If the command was COPY, we assume ",
+ "   COPY /*<len> fname*/ table ... FROM STDIN...",
+ " where <len> is the length of the file name. We open the file and",
+ " send its contents to the server",
+ "",
+ "Any error causes the termination of this program.",
  "We log all the results to stderr."
  ]
 
@@ -73,7 +78,8 @@ main' connparms =
 	    (\e -> err'note (show e) >> rethrowPG e)
 
 
-data CommandCategory = CmdQuery | CmdSimpleQuery String | CmdOther
+data CommandCategory = 
+    CmdQuery | CmdSimpleQuery String | CmdCopy FilePath String | CmdOther
 
 -- Main loop proper
 main'' logd hin db hout =
@@ -86,6 +92,7 @@ main'' logd hin db hout =
 		      CmdSimpleQuery cmd -> 
 			  exec'simple'query logd cmd db hout
 		      CmdOther -> exec'other logd cmd db hout
+		      CmdCopy fname cmd -> exec'copy logd cmd db fname
     hFlush hout
     main'' logd hin db hout
  where
@@ -93,11 +100,19 @@ main'' logd hin db hout =
 		       s <- hGetLine hin
 		       if s == "\NUL" then return acc 
 			  else get'command hin (acc ++ s ++ "\n")
- psimple = "{ simple }"
+ psimple = "/*simple*/"
  classify cmd | isPrefixOf psimple cmd = CmdSimpleQuery 
 					      (drop (length psimple) cmd)
  classify cmd | isPrefixOfci "select" cmd = CmdQuery
+ classify cmd | isPrefixOfci "copy"   cmd = 
+		  let (fname,s) = read'fname $ snd (break (== '/') cmd)
+		  in CmdCopy fname ("copy " ++ s)
  classify _ = CmdOther
+
+ read'fname ('/':'*':str) = let [(l::Int,' ':s)] = reads str
+				fname = take l s
+				('*':'/':s') = drop l s
+			    in (fname,s')
 
  -- case-insensitive
  isPrefixOfci [] _ = True
@@ -162,3 +177,12 @@ exec'other logd cmd db hout =
     do
     res <- nqExec db cmd
     log logd ["SQLDone: ", show res]
+
+-- Execute the COPY FROM STDIN command
+exec'copy logd cmd db fname = 
+    do
+    log logd ["SQLCopy: ", fname]
+    hin <- openBinaryFile fname ReadMode
+    nqCopyIn db cmd hin
+    hClose hin
+    log logd ["SQLCopyDone"]

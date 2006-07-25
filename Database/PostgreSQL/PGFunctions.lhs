@@ -224,6 +224,16 @@ Really getting the values
 > foreign import ccall "libpq-fe.h PQoidValue" fPQoidValue
 >   :: ResultSetHandle -> IO Oid
 
+27.8. Functions Associated with the COPY Command
+
+> foreign import ccall "libpq-fe.h PQputCopyData" fPQputCopyData
+>   :: DBHandle -> Ptr Word8 -> CInt -> IO CInt
+> foreign import ccall "libpq-fe.h PQputCopyEnd" fPQputCopyEnd
+>   :: DBHandle -> CString -> IO CInt
+> foreign import ccall "libpq-fe.h PQgetResult" fPQgetResult
+>   :: DBHandle -> IO ResultSetHandle
+
+
 27.9. Control Functions
 
 > type PGVerbosity = CInt -- enumeration, see libpq-fe.h
@@ -660,3 +670,31 @@ they're strings already.
 > sbph ('\'':cs) i inQuote acc = sbph cs i (not inQuote) ('\'':acc)
 > sbph ('?':cs) i False acc = sbph cs (i+1) False ((reverse (show i)) ++ ('$':acc))
 > sbph (c:cs) i inQuote acc = sbph cs i inQuote (c:acc)
+
+
+Execute the COPY FROM STDIN command
+
+> nqCopyIn :: DBHandle -> String -> Handle -> IO ()
+> nqCopyIn_buflen :: Int = 8192
+> nqCopyIn db sqlText hin =
+>   withCString sqlText $ \cstr -> 
+>    allocaBytes nqCopyIn_buflen $ \buffer ->
+>     do
+>     stmt <- fPQexecParams db cstr 0 nullPtr nullPtr nullPtr nullPtr 0
+>             >>= check'stmt db ePGRES_COPY_IN
+>     let check'copy'status 1 = return ()
+>         check'copy'status _ = do
+>		                emsg <- getError db 
+>                               rc <- fPQstatus db
+>                               throwPG rc emsg
+>     let loop = do
+>	   len <- hGetBuf hin buffer nqCopyIn_buflen
+>          if len < 0 then withCString "IO error" $ fPQputCopyEnd db
+>             else if len == 0 then fPQputCopyEnd db nullPtr
+>             else fPQputCopyData db buffer (fromIntegral len) >>=
+>	           check'copy'status >> loop
+>     res <- loop
+>     fPQclear stmt
+>     check'copy'status res
+>     -- finishing, checking the final status
+>     fPQgetResult db >>= check'stmt db ePGRES_COMMAND_OK >>= fPQclear
