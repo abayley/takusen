@@ -12,10 +12,7 @@ Imports test modules and runs test suites.
  
 This project is now hosted at haskell.org:
  
-@darcs get <http://darcs.haskell.org/takusen/main>@
- 
-Currently this is a source-only distribution;
-we haven't cabalised it yet.
+@darcs get <http://darcs.haskell.org/takusen>@
  
 Invoke main like this (assuming the compiled executable is called @takusen@):
  

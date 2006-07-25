@@ -25,7 +25,8 @@ functions and types. See the various backend-specific test modules for examples.
 > module Database.Test.Enumerator where
 
 > import Database.Enumerator
-> import System.Time  -- CalendarTime
+> import Data.Time
+> import System.Time
 > import Data.Int
 > import Control.Exception.MonadIO
 > import Control.Monad.Trans (liftIO)
@@ -83,7 +84,7 @@ functions and types. See the various backend-specific test modules for examples.
 >   literalDate _ i = dateOracle i
 
 > instance DBLiteralValue PGSqlFunctions where
->   literalDate _ i = dateOracle i
+>   literalDate _ i = datePG i
 >   literalInt _ i = show i ++ "::int4"
 >   literalInt64 _ i = show i ++ "::int8"
 >   literalFloat _ i = show i ++ "::float4"
@@ -102,15 +103,17 @@ functions and types. See the various backend-specific test modules for examples.
 > datePG :: Int64 -> String
 > datePG i =
 >   let
->     year = ((abs i) `quot` 10000000000)
+>     year1 = ((abs i) `quot` 10000000000)
 >     month = ((abs i) `rem` 10000000000) `quot` 100000000
 >     day = ((abs i) `rem` 100000000) `quot` 1000000
 >     hour = ((abs i) `rem` 1000000) `quot` 10000
 >     minute = ((abs i) `rem` 10000) `quot` 100
 >     second = ((abs i) `rem` 100)
->     suffix = if i < 0 then " BC'" else " AD'"
+>     suffix = if i < 1 then " BC'" else " AD'"
+>     year = if i < 1 then year1 + 1 else year1
 >   in
 >   if i == 0 then "null::timestamp"
+>   --else "timestamp with time zone '" ++ zp 4 year ++ "-" ++ zp 2 month ++ "-" ++ zp 2 day
 >   else "timestamp '" ++ zp 4 year ++ "-" ++ zp 2 month ++ "-" ++ zp 2 day
 >     ++ " " ++ zp 2 hour ++ ":" ++ zp 2 minute ++ ":" ++ zp 2 second ++ suffix
 
@@ -122,8 +125,20 @@ functions and types. See the various backend-specific test modules for examples.
 >   then "-" ++ (zeroPad n (abs i))
 >   else take (n - length (show i)) (repeat '0') ++ show i
 
-> makeCalTime :: Int64 -> CalendarTime
-> makeCalTime i =
+> int64ToUTCTime :: Int64 -> UTCTime
+> int64ToUTCTime i =
+>   let
+>     year = (i `quot` 10000000000)
+>     month = ((abs i) `rem` 10000000000) `quot` 100000000
+>     day = ((abs i) `rem` 100000000) `quot` 1000000
+>     hour = ((abs i) `rem` 1000000) `quot` 10000
+>     minute = ((abs i) `rem` 10000) `quot` 100
+>     second = ((abs i) `rem` 100)
+>   in mkUTCTime (fromIntegral year) (fromIntegral month) (fromIntegral day)
+>                (fromIntegral hour) (fromIntegral minute) (fromIntegral second)
+
+> int64ToCalTime :: Int64 -> CalendarTime
+> int64ToCalTime i =
 >   let
 >     year = (i `quot` 10000000000)
 >     month = ((abs i) `rem` 10000000000) `quot` 100000000
@@ -214,21 +229,25 @@ This is used in a few tests...
 > expectEmptyString = [ ("hello1", "hello2", Just "") ]
 
 > sqlUnhandledNull = "select 'hello1', 'hello2', null from tdual"
-> iterUnhandledNull :: (Monad m) => String -> String -> CalendarTime
->                          -> IterAct m [(String, String, CalendarTime)]
+> iterUnhandledNull :: (Monad m) => String -> String -> UTCTime
+>                          -> IterAct m [(String, String, UTCTime)]
 > iterUnhandledNull c1 c2 c3 acc = result $ (c1, c2, c3):acc
 > expectUnhandledNull = []
 
 > sqlNullDate fns = "select 'hello1', 'hello2', " ++ (literalDate fns 0) ++ " from tdual"
-> iterNullDate :: (Monad m) => String -> String -> Maybe CalendarTime
->                          -> IterAct m [(String, String, CalendarTime)]
-> iterNullDate c1 c2 c3 acc = result $ (c1, c2, ifNull c3 (makeCalTime 10101000000)):acc
-> expectNullDate = [ ("hello1", "hello2", (makeCalTime 10101000000)) ]
+> iterNullDate :: (Monad m) => String -> String -> Maybe UTCTime
+>                          -> IterAct m [(String, String, UTCTime)]
+> iterNullDate c1 c2 c3 acc = result $ (c1, c2, ifNull c3 (int64ToUTCTime 10101000000)):acc
+> expectNullDate = [ ("hello1", "hello2", (int64ToUTCTime 10101000000)) ]
 
-> sqlDate fns = "select " ++ (literalDate fns 20041225235959) ++ " from tdual"
-> iterDate :: (Monad m) => CalendarTime -> IterAct m [CalendarTime]
+> sqlDate fns = "select " ++ (literalDate fns 20041224235959) ++ " from tdual"
+> iterDate :: (Monad m) => UTCTime -> IterAct m [UTCTime]
 > iterDate c1 acc = result $ c1:acc
-> expectDate = [ (makeCalTime 20041225235959) ]
+> expectDate = [ (int64ToUTCTime 20041224235959) ]
+
+> iterCalDate :: (Monad m) => CalendarTime -> IterAct m [CalendarTime]
+> iterCalDate c1 acc = result $ c1:acc
+> expectCalDate = [ (int64ToCalTime 20041224235959) ]
 
 
 These are the Oracle date boundary cases.
@@ -239,13 +258,13 @@ These are the Oracle date boundary cases.
 >   ++ " union select  " ++ (literalDate fns    (-10101000000)) ++ " from tdual"
 >   ++ " union select  " ++ (literalDate fns (-47120101000000)) ++ " from tdual"
 >   ++ " order by 1 desc"
-> iterBoundaryDates :: (Monad m) => CalendarTime -> IterAct m [CalendarTime]
+> iterBoundaryDates :: (Monad m) => UTCTime -> IterAct m [UTCTime]
 > iterBoundaryDates c1 acc = result $ c1:acc
 > expectBoundaryDates =
->   [ makeCalTime (-47120101000000)
->   , makeCalTime    (-10101000000)
->   , makeCalTime      10101000000
->   , makeCalTime   99991231000000
+>   [ int64ToUTCTime (-47120101000000)
+>   , int64ToUTCTime    (-10101000000)
+>   , int64ToUTCTime      10101000000
+>   , int64ToUTCTime   99991231000000
 >   ]
 
 |Goal: exercise the  "happy path" throught cursor code
@@ -310,6 +329,7 @@ the exception is not raised.
 > iterBindString i acc = result $ i:acc
 > expectBindString = ["b1", "a2"]
 > actionBindString stmt bindVals = do
+>   withTransaction Serialisable $ do
 >   withPreparedStatement stmt $ \pstmt -> do
 >   withBoundStatement pstmt bindVals $ \bstmt -> do
 >     actual <- doQuery bstmt iterBindString []
@@ -317,9 +337,10 @@ the exception is not raised.
 
 
 Each back-end has it's own idea of parameter placeholder syntax.
-We currently support ?-style, and each back-end converts occurences of ?
+We currently support ?-style as a lowest-common-denominator,
+and each back-end converts occurences of "?"
 to the back-end-specific style where required.
-If you use a back-end specific style, it should be passed
+If you use a back-end specific style, you can expect it to be passed
 through unmolested.
   ?  : ODBC, MS Sql Server, Sqlite
   :n : Oracle
@@ -330,6 +351,7 @@ through unmolested.
 > iterBindInt i acc = result $ i:acc
 > expectBindInt :: [Int]; expectBindInt = [2, 1]
 > actionBindInt stmt bindVals = do
+>   withTransaction Serialisable $ do
 >   withPreparedStatement stmt $ \pstmt -> do
 >   withBoundStatement pstmt bindVals $ \bstmt -> do
 >     actual <- doQuery bstmt iterBindInt []
@@ -346,10 +368,11 @@ through unmolested.
 >     assertEqual sqlBindIntDoubleString expectBindIntDoubleString actual
 
 > sqlBindDate = sqlSingleValue
-> iterBindDate :: (Monad m) => CalendarTime -> IterAct m [CalendarTime]
+> iterBindDate :: (Monad m) => UTCTime -> IterAct m [UTCTime]
 > iterBindDate c1 acc = result $ c1:acc
-> expectBindDate = [ (makeCalTime 20041225235959) ]
+> expectBindDate = [ (int64ToUTCTime 20041224235959) ]
 > actionBindDate stmt = do
+>   withTransaction Serialisable $ do
 >     actual <- doQuery stmt iterBindDate []
 >     assertEqual sqlBindDate expectBindDate actual
 

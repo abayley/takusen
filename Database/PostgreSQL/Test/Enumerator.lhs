@@ -81,7 +81,6 @@ SELECT n, takusenTestFunc(n) from t_natural where n < 10 order by n;
  
 > {-# OPTIONS -fglasgow-exts #-}
 > {-# OPTIONS -fallow-overlapping-instances #-}
-> {- # OPTIONS -ddump-hi #-}
 
 > module Database.PostgreSQL.Test.Enumerator (runTest) where
 
@@ -186,6 +185,9 @@ withPreparedStatement.
 
 > selectBindIntDoubleString _ = actionBindIntDoubleString
 >   (prefetch 0 sqlBindIntDoubleString [bindP (1::Int), bindP (2.2::Double), bindP "row 1", bindP (3::Int), bindP (4.4::Double), bindP "row 2"])
+
+> selectBindDate _ = actionBindDate
+>   (prefetch 1 sqlBindDate (map bindP expectBindDate))
 
 > selectRebindStmt _ = actionRebind
 >   (prepareStmt "1" (sql sqlRebind) [bindType (0::Int)])
@@ -308,14 +310,11 @@ which we can't yet marshal.
 >   [ selectNoRows, selectTerminatesEarly, selectFloatsAndInts
 >   , selectNullString, selectEmptyString, selectUnhandledNull
 >   -- leave date-time for now... we don't know how to marshal it.
->   -- , selectNullDate, selectDate, selectBoundaryDates
+>   , selectNullDate, selectDate, selectBoundaryDates
 >   , selectCursor, selectExhaustCursor, selectBindString
 >   , selectBindInt, selectBindIntDoubleString
->   -- , selectBindDate
+>   , selectBindDate
 >   , selectRebindStmt
 >   , selectMultiResultSet, selectNestedMultiResultSet, polymorphicFetchTest
 >   , polymorphicFetchTestNull, exceptionRollback, generateErrorMessageTest
 >   ]
-
-FIXME  Add tests for:
-  dates

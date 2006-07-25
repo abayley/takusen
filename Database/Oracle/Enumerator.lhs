@@ -60,6 +60,8 @@ How do we return output values back to the program?
 > import Control.Monad.Reader
 > import Data.IORef
 > import Data.Int
+> import Data.Time
+> import Data.Fixed
 > import System.Time
 > import System.IO (hPutStrLn, stderr)
 
@@ -547,6 +549,9 @@ that returns the value (from the buffer)?
 > instance DBBind (Maybe CalendarTime) Session PreparedStmt BindObj where
 >   bindP = makeBindAction
 
+> instance DBBind (Maybe UTCTime) Session PreparedStmt BindObj where
+>   bindP = makeBindAction
+
 > instance DBBind (Maybe a) Session PreparedStmt BindObj
 >     => DBBind a Session PreparedStmt BindObj where
 >   bindP x = bindP (Just x)
@@ -603,7 +608,13 @@ The default instance, uses generic Show
 >   bindType _ = oci_SQLT_FLT
 
 > instance OracleBind CalendarTime where
->   bindWithValue v a = withBinaryValue id v (\p dt -> dateTimeToBuffer (castPtr p) dt) a
+>   bindWithValue v a = withBinaryValue id v (\p dt -> calTimeToBuffer (castPtr p) dt) a
+>   bindSize _ = 7
+>   bindNullInd _ = 0
+>   bindType _ = oci_SQLT_DAT
+
+> instance OracleBind UTCTime where
+>   bindWithValue v a = withBinaryValue id v (\p dt -> utcTimeToBuffer (castPtr p) dt) a
 >   bindSize _ = 7
 >   bindNullInd _ = 0
 >   bindType _ = oci_SQLT_DAT
@@ -899,12 +910,27 @@ y = (year mod 100) + 100.
 >       , ctIsDST = False
 >       }
 
+> bufferToUTCTime :: ColumnBuffer -> IO (Maybe UTCTime)
+> bufferToUTCTime colbuf = maybeBufferNull colbuf Nothing $
+>   withForeignPtr (bufferFPtr colbuf) $ \bufferPtr -> do
+>     let buffer = castPtr bufferPtr
+>     --dumpBuffer (castPtr buffer)
+>     century100 <- byteToInt buffer 0
+>     year100 <- byteToInt buffer 1
+>     month <- byteToInt buffer 2
+>     day <- byteToInt buffer 3
+>     hour <- byteToInt buffer 4
+>     minute <- byteToInt buffer 5
+>     second <- byteToInt buffer 6
+>     let year = makeYear century100 year100
+>     return (Database.Enumerator.mkUTCTime year month day (hour-1) (minute-1) (second-1))
+
 > setBufferByte :: OCI.BufferPtr -> Int -> Word8 -> IO ()
 > setBufferByte buf n v =
 >   pokeByteOff buf n v
 
-> dateTimeToBuffer :: OCI.BufferPtr -> CalendarTime -> IO ()
-> dateTimeToBuffer buf ct = do
+> calTimeToBuffer :: OCI.BufferPtr -> CalendarTime -> IO ()
+> calTimeToBuffer buf ct = do
 >   setBufferByte buf 0 (makeCentByte (ctYear ct))
 >   setBufferByte buf 1 (makeYearByte (ctYear ct))
 >   setBufferByte buf 2 (fromIntegral ((fromEnum (ctMonth ct)) + 1))
@@ -913,6 +939,18 @@ y = (year mod 100) + 100.
 >   setBufferByte buf 5 (fromIntegral (ctMin ct + 1))
 >   setBufferByte buf 6 (fromIntegral (ctSec ct + 1))
 
+> utcTimeToBuffer :: OCI.BufferPtr -> UTCTime -> IO ()
+> utcTimeToBuffer buf utc = do
+>   let (LocalTime ltday time) = utcToLocalTime (hoursToTimeZone 0) utc
+>   let (TimeOfDay hour minute second) = time
+>   let (year, month, day) = toGregorian ltday
+>   setBufferByte buf 0 (makeCentByte (fromIntegral year))
+>   setBufferByte buf 1 (makeYearByte (fromIntegral year))
+>   setBufferByte buf 2 (fromIntegral month)
+>   setBufferByte buf 3 (fromIntegral day)
+>   setBufferByte buf 4 (fromIntegral (hour+1))
+>   setBufferByte buf 5 (fromIntegral (minute+1))
+>   setBufferByte buf 6 (round (second+1))
 
 
 > bufferPeekValue :: (Storable a) => ColumnBuffer -> IO a
@@ -972,11 +1010,17 @@ y = (year mod 100) + 100.
 >     if null outputBuffers then bufferToInt buffer
 >       else outputBufferToInt (outputBuffers !! ((colPos buffer) - 1))
 
+FIXME  implement output buffers...
+
 > outputBufferToInt buffer = return undefined
 
 > instance DBType (Maybe Double) Query ColumnBuffer where
 >   allocBufferFor _ q n = allocBuffer q (8, oci_SQLT_FLT) n
 >   fetchCol q buffer = bufferToDouble buffer
+
+> instance DBType (Maybe UTCTime) Query ColumnBuffer where
+>   allocBufferFor _ q n = allocBuffer q (7, oci_SQLT_DAT) n
+>   fetchCol q buffer = bufferToUTCTime buffer
 
 > instance DBType (Maybe CalendarTime) Query ColumnBuffer where
 >   allocBufferFor _ q n = allocBuffer q (7, oci_SQLT_DAT) n

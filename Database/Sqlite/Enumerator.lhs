@@ -35,6 +35,7 @@ Sqlite implementation of Database.Enumerator.
 > import Data.IORef
 > import Data.Int
 > import System.Time
+> import Data.Time
 
 
 --------------------------------------------------------------------
@@ -230,6 +231,9 @@ separate types for the two types of prepared statement...
 > instance DBBind (Maybe CalendarTime) Session PreparedStmt BindObj where
 >   bindP = makeBindAction
 
+> instance DBBind (Maybe UTCTime) Session PreparedStmt BindObj where
+>   bindP = makeBindAction
+
 > instance DBBind (Maybe a) Session PreparedStmt BindObj
 >     => DBBind a Session PreparedStmt BindObj where
 >   bindP x = bindP (Just x)
@@ -252,7 +256,10 @@ The default instance, uses generic Show
 > instance SqliteBind Double where stmtBind = DBAPI.bindDouble
 > instance SqliteBind CalendarTime where
 >   stmtBind db stmt pos val =
->     DBAPI.bindInt64 db stmt pos (makeInt64 val)
+>     DBAPI.bindInt64 db stmt pos (calTimeToInt64 val)
+> instance SqliteBind UTCTime where
+>   stmtBind db stmt pos val =
+>     DBAPI.bindInt64 db stmt pos (utcTimeToInt64 val)
 
 > bindMaybe :: (SqliteBind a)
 >   => DBHandle -> StmtHandle -> Maybe a -> Int -> IO ()
@@ -272,8 +279,8 @@ The default instance, uses generic Show
 Use quot and rem, /not/ div and mod,
 so that we get sensible behaviour for -ve numbers.
 
-> makeCalTime :: Int64 -> CalendarTime
-> makeCalTime i =
+> int64ToCalTime :: Int64 -> CalendarTime
+> int64ToCalTime i =
 >   let
 >     year = (i `quot` 10000000000)
 >     month = ((abs i) `rem` 10000000000) `quot` 100000000
@@ -296,8 +303,8 @@ so that we get sensible behaviour for -ve numbers.
 >     , ctIsDST = False
 >     }
 
-> makeInt64 :: CalendarTime -> Int64
-> makeInt64 ct =
+> calTimeToInt64 :: CalendarTime -> Int64
+> calTimeToInt64 ct =
 >   let
 >     yearm :: Int64
 >     yearm = 10000000000
@@ -308,6 +315,34 @@ so that we get sensible behaviour for -ve numbers.
 >   + 100 * fromIntegral (ctMin ct)
 >   + fromIntegral (ctSec ct)
 
+
+> int64ToUTCTime :: Int64 -> UTCTime
+> int64ToUTCTime i =
+>   let
+>     year = (i `quot` 10000000000)
+>     month = ((abs i) `rem` 10000000000) `quot` 100000000
+>     day = ((abs i) `rem` 100000000) `quot` 1000000
+>     hour = ((abs i) `rem` 1000000) `quot` 10000
+>     minute = ((abs i) `rem` 10000) `quot` 100
+>     second = ((abs i) `rem` 100)
+>   in Database.Enumerator.mkUTCTime
+>     (fromIntegral year) (fromIntegral month) (fromIntegral day)
+>     (fromIntegral hour) (fromIntegral minute) (fromIntegral second)
+
+
+> utcTimeToInt64 utc =
+>   let
+>     (LocalTime ltday time) = utcToLocalTime (hoursToTimeZone 0) utc
+>     (TimeOfDay hour minute second) = time
+>     (year, month, day) = toGregorian ltday
+>     yearm :: Int64
+>     yearm = 10000000000
+>   in  yearm * fromIntegral year
+>   + 100000000 * fromIntegral month
+>   + 1000000 * fromIntegral day
+>   + 10000 * fromIntegral hour
+>   + 100 * fromIntegral minute
+>   + fromIntegral (round second)
 
 --------------------------------------------------------------------
 -- ** Queries
@@ -391,9 +426,13 @@ so that we get sensible behaviour for -ve numbers.
 > nullDatetimeInt64 :: Int64
 > nullDatetimeInt64 = 99999999999999
 
-> bufferToDatetime query buffer = do
+> bufferToCalTime query buffer = do
 >   v <- DBAPI.colValInt64 (stmtHandle (queryStmt query)) (colPos buffer)
->   return (nullIf (v == 0 || v == nullDatetimeInt64) (makeCalTime v))
+>   return (nullIf (v == 0 || v == nullDatetimeInt64) (int64ToCalTime v))
+
+> bufferToUTCTime query buffer = do
+>   v <- DBAPI.colValInt64 (stmtHandle (queryStmt query)) (colPos buffer)
+>   return (nullIf (v == 0 || v == nullDatetimeInt64) (int64ToUTCTime v))
 
 
 |There aren't really Buffers to speak of with Sqlite,
@@ -431,7 +470,11 @@ as we need it to get column values.
 
 > instance DBType (Maybe CalendarTime) Query ColumnBuffer where
 >   allocBufferFor _ q n = allocBuffer undefined n
->   fetchCol q buffer = bufferToDatetime q buffer
+>   fetchCol q buffer = bufferToCalTime q buffer
+
+> instance DBType (Maybe UTCTime) Query ColumnBuffer where
+>   allocBufferFor _ q n = allocBuffer undefined n
+>   fetchCol q buffer = bufferToUTCTime q buffer
 
 
 |This single polymorphic instance replaces all of the type-specific non-Maybe instances

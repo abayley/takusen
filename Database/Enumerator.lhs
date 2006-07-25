@@ -83,29 +83,30 @@ but are not (necessarily) in this module. They include:
 >
 >     -- * Utilities
 >     , ifNull, result, result'
->     , print_
+>     , print_, mkUTCTime
 >   ) where
 
 > import Data.Dynamic
 > import Data.IORef
+> import Data.Time
 > import Control.Monad.Trans (liftIO)
 > import Control.Exception (throw, 
 >            dynExceptions, throwDyn, bracket, Exception, finally)
 > import qualified Control.Exception (catch)
 > import Control.Monad.Reader
 > import Control.Exception.MonadIO
-
 > import qualified Database.InternalEnumerator as IE
 > import Database.InternalEnumerator (DBException(..))
 
-| 'IterResult' and 'IterAct' give us some type sugar.
-Without them, the types of iteratee functions become
-quite unwieldy.
 
-> type IterResult seedType = Either seedType seedType
-> type IterAct m seedType = seedType -> m (IterResult seedType)
+-----------------------------------------------------------
 
-MyShow requires overlapping instances.
+This little section contains some utility code,
+which isn't really specific to our database code.
+Perhaps there should be a separate module for this...
+
+MyShow requires overlapping instances; conveniently,
+so does other code in this module.
 
 > class Show a => MyShow a where show_ :: a -> String
 > instance MyShow String where show_ s = s
@@ -115,6 +116,26 @@ MyShow requires overlapping instances.
 
 > print_ :: (MonadIO m, MyShow a) => a -> m ()
 > print_ s = liftIO (putStrLn (show_ s))
+
+| Convenience for making UTCTimes. Assumes the time given is already UTC time
+i.e. there's no timezone adjustment.
+
+> mkUTCTime :: Integral a => a -> a -> a -> a -> a -> a -> UTCTime
+> mkUTCTime year month day hour minute second =
+>   localTimeToUTC (hoursToTimeZone 0)
+>     (LocalTime
+>       (fromGregorian (fromIntegral year) (fromIntegral month) (fromIntegral day))
+>       (TimeOfDay (fromIntegral hour) (fromIntegral minute) (fromIntegral second)))
+
+-----------------------------------------------------------
+
+
+| 'IterResult' and 'IterAct' give us some type sugar.
+Without them, the types of iteratee functions become
+quite unwieldy.
+
+> type IterResult seedType = Either seedType seedType
+> type IterAct m seedType = seedType -> m (IterResult seedType)
 
 | Catch 'Database.InteralEnumerator.DBException's thrown in the 'DBM'
 monad.

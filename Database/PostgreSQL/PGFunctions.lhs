@@ -15,7 +15,6 @@ wrappers (in the second part of this file)
 
 > module Database.PostgreSQL.PGFunctions where
 
-> -- import Foreign.C.Unicode
 > import Foreign
 > import Foreign.C
 > import Foreign.Ptr
@@ -23,7 +22,7 @@ wrappers (in the second part of this file)
 > import Control.Exception
 > import Data.Dynamic
 > import Data.Int
-> import System.Time
+> import Data.Time
 > import System.IO
 
 
@@ -300,10 +299,13 @@ which take an array of OIDs to indicate parameter types.
 We can find the OIDs with this query:
 select typname, oid from pg_type
 
-> {-
-> instance TypeOID CalendarTime where typeOid _ = 1114  -- timestamp
-> -}
-
+PG timestamps are stored as 8-byte Doubles (i.e. double-precision
+floating point) holding the seconds before or after midnight 2000-01-01.
+timestamp with time zone = oid 1184  (8 bytes)
+timestamp without time zone = oid 1114  (8 bytes)
+time = oid 1083  (8 bytes)
+timetz = oid 1266  (12 bytes)
+date = oid 1082  (4 bytes)
 
 > class PGType a where
 >   pgTypeFormat :: a -> Format
@@ -324,6 +326,27 @@ select typname, oid from pg_type
 >   pgPeek ptr = if ptr == nullPtr then return Nothing else pgPeek ptr >>= return . Just
 >   pgSize Nothing = 0  -- what is the size of a null value?... probably irrelevant
 >   pgSize (Just v) = pgSize v
+
+> pgZeroDate :: UTCTime
+> pgZeroDate = UTCTime (fromGregorian 2000 1 1) 0
+
+> toPGTime :: UTCTime -> Double
+> toPGTime date = realToFrac (diffUTCTime date pgZeroDate)
+
+> fromPGTime :: Double -> UTCTime
+> fromPGTime secs = addUTCTime (realToFrac secs) pgZeroDate
+
+
+timestamp and timestamp with time zone are probably exactly the same
+in terms of internal representation, so it's really just an input-output
+semantics that the two types distinguish.
+
+> instance PGType UTCTime where
+>   pgTypeOid _ = 1114
+>   pgNewValue v = newBinaryValue toCDouble (toPGTime v)
+>   pgPeek p = peekValueRev undefined fromCDouble p >>= return . fromPGTime
+>   pgSize _ = (sizeOf (toCDouble 0.0))
+
 
 > instance PGType String where
 >   pgTypeFormat _ = 0
@@ -645,6 +668,9 @@ they're strings already.
 
 > colValFloat :: ResultSetHandle -> Int -> Int -> IO Float
 > colValFloat = colVal
+
+> colValUTCTime :: ResultSetHandle -> Int -> Int -> IO UTCTime
+> colValUTCTime = colValBinary
 
 
 > colValNull :: ResultSetHandle -> Int -> Int -> IO Bool

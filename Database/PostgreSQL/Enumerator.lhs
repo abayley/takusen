@@ -34,7 +34,7 @@ PostgreSQL implementation of Database.Enumerator.
 > import Data.IORef
 > import Data.Int
 > import Data.List
-> import System.Time
+> import Data.Time
 
 
 --------------------------------------------------------------------
@@ -273,6 +273,9 @@ which contains just the result-set (and row count).
 > makeBindAction x = BindA (\_ _ -> DBAPI.newBindVal x)
 
 > instance DBBind (Maybe String) Session PreparedStmt BindObj where
+>   bindP = makeBindAction
+
+> instance DBBind (Maybe UTCTime) Session PreparedStmt BindObj where
 >   bindP = makeBindAction
 
 > instance DBBind (Maybe Int) Session PreparedStmt BindObj where
@@ -520,6 +523,10 @@ An auxiliary function: buffer allocation
 >     v <- DBAPI.colValString (stmtHandle subq) (curr'row subq) (colPos buffer)
 >     appendRefCursor query (RefCursor v)
 >     return (RefCursor v)
+
+> instance DBType (Maybe UTCTime) Query ColumnBuffer where
+>   allocBufferFor _ q n = allocBuffer q n
+>   fetchCol = bufferToAny DBAPI.colValUTCTime
 
 > instance DBType (Maybe Int) Query ColumnBuffer where
 >   allocBufferFor _ q n = allocBuffer q n

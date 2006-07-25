@@ -21,7 +21,7 @@ Portability :  non-portable
 > import Database.PostgreSQL.PGFunctions
 > import System.Environment (getArgs)
 > import Test.MiniUnit
-
+> import Data.Time
 
 
 
@@ -41,7 +41,9 @@ Portability :  non-portable
 >   map ($ db)
 >   [ testSelectInts
 >   , testSelectDouble
->   --, testSelectDate
+>   , testSelectDate
+>   , testSelectDate2
+>   , testSelectDate3
 >   --, testSelectNumeric
 >   , testSelectStrings
 >   , testSelectInt64
@@ -50,6 +52,7 @@ Portability :  non-portable
 >   , testSelectManyRows
 >   , testBindString
 >   , testBindDouble
+>   , testBindDate
 >   , testCreateDual
 >   ]
 
@@ -150,15 +153,115 @@ Portability :  non-portable
 > testSelectDate db = do
 >   sn <- printPropagateError $ stmtPrepare db ""
 >     ("select timestamp with time zone '2000-01-01'"
->      ++ "union select timestamp with time zone '2001-01-01'"
+>      ++ " union select timestamp with time zone '2001-01-01'"
+>      ++ " union select timestamp with time zone '1999-01-01' order by 1"
 >     )
 >     []
+>   let
+>     d1 = UTCTime (fromGregorian 1999 1 1) 0
+>     d0 = UTCTime (fromGregorian 2000 1 1) 0
+>     d2 = UTCTime (fromGregorian 2001 1 1) 0
+>     diff1 = realToFrac (diffUTCTime d1 d0)
+>     diff2 = realToFrac (diffUTCTime d2 d0)
 >   (stmt,ntuples) <- stmtExec0 db sn
 >   n <- colValDouble stmt 1 1
->   assertEqual "testSelectDate: 0.0" 0.0 n
+>   assertEqual "testSelectDate: 1999" diff1 n
+>   d <- colValUTCTime stmt 1 1
+>   assertEqual "testSelectDate: 1999" d1 d
 >   n <- colValDouble stmt 2 1
->   assertEqual "testSelectDate: 1.0" 1.0 n
+>   assertEqual "testSelectDate: 2000" 0.0 n
+>   d <- colValUTCTime stmt 2 1
+>   assertEqual "testSelectDate: 2000" d0 d
+>   n <- colValDouble stmt 3 1
+>   assertEqual "testSelectDate: 2001" diff2 n
+>   d <- colValUTCTime stmt 3 1
+>   assertEqual "testSelectDate: 2001" d2 d
 >   stmtFinalise stmt
+
+> mkUTCTime :: Integral a => a -> a -> a -> a -> a -> a -> UTCTime
+> mkUTCTime year month day hour minute second =
+>   localTimeToUTC (hoursToTimeZone 0)
+>     (LocalTime
+>       (fromGregorian (fromIntegral year) (fromIntegral month) (fromIntegral day))
+>       (TimeOfDay (fromIntegral hour) (fromIntegral minute) (fromIntegral second)))
+
+
+Here we test some funny date boundary cases in Postgres.
+There's some funnyness around 1916-10-01 02:25:20 when we use time zones.
+
+testSelectDate2: 1, -2627156078
+testSelectDate2: 2, -2627156079
+testSelectDate2: 3, -2627156080 (without time zone)
+testSelectDate2: 4, -2627158159 (with time zone)
+diff 3-4: 2080 seconds = 00:34:40
+
+> testSelectDate2 db = do
+>   let
+>     sqltext =  "select timestamp without time zone '1916-10-01 02:25:22', 10"
+>      ++ " union select timestamp without time zone '1916-10-01 02:25:21', 20"
+>      ++ " union select timestamp without time zone '1916-10-01 02:25:20', 30"
+>      ++ " union select timestamp with time zone '1916-10-01 02:25:20' /* this one fails */, 40"
+>      ++ " order by 2"
+>   sn <- printPropagateError $ stmtPrepare db "" sqltext []
+>   let
+>     ds = (
+>            mkUTCTime 1916 10  1  2 25 22:
+>            mkUTCTime 1916 10  1  2 25 21:
+>            mkUTCTime 1916 10  1  2 25 20:
+>            mkUTCTime 1916 10  1  2 25 20:
+>          [] )
+>   (stmt,ntuples) <- stmtExec0 db sn
+>   let
+>     loop n =
+>       if n <= ntuples
+>         then do
+>         x <- colValDouble stmt n 1
+>         d <- colValUTCTime stmt n 1
+>         assertEqual ("testSelectDate2: " ++ show n ++ "\n" ++ sqltext) (ds!!(n-1)) d
+>         loop (n+1)
+>         else return ()
+>   loop 1
+>   stmtFinalise stmt
+
+
+Postgres only allows specification of -ve years by use of the AD/BC suffix.
+Sadly, this differs from the astronomical year number like so:
+astro: ...3,2,1,0,-1,-2,-3,...
+ad/bc: ...3AD,2AD,1AD,-1BC,-2BC,-3BC,...
+
+i.e. 0 astro = -1BC, -1 astro = -2BC, etc.
+
+ISO8601 uses astronomical years, so we ought to be able to write
+-1000-12-25 (instead of 1001-01-01 BC), but Postgres won't parse this.
+
+> testSelectDate3 db = do
+>   let
+>     sqltext =  "select timestamp without time zone '1900-01-01', 10"
+>      ++ " union select timestamp without time zone '1000-01-01', 20"
+>      ++ " union select timestamp without time zone '0001-01-01', 30"
+>      ++ " union select timestamp without time zone '1001-01-01 BC', 40"
+>      ++ " order by 2"
+>   sn <- printPropagateError $ stmtPrepare db "" sqltext []
+>   let
+>     ds = (
+>            mkUTCTime 1900 1  1  0 0 0:
+>            mkUTCTime 1000 1  1  0 0 0 :
+>            mkUTCTime 0001 1  1  0 0 0 :
+>            mkUTCTime (-1000) 1  1  0 0 0:
+>          [] )
+>   (stmt,ntuples) <- stmtExec0 db sn
+>   let
+>     loop n =
+>       if n <= ntuples
+>         then do
+>         x <- colValDouble stmt n 1
+>         d <- colValUTCTime stmt n 1
+>         assertEqual ("testSelectDate3: " ++ show n ++ "\n" ++ sqltext) (ds!!(n-1)) d
+>         loop (n+1)
+>         else return ()
+>   loop 1
+>   stmtFinalise stmt
+
 
 If we don't specify the type, Postgres gives the number the NUMERIC type.
 I don't yet know what the internal binary rep is, nor how to
@@ -253,4 +356,17 @@ convert it to an appropriate Haskell type.
 >     prepare'n'exec db "" (substituteBindPlaceHolders "select ? from tdual where ? = ?") bindvals
 >   n <- colValDouble rs 1 1
 >   assertEqual "testBindDouble: 2.3" 2.3 n
+>   stmtFinalise rs
+
+> testBindDate db = do
+>   let
+>     v1 :: UTCTime; v1 = UTCTime (fromGregorian 2000 1 1) 0
+>     v2 :: UTCTime; v2 = UTCTime (fromGregorian 1980 2 29) 0
+>     bindvals = [newBindVal v1, newBindVal v2]
+>   (rs, ntuples) <- printPropagateError $
+>     prepare'n'exec db "" (substituteBindPlaceHolders "select ?, ?") bindvals
+>   n <- colValUTCTime rs 1 1
+>   assertEqual "testBindDate: 1 " v1 n
+>   n <- colValUTCTime rs 1 2
+>   assertEqual "testBindDate: 2 " v2 n
 >   stmtFinalise rs

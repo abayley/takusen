@@ -80,6 +80,8 @@ Portability :  non-portable
 
 > selectDate dateFn = selectTest (sqlDate dateFn) iterDate expectDate
 
+> selectCalDate dateFn = selectTest (sqlDate dateFn) iterCalDate expectCalDate
+
 > selectBoundaryDates dateFn = selectTest (sqlBoundaryDates dateFn) iterBoundaryDates expectBoundaryDates
 
 > selectCursor fns = actionCursor (sqlCursor fns)
@@ -117,7 +119,7 @@ Portability :  non-portable
 > testList =
 >   [ selectNoRows, selectTerminatesEarly, selectFloatsAndInts
 >   , selectNullString, selectEmptyString, selectUnhandledNull
->   , selectNullDate, selectDate, selectBoundaryDates
+>   , selectNullDate, selectDate, selectCalDate, selectBoundaryDates
 >   , selectCursor, selectExhaustCursor
 >   , selectBindString, selectBindInt, selectBindIntDoubleString
 >   , selectBindDate, selectRebindStmt
