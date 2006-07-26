@@ -101,6 +101,9 @@ Portability :  non-portable
 > selectBindDate _ = actionBindDate
 >   (prefetch 1 sqlBindDate (map bindP expectBindDate))
 
+> selectBindBoundaryDates _ = actionBindBoundaryDates
+>   (prefetch 1 sqlBindBoundaryDates (map bindP expectBoundaryDates))
+
 > selectRebindStmt _ = actionRebind (prepareStmt (sql sqlRebind))
 >    [bindP (1::Int)] [bindP (2::Int)]
 
@@ -119,7 +122,7 @@ Portability :  non-portable
 >   , selectNullDate, selectDate, selectBoundaryDates
 >   , selectCursor, selectExhaustCursor
 >   , selectBindString, selectBindInt, selectBindIntDoubleString
->   , selectBindDate, selectRebindStmt
+>   , selectBindDate, selectBindBoundaryDates, selectRebindStmt
 >   , polymorphicFetchTest, polymorphicFetchTestNull
 >   , exceptionRollback
 >   ]

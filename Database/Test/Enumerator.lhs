@@ -376,6 +376,17 @@ through unmolested.
 >     actual <- doQuery stmt iterBindDate []
 >     assertEqual sqlBindDate expectBindDate actual
 
+> sqlBindBoundaryDates =
+>             "select ? from tdual"
+>   ++ " union select ? from tdual"
+>   ++ " union select ? from tdual"
+>   ++ " union select ? from tdual"
+>   ++ " order by 1 desc"
+> actionBindBoundaryDates stmt = do
+>   withTransaction Serialisable $ do
+>     actual <- doQuery stmt iterBindDate []
+>     assertEqual sqlBindBoundaryDates expectBoundaryDates actual
+
 With 'MyTree' we test the ability to send and receive arbtrary Show-able
 values as Strings i.e. we create our own datatype for the test.
 

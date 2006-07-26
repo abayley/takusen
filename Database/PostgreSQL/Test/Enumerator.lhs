@@ -189,6 +189,9 @@ withPreparedStatement.
 > selectBindDate _ = actionBindDate
 >   (prefetch 1 sqlBindDate (map bindP expectBindDate))
 
+> selectBindBoundaryDates _ = actionBindBoundaryDates
+>   (prefetch 1 sqlBindBoundaryDates (map bindP expectBoundaryDates))
+
 > selectRebindStmt _ = actionRebind
 >   (prepareStmt "1" (sql sqlRebind) [bindType (0::Int)])
 >   [bindP (1::Int)] [bindP (2::Int)]
@@ -313,7 +316,7 @@ which we can't yet marshal.
 >   , selectNullDate, selectDate, selectBoundaryDates
 >   , selectCursor, selectExhaustCursor, selectBindString
 >   , selectBindInt, selectBindIntDoubleString
->   , selectBindDate
+>   , selectBindDate, selectBindBoundaryDates
 >   , selectRebindStmt
 >   , selectMultiResultSet, selectNestedMultiResultSet, polymorphicFetchTest
 >   , polymorphicFetchTestNull, exceptionRollback, generateErrorMessageTest
