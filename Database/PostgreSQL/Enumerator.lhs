@@ -24,7 +24,7 @@ PostgreSQL implementation of Database.Enumerator.
 > where
 
 
-> import Database.Enumerator (print_, RefCursor(..), NextResultSet(..))
+> import Database.Enumerator (RefCursor(..), NextResultSet(..))
 > import qualified Database.Enumerator as Enum (PreparedStmt(..))
 > import Database.InternalEnumerator
 > import Foreign.C

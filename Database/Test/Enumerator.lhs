@@ -25,6 +25,7 @@ functions and types. See the various backend-specific test modules for examples.
 > module Database.Test.Enumerator where
 
 > import Database.Enumerator
+> import Database.Util
 > import Data.Time
 > import System.Time
 > import Data.Int
@@ -125,41 +126,6 @@ functions and types. See the various backend-specific test modules for examples.
 >   then "-" ++ (zeroPad n (abs i))
 >   else take (n - length (show i)) (repeat '0') ++ show i
 
-> int64ToUTCTime :: Int64 -> UTCTime
-> int64ToUTCTime i =
->   let
->     year = (i `quot` 10000000000)
->     month = ((abs i) `rem` 10000000000) `quot` 100000000
->     day = ((abs i) `rem` 100000000) `quot` 1000000
->     hour = ((abs i) `rem` 1000000) `quot` 10000
->     minute = ((abs i) `rem` 10000) `quot` 100
->     second = ((abs i) `rem` 100)
->   in mkUTCTime (fromIntegral year) (fromIntegral month) (fromIntegral day)
->                (fromIntegral hour) (fromIntegral minute) (fromIntegral second)
-
-> int64ToCalTime :: Int64 -> CalendarTime
-> int64ToCalTime i =
->   let
->     year = (i `quot` 10000000000)
->     month = ((abs i) `rem` 10000000000) `quot` 100000000
->     day = ((abs i) `rem` 100000000) `quot` 1000000
->     hour = ((abs i) `rem` 1000000) `quot` 10000
->     minute = ((abs i) `rem` 10000) `quot` 100
->     second = ((abs i) `rem` 100)
->   in CalendarTime
->     { ctYear = fromIntegral year
->     , ctMonth = toEnum (fromIntegral month - 1)
->     , ctDay = fromIntegral day
->     , ctHour = fromIntegral hour
->     , ctMin = fromIntegral minute
->     , ctSec = fromIntegral second
->     , ctPicosec = 0
->     , ctWDay = Sunday
->     , ctYDay = -1
->     , ctTZName = "UTC"
->     , ctTZ = 0
->     , ctIsDST = False
->     }
 
 > execDDL_ s = catchDB (execDDL s) (\e -> liftIO (reportError s e) >> throwDB e)
 

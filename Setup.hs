@@ -9,9 +9,21 @@ import Control.Exception (try)
 import System.Exit (ExitCode(..))
 
 {-
-Oracle: -I"C:\Program Files\PostgreSQL\8.1\include" -lpq -L"C:\Program Files\PostgreSQL\8.1\bin"
+To-dos for Takusen:
+fix PG installation to use pg_config
+use hsc2hs to create #define constants from header files, rather than hard-code them.
+fix network-byte-order marshalling in Database.PostgreSQL.PGFunctions
+  (only works on little-endian architectures, like x86).
+Tests for Oracle ResultSet cursors.
+Blob support (and clob?).
+ODBC back-end.
+Sql Server back-end.
+-}
+
+{-
+PGSql : -I"C:\Program Files\PostgreSQL\8.1\include" -lpq -L"C:\Program Files\PostgreSQL\8.1\bin"
 Sqlite: -I"C:\Program Files\sqlite" -lsqlite3 -L"C:\Program Files\sqlite"
-PGSql : -I"C:\Program Files\Oracle\OraHome817\oci\include" -loci -L"C:\Program Files\Oracle\OraHome817\bin"
+Oracle: -I"C:\Program Files\Oracle\OraHome817\oci\include" -loci -L"C:\Program Files\Oracle\OraHome817\bin"
 -}
 
 main = defaultMainWithHooks defaultUserHooks{preConf=preConf, postConf=postConf}

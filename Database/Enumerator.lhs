@@ -83,7 +83,6 @@ but are not (necessarily) in this module. They include:
 >
 >     -- * Utilities
 >     , ifNull, result, result'
->     , print_, mkUTCTime
 >   ) where
 
 > import Data.Dynamic
@@ -101,31 +100,6 @@ but are not (necessarily) in this module. They include:
 
 -----------------------------------------------------------
 
-This little section contains some utility code,
-which isn't really specific to our database code.
-Perhaps there should be a separate module for this...
-
-MyShow requires overlapping instances; conveniently,
-so does other code in this module.
-
-> class Show a => MyShow a where show_ :: a -> String
-> instance MyShow String where show_ s = s
-> instance (Show a) => MyShow a where show_ s = show s
-
-| Like 'System.IO.print', except that Strings are not escaped or quoted.
-
-> print_ :: (MonadIO m, MyShow a) => a -> m ()
-> print_ s = liftIO (putStrLn (show_ s))
-
-| Convenience for making UTCTimes. Assumes the time given is already UTC time
-i.e. there's no timezone adjustment.
-
-> mkUTCTime :: Integral a => a -> a -> a -> a -> a -> a -> UTCTime
-> mkUTCTime year month day hour minute second =
->   localTimeToUTC (hoursToTimeZone 0)
->     (LocalTime
->       (fromGregorian (fromIntegral year) (fromIntegral month) (fromIntegral day))
->       (TimeOfDay (fromIntegral hour) (fromIntegral minute) (fromIntegral second)))
 
 -----------------------------------------------------------
 
@@ -257,10 +231,12 @@ marked objects.
 > data RefCursor a = RefCursor a
 
 
-The exception handling here looks awkward, but there's a good reason...
-Let's say there's some sort of error when we call destroyStmt.
+The exception handling in withPreparedStatement looks awkward,
+but there's a good reason...
+
+Suppose there's some sort of error when we call destroyStmt.
 The exception handler also must call destroyStmt (because the exception
-might have also come from the invocation of action), but this call
+might have also come from the invocation of action), but calling destroyStmt
 might also raise a new exception (for example, a different error is raised
 if you re-try a failed CLOSE-cursor, because the transaction is aborted).
 So we wrap this call with a catch, and ensure that the original exception
@@ -621,7 +597,7 @@ Let's look at some example code:
  >   withSession (connect "user" "password" "server") $ do
  >     -- simple query, returning reversed list of rows.
  >     r <- doQuery (sql "select a, b, c from x") query1Iteratee []
- >     putStrLn $ show r
+ >     liftIO $ putStrLn $ show r
  >     otherActions session
  
  Notes:

@@ -16,6 +16,7 @@ Performance tests. Currently just tests large result sets.
 > module Database.Test.Performance where
 
 > import Database.Enumerator
+> import Database.Util
 > import System.Environment (getArgs)
 > import Control.Monad
 > import System.Time

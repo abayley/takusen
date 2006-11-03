@@ -24,6 +24,7 @@ Sqlite implementation of Database.Enumerator.
 
 > import qualified Database.Enumerator
 > import Database.InternalEnumerator
+> import Database.Util
 > import Foreign.C
 > import Control.Monad
 > import Control.Exception
@@ -269,80 +270,6 @@ The default instance, uses generic Show
 >     Just val -> stmtBind db stmt pos val
 
 
-
-20040822073512
-   10000000000 (10 ^ 10) * year
-     100000000 (10 ^ 8) * month
-       1000000 (10 ^ 6) * day
-         10000  (10^4) * hour
-
-Use quot and rem, /not/ div and mod,
-so that we get sensible behaviour for -ve numbers.
-
-> int64ToCalTime :: Int64 -> CalendarTime
-> int64ToCalTime i =
->   let
->     year = (i `quot` 10000000000)
->     month = ((abs i) `rem` 10000000000) `quot` 100000000
->     day = ((abs i) `rem` 100000000) `quot` 1000000
->     hour = ((abs i) `rem` 1000000) `quot` 10000
->     minute = ((abs i) `rem` 10000) `quot` 100
->     second = ((abs i) `rem` 100)
->   in CalendarTime
->     { ctYear = fromIntegral year
->     , ctMonth = toEnum (fromIntegral month - 1)
->     , ctDay = fromIntegral day
->     , ctHour = fromIntegral hour
->     , ctMin = fromIntegral minute
->     , ctSec = fromIntegral second
->     , ctPicosec = 0
->     , ctWDay = Sunday
->     , ctYDay = -1
->     , ctTZName = "UTC"
->     , ctTZ = 0
->     , ctIsDST = False
->     }
-
-> calTimeToInt64 :: CalendarTime -> Int64
-> calTimeToInt64 ct =
->   let
->     yearm :: Int64
->     yearm = 10000000000
->   in  yearm * fromIntegral (ctYear ct)
->   + 100000000 * fromIntegral ((fromEnum (ctMonth ct) + 1))
->   + 1000000 * fromIntegral (ctDay ct)
->   + 10000 * fromIntegral (ctHour ct)
->   + 100 * fromIntegral (ctMin ct)
->   + fromIntegral (ctSec ct)
-
-
-> int64ToUTCTime :: Int64 -> UTCTime
-> int64ToUTCTime i =
->   let
->     year = (i `quot` 10000000000)
->     month = ((abs i) `rem` 10000000000) `quot` 100000000
->     day = ((abs i) `rem` 100000000) `quot` 1000000
->     hour = ((abs i) `rem` 1000000) `quot` 10000
->     minute = ((abs i) `rem` 10000) `quot` 100
->     second = ((abs i) `rem` 100)
->   in Database.Enumerator.mkUTCTime
->     (fromIntegral year) (fromIntegral month) (fromIntegral day)
->     (fromIntegral hour) (fromIntegral minute) (fromIntegral second)
-
-
-> utcTimeToInt64 utc =
->   let
->     (LocalTime ltday time) = utcToLocalTime (hoursToTimeZone 0) utc
->     (TimeOfDay hour minute second) = time
->     (year, month, day) = toGregorian ltday
->     yearm :: Int64
->     yearm = 10000000000
->   in  yearm * fromIntegral year
->   + 100000000 * fromIntegral month
->   + 1000000 * fromIntegral day
->   + 10000 * fromIntegral hour
->   + 100 * fromIntegral minute
->   + fromIntegral (round second)
 
 --------------------------------------------------------------------
 -- ** Queries

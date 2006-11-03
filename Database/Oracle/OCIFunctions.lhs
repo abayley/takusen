@@ -30,12 +30,14 @@ See 'formatErrorCodeDesc' for the set of possible values for the OCI error numbe
 
 
 > import Database.Oracle.OCIConstants
+> import Database.Util
 > import Foreign
 > import Foreign.C
 > import Control.Monad
 > import Control.Exception
 > import Data.Dynamic
-
+> import System.Time
+> import Data.Time
 
 
 
@@ -52,7 +54,10 @@ See 'formatErrorCodeDesc' for the set of possible values for the OCI error numbe
 > type OCIHandle = Ptr OCIStruct  -- generic Handle for OCI functions that return Handles
 > data OCIBuffer = OCIBuffer  -- generic buffer. Could hold anything: value or pointer.
 > type BufferPtr = Ptr OCIBuffer
+> type BufferFPtr = ForeignPtr OCIBuffer
 > type ColumnResultBuffer = ForeignPtr OCIBuffer  -- use ForeignPtr to ensure GC'd
+> -- triple of (nullind, buffer, size)
+> type BindBuffer = (ForeignPtr CShort, ForeignPtr OCIBuffer, ForeignPtr CUShort)
 > data Context = Context
 > type ContextPtr = Ptr Context
 
@@ -76,7 +81,7 @@ See 'formatErrorCodeDesc' for the set of possible values for the OCI error numbe
 > type ParamHandle = Ptr ParamStruct
 > data BindStruct = BindStruct
 > type BindHandle = Ptr BindStruct
-> type ColumnInfo = (DefnHandle, ColumnResultBuffer, ForeignPtr CShort, ForeignPtr CShort)
+> type ColumnInfo = (DefnHandle, ColumnResultBuffer, ForeignPtr CShort, ForeignPtr CUShort)
 
 
 |Low-level, OCI library errors.
@@ -105,6 +110,9 @@ If we can't derive Typeable then the following code should do the trick:
 
 > mkCShort :: CInt -> CShort
 > mkCShort n = fromIntegral n
+
+> mkCUShort :: CInt -> CUShort
+> mkCUShort n = fromIntegral n
 
 > cStrLen :: CStringLen -> CInt
 > cStrLen = mkCInt . snd
@@ -147,7 +155,7 @@ If we can't derive Typeable then the following code should do the trick:
 
 > foreign import ccall "oci.h OCIStmtPrepare" ociStmtPrepare :: StmtHandle -> ErrorHandle -> CString -> CInt -> CInt -> CInt -> IO CInt
 > foreign import ccall "oci.h OCIDefineByPos" ociDefineByPos
->   :: StmtHandle -> Ptr DefnHandle -> ErrorHandle -> CInt -> BufferPtr -> CInt -> CShort -> Ptr CShort -> Ptr CShort -> Ptr CShort -> CInt -> IO CInt
+>   :: StmtHandle -> Ptr DefnHandle -> ErrorHandle -> CInt -> BufferPtr -> CInt -> CUShort -> Ptr CShort -> Ptr CUShort -> Ptr CUShort -> CInt -> IO CInt
 > foreign import ccall "oci.h OCIStmtExecute" ociStmtExecute :: ConnHandle -> StmtHandle -> ErrorHandle -> CInt -> CInt -> OCIHandle -> OCIHandle -> CInt -> IO CInt
 > foreign import ccall "oci.h OCIStmtFetch" ociStmtFetch :: StmtHandle -> ErrorHandle -> CInt -> CShort -> CInt -> IO CInt
  
@@ -497,7 +505,7 @@ The caller will also have to cast the data in bufferptr to the expected type
 >     withForeignPtr bufferFPtr $ \bufferPtr ->
 >     withForeignPtr nullIndFPtr $ \nullIndPtr ->
 >     withForeignPtr retSizeFPtr $ \retSizePtr -> do
->     rc <- ociDefineByPos stmt defnPtr err (mkCInt posn) bufferPtr (mkCInt bufsize) (mkCShort sqldatatype) nullIndPtr retSizePtr nullPtr oci_DEFAULT
+>     rc <- ociDefineByPos stmt defnPtr err (mkCInt posn) bufferPtr (mkCInt bufsize) (mkCUShort sqldatatype) nullIndPtr retSizePtr nullPtr oci_DEFAULT
 >     defn <- peek defnPtr  -- no need for caller to free defn; I think freeing the stmt handle does it.
 >     testForError rc "defineByPos" (defn, bufferFPtr, nullIndFPtr, retSizeFPtr)
 
@@ -534,39 +542,47 @@ If you want to use this library and use :x style syntax, you can.
 >   -> Int   -- ^ payload size in bytes
 >   -> CInt  -- ^ SQL Datatype (from "Database.Oracle.OCIConstants")
 >   -> IO ()
-> bindByPos err stmt pos nullInd bufptr sze sqltype =
->   alloca $ \bindHdl ->
->   alloca $ \indPtr -> do
->     poke indPtr nullInd
->     -- we don't use the bind handle returned; I think it's freed when the stmt is.
->     rc <- ociBindByPos stmt bindHdl err (fromIntegral pos) bufptr
->             (fromIntegral sze) (fromIntegral sqltype)
->             indPtr nullPtr nullPtr nullPtr nullPtr (fromIntegral oci_DEFAULT)
->     testForError rc "bindByPos" ()
+> bindByPos err stmt pos nullInd bufptr sze sqltype = do
+>   indFPtr <- mallocForeignPtr
+>   sizeFPtr <- mallocForeignPtr
+>   withForeignPtr indFPtr $ \p -> poke p nullInd
+>   -- You can't put any old junk in the return-size field,
+>   -- even if the parameter is IN-only.
+>   -- So tell it how big the input buffer is.
+>   withForeignPtr sizeFPtr $ \p -> poke p (fromIntegral sze)
+>   bufFPtr <- newForeignPtr_ bufptr
+>   bindOutputByPos err stmt pos (indFPtr, bufFPtr, sizeFPtr) sze sqltype
+>   return ()
+
+Note that this function takes a ForeignPtr to the output-size
+(in the triple) and also a size parameter, which is the input size.
+We need to provide both, apparently, regardless of actual parameter
+direction.
 
 > bindOutputByPos ::
 >   ErrorHandle
 >   -> StmtHandle
 >   -> Int   -- ^ Position
->   -> ForeignPtr CShort   -- ^ Null ind: 0 == not null, -1 == null
->   -> ForeignPtr OCIBuffer  -- ^ payload
->   -> Int   -- ^ payload size in bytes
+>   -> BindBuffer  -- ^ triple of (null-ind, payload, output-size)
+>   -> Int   -- ^ payload input size in bytes
 >   -> CInt  -- ^ SQL Datatype (from "Database.Oracle.OCIConstants")
 >   -> IO BindHandle
-> bindOutputByPos err stmt pos nullIndFPtr bufFPtr sze sqltype =
+> bindOutputByPos err stmt pos (nullIndFPtr, bufFPtr, sizeFPtr) sze sqltype =
 >   alloca $ \bindHdl ->
 >   withForeignPtr nullIndFPtr $ \indPtr -> do
+>   withForeignPtr sizeFPtr $ \sizePtr -> do
 >   withForeignPtr bufFPtr $ \bufPtr -> do
->     -- we don't use the bind handle returned; I think it's freed when the stmt is.
 >     rc <- ociBindByPos stmt bindHdl err (fromIntegral pos) bufPtr
 >             (fromIntegral sze) (fromIntegral sqltype)
->             indPtr nullPtr nullPtr nullPtr nullPtr (fromIntegral oci_DEFAULT)
+>             indPtr sizePtr nullPtr nullPtr nullPtr (fromIntegral oci_DEFAULT)
 >     testForError rc "bindOutputByPos" ()
 >     bptr <- peek bindHdl
 >     return bptr
 
-|stmtFetch takes a lot of wall-clock time
-because it involves a network trip to the DBMS for each call.
+
+| Fetch a single row into the buffers.
+If you have specified a prefetch count > 1 then the row
+might already be cached by the OCI library.
 
 > stmtFetch :: ErrorHandle -> StmtHandle -> IO CInt
 > stmtFetch err stmt = do
@@ -608,3 +624,188 @@ bind variables in a RETURNING clause:
    5. No duplicate binds are allowed in a DML statement with a
       RETURNING clause, such as no duplication between bind variables
       in the DML section and the RETURNING section of the statement.
+
+|Short-circuit null test: if the buffer contains a null then return Nothing.
+Otherwise, run the IO action to extract a value from the buffer and return Just it.
+
+> maybeBufferNull :: ForeignPtr CShort -> Maybe a -> IO a -> IO (Maybe a)
+> maybeBufferNull nullIndFPtr nullVal action =
+>   withForeignPtr nullIndFPtr $ \nullIndPtr -> do
+>     nullInd <- liftM cShort2Int (peek nullIndPtr)
+>     if (nullInd == -1)  -- -1 == null, 0 == value
+>       then return nullVal
+>       else do
+>         v <- action
+>         return (Just v)
+
+
+> nullByte :: CChar
+> nullByte = 0
+
+> cShort2Int :: CShort -> Int
+> cShort2Int n = fromIntegral n
+
+> cUShort2Int :: CUShort -> Int
+> cUShort2Int n = fromIntegral n
+
+> cuCharToInt :: CUChar -> Int
+> cuCharToInt c = fromIntegral c
+
+> byteToInt :: Ptr CUChar -> Int -> IO Int
+> byteToInt buffer n = do
+>   b <- peekByteOff buffer n
+>   return (cuCharToInt b)
+
+
+> bufferToString :: ColumnInfo -> IO (Maybe String)
+> bufferToString (_, bufFPtr, nullFPtr, sizeFPtr) =
+>   withForeignPtr nullFPtr $ \nullIndPtr -> do
+>     nullInd <- liftM cShort2Int (peek nullIndPtr)
+>     if (nullInd == -1)  -- -1 == null, 0 == value
+>       then return Nothing
+>       else do
+>         -- Given a column buffer, extract a string of variable length
+>         -- (you have to terminate it yourself).
+>         withForeignPtr bufFPtr $ \bufferPtr ->
+>           withForeignPtr sizeFPtr $ \retSizePtr -> do
+>             retsize <- liftM cUShort2Int (peek retSizePtr)
+>             pokeByteOff (castPtr bufferPtr) retsize nullByte
+>             val <- peekCString (castPtr bufferPtr)
+>             return (Just val)
+
+
+| Oracle's excess-something-or-other encoding for years:
+year = 100*(c - 100) + (y - 100),
+c = (year div 100) + 100,
+y = (year mod 100) + 100.
+
++1999 -> 119, 199
++0100 -> 101, 100
++0001 -> 100, 101
+-0001 -> 100,  99
+-0100 ->  99, 100
+-1999 ->  81,   1
+
+> makeYear :: Int -> Int -> Int
+> makeYear c100 y100 = 100 * (c100 - 100) + (y100 - 100)
+
+> makeYearByte :: Int -> Word8
+> makeYearByte y = fromIntegral ((rem y 100) + 100)
+
+> makeCentByte :: Int -> Word8
+> makeCentByte y = fromIntegral ((quot y 100) + 100)
+
+> dumpBuffer :: Ptr Word8 -> IO ()
+> dumpBuffer buf = do
+>   dumpByte 0
+>   dumpByte 1
+>   dumpByte 2
+>   dumpByte 3
+>   dumpByte 4
+>   dumpByte 5
+>   dumpByte 6
+>   putStrLn ""
+>   where
+>   dumpByte n = do
+>     b <- (peekByteOff buf n :: IO Word8)
+>     putStr $ (show b) ++ " "
+
+
+> bufferToCaltime :: ForeignPtr CShort -> BufferFPtr -> IO (Maybe CalendarTime)
+> bufferToCaltime nullind fptr = maybeBufferNull nullind Nothing $
+>   withForeignPtr fptr $ \bufferPtr -> do
+>     let buffer = castPtr bufferPtr
+>     --dumpBuffer (castPtr buffer)
+>     century100 <- byteToInt buffer 0
+>     year100 <- byteToInt buffer 1
+>     month <- byteToInt buffer 2
+>     day <- byteToInt buffer 3
+>     hour <- byteToInt buffer 4
+>     minute <- byteToInt buffer 5
+>     second <- byteToInt buffer 6
+>     return $ CalendarTime
+>       { ctYear = makeYear century100 year100
+>       , ctMonth = toEnum (month - 1)
+>       , ctDay = day
+>       , ctHour = hour - 1
+>       , ctMin = minute - 1
+>       , ctSec = second - 1
+>       , ctPicosec = 0
+>       , ctWDay = Sunday
+>       , ctYDay = -1
+>       , ctTZName = "UTC"
+>       , ctTZ = 0
+>       , ctIsDST = False
+>       }
+
+> bufferToUTCTime :: ForeignPtr CShort -> BufferFPtr -> IO (Maybe UTCTime)
+> bufferToUTCTime nullind fptr = maybeBufferNull nullind Nothing $
+>   withForeignPtr fptr $ \bufferPtr -> do
+>     let buffer = castPtr bufferPtr
+>     --dumpBuffer (castPtr buffer)
+>     century100 <- byteToInt buffer 0
+>     year100 <- byteToInt buffer 1
+>     month <- byteToInt buffer 2
+>     day <- byteToInt buffer 3
+>     hour <- byteToInt buffer 4
+>     minute <- byteToInt buffer 5
+>     second <- byteToInt buffer 6
+>     let year = makeYear century100 year100
+>     return (mkUTCTime year month day (hour-1) (minute-1) (second-1))
+
+> setBufferByte :: BufferPtr -> Int -> Word8 -> IO ()
+> setBufferByte buf n v = pokeByteOff buf n v
+
+> calTimeToBuffer :: BufferPtr -> CalendarTime -> IO ()
+> calTimeToBuffer buf ct = do
+>   setBufferByte buf 0 (makeCentByte (ctYear ct))
+>   setBufferByte buf 1 (makeYearByte (ctYear ct))
+>   setBufferByte buf 2 (fromIntegral ((fromEnum (ctMonth ct)) + 1))
+>   setBufferByte buf 3 (fromIntegral (ctDay ct))
+>   setBufferByte buf 4 (fromIntegral (ctHour ct + 1))
+>   setBufferByte buf 5 (fromIntegral (ctMin ct + 1))
+>   setBufferByte buf 6 (fromIntegral (ctSec ct + 1))
+
+> utcTimeToBuffer :: BufferPtr -> UTCTime -> IO ()
+> utcTimeToBuffer buf utc = do
+>   let (LocalTime ltday time) = utcToLocalTime (hoursToTimeZone 0) utc
+>   let (TimeOfDay hour minute second) = time
+>   let (year, month, day) = toGregorian ltday
+>   setBufferByte buf 0 (makeCentByte (fromIntegral year))
+>   setBufferByte buf 1 (makeYearByte (fromIntegral year))
+>   setBufferByte buf 2 (fromIntegral month)
+>   setBufferByte buf 3 (fromIntegral day)
+>   setBufferByte buf 4 (fromIntegral (hour+1))
+>   setBufferByte buf 5 (fromIntegral (minute+1))
+>   setBufferByte buf 6 (round (second+1))
+
+
+> bufferPeekValue :: (Storable a) => BufferFPtr -> IO a
+> bufferPeekValue buffer = do
+>   v <- withForeignPtr buffer $ \bufferPtr -> peek $ castPtr bufferPtr
+>   return v
+
+> bufferToA :: (Storable a) => ForeignPtr CShort -> BufferFPtr -> IO (Maybe a)
+> bufferToA nullind buffer = maybeBufferNull nullind Nothing (bufferPeekValue buffer)
+
+> bufferToCInt :: ForeignPtr CShort -> BufferFPtr -> IO (Maybe CInt)
+> bufferToCInt = bufferToA
+
+> bufferToInt :: ForeignPtr CShort -> BufferFPtr -> IO (Maybe Int)
+> bufferToInt nullind b = do
+>   cint <- bufferToCInt nullind b
+>   return $ maybe Nothing (Just . fromIntegral) cint
+
+> bufferToCDouble :: ForeignPtr CShort -> BufferFPtr -> IO (Maybe CDouble)
+> bufferToCDouble = bufferToA
+
+> bufferToDouble :: ForeignPtr CShort -> BufferFPtr -> IO (Maybe Double)
+> bufferToDouble nullind b = do
+>   cdbl <- bufferToCDouble nullind b
+>   return $ maybe Nothing (Just . realToFrac) cdbl
+
+> bufferToStmtHandle :: BufferFPtr -> IO StmtHandle
+> bufferToStmtHandle buffer = do
+>   withForeignPtr buffer $ \bufferPtr -> do
+>     v <- peek (castPtr bufferPtr)
+>     return v

@@ -27,6 +27,7 @@ import Control.Exception
 import Control.Monad
 import Control.Monad.Trans (liftIO)
 import System.IO.Error (ioeGetErrorString)
+import System.IO
 import Data.List
 import Data.IORef
 
@@ -126,7 +127,7 @@ runTestTT desc list = do
   liftIO (putStrLn "")
   when (desc /= "") (liftIO (putStr (desc ++ " - ")))
   liftIO (putStrLn ("Test case count: " ++ show (length list)))
-  r <- mapM (\(n, t) -> liftIO (putStr ".") >> runSingleTestTT n t) (zip [1..] list)
+  r <- mapM (\(n, t) -> liftIO (putStr "." >> hFlush stdout) >> runSingleTestTT n t) (zip [1..] list)
   liftIO (putStrLn "")
   liftIO (putStrLn (reportResults r))
   if contains isError r

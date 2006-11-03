@@ -37,14 +37,15 @@ How do we return output values back to the program?
 
 > module Database.Oracle.Enumerator
 >   ( Session, connect
->   , prepareStmt, sql, sqlbind, prefetch
+>   , prepareStmt, sql, sqlbind, prefetch, preparePrefetch
+>   , StmtHandle, Out(..)
 >   , module Database.Enumerator
 >   )
 > where
 
 
 > import qualified Database.Enumerator
-> import Database.Enumerator (print_, RefCursor(..), NextResultSet(..))
+> import Database.Enumerator (RefCursor(..), NextResultSet(..))
 > import qualified Database.Enumerator as Enum (PreparedStmt(..))
 > import Database.InternalEnumerator
 > import Database.Oracle.OCIConstants
@@ -58,6 +59,8 @@ How do we return output values back to the program?
 > import Control.Exception
 > import Control.Monad.Trans
 > import Control.Monad.Reader
+> import Data.Char (toLower)
+> import Data.List (isPrefixOf)
 > import Data.IORef
 > import Data.Int
 > import Data.Time
@@ -411,6 +414,10 @@ there's no equivalent for ReadUncommitted.
 >   (\_ err _ -> OCI.bindByPos err (stmtHandle stmt) posn nullind val bufsize sqldatatype)
 >   (closeStmt session (stmtHandle stmt))
 
+> bindOutputByPos :: Session -> PreparedStmt -> Int -> OCI.BindBuffer -> Int -> CInt -> IO OCI.BindHandle
+> bindOutputByPos session stmt posn buffer bufsize sqldatatype = inSession session
+>   (\_ err _ -> OCI.bindOutputByPos err (stmtHandle stmt) posn buffer bufsize sqldatatype)
+>   (closeStmt session (stmtHandle stmt))
 
 --------------------------------------------------------------------
 -- ** Sessions
@@ -423,18 +430,38 @@ there's no equivalent for ReadUncommitted.
 -- Statements and Commands
 --------------------------------------------------------------------
 
+==== A wrapper for SQL statements ====
+
+When we execute queries with the OCI,
+we need to specify how many times the statement should be executed.
+For select statements it is zero (!?), while everything else is one
+(>1 executions is for array binds).
+
+For a select, if you have defined output buffers then iterations
+says ho many rows to put in the buffers immediately after the execute
+(so there's no need for a call to OCIStmtFetch).
+We don't use this, and set up the buffers after the execute.
+
+So there's a distinction between queries and commands.
+Note that PL/SQL blocks which populate output bind buffers
+are treated like queries by our library,
+so we need some way of distinguishing between queries and commands.
+
 > newtype QueryString = QueryString String
 
 > sql :: String -> QueryString
 > sql str = QueryString str
 
+
 > instance Command QueryString Session where
->   executeCommand sess (QueryString str) = do
->     stmt <- getStmt sess
->     stmtPrepare sess stmt str
->     n <- execute sess stmt 1
->     closeStmt sess stmt
->     return (fromIntegral n)
+>   executeCommand sess (QueryString str) = doCommand sess str
+
+> doCommand sess str = do
+>   stmt <- getStmt sess
+>   stmtPrepare sess stmt str
+>   n <- execute sess stmt 1
+>   closeStmt sess stmt
+>   return (fromIntegral n)
 
 > instance Command String Session where
 >   executeCommand sess str = executeCommand sess (sql str)
@@ -451,7 +478,6 @@ there's no equivalent for ReadUncommitted.
 >   commit sess = commitTrans sess
 >   rollback sess = rollbackTrans sess
 
-About stmtFreeWithQuery:
 
 We need to keep track of the scope of the PreparedStmt
 i.e. should it be freed when the Query (result-set) is freed,
@@ -464,35 +490,54 @@ PreparedStmts can also be created internally by various instances
 of makeQuery (in class Statement), and these will usually have the
 same lifetime/scope as that of the Query (result-set).
 
-> data PreparedStmt =
->     PreparedStmt
->       { stmtHandle :: StmtHandle
+> data StmtLifetime = FreeWithQuery | FreeManually
+
+We also need to note if the statement is a query (select)
+or some sort of command. This influences subsequent behaviour in two ways:
+  1. when execute is done, we specify either 0 or 1 iterations,
+     for selects or or commands, respectively
+  2. when fetchRow is called by doQuery, for selects we call OCI stmtFetch,
+     but for commands we ignore the call (do nothing).
+
+> data StmtType = SelectType | CommandType
+
+> data PreparedStmt = MkPreparedStmt
+>       { stmtLifetime :: StmtLifetime
+>       , stmtType :: StmtType
+>       , stmtHandle :: StmtHandle
 >       , stmtSession :: Session
 >       , stmtCursors :: IORef [RefCursor StmtHandle]
->       , stmtBuffers :: IORef [ForeignPtr Word8]
->       }
->   | PreparedStmtFreeWithQuery
->       { stmtHandle :: StmtHandle
->       , stmtSession :: Session
->       , stmtCursors :: IORef [RefCursor StmtHandle]
->       , stmtBuffers :: IORef [ForeignPtr Word8]
+>       -- stmtBuffers are actually output bind buffers.
+>       -- we package them to look like ColumnBuffers
+>       -- (as created by allocBuffer) so that we can use them
+>       -- like ColumnBuffers.
+>       , stmtBuffers :: IORef [ColumnBuffer]
 >       }
 
+> beginsWithSelect "" = False
+> beginsWithSelect text = isPrefixOf "select" . map toLower $ text
+
+> inferStmtType text = if beginsWithSelect text then SelectType else CommandType
 
 > prepareStmt :: QueryString -> PreparationA Session PreparedStmt
-> prepareStmt (QueryString sqltext) = prepareStmt' sqltext PreparedStmt
+> prepareStmt (QueryString sqltext) =
+>   prepareStmt' (prefetchRowCount defaultResourceUsage) sqltext FreeManually (inferStmtType sqltext)
 
-> prepareStmt' sqltext constr =
+> preparePrefetch count (QueryString sqltext) =
+>   prepareStmt' count sqltext FreeManually (inferStmtType sqltext)
+
+> prepareStmt' count sqltext lifetime stmtype =
 >   PreparationA (\sess -> do
 >     stmt <- getStmt sess
 >     stmtPrepare sess stmt (OCI.substituteBindPlaceHolders sqltext)
->     newPreparedStmt constr sess stmt
+>     setPrefetchCount sess stmt count
+>     newPreparedStmt lifetime stmtype sess stmt
 >     )
 
-> newPreparedStmt constr sess stmt = do
+> newPreparedStmt lifetime iteration sess stmt = do
 >   c <- newIORef []
 >   b <- newIORef []
->   return (constr stmt sess c b)
+>   return (MkPreparedStmt lifetime iteration stmt sess c b)
 
 --------------------------------------------------------------------
 -- ** Binding
@@ -500,45 +545,40 @@ same lifetime/scope as that of the Query (result-set).
 
 > newtype BoundStmt = BoundStmt { boundStmt :: PreparedStmt }
 
-We might need to change this, to keep track of the binding-object
-returned by the bind call. What type should the bind object be?
-Some kind of buffer pointer, I guess... or a function
-that returns the value (from the buffer)?
-
 > type BindObj = Int -> IO ()
 > newtype Out a = Out a
 
 > instance IPrepared PreparedStmt Session BoundStmt BindObj where
 >   bindRun sess stmt bas action = do
 >     sequence_ (zipWith (\i (BindA ba) -> ba sess stmt i) [1..] bas)
->     execute sess (stmtHandle stmt) 0
+>     let iteration = case (stmtType stmt) of
+>           SelectType -> 0
+>           CommandType -> 1
+>     execute sess (stmtHandle stmt) iteration
 >     writeIORef (stmtCursors stmt) []
 >     -- after execute, save any RefCursor Out values...
 >     -- or should we save all Out values?
 >     action (BoundStmt stmt)
->   destroyStmt sess (PreparedStmtFreeWithQuery stmth _ _ _) = closeStmt sess stmth
->   destroyStmt sess (PreparedStmt _ _ _ _) = return ()
+>   destroyStmt sess pstmt =
+>     case stmtLifetime pstmt of
+>       FreeWithQuery -> closeStmt sess (stmtHandle pstmt)
+>       _ -> return ()
 
 > instance DBBind (Maybe String) Session PreparedStmt BindObj where
 >   bindP = makeBindAction
+
+Disable this for now, as Strings have charset conversion issues for me...
+
+> instance DBBind (Out (Maybe String)) Session PreparedStmt BindObj where
+>   bindP (Out v) = makeOutputBindAction v
 
 > instance DBBind (Maybe Int) Session PreparedStmt BindObj where
 >   bindP = makeBindAction
 
 > instance DBBind (Out (Maybe Int)) Session PreparedStmt BindObj where
->   bindP (Out v) = BindA (\sess stmt pos -> do
->       buffer <- mallocForeignPtrBytes (bindSize v)
->       withForeignPtr buffer (\ptr -> do
->         case v of
->           Nothing -> return ()
->           Just i -> poke (castPtr ptr) (toCInt i)
->         bindByPos sess stmt pos (bindNullInd v) (castPtr ptr) (bindSize v) (bindType v)
->         )
->       appendOutputBindBuffer stmt buffer
->     )
+>   bindP (Out v) = makeOutputBindAction v
 
-> appendOutputBindBuffer stmt buffer = do
->   modifyIORef (stmtBuffers stmt) (++ [buffer])
+I don't think Oracle supports int64 in v8i's OCI API...
 
  instance DBBind (Maybe Int64) Session PreparedStmt BindObj where
    bindP = makeBindAction
@@ -546,22 +586,50 @@ that returns the value (from the buffer)?
 > instance DBBind (Maybe Double) Session PreparedStmt BindObj where
 >   bindP = makeBindAction
 
+> instance DBBind (Out (Maybe Double)) Session PreparedStmt BindObj where
+>   bindP (Out v) = makeOutputBindAction v
+
 > instance DBBind (Maybe CalendarTime) Session PreparedStmt BindObj where
 >   bindP = makeBindAction
 
 > instance DBBind (Maybe UTCTime) Session PreparedStmt BindObj where
 >   bindP = makeBindAction
 
+> instance DBBind (Out (Maybe UTCTime)) Session PreparedStmt BindObj where
+>   bindP (Out v) = makeOutputBindAction v
+
+StmtHandles (i.e. RefCursors) are output only, I think
+(altough you have to pass a valid one in, or it'll hurl).
+We create the StmtHandle here, so the user doesn't have to
+(is this a bad idea?...)
+
+> instance DBBind (Out (Maybe StmtHandle)) Session PreparedStmt BindObj where
+>   bindP (Out v) = BindA (\sess stmt pos -> do
+>       stmt2 <- getStmt sess
+>       bindOutputMaybe sess stmt (Just stmt2) pos
+>     )
+
+
+
+Instances for non-Maybe types i.e. bare Int, Double, String, etc.
+
 > instance DBBind (Maybe a) Session PreparedStmt BindObj
 >     => DBBind a Session PreparedStmt BindObj where
 >   bindP x = bindP (Just x)
 
-The default instance, uses generic Show
+> instance DBBind (Out (Maybe a)) Session PreparedStmt BindObj
+>     => DBBind (Out a) Session PreparedStmt BindObj where
+>   bindP (Out x) = bindP (Out (Just x))
+
+Default instances, using generic Show.
 
 > instance (Show a) => DBBind (Maybe a) Session PreparedStmt BindObj where
 >   bindP (Just x) = bindP (Just (show x))
 >   bindP Nothing = bindP (Nothing `asTypeOf` Just "")
 
+> instance (Show a) => DBBind (Out (Maybe a)) Session PreparedStmt BindObj where
+>   bindP (Out (Just x)) = bindP (Out (Just (show x)))
+>   bindP (Out Nothing) = bindP (Out (Nothing `asTypeOf` Just ""))
 
 
 > makeBindAction x = BindA (\ses st -> bindMaybe ses st x)
@@ -572,16 +640,62 @@ The default instance, uses generic Show
 >   bindWithValue v $ \ptrv -> do
 >     bindByPos sess stmt pos (bindNullInd v) (castPtr ptrv) (bindSize v) (bindType v)
 
+Note currying... we don't provide the column-position;
+it's provided when bindRun is invoked.
+
+> makeOutputBindAction v = BindA (\sess stmt -> bindOutputMaybe sess stmt v)
+
+> bindOutputMaybe :: (OracleBind a)
+>   => Session -> PreparedStmt -> Maybe a -> Int -> IO ()
+> bindOutputMaybe sess stmt v pos = do
+>       buffer <- mallocForeignPtrBytes (bindBufferSize v)
+>       nullind <- mallocForeignPtr
+>       sizeind <- mallocForeignPtr
+>       withForeignPtr buffer $ \bufptr -> do
+>       withForeignPtr nullind $ \indptr -> do
+>       withForeignPtr sizeind $ \szeptr -> do
+>         poke (castPtr indptr) (bindNullInd v)
+>         poke (castPtr szeptr) (bindSize v)
+>         bindWriteBuffer (castPtr bufptr) v
+>       bindOutputByPos sess stmt pos (nullind, buffer, sizeind) (bindSize v) (bindType v)
+>       let
+>         colbuf = ColumnBuffer
+>           { colBufBufferFPtr = buffer
+>           , colBufNullFPtr = nullind
+>           , colBufSizeFPtr = sizeind
+>           , colBufColPos = 0
+>           , colBufSqlType = (bindType v)
+>           }
+>       appendOutputBindBuffer stmt colbuf
+
+If the bind values are output, then we save them in a list.
+We can then use a doQuery to fetch the values,
+just like the Postgres technique of returning values
+as a set of tuples.
+I guess there'll only ever be a single row to fetch
+in the Oracle case, though.
+
+> appendOutputBindBuffer stmt buffer = do
+>   buffers <- readIORef (stmtBuffers stmt)
+>   modifyIORef (stmtBuffers stmt) (++ [buffer { colBufColPos = 1 + length buffers }])
+
+
+
 
 > class OracleBind a where
 >   bindWithValue :: a -> (Ptr Word8 -> IO ()) -> IO ()
+>   bindWriteBuffer :: Ptr Word8 -> a -> IO ()
 >   bindSize :: a -> Int
+>   bindBufferSize :: a -> Int
+>   bindBufferSize v = bindSize v
 >   bindNullInd :: a -> CShort
 >   bindType :: a -> CInt
 
 > instance OracleBind a => OracleBind (Maybe a) where
 >   bindWithValue (Just v) a = bindWithValue v a
 >   bindWithValue Nothing a = return ()
+>   bindWriteBuffer b (Just v) = bindWriteBuffer b v
+>   bindWriteBuffer b Nothing = return ()
 >   bindSize (Just v) = bindSize v
 >   bindSize Nothing = 0
 >   bindNullInd (Just v) = 0
@@ -591,33 +705,46 @@ The default instance, uses generic Show
 
 > instance OracleBind String where
 >   bindWithValue v a = withCString v (\p -> a (castPtr p))
+>   bindWriteBuffer b s = withCStringLen s (\(p,l) -> copyBytes p (castPtr b) l)
 >   bindSize s = fromIntegral (length s)
+>   bindBufferSize s = 16000
 >   bindNullInd _ = 0
 >   bindType _ = oci_SQLT_CHR
 
 > instance OracleBind Int where
 >   bindWithValue v a = withBinaryValue toCInt v (\p v -> poke (castPtr p) v) a
+>   bindWriteBuffer b v = poke (castPtr b) v
 >   bindSize _ = (sizeOf (toCInt 0))
 >   bindNullInd _ = 0
 >   bindType _ = oci_SQLT_INT
 
 > instance OracleBind Double where
 >   bindWithValue v a = withBinaryValue toCDouble v (\p v -> poke (castPtr p) v) a
+>   bindWriteBuffer b v = poke (castPtr b) v
 >   bindSize _ = (sizeOf (toCDouble 0.0))
 >   bindNullInd _ = 0
 >   bindType _ = oci_SQLT_FLT
 
 > instance OracleBind CalendarTime where
 >   bindWithValue v a = withBinaryValue id v (\p dt -> calTimeToBuffer (castPtr p) dt) a
+>   bindWriteBuffer b v = calTimeToBuffer (castPtr b) v
 >   bindSize _ = 7
 >   bindNullInd _ = 0
 >   bindType _ = oci_SQLT_DAT
 
 > instance OracleBind UTCTime where
 >   bindWithValue v a = withBinaryValue id v (\p dt -> utcTimeToBuffer (castPtr p) dt) a
+>   bindWriteBuffer b v = utcTimeToBuffer (castPtr b) v
 >   bindSize _ = 7
 >   bindNullInd _ = 0
 >   bindType _ = oci_SQLT_DAT
+
+> instance OracleBind StmtHandle where
+>   bindWithValue v a = alloca (\p -> poke p v >> a (castPtr p))
+>   bindWriteBuffer b v = poke (castPtr b) v
+>   bindSize _ = sizeOf nullPtr
+>   bindNullInd _ = 0
+>   bindType _ = oci_SQLT_RSET
 
 > withBinaryValue :: (OracleBind b) =>
 >   (b -> a)  -- ^ convert Haskell value to C value
@@ -649,53 +776,6 @@ like a c int = 32 bits, c short = 16 bits, c long = 64 bits.
 > fromCDouble :: CDouble -> Double; fromCDouble = realToFrac
 > toCFloat :: Float -> CFloat; toCFloat = realToFrac
 > fromCFloat :: CFloat -> Float; fromCFloat = realToFrac
-
-
-
-20040822073512
-   10000000000 (10 ^ 10) * year
-     100000000 (10 ^ 8) * month
-       1000000 (10 ^ 6) * day
-         10000  (10^4) * hour
-
-Use quot and rem, /not/ div and mod,
-so that we get sensible behaviour for -ve numbers.
-
-> makeCalTime :: Int64 -> CalendarTime
-> makeCalTime i =
->   let
->     year = (i `quot` 10000000000)
->     month = ((abs i) `rem` 10000000000) `quot` 100000000
->     day = ((abs i) `rem` 100000000) `quot` 1000000
->     hour = ((abs i) `rem` 1000000) `quot` 10000
->     minute = ((abs i) `rem` 10000) `quot` 100
->     second = ((abs i) `rem` 100)
->   in CalendarTime
->     { ctYear = fromIntegral year
->     , ctMonth = toEnum (fromIntegral month - 1)
->     , ctDay = fromIntegral day
->     , ctHour = fromIntegral hour
->     , ctMin = fromIntegral minute
->     , ctSec = fromIntegral second
->     , ctPicosec = 0
->     , ctWDay = Sunday
->     , ctYDay = -1
->     , ctTZName = "UTC"
->     , ctTZ = 0
->     , ctIsDST = False
->     }
-
-> makeInt64 :: CalendarTime -> Int64
-> makeInt64 ct =
->   let
->     yearm :: Int64
->     yearm = 10000000000
->   in  yearm * fromIntegral (ctYear ct)
->   + 100000000 * fromIntegral ((fromEnum (ctMonth ct) + 1))
->   + 1000000 * fromIntegral (ctDay ct)
->   + 10000 * fromIntegral (ctHour ct)
->   + 100 * fromIntegral (ctMin ct)
->   + fromIntegral (ctSec ct)
 
 
 --------------------------------------------------------------------
@@ -740,9 +820,23 @@ It only differs wen we use the NextResultSet instance of makeQuery.
 > instance Statement String Session Query where
 >   makeQuery sess sqltext = makeQuery sess (StmtBind sqltext [])
 
+Important to use FreeManually here...
+If we destroy the StmtHandle when the query is done,
+it does not allow us to re-use the StmtHandle,
+which is vital for nested cursors
+(mainly because I haven't figured out how to
+marshal StmtHandles back to Haskell-land).
+However, this means we have to process StmtHandles
+immediately; we can't save them up and process them later,
+after the parent query is done.
+
+Contrast this with the Postgres back-end, where the RefCursor
+just contains a String, which is the cursor name.
+It's no trouble to marshal a String back to Haskell-land.
+
 > instance Statement (RefCursor StmtHandle) Session Query where
 >   makeQuery sess (RefCursor stmt) = do
->     pstmt <- newPreparedStmt PreparedStmtFreeWithQuery sess stmt
+>     pstmt <- newPreparedStmt FreeManually SelectType sess stmt
 >     return (Query pstmt sess Nothing)
 
 > instance Statement (NextResultSet mark PreparedStmt) Session Query where
@@ -758,245 +852,138 @@ It only differs wen we use the NextResultSet instance of makeQuery.
 
 > instance Statement QueryStringTuned Session Query where
 >   makeQuery sess (QueryStringTuned resUsage sqltext bas) = do
->     let (PreparationA action) = prepareStmt' sqltext PreparedStmtFreeWithQuery
+>     let
+>      (PreparationA action) =
+>         prepareStmt' (prefetchRowCount resUsage) sqltext FreeWithQuery (inferStmtType sqltext)
 >     pstmt <- action sess
 >     sequence_ (zipWith (\i (BindA ba) -> ba sess pstmt i) [1..] bas)
->     setPrefetchCount sess (stmtHandle pstmt) (prefetchRowCount resUsage)
 >     execute sess (stmtHandle pstmt) 0
 >     return (Query pstmt sess (Just pstmt))
 
 
 > data ColumnBuffer = ColumnBuffer 
->    { bufferFPtr :: OCI.ColumnResultBuffer
->    , nullIndFPtr :: ForeignPtr CShort
->    , retSizeFPtr :: ForeignPtr CShort
->    , bufSize :: Int
->    , colPos :: Int
->    , bufType :: CInt
+>    { colBufBufferFPtr :: OCI.ColumnResultBuffer
+>    , colBufNullFPtr :: ForeignPtr CShort
+>    , colBufSizeFPtr :: ForeignPtr CUShort
+>    , colBufColPos :: Int
+>    , colBufSqlType :: CInt
 >    }
 
 > instance IQuery Query Session ColumnBuffer where
->   destroyQuery query =
->     case (queryStmt query) of
->       PreparedStmtFreeWithQuery stmth sess _ _ -> closeStmt sess stmth
+>   destroyQuery query = do
+>     let pstmt = queryStmt query
+>     case stmtLifetime pstmt of
+>       FreeWithQuery -> closeStmt (stmtSession pstmt) (stmtHandle pstmt)
 >       _ -> return ()
 >   fetchOneRow query = do
->     rc <- fetchRow (querySess query) (queryStmt query)
->     return (rc /= oci_NO_DATA)
+>     let pstmt = queryStmt query
+>     case stmtType pstmt of
+>       SelectType -> do
+>         rc <- fetchRow (querySess query) (queryStmt query)
+>         return (rc /= oci_NO_DATA)
+>       -- True here means fetch will never terminate;
+>       -- it will always give the same row over and over,
+>       -- so you'd better be careful with your iteratees
+>       _ -> return True
 >   currentRowNum query =
 >     getRowCount (querySess query) (stmtHandle (queryStmt query))
 >   freeBuffer q buffer = return ()
 
 
-> nullIf :: Bool -> a -> Maybe a
-> nullIf test v = if test then Nothing else Just v
-
-
-> nullByte :: CChar
-> nullByte = 0
-
-> cShort2Int :: CShort -> Int
-> cShort2Int n = fromIntegral n
-
-> cuCharToInt :: CUChar -> Int
-> cuCharToInt c = fromIntegral c
-
-> byteToInt :: Ptr CUChar -> Int -> IO Int
-> byteToInt buffer n = do
->   b <- peekByteOff buffer n
->   return (cuCharToInt b)
+This is where we differ the behaviour depending on the
+type of statement: is it a regular query,
+where we just create column buffers, or do we have
+bind output buffers, in which case we return those
+as the column buffers?
 
 > allocBuffer query (bufsize, ociBufferType) colpos = do
->     (_, buf, nullptr, sizeptr) <- liftIO $ defineCol (querySess query) (queryStmt query) colpos bufsize ociBufferType
->     return $ ColumnBuffer
->       { bufferFPtr = buf
->       , nullIndFPtr = nullptr
->       , retSizeFPtr = sizeptr
->       , bufSize = bufsize
->       , colPos = colpos
->       , bufType = ociBufferType
->       }
+>   buffers <- readIORef (stmtBuffers (queryStmt query))
+>   if null buffers
+>     then do
+>       (_, buf, nullptr, sizeptr) <- liftIO $ defineCol (querySess query) (queryStmt query) colpos bufsize ociBufferType
+>       return $ ColumnBuffer
+>         { colBufBufferFPtr = buf
+>         , colBufNullFPtr = nullptr
+>         , colBufSizeFPtr = sizeptr
+>         , colBufColPos = colpos
+>         , colBufSqlType = ociBufferType
+>         }
+>     else do
+>       if length buffers >= colpos
+>         then return (buffers !! (colpos - 1))
+>         else  -- FIXME  use DBError here!
+>           throwDB (DBError ("02", "000") (-1) ( "There are " ++ show (length buffers)
+>             ++ " output buffers, but you have asked for buffer " ++ show colpos ))
 
+When you allocate a StmtHandle buffer, you have to populate it with
+a valid StmtHandle before you call fetch.
 
-|Short-circuit null test: if the buffer contains a null then return Nothing.
-Otherwise, run the IO action to extract a value from the buffer and return Just it.
-
-> maybeBufferNull :: ColumnBuffer -> Maybe a -> IO a -> IO (Maybe a)
-> maybeBufferNull buffer nullVal action =
->   withForeignPtr (nullIndFPtr buffer) $ \nullIndPtr -> do
->     nullInd <- liftM cShort2Int (peek nullIndPtr)
->     if (nullInd == -1)  -- -1 == null, 0 == value
->       then return nullVal
->       else do
->         v <- action
->         return (Just v)
+> allocStmtBuffer query colpos = do
+>   colbuf <- allocBuffer query (sizeOf nullPtr, oci_SQLT_RSET) colpos
+>   buffers <- readIORef (stmtBuffers (queryStmt query))
+>   if null buffers
+>     then do
+>       -- If this is a define buffer (as opposed to bind buffer)
+>       -- then shove a valid StmtHandle into it.
+>       stmt <- getStmt (querySess query)
+>       withForeignPtr (colBufBufferFPtr colbuf) $ \p -> poke (castPtr p) stmt
+>     else return ()
+>   return colbuf
 
 
 > bufferToString :: ColumnBuffer -> IO (Maybe String)
-> bufferToString buffer =
->   -- If it's null then return ""
->   maybeBufferNull buffer Nothing $
->     -- Given a column buffer, extract a string of variable length
->     -- (you have to terminate it yourself).
->     withForeignPtr (bufferFPtr buffer) $ \bufferPtr ->
->     withForeignPtr (retSizeFPtr buffer) $ \retSizePtr -> do
->       retsize <- liftM cShort2Int (peek retSizePtr)
->       pokeByteOff (castPtr bufferPtr) retsize nullByte
->       val <- peekCString (castPtr bufferPtr)
->       return val
+> bufferToString buffer = OCI.bufferToString (undefined, colBufBufferFPtr buffer, colBufNullFPtr buffer, colBufSizeFPtr buffer)
 
-| Oracle's excess-something-or-other encoding for years:
-year = 100*(c - 100) + (y - 100),
-c = (year div 100) + 100,
-y = (year mod 100) + 100.
-
-+1999 -> 119, 199
-+0100 -> 101, 100
-+0001 -> 100, 101
--0001 -> 100,  99
--0100 ->  99, 100
--1999 ->  81,   1
-
-> makeYear :: Int -> Int -> Int
-> makeYear c100 y100 = 100 * (c100 - 100) + (y100 - 100)
-
-> makeYearByte :: Int -> Word8
-> makeYearByte y = fromIntegral ((rem y 100) + 100)
-
-> makeCentByte :: Int -> Word8
-> makeCentByte y = fromIntegral ((quot y 100) + 100)
-
-
-> dumpBuffer :: Ptr Word8 -> IO ()
-> dumpBuffer buf = do
->   dumpByte 0
->   dumpByte 1
->   dumpByte 2
->   dumpByte 3
->   dumpByte 4
->   dumpByte 5
->   dumpByte 6
->   putStrLn ""
->   where
->   dumpByte n = do
->     b <- (peekByteOff buf n :: IO Word8)
->     putStr $ (show b) ++ " "
-
-
-> bufferToDatetime :: ColumnBuffer -> IO (Maybe CalendarTime)
-> bufferToDatetime colbuf = maybeBufferNull colbuf Nothing $
->   withForeignPtr (bufferFPtr colbuf) $ \bufferPtr -> do
->     let buffer = castPtr bufferPtr
->     --dumpBuffer (castPtr buffer)
->     century100 <- byteToInt buffer 0
->     year100 <- byteToInt buffer 1
->     month <- byteToInt buffer 2
->     day <- byteToInt buffer 3
->     hour <- byteToInt buffer 4
->     minute <- byteToInt buffer 5
->     second <- byteToInt buffer 6
->     return $ CalendarTime
->       { ctYear = makeYear century100 year100
->       , ctMonth = toEnum (month - 1)
->       , ctDay = day
->       , ctHour = hour - 1
->       , ctMin = minute - 1
->       , ctSec = second - 1
->       , ctPicosec = 0
->       , ctWDay = Sunday
->       , ctYDay = -1
->       , ctTZName = "UTC"
->       , ctTZ = 0
->       , ctIsDST = False
->       }
+> bufferToCaltime :: ColumnBuffer -> IO (Maybe CalendarTime)
+> bufferToCaltime buffer = OCI.bufferToCaltime (colBufNullFPtr buffer) (colBufBufferFPtr buffer)
 
 > bufferToUTCTime :: ColumnBuffer -> IO (Maybe UTCTime)
-> bufferToUTCTime colbuf = maybeBufferNull colbuf Nothing $
->   withForeignPtr (bufferFPtr colbuf) $ \bufferPtr -> do
->     let buffer = castPtr bufferPtr
->     --dumpBuffer (castPtr buffer)
->     century100 <- byteToInt buffer 0
->     year100 <- byteToInt buffer 1
->     month <- byteToInt buffer 2
->     day <- byteToInt buffer 3
->     hour <- byteToInt buffer 4
->     minute <- byteToInt buffer 5
->     second <- byteToInt buffer 6
->     let year = makeYear century100 year100
->     return (Database.Enumerator.mkUTCTime year month day (hour-1) (minute-1) (second-1))
-
-> setBufferByte :: OCI.BufferPtr -> Int -> Word8 -> IO ()
-> setBufferByte buf n v =
->   pokeByteOff buf n v
+> bufferToUTCTime buffer = OCI.bufferToUTCTime (colBufNullFPtr buffer) (colBufBufferFPtr buffer)
 
 > calTimeToBuffer :: OCI.BufferPtr -> CalendarTime -> IO ()
-> calTimeToBuffer buf ct = do
->   setBufferByte buf 0 (makeCentByte (ctYear ct))
->   setBufferByte buf 1 (makeYearByte (ctYear ct))
->   setBufferByte buf 2 (fromIntegral ((fromEnum (ctMonth ct)) + 1))
->   setBufferByte buf 3 (fromIntegral (ctDay ct))
->   setBufferByte buf 4 (fromIntegral (ctHour ct + 1))
->   setBufferByte buf 5 (fromIntegral (ctMin ct + 1))
->   setBufferByte buf 6 (fromIntegral (ctSec ct + 1))
+> calTimeToBuffer buf ct = OCI.calTimeToBuffer buf ct
 
 > utcTimeToBuffer :: OCI.BufferPtr -> UTCTime -> IO ()
-> utcTimeToBuffer buf utc = do
->   let (LocalTime ltday time) = utcToLocalTime (hoursToTimeZone 0) utc
->   let (TimeOfDay hour minute second) = time
->   let (year, month, day) = toGregorian ltday
->   setBufferByte buf 0 (makeCentByte (fromIntegral year))
->   setBufferByte buf 1 (makeYearByte (fromIntegral year))
->   setBufferByte buf 2 (fromIntegral month)
->   setBufferByte buf 3 (fromIntegral day)
->   setBufferByte buf 4 (fromIntegral (hour+1))
->   setBufferByte buf 5 (fromIntegral (minute+1))
->   setBufferByte buf 6 (round (second+1))
-
-
-> bufferPeekValue :: (Storable a) => ColumnBuffer -> IO a
-> bufferPeekValue buffer = do
->   v <- withForeignPtr (bufferFPtr buffer) $ \bufferPtr -> peek $ castPtr bufferPtr
->   return v
-
-> bufferToA :: (Storable a) => ColumnBuffer -> IO (Maybe a)
-> bufferToA buffer = maybeBufferNull buffer Nothing (bufferPeekValue buffer)
-
-> bufferToCInt :: ColumnBuffer -> IO (Maybe CInt)
-> bufferToCInt = bufferToA
+> utcTimeToBuffer buf utc = OCI.utcTimeToBuffer buf utc
 
 > bufferToInt :: ColumnBuffer -> IO (Maybe Int)
-> bufferToInt b = do
->   cint <- bufferToCInt b
->   return $ maybe Nothing (Just . fromIntegral) cint
-
-> bufferToCDouble :: ColumnBuffer -> IO (Maybe CDouble)
-> bufferToCDouble = bufferToA
+> bufferToInt buffer = OCI.bufferToInt (colBufNullFPtr buffer) (colBufBufferFPtr buffer)
 
 > bufferToDouble :: ColumnBuffer -> IO (Maybe Double)
-> bufferToDouble b = do
->   cdbl <- bufferToCDouble b
->   return $ maybe Nothing (Just . realToFrac) cdbl
+> bufferToDouble buffer = OCI.bufferToDouble (colBufNullFPtr buffer) (colBufBufferFPtr buffer)
 
 > bufferToStmtHandle :: ColumnBuffer -> IO (RefCursor StmtHandle)
 > bufferToStmtHandle buffer = do
->   withForeignPtr (bufferFPtr buffer) $ \bufferPtr -> do
->     v <- peek (castPtr bufferPtr)
->     return (RefCursor v)
+>   v <- OCI.bufferToStmtHandle (colBufBufferFPtr buffer)
+>   return (RefCursor v)
 
+
+Right now the StmtHandle in the buffer is updated with a new
+cursor on each fetch.
+If we call defineByPos before each fetch then we can provide
+a fresh StmtHandle for each fetch (thus preserving the handles
+from previous fetches), but this will require support from
+Database.Enumerator i.e. we need to add a function, say reallocBuffers,
+which is called before each row is fetched,
+which will give us an opportunity to reallocate memory for buffers
+if it is required.
+This might be a bad idea thought, because it is likely to lead
+to space leaks. Perhaps the current approach of reusing the
+StmtHandle is better from a memory management point-of-view.
 
 > instance DBType (RefCursor StmtHandle) Query ColumnBuffer where
->   allocBufferFor _ q n = allocBuffer q (8, oci_SQLT_RSET) n
+>   allocBufferFor _ q n = allocStmtBuffer q n
 >   fetchCol q buffer = do
->     rc <- bufferToStmtHandle buffer
->     appendRefCursor q rc
->     return rc
+>     rawstmt <- OCI.bufferToStmtHandle (colBufBufferFPtr buffer)
+>     appendRefCursor q (RefCursor rawstmt)
 
-> appendRefCursor query stmth = do
+> appendRefCursor query refc = do
 >   case queryParent query of
->     -- no parent stmt => probably just a doQuery over a RefCursor.
+>     -- no parent stmt? => probably just a doQuery over a RefCursor.
 >     -- Don't bother saving returned RefCursors.
 >     Nothing -> return ()
->     Just pstmt -> modifyIORef (stmtCursors pstmt) (++ [stmth])
+>     Just pstmt -> modifyIORef (stmtCursors pstmt) (++ [refc])
+>   return refc
 
 
 > instance DBType (Maybe String) Query ColumnBuffer where
@@ -1005,14 +992,7 @@ y = (year mod 100) + 100.
 
 > instance DBType (Maybe Int) Query ColumnBuffer where
 >   allocBufferFor _ q n = allocBuffer q (4, oci_SQLT_INT) n
->   fetchCol q buffer = do
->     outputBuffers <- readIORef (stmtBuffers (queryStmt q))
->     if null outputBuffers then bufferToInt buffer
->       else outputBufferToInt (outputBuffers !! ((colPos buffer) - 1))
-
-FIXME  implement output buffers...
-
-> outputBufferToInt buffer = return undefined
+>   fetchCol q buffer = bufferToInt buffer
 
 > instance DBType (Maybe Double) Query ColumnBuffer where
 >   allocBufferFor _ q n = allocBuffer q (8, oci_SQLT_FLT) n
@@ -1024,7 +1004,7 @@ FIXME  implement output buffers...
 
 > instance DBType (Maybe CalendarTime) Query ColumnBuffer where
 >   allocBufferFor _ q n = allocBuffer q (7, oci_SQLT_DAT) n
->   fetchCol q buffer = bufferToDatetime buffer
+>   fetchCol q buffer = bufferToCaltime buffer
 
 |This single polymorphic instance covers all of the
 type-specific non-Maybe instances e.g. String, Int, Double, etc.
@@ -1036,7 +1016,7 @@ type-specific non-Maybe instances e.g. String, Int, Double, etc.
 
 > buffer_pos q buffer = do
 >   row <- currentRowNum q
->   return (row,colPos buffer)
+>   return (row, colBufColPos buffer)
 
 
 |A polymorphic instance which assumes that the value is in a String column,

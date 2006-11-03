@@ -13,12 +13,13 @@ Portability :  non-portable
 > module Database.PostgreSQL.Test.PGFunctions (runTest) where
 
 
+> import Database.PostgreSQL.PGFunctions
+> import Database.Util
 > import Foreign
 > import Foreign.C
 > import Control.Monad
 > import Control.Exception
 > import Data.Dynamic
-> import Database.PostgreSQL.PGFunctions
 > import System.Environment (getArgs)
 > import Test.MiniUnit
 > import Data.Time
@@ -178,13 +179,6 @@ Portability :  non-portable
 >   assertEqual "testSelectDate: 2001" d2 d
 >   stmtFinalise stmt
 
-> mkUTCTime :: Integral a => a -> a -> a -> a -> a -> a -> UTCTime
-> mkUTCTime year month day hour minute second =
->   localTimeToUTC (hoursToTimeZone 0)
->     (LocalTime
->       (fromGregorian (fromIntegral year) (fromIntegral month) (fromIntegral day))
->       (TimeOfDay (fromIntegral hour) (fromIntegral minute) (fromIntegral second)))
-
 
 Here we test some funny date boundary cases in Postgres.
 There's some funnyness around 1916-10-01 02:25:20 when we use time zones.
@@ -194,6 +188,16 @@ testSelectDate2: 2, -2627156079
 testSelectDate2: 3, -2627156080 (without time zone)
 testSelectDate2: 4, -2627158159 (with time zone)
 diff 3-4: 2080 seconds = 00:34:40
+
+-- Update:
+
+Turns out this is due to my default timezone, which was set to Europe/Dublin
+(some odd things happened to Irish timekeeping at 1916-10-01 02:25:20).
+
+Setting it to GMT (rather than Europe/London or Europe/Dublin) fixed it.
+Note that Europe/London also has some funnyness in 1847,
+so it's also a poor choice if we want to test boundary dates.
+
 
 > testSelectDate2 db = do
 >   let
