@@ -1,0 +1,395 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!--Rendered using the Haskell Html Library v0.2-->
+<HTML
+><HEAD
+><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8"
+><TITLE
+>Database.Util</TITLE
+><LINK HREF="haddock.css" REL="stylesheet" TYPE="text/css"
+><SCRIPT SRC="haddock.js" TYPE="text/javascript"
+></SCRIPT
+></HEAD
+><BODY
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="topbar"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD
+><IMG SRC="haskell_icon.gif" WIDTH="16" HEIGHT="16" ALT=" "
+></TD
+><TD CLASS="title"
+></TD
+><TD CLASS="topbut"
+><A HREF="index.html"
+>Contents</A
+></TD
+><TD CLASS="topbut"
+><A HREF="doc-index.html"
+>Index</A
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="modulebar"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD
+><FONT SIZE="6"
+>Database.Util</FONT
+></TD
+><TD ALIGN="right"
+><TABLE CLASS="narrow" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="infohead"
+>Portability</TD
+><TD CLASS="infoval"
+>non-portable</TD
+></TR
+><TR
+><TD CLASS="infohead"
+>Stability</TD
+><TD CLASS="infoval"
+>experimental</TD
+></TR
+><TR
+><TD CLASS="infohead"
+>Maintainer</TD
+><TD CLASS="infoval"
+>oleg@pobox.com, alistair@abayley.org</TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section1"
+>Description</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Utility functions. Mostly used in database back-ends, and tests.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section1"
+>Synopsis</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Show.html#t%3AShow"
+>Show</A
+> a =&gt; <A HREF="#t%3AMyShow"
+>MyShow</A
+> a  <SPAN CLASS="keyword"
+>where</SPAN
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Ashow_"
+>show_</A
+> :: a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Aprint_"
+>print_</A
+> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl//Control-Monad-Trans.html#t%3AMonadIO"
+>MonadIO</A
+> m, <A HREF="Database-Util.html#t%3AMyShow"
+>MyShow</A
+> a) =&gt; a -&gt; m ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AmkUTCTime"
+>mkUTCTime</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Prelude.html#t%3AIntegral"
+>Integral</A
+> a =&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; UTCTime</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Aint64ToCalTime"
+>int64ToCalTime</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt64"
+>Int64</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-Time.html#t%3ACalendarTime"
+>CalendarTime</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AcalTimeToInt64"
+>calTimeToInt64</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-Time.html#t%3ACalendarTime"
+>CalendarTime</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt64"
+>Int64</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Aint64ToUTCTime"
+>int64ToUTCTime</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt64"
+>Int64</A
+> -&gt; UTCTime</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section1"
+>Documentation</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Show.html#t%3AShow"
+>Show</A
+> a =&gt; <A NAME="t%3AMyShow"
+></A
+><B
+>MyShow</B
+> a  <SPAN CLASS="keyword"
+>where</SPAN
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+>Methods</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Ashow_"
+></A
+><B
+>show_</B
+> :: a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:MyShow')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:MyShow" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Util.html#t%3AMyShow"
+>MyShow</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Show.html#t%3AShow"
+>Show</A
+> a =&gt; <A HREF="Database-Util.html#t%3AMyShow"
+>MyShow</A
+> a</TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Aprint_"
+></A
+><B
+>print_</B
+> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl//Control-Monad-Trans.html#t%3AMonadIO"
+>MonadIO</A
+> m, <A HREF="Database-Util.html#t%3AMyShow"
+>MyShow</A
+> a) =&gt; a -&gt; m ()</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Like <TT
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#v%3Aprint"
+>print</A
+></TT
+>, except that Strings are not escaped or quoted.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AmkUTCTime"
+></A
+><B
+>mkUTCTime</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Prelude.html#t%3AIntegral"
+>Integral</A
+> a =&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; UTCTime</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Convenience for making UTCTimes. Assumes the time given is already UTC time
+ i.e. there's no timezone adjustment.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Aint64ToCalTime"
+></A
+><B
+>int64ToCalTime</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt64"
+>Int64</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-Time.html#t%3ACalendarTime"
+>CalendarTime</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AcalTimeToInt64"
+></A
+><B
+>calTimeToInt64</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-Time.html#t%3ACalendarTime"
+>CalendarTime</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt64"
+>Int64</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Aint64ToUTCTime"
+></A
+><B
+>int64ToUTCTime</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt64"
+>Int64</A
+> -&gt; UTCTime</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="botbar"
+>Produced by <A HREF="http://www.haskell.org/haddock/"
+>Haddock</A
+> version 0.7</TD
+></TR
+></TABLE
+></BODY
+></HTML
+>

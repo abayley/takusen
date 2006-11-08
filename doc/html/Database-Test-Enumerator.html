@@ -509,22 +509,6 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A NAME="v%3AmakeCalTime"
-></A
-><B
->makeCalTime</B
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt64"
->Int64</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-Time.html#t%3ACalendarTime"
->CalendarTime</A
-></TD
-></TR
-><TR
-><TD CLASS="s15"
-></TD
-></TR
-><TR
-><TD CLASS="decl"
 ><A NAME="v%3AexpectFloatsAndInts"
 ></A
 ><B
@@ -615,17 +599,13 @@
 >String</A
 > -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
 >String</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-Time.html#t%3ACalendarTime"
->CalendarTime</A
-> -&gt; <A HREF="Database-Enumerator.html#t%3AIterAct"
+> -&gt; UTCTime -&gt; <A HREF="Database-Enumerator.html#t%3AIterAct"
 >IterAct</A
 > m [(<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
 >String</A
 >, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
 >String</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-Time.html#t%3ACalendarTime"
->CalendarTime</A
->)]</TD
+>, UTCTime)]</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -645,17 +625,13 @@
 >String</A
 > -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
 >Maybe</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-Time.html#t%3ACalendarTime"
->CalendarTime</A
-> -&gt; <A HREF="Database-Enumerator.html#t%3AIterAct"
+> UTCTime -&gt; <A HREF="Database-Enumerator.html#t%3AIterAct"
 >IterAct</A
 > m [(<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
 >String</A
 >, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
 >String</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-Time.html#t%3ACalendarTime"
->CalendarTime</A
->)]</TD
+>, UTCTime)]</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -667,6 +643,22 @@
 ></A
 ><B
 >iterDate</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Monad.html#t%3AMonad"
+>Monad</A
+> m =&gt; UTCTime -&gt; <A HREF="Database-Enumerator.html#t%3AIterAct"
+>IterAct</A
+> m [UTCTime]</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AiterCalDate"
+></A
+><B
+>iterCalDate</B
 > :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Monad.html#t%3AMonad"
 >Monad</A
 > m =&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-Time.html#t%3ACalendarTime"
@@ -689,13 +681,9 @@
 >iterBoundaryDates</B
 > :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Monad.html#t%3AMonad"
 >Monad</A
-> m =&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-Time.html#t%3ACalendarTime"
->CalendarTime</A
-> -&gt; <A HREF="Database-Enumerator.html#t%3AIterAct"
+> m =&gt; UTCTime -&gt; <A HREF="Database-Enumerator.html#t%3AIterAct"
 >IterAct</A
-> m [<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-Time.html#t%3ACalendarTime"
->CalendarTime</A
->]</TD
+> m [UTCTime]</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -829,13 +817,9 @@
 >iterBindDate</B
 > :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Monad.html#t%3AMonad"
 >Monad</A
-> m =&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-Time.html#t%3ACalendarTime"
->CalendarTime</A
-> -&gt; <A HREF="Database-Enumerator.html#t%3AIterAct"
+> m =&gt; UTCTime -&gt; <A HREF="Database-Enumerator.html#t%3AIterAct"
 >IterAct</A
-> m [<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-Time.html#t%3ACalendarTime"
->CalendarTime</A
->]</TD
+> m [UTCTime]</TD
 ></TR
 ><TR
 ><TD CLASS="s15"

@@ -7,7 +7,7 @@
 -- Stability   :  experimental
 -- Portability :  portable
 --
--- This is just a simple one-module unit tets framework, with the same
+-- This is just a simple one-module unit test framework, with the same
 -- API as "Test.HUnit" (albeit with a lot of stuff missing).
 -- We use it because it works in 'Control.Exception.MonadIO.CaughtMonadIO'
 -- instead of IO
@@ -16,7 +16,9 @@
 
 
 module Test.MiniUnit
-  ( runTestTT, assertFailure, assertBool, assertString, assertEqual
+  (
+  -- ** Primary API
+    runTestTT, assertFailure, assertBool, assertString, assertEqual
   -- ** Exposed for self-testing only; see "Test.MiniUnitTest"
   , TestResult(..), throwUserError, runSingleTest, reportResults
   )

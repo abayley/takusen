@@ -261,6 +261,22 @@
 ><TD CLASS="decl"
 ><SPAN CLASS="keyword"
 >type</SPAN
+> <A HREF="#t%3ABufferFPtr"
+>BufferFPtr</A
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIBuffer"
+>OCIBuffer</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
 > <A HREF="#t%3AColumnResultBuffer"
 >ColumnResultBuffer</A
 > = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
@@ -268,6 +284,30 @@
 > <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIBuffer"
 >OCIBuffer</A
 ></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3ABindBuffer"
+>BindBuffer</A
+> = (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+>, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIBuffer"
+>OCIBuffer</A
+>, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUShort"
+>CUShort</A
+>)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -619,8 +659,8 @@
 >CShort</A
 >, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
 >ForeignPtr</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
->CShort</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUShort"
+>CUShort</A
 >)</TD
 ></TR
 ><TR
@@ -697,6 +737,20 @@
 >CInt</A
 > -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
 >CShort</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AmkCUShort"
+>mkCUShort</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUShort"
+>CUShort</A
 ></TD
 ></TR
 ><TR
@@ -1183,20 +1237,20 @@
 >BufferPtr</A
 > -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
->CShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUShort"
+>CUShort</A
 > -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
 >Ptr</A
 > <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
 >CShort</A
 > -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
 >Ptr</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
->CShort</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUShort"
+>CUShort</A
 > -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
 >Ptr</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
->CShort</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUShort"
+>CUShort</A
 > -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 > -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
@@ -2109,14 +2163,8 @@
 >StmtHandle</A
 > -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
->ForeignPtr</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
->CShort</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
->ForeignPtr</A
-> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIBuffer"
->OCIBuffer</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABindBuffer"
+>BindBuffer</A
 > -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
 >Int</A
 > -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
@@ -2143,6 +2191,412 @@
 >IO</A
 > <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
 >CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AmaybeBufferNull"
+>maybeBufferNull</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> a)</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AnullByte"
+>nullByte</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACChar"
+>CChar</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AcShort2Int"
+>cShort2Int</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AcUShort2Int"
+>cUShort2Int</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUShort"
+>CUShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AcuCharToInt"
+>cuCharToInt</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUChar"
+>CUChar</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AbyteToInt"
+>byteToInt</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUChar"
+>CUChar</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AbufferToString"
+>bufferToString</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AColumnInfo"
+>ColumnInfo</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AmakeYear"
+>makeYear</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AmakeYearByte"
+>makeYearByte</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Word.html#t%3AWord8"
+>Word8</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AmakeCentByte"
+>makeCentByte</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Word.html#t%3AWord8"
+>Word8</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AdumpBuffer"
+>dumpBuffer</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Word.html#t%3AWord8"
+>Word8</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AbufferToCaltime"
+>bufferToCaltime</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferFPtr"
+>BufferFPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-Time.html#t%3ACalendarTime"
+>CalendarTime</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AbufferToUTCTime"
+>bufferToUTCTime</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferFPtr"
+>BufferFPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> UTCTime)</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AsetBufferByte"
+>setBufferByte</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferPtr"
+>BufferPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Word.html#t%3AWord8"
+>Word8</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AcalTimeToBuffer"
+>calTimeToBuffer</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferPtr"
+>BufferPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-Time.html#t%3ACalendarTime"
+>CalendarTime</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AutcTimeToBuffer"
+>utcTimeToBuffer</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferPtr"
+>BufferPtr</A
+> -&gt; UTCTime -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AbufferPeekValue"
+>bufferPeekValue</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Storable.html#t%3AStorable"
+>Storable</A
+> a =&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferFPtr"
+>BufferFPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AbufferToA"
+>bufferToA</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Storable.html#t%3AStorable"
+>Storable</A
+> a =&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferFPtr"
+>BufferFPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> a)</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AbufferToCInt"
+>bufferToCInt</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferFPtr"
+>BufferFPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AbufferToInt"
+>bufferToInt</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferFPtr"
+>BufferFPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AbufferToCDouble"
+>bufferToCDouble</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferFPtr"
+>BufferFPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACDouble"
+>CDouble</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AbufferToDouble"
+>bufferToDouble</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferFPtr"
+>BufferFPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Prelude.html#t%3ADouble"
+>Double</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AbufferToStmtHandle"
+>bufferToStmtHandle</A
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferFPtr"
+>BufferFPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
 ></TD
 ></TR
 ></TABLE
@@ -2305,6 +2759,24 @@
 ><TD CLASS="decl"
 ><SPAN CLASS="keyword"
 >type</SPAN
+> <A NAME="t%3ABufferFPtr"
+></A
+><B
+>BufferFPtr</B
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIBuffer"
+>OCIBuffer</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
 > <A NAME="t%3AColumnResultBuffer"
 ></A
 ><B
@@ -2314,6 +2786,32 @@
 > <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIBuffer"
 >OCIBuffer</A
 ></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3ABindBuffer"
+></A
+><B
+>BindBuffer</B
+> = (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+>, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIBuffer"
+>OCIBuffer</A
+>, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUShort"
+>CUShort</A
+>)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2975,8 +3473,8 @@
 >CShort</A
 >, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
 >ForeignPtr</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
->CShort</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUShort"
+>CUShort</A
 >)</TD
 ></TR
 ><TR
@@ -3121,6 +3619,22 @@
 >CInt</A
 > -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
 >CShort</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AmkCUShort"
+></A
+><B
+>mkCUShort</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUShort"
+>CUShort</A
 ></TD
 ></TR
 ><TR
@@ -3660,20 +4174,20 @@
 >BufferPtr</A
 > -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
->CShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUShort"
+>CUShort</A
 > -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
 >Ptr</A
 > <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
 >CShort</A
 > -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
 >Ptr</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
->CShort</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUShort"
+>CUShort</A
 > -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
 >Ptr</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
->CShort</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUShort"
+>CUShort</A
 > -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 > -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
@@ -5067,24 +5581,11 @@
 ></TR
 ><TR
 ><TD CLASS="arg"
->-&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
->ForeignPtr</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
->CShort</A
+>-&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABindBuffer"
+>BindBuffer</A
 ></TD
 ><TD CLASS="rdoc"
->Null ind: 0 == not null, -1 == null
-</TD
-></TR
-><TR
-><TD CLASS="arg"
->-&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
->ForeignPtr</A
-> <A HREF="Database-Oracle-OCIFunctions.html#t%3AOCIBuffer"
->OCIBuffer</A
-></TD
-><TD CLASS="rdoc"
->payload
+>triple of (null-ind, payload, output-size)
 </TD
 ></TR
 ><TR
@@ -5093,7 +5594,7 @@
 >Int</A
 ></TD
 ><TD CLASS="rdoc"
->payload size in bytes
+>payload input size in bytes
 </TD
 ></TR
 ><TR
@@ -5142,9 +5643,476 @@
 ></TR
 ><TR
 ><TD CLASS="doc"
->stmtFetch takes a lot of wall-clock time
- because it involves a network trip to the DBMS for each call.
+>Fetch a single row into the buffers.
+ If you have specified a prefetch count &gt; 1 then the row
+ might already be cached by the OCI library.
 </TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AmaybeBufferNull"
+></A
+><B
+>maybeBufferNull</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> a)</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Short-circuit null test: if the buffer contains a null then return Nothing.
+ Otherwise, run the IO action to extract a value from the buffer and return Just it.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AnullByte"
+></A
+><B
+>nullByte</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACChar"
+>CChar</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AcShort2Int"
+></A
+><B
+>cShort2Int</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AcUShort2Int"
+></A
+><B
+>cUShort2Int</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUShort"
+>CUShort</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AcuCharToInt"
+></A
+><B
+>cuCharToInt</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUChar"
+>CUChar</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AbyteToInt"
+></A
+><B
+>byteToInt</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACUChar"
+>CUChar</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AbufferToString"
+></A
+><B
+>bufferToString</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3AColumnInfo"
+>ColumnInfo</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+>String</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AmakeYear"
+></A
+><B
+>makeYear</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+></TD
+></TR
+><TR
+><TD CLASS="doc"
+>Oracle's excess-something-or-other encoding for years:
+ year = 100*(c - 100) + (y - 100),
+ c = (year div 100) + 100,
+ y = (year mod 100) + 100.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AmakeYearByte"
+></A
+><B
+>makeYearByte</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Word.html#t%3AWord8"
+>Word8</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AmakeCentByte"
+></A
+><B
+>makeCentByte</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Word.html#t%3AWord8"
+>Word8</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AdumpBuffer"
+></A
+><B
+>dumpBuffer</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Word.html#t%3AWord8"
+>Word8</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AbufferToCaltime"
+></A
+><B
+>bufferToCaltime</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferFPtr"
+>BufferFPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-Time.html#t%3ACalendarTime"
+>CalendarTime</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AbufferToUTCTime"
+></A
+><B
+>bufferToUTCTime</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferFPtr"
+>BufferFPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> UTCTime)</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AsetBufferByte"
+></A
+><B
+>setBufferByte</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferPtr"
+>BufferPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Word.html#t%3AWord8"
+>Word8</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AcalTimeToBuffer"
+></A
+><B
+>calTimeToBuffer</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferPtr"
+>BufferPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-Time.html#t%3ACalendarTime"
+>CalendarTime</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AutcTimeToBuffer"
+></A
+><B
+>utcTimeToBuffer</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferPtr"
+>BufferPtr</A
+> -&gt; UTCTime -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> ()</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AbufferPeekValue"
+></A
+><B
+>bufferPeekValue</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Storable.html#t%3AStorable"
+>Storable</A
+> a =&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferFPtr"
+>BufferFPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> a</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AbufferToA"
+></A
+><B
+>bufferToA</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-Storable.html#t%3AStorable"
+>Storable</A
+> a =&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferFPtr"
+>BufferFPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> a)</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AbufferToCInt"
+></A
+><B
+>bufferToCInt</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferFPtr"
+>BufferFPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AbufferToInt"
+></A
+><B
+>bufferToInt</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferFPtr"
+>BufferFPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+>Int</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AbufferToCDouble"
+></A
+><B
+>bufferToCDouble</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferFPtr"
+>BufferFPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACDouble"
+>CDouble</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AbufferToDouble"
+></A
+><B
+>bufferToDouble</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-ForeignPtr.html#t%3AForeignPtr"
+>ForeignPtr</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Foreign-C-Types.html#t%3ACShort"
+>CShort</A
+> -&gt; <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferFPtr"
+>BufferFPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>Maybe</A
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Prelude.html#t%3ADouble"
+>Double</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AbufferToStmtHandle"
+></A
+><B
+>bufferToStmtHandle</B
+> :: <A HREF="Database-Oracle-OCIFunctions.html#t%3ABufferFPtr"
+>BufferFPtr</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+></TD
 ></TR
 ><TR
 ><TD CLASS="s15"

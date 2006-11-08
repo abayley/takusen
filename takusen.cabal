@@ -1,18 +1,19 @@
 Name:           Takusen
-Version:        0.5
+Version:        0.6
 License:        BSD3
 License-file:   doc/license.txt
 Author:         Alistair Bayley, Oleg Kiselyov
-Copyright:      2004, Alistair Bayley, Oleg Kiselyov
+Copyright:      2003-2006, Alistair Bayley, Oleg Kiselyov
 Maintainer:     alistair@abayley.org, oleg@pobox.com
 Stability:      experimental
 Homepage:       http://darcs.haskell.org/takusen
 Package-url:    http://darcs.haskell.org/takusen
 Category:       Database
 Build-Depends:  base, mtl, time
-Synopsis:       Database access library with left-fold interface
+Synopsis:       Database access library with left-fold interface. Supports PostgreSQL, Oracle, SQLite.
 Exposed-modules:
   Database.Enumerator
+  , Database.Util
   , Database.Oracle.Enumerator
   , Database.Oracle.OCIConstants
   , Database.Oracle.OCIFunctions

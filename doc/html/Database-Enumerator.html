@@ -161,6 +161,8 @@
 >Database.Stub.Enumerator</A
 >.
  This lets you run the test cases without having a working DBMS installation.
+ This isn't so valuable now, because it's dead easy to install SQLite,
+ but it's still there if you want to try it.
 </P
 ><P
 >Additional reading:
@@ -183,18 +185,23 @@
 </LI
 ></UL
 ><P
->Note that there are a few functions that are exported from each backend
- implementation which *are* exposed to the API user, and which are useful,
- but are not (necessarily) in this module. They include:
+>Note that there are a few functions that are exported from each DBMS-specific
+ implementation which are exposed to the API user, and which are part of
+ the Takusen API, but are not (necessarily) in this module.
+ They include:
 </P
 ><UL
 ><LI
 > connect (obviously DBMS specific)
 </LI
 ><LI
-> prepareStmt, sql, prefetch
+> prepareStmt, preparePrefetch, sql, sqlbind, prefetch
 </LI
 ></UL
+><P
+>These functions will typically have the same names and intentions,
+ but their specific types and usage may differ between DBMS.
+</P
 ></TD
 ></TR
 ><TR
@@ -830,18 +837,6 @@
 >IterAct</A
 > m a</TD
 ></TR
-><TR
-><TD CLASS="s8"
-></TD
-></TR
-><TR
-><TD CLASS="decl"
-><A HREF="#v%3Aprint_"
->print_</A
-> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl//Control-Monad-Trans.html#t%3AMonadIO"
->MonadIO</A
-> m, MyShow a) =&gt; a -&gt; m ()</TD
-></TR
 ></TABLE
 ></TD
 ></TR
@@ -896,7 +891,7 @@
    withSession (connect &quot;user&quot; &quot;password&quot; &quot;server&quot;) $ do
      -- simple query, returning reversed list of rows.
      r &lt;- doQuery (sql &quot;select a, b, c from x&quot;) query1Iteratee []
-     putStrLn $ show r
+     liftIO $ putStrLn $ show r
      otherActions session
 </PRE
 ><P
@@ -930,7 +925,9 @@
 >beginTransaction</A
 ></TT
 > <TT
->[isolation-level]</TT
+><A HREF="Database-Enumerator.html#t%3AIsolationLevel"
+>IsolationLevel</A
+></TT
 >,
     <TT
 ><A HREF="Database-Enumerator.html#v%3Acommit"
@@ -1022,7 +1019,12 @@
 >The PostgreSQL backend additionally requires that when preparing statements,
  you (1) give a name to the prepared statement,
  and (2) specify types for the bind parameters.
- The list of bind-types is created by applying the bindType functions
+ The list of bind-types is created by applying the
+ <TT
+><A HREF="Database-PostgrSQL-Enumerator.html#v%3AbindType"
+>bindType</A
+></TT
+> function
  to dummy values of the appropriate types.
 </P
 ><PRE
@@ -1118,8 +1120,8 @@
 >Double</A
 ></TT
 >, <TT
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-Time.html#t%3ACalendarTime"
->CalendarTime</A
+><A HREF="Data-Time.html#t%3AUTCTime"
+>UTCTime</A
 ></TT
 >.
  (<TT
@@ -1227,7 +1229,7 @@
    -&gt; m (Either [(String, Double, CalendarTime)] [(String, Double, CalendarTime)] )
 </PRE
 ><P
->reduces (with use of <TT
+>reduces to (by using <TT
 ><A HREF="Database-Enumerator.html#t%3AIterAct"
 >IterAct</A
 ></TT
@@ -1235,7 +1237,7 @@
 ><A HREF="Database-Enumerator.html#t%3AIterResult"
 >IterResult</A
 ></TT
->) to:
+>):
 </P
 ><PRE
 > iter :: Monad m =&gt;
@@ -1364,7 +1366,7 @@
 ><TR
 ><TD CLASS="doc"
 ><P
->Support for bind variables varies between backends.
+>Support for bind variables varies between DBMS's.
 </P
 ><P
 >We call <TT
@@ -1401,14 +1403,19 @@
 ></TT
 >, we must pass
  it a &quot;preparation action&quot;, which is simply an action that returns
- the prepared query. The function to create this action varies between
- backends, and by convention is called prepareStmt (although it may
- also have differently-named variations; see
+ the prepared query. The function to create this action varies between backends,
+ and by convention is called <TT
+><A HREF="Database-PostgreSQL-Enumerator.html#v%3AprepareStmt"
+>prepareStmt</A
+></TT
+>
+ (although it may also have differently-named variations; see
  <TT
 ><A HREF="Database-PostgreSQL-Enumerator.html#v%3ApreparePrefetch"
 >preparePrefetch</A
 ></TT
->, for example.
+>, for example,
+ which also exists in the Oracle and SQLite interfaces).
 </P
 ><P
 >With PostgreSQL, we must specify the type of the bind parameters
@@ -1442,9 +1449,24 @@
      bindTypes = [bindType (0::Int), bindType &quot;&quot;]
    withPreparedStatement (prepareStmt &quot;stmt1&quot; query bindTypes) $ \pstmt -&gt; do
      withBoundStatement pstmt bindVals $ \bstmt -&gt; do
-       actual &lt;- doQuery query iter []
+       actual &lt;- doQuery bstmt iter []
        liftIO (print actual)
 </PRE
+><P
+>Note that we pass <TT
+>bstmt</TT
+> to <TT
+><A HREF="Database-Enumerator.html#v%3AdoQuery"
+>doQuery</A
+></TT
+>;
+ this is the bound statement object created by
+ <TT
+><A HREF="Database-Enumerator.html#v%3AwithBoundStatement"
+>withBoundStatement</A
+></TT
+>.
+</P
 ><P
 >There is also a statement preparation function
  <TT
@@ -1458,7 +1480,9 @@
 ><P
 >The Oracle/Sqlite example code is almost the same, except for the
  call to <TT
->prepareStmt</TT
+><A HREF="Database-Sqlite-Enumerator.html#v%3AprepareStmt"
+>prepareStmt</A
+></TT
 >:
 </P
 ><PRE
@@ -1470,7 +1494,7 @@
      bindVals = [bindP (12345::Int), bindP &quot;CODE123&quot;]
    withPreparedStatement (prepareStmt query) $ \pstmt -&gt; do
      withBoundStatement pstmt bindVals $ \bstmt -&gt; do
-       actual &lt;- doQuery query iter []
+       actual &lt;- doQuery bstmt iter []
        liftIO (print actual)
 </PRE
 ><P
@@ -1487,7 +1511,7 @@
 >
  function to ensure we have a consistent API.
  Sqlite has no facility for prefetching - it's an embedded database, so no
- network round-trip - so Sqlite the back-end ignores the prefetch count:
+ network round-trip - so the Sqlite implementation ignores the prefetch count:
 </P
 ><PRE
 > bindShortcutExample = do
@@ -1544,8 +1568,7 @@
  we have to tell the compiler about the types.
  I assume this is due to interaction (which I don't fully understand and therefore
  cannot explain in any detail) with the numeric literal defaulting mechanism.
- Note that for non-numeric literals the compiler can determine the correct
- types to use.
+ For non-numeric literals the compiler can determine the correct types to use.
 </P
 ><P
 >If you omit type information for numeric literals, from GHC the error
@@ -1592,9 +1615,9 @@
 ><TR
 ><TD CLASS="doc"
 ><P
->Initial support for returning multiple result sets from a single
- statement exists for PostgreSQL, and will be added to Oracle and
- other backends (except Sqlite, where such functionality does not exist)
+>Support for returning multiple result sets from a single
+ statement exists for PostgreSQL and Oracle.
+ Such functionality does not exist in SQLite.
 </P
 ><P
 >The general idea is to invoke a database procedure or function which
@@ -1611,7 +1634,7 @@
 >
 </P
 ><P
->Here we assume the existence of the following PostgreSQL function
+>If we assume the existence of the following PostgreSQL function
  (this function is used in the test suite in <A HREF="Database-PostgreSQL-Test-Enumerator.html"
 >Database.PostgreSQL.Test.Enumerator</A
 >.):
@@ -1649,13 +1672,13 @@
 </P
 ><UL
 ><LI
-> the results of the first iteratee are discarded (this is not required,
-    but in this case all the only column is a <TT
+> the results of the first iteratee are discarded. This is not required,
+    but in this case the only column is a <TT
 ><A HREF="Database-Enumerator.html#t%3ARefCursor"
 >RefCursor</A
 ></TT
 >,
-    and its values are already saved elsewhere).
+    and the values are already saved elsewhere.
 </LI
 ><LI
 > the use of a <TT
@@ -1671,6 +1694,14 @@
     to the backend that it should save each cursor value returned,
     which it does by stuffing them into a list attached to the
     prepared statement object.
+    This means that we <EM
+>must</EM
+> use the <TT
+><A HREF="Database-Enumerator.html#v%3AwithPreparedStatement"
+>withPreparedStatement</A
+></TT
+>
+    function around code using the linear multiple-result-set processing.
 </LI
 ><LI
 > saved cursors are consumed one-at-a-time by calling <TT
@@ -1715,8 +1746,8 @@
 </P
 ><P
 >The linear style of cursor processing is the only style supported by
- MS SQL Server and ODBC. However, PostgreSQL and Oracle also support
- using nested cursors in queries.
+ MS SQL Server and ODBC (which we do not yet support).
+ However, PostgreSQL and Oracle also support using nested cursors in queries.
 </P
 ><P
 >Again for PostgreSQL, assuming we have these functions in the database:
@@ -1778,6 +1809,69 @@
 >doQuery</A
 ></TT
 >.
+</P
+><P
+>For Oracle the example is slightly different.
+ The reason it's different is that Oracle requires two things:
+</P
+><UL
+><LI
+> the parent cursor must remain open while processing the children
+    (in the PostgreSQL example, <TT
+><A HREF="Database-Enumerator.html#v%3AdoQuery"
+>doQuery</A
+></TT
+>
+    closes the parent cursor after constructing the list,
+    before the list is processed. This is OK because PostgreSQL
+    keeps the child cursors open on the server until they are explicitly
+    closed, or the transaction or session ends).
+</LI
+><LI
+> our current design prevents marshalling of the value in the result-set
+    buffer to a Haskell value, so each fetch overwrites the buffer value with
+    a new cursor.
+    This means you have to fully process a given cursor before
+    fetching the next one.
+</LI
+></UL
+><P
+>Contrast this with the PostgreSQL
+ example, where the entire result-set is processed to give a
+ list of RefCursor values, and then we run a list of actions
+ over this list with <TT
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Monad.html#v%3AmapM_"
+>mapM_</A
+></TT
+>.
+ This is possible because PostgreSQL refcursors are just the
+ database cursor names, which are Strings, which we can marshal
+ to Haskell values easily.
+</P
+><PRE
+> selectNestedMultiResultSet = do
+   let
+     q = &quot;select n, cursor(SELECT nat2.n, cursor&quot;
+         ++ &quot;     (SELECT nat3.n from t_natural nat3 where nat3.n &lt; nat2.n order by n)&quot;
+         ++ &quot;   from t_natural nat2 where nat2.n &lt; nat.n order by n)&quot;
+         ++ &quot; from t_natural nat where n &lt; 10 order by n&quot;
+     iterMain   (outer::Int) (c::RefCursor StmtHandle) acc = do
+       rs &lt;- doQuery c (iterInner outer) []
+       result' ((outer,c):acc)
+     iterInner outer (inner::Int) (c::RefCursor StmtHandle) acc = do
+       rs &lt;- doQuery c (iterInner2 outer inner) []
+       result' ((inner,c):acc)
+     iterInner2 outer inner (i::Int) acc = do
+       liftIO (putStrLn (show outer ++ &quot; &quot; ++ show inner ++ &quot; &quot; ++ show i))
+       result' (i:acc)
+   withTransaction RepeatableRead $ do
+     rs &lt;- doQuery (sql q) iterMain []
+     return ()
+</PRE
+><P
+>Note that the PostgreSQL example can also be written like this
+ (except, of course, that the actual query text is that
+ from the PostgreSQL exanple).
 </P
 ></TD
 ></TR
@@ -2084,6 +2178,12 @@
 > mark s ()</TD
 ></TR
 ><TR
+><TD CLASS="doc"
+>DDL operations don't manipulate data, so we return no information.
+ If there is a problem, an exception will be raised.
+</TD
+></TR
+><TR
 ><TD CLASS="s15"
 ></TD
 ></TR
@@ -2100,6 +2200,11 @@
 > mark s <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
 >Int</A
 ></TD
+></TR
+><TR
+><TD CLASS="doc"
+>Returns the number of rows affected.
+</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3178,7 +3283,11 @@
 ><TD CLASS="arg"
 >-&gt; a</TD
 ><TD CLASS="rdoc"
->value to substitute if first parameter is null
+>value to substitute if first parameter is null i.e. <TT
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#v%3ANothing"
+>Nothing</A
+></TT
+>
 </TD
 ></TR
 ><TR
@@ -3255,29 +3364,6 @@
  if it's a delayed computation then it almost certainly will.
  This includes consing elements onto a list,
  and arithmetic operations (counting, summing, etc).
-</TD
-></TR
-><TR
-><TD CLASS="s15"
-></TD
-></TR
-><TR
-><TD CLASS="decl"
-><A NAME="v%3Aprint_"
-></A
-><B
->print_</B
-> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl//Control-Monad-Trans.html#t%3AMonadIO"
->MonadIO</A
-> m, MyShow a) =&gt; a -&gt; m ()</TD
-></TR
-><TR
-><TD CLASS="doc"
->Like <TT
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#v%3Aprint"
->print</A
-></TT
->, except that Strings are not escaped or quoted.
 </TD
 ></TR
 ><TR

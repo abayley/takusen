@@ -264,6 +264,35 @@ from t_natural nat where n < 10 order by n;
 >       assertEqual "selectNestedMultiResultSet" [9,8,7,6,5,4,3,2,1] (map fst rs)
 >       --print_ ""
 
+> selectNestedMultiResultSet3 :: OracleFunctions -> DBM mark Session ()
+> selectNestedMultiResultSet3 _ = do
+>   let
+>     q = "select n, cursor(SELECT nat2.n, cursor"
+>         ++ "     (SELECT nat3.n from t_natural nat3 where nat3.n < nat2.n order by n)"
+>         ++ "   from t_natural nat2 where nat2.n < nat.n order by n)"
+>         ++ " from t_natural nat where n < 10 order by n"
+>     iterMain   (outer::Int) (c::RefCursor StmtHandle) acc = do
+>       rs <- doQuery c (iterInner outer) []
+>       let expect = drop (9-outer) [8,7,6,5,4,3,2,1]
+>       assertEqual "processOuter" expect (map fst rs)
+>       result' ((outer,c):acc)
+>     iterInner outer (inner::Int) (c::RefCursor StmtHandle) acc = do
+>       rs <- doQuery c (iterInner2 outer inner) []
+>       let expect = drop (9-inner) [8,7,6,5,4,3,2,1]
+>       assertEqual "processInner" expect rs
+>       result' ((inner,c):acc)
+>     iterInner2 outer inner (i::Int) acc = do
+>       --print_ (show outer ++ " " ++ show inner ++ " " ++ show i)
+>       assertBool "processInner2" (i < inner)
+>       result' (i:acc)
+>   withTransaction RepeatableRead $ do
+>   --withPreparedStatement (prepareStmt (sql q)) $ \pstmt -> do
+>   --withBoundStatement pstmt [] $ \bstmt -> do
+>   --    rs <- doQuery bstmt iterMain []
+>       rs <- doQuery (sql q) iterMain []
+>       assertEqual "selectNestedMultiResultSet" [9,8,7,6,5,4,3,2,1] (map fst rs)
+>       --print_ ""
+
 > testList :: [OracleFunctions -> DBM mark Session ()]
 > testList =
 >   [ selectNoRows, selectTerminatesEarly, selectFloatsAndInts
@@ -274,5 +303,6 @@ from t_natural nat where n < 10 order by n;
 >   , selectBindDate, selectBindBoundaryDates, selectRebindStmt
 >   , polymorphicFetchTest, polymorphicFetchTestNull
 >   , exceptionRollback
->   , selectMultiResultSet, selectNestedMultiResultSet, selectNestedMultiResultSet2
+>   , selectMultiResultSet, selectNestedMultiResultSet
+>   , selectNestedMultiResultSet2, selectNestedMultiResultSet3
 >   ]

@@ -9,27 +9,6 @@ Portability :  non-portable
  
 Oracle OCI implementation of Database.Enumerator.
 
-Oracle has two ways to create additional result-sets.
- 1. with nested cursors in the SQL select-statement (bind variables optional)
-    This gives us the RefCursor as a result-set column
-    i.e. we get it back in the buffer passed to defineByPos.
- 2. as output parameters in a PL/SQL block
-    This gives us the RefCursor as an output bind variables
-    i.e. we get it back in the buffer passed to bindByPos.
-
-Problems:
- - need to prepare anonymous PL/SQL block with bind placeholders for parameters
- - need to have number of parameters when preparing
- - need actual bind values when binding = number must match prepare number
- - need to specify In, Out, In/Out - always use OCIBindByPos
- - when executed (in withBoundStatement/bindRun) need to get return values
-   and save them... where? Do we create a tuple; Do we allow a single row fetch?
-
-So we need to add an instance to OracleBind for (RefCursor StmtHandle).
-When this binds we will have to save a list of the output bind buffers
-somewhere in the statement object (I suppose these can be reused).
-How do we return output values back to the program?
-
 
 > {-# OPTIONS -fglasgow-exts #-}
 > {-# OPTIONS -fallow-undecidable-instances #-}
@@ -37,7 +16,8 @@ How do we return output values back to the program?
 
 > module Database.Oracle.Enumerator
 >   ( Session, connect
->   , prepareStmt, sql, sqlbind, prefetch, preparePrefetch
+>   , prepareStmt, preparePrefetch
+>   , sql, sqlbind, prefetch
 >   , StmtHandle, Out(..)
 >   , module Database.Enumerator
 >   )
@@ -64,7 +44,6 @@ How do we return output values back to the program?
 > import Data.IORef
 > import Data.Int
 > import Data.Time
-> import Data.Fixed
 > import System.Time
 > import System.IO (hPutStrLn, stderr)
 

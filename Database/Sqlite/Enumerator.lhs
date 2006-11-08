@@ -16,7 +16,8 @@ Sqlite implementation of Database.Enumerator.
 
 > module Database.Sqlite.Enumerator
 >   ( Session, connect
->   , prepareStmt, sql, sqlbind, prefetch
+>   , prepareStmt, preparePrefetch
+>   , sql, sqlbind, prefetch
 >   , module Database.Enumerator
 >   )
 > where
@@ -196,6 +197,12 @@ separate types for the two types of prepared statement...
 
 > prepareStmt :: QueryString -> PreparationA Session PreparedStmt
 > prepareStmt (QueryString sqltext) = prepareStmt' sqltext False
+
+preparePrefetch is just here for interface consistency
+with Oracle and PostgreSQL.
+
+> preparePrefetch count (QueryString sqltext) =
+>   prepareStmt' sqltext False
 
 > prepareStmt' sqltext free =
 >   PreparationA (\sess -> do

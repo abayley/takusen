@@ -12,6 +12,8 @@ and cursor operations.
   
 There is a stub: "Database.Stub.Enumerator".
 This lets you run the test cases without having a working DBMS installation.
+This isn't so valuable now, because it's dead easy to install SQLite,
+but it's still there if you want to try it.
  
 Additional reading:
  
@@ -21,14 +23,17 @@ Additional reading:
  
  * <http://www.eros-os.org/pipermail/e-lang/2004-March/009643.html>
  
-Note that there are a few functions that are exported from each backend
-implementation which *are* exposed to the API user, and which are useful,
-but are not (necessarily) in this module. They include:
+Note that there are a few functions that are exported from each DBMS-specific
+implementation which are exposed to the API user, and which are part of
+the Takusen API, but are not (necessarily) in this module.
+They include:
  
  * connect (obviously DBMS specific)
  
- * prepareStmt, sql, prefetch
+ * prepareStmt, preparePrefetch, sql, sqlbind, prefetch
  
+These functions will typically have the same names and intentions,
+but their specific types and usage may differ between DBMS.
 
 
 > {-# OPTIONS -fglasgow-exts #-}
@@ -172,8 +177,8 @@ all class constraints for the Session (like IQuery, DBType, etc).
 
 > newtype IE.ISession sess => DBM mark sess a = DBM (ReaderT sess IO a)
 >   -- Haddock can't cope with the "MonadReader sess" instance
->   --deriving (Monad, MonadIO)
->   deriving (Monad, MonadIO, MonadReader sess)
+>   deriving (Monad, MonadIO)
+>   --deriving (Monad, MonadIO, MonadReader sess)
 > unDBM (DBM x) = x
 
 
@@ -210,8 +215,13 @@ marked objects.
 > executeCommand :: IE.Command stmt s => stmt -> DBM mark s Int
 > executeCommand stmt = DBM( ask >>= \s -> lift $ IE.executeCommand s stmt )
 
+| DDL operations don't manipulate data, so we return no information.
+If there is a problem, an exception will be raised.
+
 > execDDL :: IE.Command stmt s => stmt -> DBM mark s ()
 > execDDL stmt = executeCommand stmt >> return ()
+
+| Returns the number of rows affected.
 
 > execDML :: IE.Command stmt s => stmt -> DBM mark s Int
 > execDML = executeCommand
@@ -531,7 +541,7 @@ unless there was an exception, in which case rollback.
 |Useful utility function, for SQL weenies.
 
 > ifNull :: Maybe a  -- ^ nullable value
->   -> a  -- ^ value to substitute if first parameter is null
+>   -> a  -- ^ value to substitute if first parameter is null i.e. 'Data.Maybe.Nothing'
 >   -> a
 > ifNull value subst = maybe subst id value
 
@@ -610,7 +620,7 @@ Let's look at some example code:
    function from the relevant back-end.
  
  * inside the session, the usual transaction delimiter commands are usable
-   e.g. 'Database.Enumerator.beginTransaction' @[isolation-level]@,
+   e.g. 'Database.Enumerator.beginTransaction' 'Database.InternalEnumerator.IsolationLevel',
    'Database.Enumerator.commit', 'Database.Enumerator.rollback', and
    'Database.Enumerator.withTransaction'.
    We also provide 'Database.Enumerator.execDML' and 'Database.Enumerator.execDDL'.
@@ -647,7 +657,8 @@ For example, the Sqlite and Oracle back-ends have:
 The PostgreSQL backend additionally requires that when preparing statements,
 you (1) give a name to the prepared statement,
 and (2) specify types for the bind parameters.
-The list of bind-types is created by applying the bindType functions
+The list of bind-types is created by applying the
+'Database.PostgrSQL.Enumerator.bindType' function
 to dummy values of the appropriate types.
  
  > let stmt = prepareStmt "stmtname" (sql "select ...") [bindType "", bindType (0::Int)]
@@ -682,7 +693,7 @@ are back-end specific; they must be instances of the class
 'Database.InternalEnumerator.DBType'.
 Most backends directly support the usual lowest-common-denominator set
 supported by most DBMS's: 'Data.Int.Int', 'Data.Char.String',
-'Prelude.Double', 'System.Time.CalendarTime'.
+'Prelude.Double', 'Data.Time.UTCTime'.
 ('Data.Int.Int64' is often, but not always, supported.)
  
 By directly support we mean there is type-specific marshalling code
@@ -725,7 +736,7 @@ which doesn't seem so onerous, but for more elaborate seed types
  >      String -> Double -> CalendarTime -> [(String, Double, CalendarTime)]
  >   -> m (Either [(String, Double, CalendarTime)] [(String, Double, CalendarTime)] )
  
-reduces (with use of 'IterAct' and 'IterResult') to:
+reduces to (by using 'IterAct' and 'IterResult'):
  
  > iter :: Monad m =>
  >      String -> Double -> CalendarTime -> IterAct m [(String, Double, CalendarTime)]
@@ -774,7 +785,7 @@ which is why we recommend the strict function.
 
 -- $usage_bindparms
  
-Support for bind variables varies between backends.
+Support for bind variables varies between DBMS's.
  
 We call 'Database.Enumerator.withPreparedStatement' function to prepare
 the statement, and then call 'Database.Enumerator.withBoundStatement'
@@ -785,10 +796,11 @@ so it can be passed to 'Database.Enumerator.doQuery' for result-set processing.
  
 When we call 'Database.Enumerator.withPreparedStatement', we must pass
 it a \"preparation action\", which is simply an action that returns
-the prepared query. The function to create this action varies between
-backends, and by convention is called prepareStmt (although it may
-also have differently-named variations; see
-'Database.PostgreSQL.Enumerator.preparePrefetch', for example.
+the prepared query. The function to create this action varies between backends,
+and by convention is called 'Database.PostgreSQL.Enumerator.prepareStmt'
+(although it may also have differently-named variations; see
+'Database.PostgreSQL.Enumerator.preparePrefetch', for example,
+which also exists in the Oracle and SQLite interfaces).
  
 With PostgreSQL, we must specify the type of the bind parameters
 when the query is prepared, so the 'Database.PostgreSQL.Enumerator.prepareStmt'
@@ -810,8 +822,12 @@ Perhaps an example will explain it better:
  >     bindTypes = [bindType (0::Int), bindType ""]
  >   withPreparedStatement (prepareStmt "stmt1" query bindTypes) $ \pstmt -> do
  >     withBoundStatement pstmt bindVals $ \bstmt -> do
- >       actual <- doQuery query iter []
+ >       actual <- doQuery bstmt iter []
  >       liftIO (print actual)
+ 
+Note that we pass @bstmt@ to 'Database.Enumerator.doQuery';
+this is the bound statement object created by
+'Database.Enumerator.withBoundStatement'.
  
 There is also a statement preparation function
 'Database.PostgreSQL.Enumerator.preparePrefetch' which takes
@@ -819,7 +835,7 @@ an extra parameter: the number of rows to prefetch
 (from each call to the server).
  
 The Oracle\/Sqlite example code is almost the same, except for the
-call to @prepareStmt@:
+call to 'Database.Sqlite.Enumerator.prepareStmt':
  
  > sqliteBindExample = do
  >   let
@@ -829,7 +845,7 @@ call to @prepareStmt@:
  >     bindVals = [bindP (12345::Int), bindP "CODE123"]
  >   withPreparedStatement (prepareStmt query) $ \pstmt -> do
  >     withBoundStatement pstmt bindVals $ \bstmt -> do
- >       actual <- doQuery query iter []
+ >       actual <- doQuery bstmt iter []
  >       liftIO (print actual)
  
 It can be a bit tedious to always use the @withPreparedStatement+withBoundStatement@
@@ -839,7 +855,7 @@ The next example is valid for PostgreSQL, Sqlite, and Oracle;
 for Sqlite we provide a dummy 'Database.Sqlite.Enumerator.prefetch'
 function to ensure we have a consistent API.
 Sqlite has no facility for prefetching - it's an embedded database, so no
-network round-trip - so Sqlite the back-end ignores the prefetch count:
+network round-trip - so the Sqlite implementation ignores the prefetch count:
  
  > bindShortcutExample = do
  >   let
@@ -868,8 +884,7 @@ For 'Data.Int.Int' and 'Prelude.Double' bind values,
 we have to tell the compiler about the types.
 I assume this is due to interaction (which I don't fully understand and therefore
 cannot explain in any detail) with the numeric literal defaulting mechanism.
-Note that for non-numeric literals the compiler can determine the correct
-types to use.
+For non-numeric literals the compiler can determine the correct types to use.
  
 If you omit type information for numeric literals, from GHC the error
 message looks something like this:
@@ -897,9 +912,9 @@ message looks something like this:
 
 -- $usage_multiresultset
  
-Initial support for returning multiple result sets from a single
-statement exists for PostgreSQL, and will be added to Oracle and
-other backends (except Sqlite, where such functionality does not exist)
+Support for returning multiple result sets from a single
+statement exists for PostgreSQL and Oracle.
+Such functionality does not exist in SQLite.
  
 The general idea is to invoke a database procedure or function which
 returns cursor variables. The variables can be processed by
@@ -907,7 +922,7 @@ returns cursor variables. The variables can be processed by
  
 /Linear style:/
  
-Here we assume the existence of the following PostgreSQL function
+If we assume the existence of the following PostgreSQL function
 (this function is used in the test suite in "Database.PostgreSQL.Test.Enumerator".):
  
  > CREATE OR REPLACE FUNCTION takusenTestFunc() RETURNS SETOF refcursor AS $$
@@ -937,15 +952,17 @@ Here we assume the existence of the following PostgreSQL function
  
 Notes:
  
- * the results of the first iteratee are discarded (this is not required,
-   but in this case all the only column is a 'Database.Enumerator.RefCursor',
-   and its values are already saved elsewhere).
+ * the results of the first iteratee are discarded. This is not required,
+   but in this case the only column is a 'Database.Enumerator.RefCursor',
+   and the values are already saved elsewhere.
  
  * the use of a 'Database.Enumerator.RefCursor' 'Data.Char.String'
    type in the iteratee function indicates
    to the backend that it should save each cursor value returned,
    which it does by stuffing them into a list attached to the
    prepared statement object.
+   This means that we /must/ use the 'Database.Enumerator.withPreparedStatement'
+   function around code using the linear multiple-result-set processing.
  
  * saved cursors are consumed one-at-a-time by calling 'Database.Enumerator.doQuery',
    passing 'Database.Enumerator.NextResultSet' @pstmt@.
@@ -963,8 +980,8 @@ Notes:
 /Nested style:/
  
 The linear style of cursor processing is the only style supported by
-MS SQL Server and ODBC. However, PostgreSQL and Oracle also support
-using nested cursors in queries.
+MS SQL Server and ODBC (which we do not yet support).
+However, PostgreSQL and Oracle also support using nested cursors in queries.
  
 Again for PostgreSQL, assuming we have these functions in the database:
  
@@ -1004,6 +1021,53 @@ a 'Database.Enumerator.RefCursor' column. Each cursor from that column is passed
 'Database.Enumerator.doQuery' to process it's result-set;
 here we use 'Control.Monad.mapM_' to apply an IO action to the list returned by
 'Database.Enumerator.doQuery'.
+ 
+For Oracle the example is slightly different.
+The reason it's different is that Oracle requires two things:
+ 
+ * the parent cursor must remain open while processing the children
+   (in the PostgreSQL example, 'Database.Enumerator.doQuery'
+   closes the parent cursor after constructing the list,
+   before the list is processed. This is OK because PostgreSQL
+   keeps the child cursors open on the server until they are explicitly
+   closed, or the transaction or session ends).
+ 
+ * our current design prevents marshalling of the value in the result-set
+   buffer to a Haskell value, so each fetch overwrites the buffer value with
+   a new cursor.
+   This means you have to fully process a given cursor before
+   fetching the next one.
+   
+Contrast this with the PostgreSQL
+example, where the entire result-set is processed to give a
+list of RefCursor values, and then we run a list of actions
+over this list with 'Control.Monad.mapM_'.
+This is possible because PostgreSQL refcursors are just the
+database cursor names, which are Strings, which we can marshal
+to Haskell values easily.
+ 
+ > selectNestedMultiResultSet = do
+ >   let
+ >     q = "select n, cursor(SELECT nat2.n, cursor"
+ >         ++ "     (SELECT nat3.n from t_natural nat3 where nat3.n < nat2.n order by n)"
+ >         ++ "   from t_natural nat2 where nat2.n < nat.n order by n)"
+ >         ++ " from t_natural nat where n < 10 order by n"
+ >     iterMain   (outer::Int) (c::RefCursor StmtHandle) acc = do
+ >       rs <- doQuery c (iterInner outer) []
+ >       result' ((outer,c):acc)
+ >     iterInner outer (inner::Int) (c::RefCursor StmtHandle) acc = do
+ >       rs <- doQuery c (iterInner2 outer inner) []
+ >       result' ((inner,c):acc)
+ >     iterInner2 outer inner (i::Int) acc = do
+ >       liftIO (putStrLn (show outer ++ " " ++ show inner ++ " " ++ show i))
+ >       result' (i:acc)
+ >   withTransaction RepeatableRead $ do
+ >     rs <- doQuery (sql q) iterMain []
+ >     return ()
+ 
+Note that the PostgreSQL example can also be written like this
+(except, of course, that the actual query text is that
+from the PostgreSQL exanple).
 
 
 
@@ -1012,7 +1076,8 @@ here we use 'Control.Monad.mapM_' to apply an IO action to the list returned by
 --------------------------------------------------------------------
 
 The best way (that I've found) to get a decent introductory/explanatory
-section for the module is to break the explanation into named chunks,
+section for the module is to break the explanation into named chunks
+(these begin with -- $<chunk-name>),
 put the named chunks at the end, and reference them in the export list.
 
 You *can* write the introduction inline, as part of the module description,

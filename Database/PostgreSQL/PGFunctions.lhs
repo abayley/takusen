@@ -58,7 +58,7 @@ wrappers (in the second part of this file)
 > cStrLen = fromIntegral . snd
 
 
-PG sends binary data in big-endian byte-order (really?),
+PG sends binary data in big-endian byte-order (AKA network byte order)
 at least according to the manual page for the DECLARE command
 (in the Reference section of the manual).
 
@@ -66,9 +66,9 @@ The example C programs in the manual use the htonl/ntohl functions
 to reverse the byte order before-sending/after-receiving (resp.)
 I've included the decls here for reference, but we now use a
 Haskell function reverseBytes to achieve the same result.
-Not sure if just reversing the byte-order is enough/correct though;
-I could have been lucky due to the use of a Wintel platform.
-
+Note that this only works in little-endian platforms, like x86.
+We need something better to detect endian-ness and choose whether
+or not to reverse.
 
 include C:\MinGW\include\winsock.h
 
@@ -345,7 +345,7 @@ semantics that the two types distinguish.
 >   pgTypeOid _ = 1114
 >   pgNewValue v = newBinaryValue toCDouble (toPGTime v)
 >   pgPeek p = peekValueRev undefined fromCDouble p >>= return . fromPGTime
->   pgSize _ = (sizeOf (toCDouble 0.0))
+>   pgSize _ = sizeOf (toCDouble 0.0)
 
 
 > instance PGType String where
@@ -359,43 +359,43 @@ semantics that the two types distinguish.
 >   pgTypeOid _ = 18
 >   pgNewValue v = newBinaryValue toCChar v
 >   pgPeek p = peek (castPtr p) >>= return . fromCChar
->   pgSize _ = (sizeOf (toCChar 'a'))
+>   pgSize _ = sizeOf (toCChar 'a')
 
 > instance PGType Int where
 >   pgTypeOid _ = 23
 >   pgNewValue v = newBinaryValue toCInt v
 >   pgPeek p = peekValueRev undefined fromCInt p
->   pgSize _ = (sizeOf (toCInt 0))
+>   pgSize _ = sizeOf (toCInt 0)
 
 > instance PGType Int16 where
 >   pgTypeOid _ = 21
 >   pgNewValue v = newBinaryValue toCInt16 v
 >   pgPeek p = peekValueRev undefined fromCInt16 p
->   pgSize _ = (sizeOf (toCInt16 0))
+>   pgSize _ = sizeOf (toCInt16 0)
 
 > instance PGType Int32 where
 >   pgTypeOid _ = 23
 >   pgNewValue v = newBinaryValue toCInt32 v
 >   pgPeek p = peekValueRev undefined fromCInt32 p
->   pgSize _ = (sizeOf (toCInt32 0))
+>   pgSize _ = sizeOf (toCInt32 0)
 
 > instance PGType Int64 where
 >   pgTypeOid _ = 20
 >   pgNewValue v = newBinaryValue toCInt64 v
 >   pgPeek p = peekValueRev undefined fromCInt64 p
->   pgSize _ = (sizeOf (toCInt64 0))
+>   pgSize _ = sizeOf (toCInt64 0)
 
 > instance PGType Double where
 >   pgTypeOid _ = 701
 >   pgNewValue v = newBinaryValue toCDouble v
 >   pgPeek p = peekValueRev undefined fromCDouble p
->   pgSize _ = (sizeOf (toCDouble 0.0))
+>   pgSize _ = sizeOf (toCDouble 0.0)
 
 > instance PGType Float where
 >   pgTypeOid _ = 700
 >   pgNewValue v = newBinaryValue toCFloat v
 >   pgPeek p = peekValueRev undefined fromCFloat p
->   pgSize _ = (sizeOf (toCFloat 0.0))
+>   pgSize _ = sizeOf (toCFloat 0.0)
 
 > data PGBindVal = PGBindVal
 >   { bindValOid :: Oid
@@ -700,8 +700,10 @@ they're strings already.
 
 Execute the COPY FROM STDIN command
 
+> nqCopyIn_buflen :: Int
+> nqCopyIn_buflen = 8192
+
 > nqCopyIn :: DBHandle -> String -> Handle -> IO ()
-> nqCopyIn_buflen :: Int = 8192
 > nqCopyIn db sqlText hin =
 >   withCString sqlText $ \cstr -> 
 >    allocaBytes nqCopyIn_buflen $ \buffer ->
@@ -710,15 +712,15 @@ Execute the COPY FROM STDIN command
 >             >>= check'stmt db ePGRES_COPY_IN
 >     let check'copy'status 1 = return ()
 >         check'copy'status _ = do
->		                emsg <- getError db 
+>                               emsg <- getError db 
 >                               rc <- fPQstatus db
 >                               throwPG rc emsg
 >     let loop = do
->	   len <- hGetBuf hin buffer nqCopyIn_buflen
+>          len <- hGetBuf hin buffer nqCopyIn_buflen
 >          if len < 0 then withCString "IO error" $ fPQputCopyEnd db
 >             else if len == 0 then fPQputCopyEnd db nullPtr
 >             else fPQputCopyData db buffer (fromIntegral len) >>=
->	           check'copy'status >> loop
+>               check'copy'status >> loop
 >     res <- loop
 >     fPQclear stmt
 >     check'copy'status res
