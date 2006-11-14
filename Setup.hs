@@ -4,14 +4,13 @@ import Distribution.PackageDescription
 import Distribution.Simple.Configure (findProgram)
 import Distribution.Simple.LocalBuildInfo (LocalBuildInfo)
 import Distribution.Setup
-import Distribution.Compat.FilePath
+import Distribution.Compat.FilePath (splitFileName, joinPaths)
 import System.Directory (removeFile, canonicalizePath)
 import System.Process(runInteractiveProcess, waitForProcess)
 import System.IO(hClose, hGetContents, hPutStr, stderr)
 import System.Exit
 import Control.Exception (try)
 import Control.Monad
-import System.Exit (ExitCode(..))
 
 {-
 The code in this script is adapted from the various HSQL Setup scripts,
@@ -140,4 +139,3 @@ rawSystemGrabOutput verbose path args = do
   hClose inp
   hClose err
   hGetContents out
-  
