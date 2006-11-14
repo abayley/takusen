@@ -177,8 +177,8 @@ all class constraints for the Session (like IQuery, DBType, etc).
 
 > newtype IE.ISession sess => DBM mark sess a = DBM (ReaderT sess IO a)
 >   -- Haddock can't cope with the "MonadReader sess" instance
->   deriving (Monad, MonadIO)
->   --deriving (Monad, MonadIO, MonadReader sess)
+>   --deriving (Monad, MonadIO)
+>   deriving (Monad, MonadIO, MonadReader sess)
 > unDBM (DBM x) = x
 
 
@@ -190,7 +190,7 @@ all class constraints for the Session (like IQuery, DBType, etc).
  instance MonadReader sess (ReaderT sess (DBM mark si)) where ...
 
 
-> instance CaughtMonadIO (DBM mark si) where
+> instance IE.ISession si => CaughtMonadIO (DBM mark si) where
 >   gcatch a h = DBM ( gcatch (unDBM a) (unDBM . h) )
 >   gcatchJust p a h = DBM ( gcatchJust p (unDBM a) (unDBM . h) )
 

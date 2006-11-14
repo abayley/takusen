@@ -818,6 +818,10 @@ It's no trouble to marshal a String back to Haskell-land.
 >     pstmt <- newPreparedStmt FreeManually SelectType sess stmt
 >     return (Query pstmt sess Nothing)
 
+For NextResultSet, we call makeQuery passing (RefCursor StmtHandle).
+This creates a query with no parent statement.
+All other instances of Statement make a statement its own parent.
+
 > instance Statement (NextResultSet mark PreparedStmt) Session Query where
 >   makeQuery sess (NextResultSet (Enum.PreparedStmt pstmt)) = do
 >     cursors <- readIORef (stmtCursors pstmt)

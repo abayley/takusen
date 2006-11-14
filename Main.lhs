@@ -21,17 +21,6 @@ Invoke main like this (assuming the compiled executable is called @takusen@):
  > takusen oracle noperf "" "" dbname  -- no username, so os-authenticated
  > takusen mssql noperf user paswd dbname
 
-GHC compiler/linker options:
-
-Postgres: -I"C:\Program Files\PostgreSQL\8.1\include" -lpq -L"C:\Program Files\PostgreSQL\8.1\bin"
-Sqlite  : -I"C:\Program Files\sqlite" -lsqlite3 -L"C:\Program Files\sqlite"
-Oracle  : -I"C:\Program Files\Oracle\OraHome817\oci\include" -loci -L"C:\Program Files\Oracle\OraHome817\bin"
-Oracle  : -I"%ORACLE_HOME%\oci\include" -loci -L"%ORACLE_HOME%\bin"
-
-Unwritten tests:
- - various failure cases?
-   * incorrect fold function (doesn't match result-set)
-
 
 > module Main (main) where
 
@@ -44,10 +33,12 @@ Unwritten tests:
 > import Database.PostgreSQL.Test.Enumerator as PGSql
 > import System.Environment (getArgs)
 > import Database.Test.Performance as Perf
+> import Database.Test.Util as Util
 
 
 > main :: IO ()
 > main = do
+>   Util.runTest
 >   (impl:perf:args) <- getArgs
 >   let runPerf = if perf == "perf" then Perf.RunTests else Perf.Don'tRunTests
 >   case lookup impl backendTests of

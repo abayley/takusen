@@ -47,27 +47,9 @@ i.e. there's no timezone adjustment.
 >       (fromGregorian (fromIntegral year) (fromIntegral month) (fromIntegral day))
 >       (TimeOfDay (fromIntegral hour) (fromIntegral minute) (fromIntegral second)))
 
-
-
-20040822073512
-   10000000000 (10 ^ 10) * year
-     100000000 (10 ^ 8) * month
-       1000000 (10 ^ 6) * day
-         10000  (10^4) * hour
-
-Use quot and rem, /not/ div and mod,
-so that we get sensible behaviour for -ve numbers.
-
-> int64ToCalTime :: Int64 -> CalendarTime
-> int64ToCalTime i =
->   let
->     year = (i `quot` 10000000000)
->     month = ((abs i) `rem` 10000000000) `quot` 100000000
->     day = ((abs i) `rem` 100000000) `quot` 1000000
->     hour = ((abs i) `rem` 1000000) `quot` 10000
->     minute = ((abs i) `rem` 10000) `quot` 100
->     second = ((abs i) `rem` 100)
->   in CalendarTime
+> mkCalTime :: Integral a => a -> a -> a -> a -> a -> a -> CalendarTime
+> mkCalTime year month day hour minute second =
+>   CalendarTime
 >     { ctYear = fromIntegral year
 >     , ctMonth = toEnum (fromIntegral month - 1)
 >     , ctDay = fromIntegral day
@@ -82,43 +64,71 @@ so that we get sensible behaviour for -ve numbers.
 >     , ctIsDST = False
 >     }
 
-> calTimeToInt64 :: CalendarTime -> Int64
-> calTimeToInt64 ct =
->   let
->     yearm :: Int64
->     yearm = 10000000000
->   in  yearm * fromIntegral (ctYear ct)
->   + 100000000 * fromIntegral ((fromEnum (ctMonth ct) + 1))
->   + 1000000 * fromIntegral (ctDay ct)
->   + 10000 * fromIntegral (ctHour ct)
->   + 100 * fromIntegral (ctMin ct)
->   + fromIntegral (ctSec ct)
 
+20040822073512
+   10000000000 (10 ^ 10) * year
+     100000000 (10 ^ 8) * month
+       1000000 (10 ^ 6) * day
+         10000  (10^4) * hour
 
-> int64ToUTCTime :: Int64 -> UTCTime
-> int64ToUTCTime i =
+Use quot and rem, /not/ div and mod,
+so that we get sensible behaviour for -ve numbers.
+
+> int64ToDateParts :: Int64 -> (Int64, Int64, Int64, Int64, Int64, Int64)
+> int64ToDateParts i =
 >   let
->     year = (i `quot` 10000000000)
+>     year1 = (i `quot` 10000000000)
 >     month = ((abs i) `rem` 10000000000) `quot` 100000000
 >     day = ((abs i) `rem` 100000000) `quot` 1000000
 >     hour = ((abs i) `rem` 1000000) `quot` 10000
 >     minute = ((abs i) `rem` 10000) `quot` 100
 >     second = ((abs i) `rem` 100)
->   in mkUTCTime
->     (fromIntegral year) (fromIntegral month) (fromIntegral day)
->     (fromIntegral hour) (fromIntegral minute) (fromIntegral second)
+>   in (year1, month, day, hour, minute, second)
 
+> datePartsToInt64 ::
+>   (Integral a1, Integral a2, Integral a3, Integral a4, Integral a5, Integral a6)
+>   => (a1, a2, a3, a4, a5, a6) -> Int64 
+> datePartsToInt64 (year, month, day, hour, minute, second) =
+>   let
+>     yearm :: Int64
+>     yearm = 10000000000
+>     sign :: Int64
+>     sign = if year < 0 then -1 else 1
+>   in  yearm * fromIntegral year
+>   + sign * 100000000 * fromIntegral month
+>   + sign * 1000000 * fromIntegral day
+>   + sign * 10000 * fromIntegral hour
+>   + sign * 100 * fromIntegral minute
+>   + sign * fromIntegral second
+
+
+> calTimeToInt64 :: CalendarTime -> Int64
+> calTimeToInt64 ct =
+>   datePartsToInt64
+>     ( ctYear ct, fromEnum (ctMonth ct) + 1, ctDay ct
+>     , ctHour ct, ctMin ct, ctSec ct)
 
 > utcTimeToInt64 utc =
 >   let
 >     (LocalTime ltday time) = utcToLocalTime (hoursToTimeZone 0) utc
 >     (TimeOfDay hour minute second) = time
 >     (year, month, day) = toGregorian ltday
->     yearm :: Int64
->     yearm = 10000000000
->   in  yearm * fromIntegral year
->   + 100000000 * fromIntegral month
->   + 1000000 * fromIntegral day
->   + 10000 * fromIntegral hour
->   + 100 * fromIntegral minute
->   + fromIntegral (round second)
+>   in datePartsToInt64 (year, month, day, hour, minute, round second)
+
+
+> int64ToCalTime :: Int64 -> CalendarTime
+> int64ToCalTime i =
+>   let (year, month, day, hour, minute, second) = int64ToDateParts i
+>   in mkCalTime year month day hour minute second
+
+> int64ToUTCTime :: Int64 -> UTCTime
+> int64ToUTCTime i =
+>   let (year, month, day, hour, minute, second) = int64ToDateParts i
+>   in mkUTCTime year month day hour minute second
+
+
+> zeroPad :: Int -> Int64 -> String
+> zeroPad n i =
+>   if i < 0
+>   then "-" ++ (zeroPad n (abs i))
+>   else take (n - length (show i)) (repeat '0') ++ show i

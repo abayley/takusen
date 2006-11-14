@@ -1,7 +1,8 @@
 #!/usr/bin/env runhaskell
 import Distribution.Simple
 import Distribution.PackageDescription
-import Distribution.Simple.Configure (LocalBuildInfo, findProgram)
+import Distribution.Simple.Configure (findProgram)
+import Distribution.Simple.LocalBuildInfo (LocalBuildInfo)
 import Distribution.Setup
 import Distribution.Compat.FilePath
 import System.Directory (removeFile, canonicalizePath)
@@ -19,10 +20,8 @@ so the credit for it should go to Krasimir Angelov.
 Not sure exactly what that means for our license;
 does he have to appear in our license.txt?
 (His code is also BSD3 licensed.)
--}
 
 
-{-
 To-dos for Takusen:
 fix PG installation to use pg_config
 GHC-6.6 update
@@ -32,12 +31,18 @@ fix network-byte-order marshalling in Database.PostgreSQL.PGFunctions
 Blob support (and clob?).
 ODBC back-end.
 Sql Server back-end.
--}
 
-{-
-PGSql : -I"C:\Program Files\PostgreSQL\8.1\include" -lpq -L"C:\Program Files\PostgreSQL\8.1\bin"
-Sqlite: -I"C:\Program Files\sqlite" -lsqlite3 -L"C:\Program Files\sqlite"
-Oracle: -I"C:\Program Files\Oracle\OraHome817\oci\include" -loci -L"C:\Program Files\Oracle\OraHome817\bin"
+Unwritten tests:
+ - various failure cases?
+   * incorrect fold function (doesn't match result-set)
+
+
+GHC compiler/linker options:
+
+Postgres: -I"C:\Program Files\PostgreSQL\8.1\include" -lpq -L"C:\Program Files\PostgreSQL\8.1\bin"
+Sqlite  : -I"C:\Program Files\sqlite" -lsqlite3 -L"C:\Program Files\sqlite"
+Oracle  : -I"C:\Program Files\Oracle\OraHome817\oci\include" -loci -L"C:\Program Files\Oracle\OraHome817\bin"
+Oracle  : -I"%ORACLE_HOME%\oci\include" -loci -L"%ORACLE_HOME%\bin"
 -}
 
 main = defaultMainWithHooks defaultUserHooks{preConf=preConf, postConf=postConf}

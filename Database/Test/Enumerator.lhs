@@ -101,30 +101,45 @@ functions and types. See the various backend-specific test modules for examples.
 >   | i > 0  = "to_date('" ++ (zeroPad 14 i) ++ "', 'yyyymmddhh24miss')"
 >   | i < 0  = "to_date('" ++ (zeroPad 14 i) ++ "', 'syyyymmddhh24miss')"
 
+For postgres:
+0000-01-01 AD -> 0001-01-01 BC
+0000-12-31 AD -> 0001-12-31 BC
+0001-01-01 AD -> 0001-01-01 AD
+Using Doubles as storage (not sure about this?)
+4714-11-24 BC -> mindate
+5874897-12-31 AD -> maxdate
+Using 8-bytes ints:
+4713 BC -> 294276 AD
+
+
+However, although PG shows (say) 4712-01-01 BC, this is actually -4713-01-01
+as a UTCTime.
+Not sure who's right.
+
+So in datePG we want:
+int64  0000-01-01 -> 0001-01-01 AD
+int64  0001-01-01 -> 0001-01-01 AD
+int64 -0001-01-01 -> 0000-01-01 AD
+int64 -0002-01-01 -> 0003-01-01 BC
+int64 -4712-01-01 -> 4713-01-01 BC
+
 > datePG :: Int64 -> String
 > datePG i =
 >   let
->     year1 = ((abs i) `quot` 10000000000)
->     month = ((abs i) `rem` 10000000000) `quot` 100000000
->     day = ((abs i) `rem` 100000000) `quot` 1000000
->     hour = ((abs i) `rem` 1000000) `quot` 10000
->     minute = ((abs i) `rem` 10000) `quot` 100
->     second = ((abs i) `rem` 100)
->     suffix = if i < 1 then " BC'" else " AD'"
->     year = if i < 1 then year1 + 1 else year1
+>     (year1, month, day, hour, minute, second) = int64ToDateParts i
+>     year = case () of
+>       _ | year1 == 0 -> 1
+>         | year1 < 0 -> abs (year1 - 1)
+>         | otherwise -> year1
+>     suffix = if year1 < 1 then " BC'" else " AD'"
+>     zp = zeroPad
 >   in
 >   if i == 0 then "null::timestamp"
 >   --else "timestamp with time zone '" ++ zp 4 year ++ "-" ++ zp 2 month ++ "-" ++ zp 2 day
 >   else "timestamp '" ++ zp 4 year ++ "-" ++ zp 2 month ++ "-" ++ zp 2 day
 >     ++ " " ++ zp 2 hour ++ ":" ++ zp 2 minute ++ ":" ++ zp 2 second ++ suffix
 
-> zp = zeroPad
 
-> zeroPad :: Int -> Int64 -> String
-> zeroPad n i =
->   if i < 0
->   then "-" ++ (zeroPad n (abs i))
->   else take (n - length (show i)) (repeat '0') ++ show i
 
 
 > execDDL_ s = catchDB (execDDL s) (\e -> liftIO (reportError s e) >> throwDB e)

@@ -414,6 +414,8 @@ for passing to the stmtExec and prepare'n'exec functions.
 Binary values are sent in network byte order,
 which means we must reverse the byte order before sending,
 and after receiving.
+FIXME  We only want to reverse on little endian platforms.
+We need to add a test for endian-ness and Do The Right Thing.
 
 > newBinaryValue :: (Storable a, PGType b) => (b -> a) -> b -> IO (Ptr Word8)
 > newBinaryValue fn v = do
