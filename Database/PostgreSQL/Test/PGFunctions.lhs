@@ -36,10 +36,7 @@ Portability :  non-portable
 >   destroyFixture db
 >   closeDb db
 
-
-> testlist db =
->   --TestList $ map (\t -> TestCase (t db))
->   map ($ db)
+> testlist db = map ($ db)
 >   [ testSelectInts
 >   , testSelectDouble
 >   , testSelectDate
@@ -52,6 +49,7 @@ Portability :  non-portable
 >   , testUnion
 >   , testSelectManyRows
 >   , testBindString
+>   , testBindInt
 >   , testBindDouble
 >   , testBindDate
 >   , testCreateDual
@@ -80,7 +78,6 @@ Portability :  non-portable
 >   printPropagateError $ ddlExec db 
 >		    "create temp table t_natural (n integer primary key)"
 >   mapM_ (insertNatural db) [1,2,64,65534,65535,65536]
->   --mapM_ (insertNatural db) [1..65536]
 >   printPropagateError $
 >       ddlExec db "create temp table t_blob (b bytea)"
 >   printPropagateError $
@@ -106,9 +103,6 @@ Portability :  non-portable
 >     stmtPrepare db "" "select text(n) from t_natural where n < 3 order by n;" []
 >   (stmt,ntuples) <- stmtExec0 db sn
 >   assertEqual "testSelectInts: ntuples" 2 ntuples
->   --fmt0 <- fPQfformat stmt 0
->   --ct0  <- fPQftype stmt 0
->   --putStrLn $ "\nt_natural: format " ++ (show fmt0) ++ ", type (oid) " ++ (show ct0)
 >   n <- colValString stmt 1 1
 >   assertEqual "testSelectInts: 1" 1 (read n)
 >   n <- colValString stmt 2 1
@@ -119,11 +113,7 @@ Portability :  non-portable
 >   sn <- printPropagateError $
 >     stmtPrepare db "" "select n from t_natural where n < 65536 order by n;" []
 >   (rs,ntuples) <- stmtExec0 db sn
->   --assertEqual "testSelectInts: ntuples" 65535 ntuples
 >   assertEqual "testSelectInts: ntuples" 5 ntuples
->   --fmt0 <- fPQfformat stmt 0
->   --ct0  <- fPQftype stmt 0
->   --putStrLn $ "\nt_natural: format " ++ (show fmt0) ++ ", type (oid) " ++ (show ct0)
 >   n <- colValInt rs 1 1
 >   assertEqual "testSelectInts: 1" 1 n
 >   n <- colValInt rs 2 1
@@ -180,7 +170,7 @@ Portability :  non-portable
 >   stmtFinalise stmt
 
 
-Here we test some funny date boundary cases in Postgres.
+Here we test some wierd date boundary cases in Postgres.
 There's some funnyness around 1916-10-01 02:25:20 when we use time zones.
 
 testSelectDate2: 1, -2627156078
@@ -231,9 +221,9 @@ so it's also a poor choice if we want to test boundary dates.
 Postgres only allows specification of -ve years by use of the AD/BC suffix.
 Sadly, this differs from the astronomical year number like so:
 astro: ...3,2,1,0,-1,-2,-3,...
-ad/bc: ...3AD,2AD,1AD,-1BC,-2BC,-3BC,...
+ad/bc: ...3AD,2AD,1AD,1BC,2BC,3BC,...
 
-i.e. 0 astro = -1BC, -1 astro = -2BC, etc.
+i.e. 0 astro = 1BC, -1 astro = 2BC, etc.
 
 ISO8601 uses astronomical years, so we ought to be able to write
 -1000-12-25 (instead of 1001-01-01 BC), but Postgres won't parse this.
@@ -247,18 +237,18 @@ ISO8601 uses astronomical years, so we ought to be able to write
 >      ++ " order by 2"
 >   sn <- printPropagateError $ stmtPrepare db "" sqltext []
 >   let
->     ds = (
->            mkUTCTime 1900 1  1  0 0 0:
->            mkUTCTime 1000 1  1  0 0 0 :
->            mkUTCTime 0001 1  1  0 0 0 :
->            mkUTCTime (-1000) 1  1  0 0 0:
->          [] )
+>     ds =
+>       mkUTCTime 1900 1  1  0 0 0 :
+>       mkUTCTime 1000 1  1  0 0 0 :
+>       mkUTCTime 0001 1  1  0 0 0 :
+>       mkUTCTime (-1000) 1  1  0 0 0 :
+>       []
 >   (stmt,ntuples) <- stmtExec0 db sn
 >   let
 >     loop n =
 >       if n <= ntuples
 >         then do
->         x <- colValDouble stmt n 1
+>         --x <- colValDouble stmt n 1
 >         d <- colValUTCTime stmt n 1
 >         assertEqual ("testSelectDate3: " ++ show n ++ "\n" ++ sqltext) (ds!!(n-1)) d
 >         loop (n+1)
@@ -318,8 +308,6 @@ convert it to an appropriate Haskell type.
 >   ++ ", ( select 10 from tdual union select 0 from tdual) as t10"
 
 
-> cursor'name = "takusenp"
-
 > countRows :: DBHandle -> String -> Int -> IO Int
 > countRows db sn n = do
 >   (stmt,ntuples) <- printPropagateError $ stmtExec0 db sn
@@ -327,6 +315,8 @@ convert it to an appropriate Haskell type.
 >   if ntuples == 0
 >     then return n
 >     else countRows db sn (n+ntuples)
+
+> cursor'name = "takusenp"
 
 > testSelectManyRows db = do
 >   let prefetch = 200
@@ -344,11 +334,17 @@ convert it to an appropriate Haskell type.
 
 > testBindString db = do
 >   (rs, ntuples) <- printPropagateError $
->     prepare'n'exec db "" (substituteBindPlaceHolders "select ? from tdual") [newBindVal "h1"]
+>     prepare'n'exec db "" (substituteBindPlaceHolders "select ?") [newBindVal "h1"]
 >   n <- colValString rs 1 1
 >   assertEqual "testBindString: h1" "h1" n
 >   stmtFinalise rs
 
+> testBindInt db = do
+>   (rs, ntuples) <- printPropagateError $
+>     prepare'n'exec db "" (substituteBindPlaceHolders "select ?") [newBindVal (2001::Int)]
+>   n <- colValInt rs 1 1
+>   assertEqual "testBindInt: 2001" 2001 n
+>   stmtFinalise rs
 
 > testBindDouble db = do
 >   let
@@ -356,7 +352,7 @@ convert it to an appropriate Haskell type.
 >     v2 :: Int; v2 = 2001
 >     v3 :: Int; v3 = 2001
 >     bindvals = [newBindVal v1, newBindVal v2, newBindVal v3]
->   (rs, ntuples) <- printPropagateError $
+>   (rs, ntuples) <- printPropagateError $ do
 >     prepare'n'exec db "" (substituteBindPlaceHolders "select ? from tdual where ? = ?") bindvals
 >   n <- colValDouble rs 1 1
 >   assertEqual "testBindDouble: 2.3" 2.3 n

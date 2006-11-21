@@ -105,16 +105,22 @@ For postgres:
 0000-01-01 AD -> 0001-01-01 BC
 0000-12-31 AD -> 0001-12-31 BC
 0001-01-01 AD -> 0001-01-01 AD
+
 Using Doubles as storage (not sure about this?)
 4714-11-24 BC -> mindate
 5874897-12-31 AD -> maxdate
 Using 8-bytes ints:
 4713 BC -> 294276 AD
 
+Postgres only allows specification of -ve years by use of the AD/BC suffix.
+Sadly, this differs from the astronomical year number like so:
+astro: ...3,2,1,0,-1,-2,-3,...
+ad/bc: ...3AD,2AD,1AD,1BC,2BC,3BC,...
 
-However, although PG shows (say) 4712-01-01 BC, this is actually -4713-01-01
-as a UTCTime.
-Not sure who's right.
+i.e. 0 astro = 1BC, -1 astro = 2BC, etc.
+
+ISO8601 uses astronomical years, so we ought to be able to write
+-1000-12-25 (instead of 1001-01-01 BC), but Postgres won't parse this.
 
 So in datePG we want:
 int64  0000-01-01 -> 0001-01-01 AD

@@ -304,15 +304,10 @@ which we can't yet marshal.
 >       assertEqual "generateErrorMessageTest" expect (take (length expect) msg)
 >     )
 
-
- x_testList :: DBLiteralValue a => [a -> DBM mark Session ()]
- x_testList = [selectMultiResultSet]
-
 > testList :: DBLiteralValue a => [a -> DBM mark Session ()]
 > testList =
 >   [ selectNoRows, selectTerminatesEarly, selectFloatsAndInts
 >   , selectNullString, selectEmptyString, selectUnhandledNull
->   -- leave date-time for now... we don't know how to marshal it.
 >   , selectNullDate, selectDate, selectBoundaryDates
 >   , selectCursor, selectExhaustCursor, selectBindString
 >   , selectBindInt, selectBindIntDoubleString

@@ -15,14 +15,14 @@ wrappers (in the second part of this file)
 
 > module Database.PostgreSQL.PGFunctions where
 
-> import Foreign
-> import Foreign.C
-> import Foreign.Ptr
 > import Control.Monad
 > import Control.Exception
 > import Data.Dynamic
 > import Data.Int
 > import Data.Time
+> import Foreign
+> import Foreign.C
+> import Foreign.Ptr
 > import System.IO
 
 
@@ -65,7 +65,7 @@ at least according to the manual page for the DECLARE command
 The example C programs in the manual use the htonl/ntohl functions
 to reverse the byte order before-sending/after-receiving (resp.)
 I've included the decls here for reference, but we now use a
-Haskell function reverseBytes to achieve the same result.
+Haskell function to achieve the same result.
 Note that this only works in little-endian platforms, like x86.
 We need something better to detect endian-ness and choose whether
 or not to reverse.
@@ -293,11 +293,22 @@ Here we define a class useful in marshalling
 Haskell values to and from their Postgres counterparts
 (for binding and defining).
 
-TypeOID is a class to convert types to their OIDs.
-We need this for the prepare functions,
-which take an array of OIDs to indicate parameter types.
 We can find the OIDs with this query:
-select typname, oid from pg_type
+  select oid, typname from pg_type
+
+Types we'll map:
+  18 char
+  25 text
+  21 int2
+  23 int4
+  20 int8
+ 700 float4
+ 701 float8
+1114 timestamp
+1184 timestamptz
+
+For ints and doubles/floats, we need to check what size they are
+and choose the appropriate oid.
 
 PG timestamps are stored as 8-byte Doubles (i.e. double-precision
 floating point) holding the seconds before or after midnight 2000-01-01.
@@ -308,7 +319,7 @@ timetz = oid 1266  (12 bytes)
 date = oid 1082  (4 bytes)
 
 > class PGType a where
->   pgTypeFormat :: a -> Format
+>   pgTypeFormat :: a -> Format  -- ^ 1 == binary (default), 0 == text
 >   pgTypeOid :: a -> Oid
 >   pgNewValue :: a -> IO (Ptr Word8)
 >   pgPeek :: Ptr Word8 -> IO a
@@ -343,9 +354,22 @@ semantics that the two types distinguish.
 
 > instance PGType UTCTime where
 >   pgTypeOid _ = 1114
->   pgNewValue v = newBinaryValue toCDouble (toPGTime v)
->   pgPeek p = peekValueRev undefined fromCDouble p >>= return . fromPGTime
->   pgSize _ = sizeOf (toCDouble 0.0)
+>   pgNewValue v = case sizeOf (0::Double) of
+>     8  -> mkStorableVal (toPGTime v)
+>     16 -> let f :: Float; f = realToFrac (toPGTime v) in mkStorableVal f
+>     _ -> error ("Doubles have size " ++ show (sizeOf (0::Double)) ++ ", which I can't pass to PostgreSQL.")
+>   pgPeek p = do
+>     dbl <- case sizeOf (0::Double) of
+>       8  -> do
+>         ndbl <- peek (castPtr p)
+>         ntohIO (asTypeOf ndbl (0::Double))
+>       16 -> do
+>         nflt <- peek (castPtr p)
+>         flt <- ntohIO nflt
+>         return (realToFrac (asTypeOf flt (0::Float)))
+>       _ -> error ("Doubles have size " ++ show (sizeOf (0::Double)) ++ ",  but PostgreSQL returns 8 bytes.")
+>     return (fromPGTime dbl)
+>   pgSize _ = 8
 
 
 > instance PGType String where
@@ -357,45 +381,56 @@ semantics that the two types distinguish.
 
 > instance PGType Char where
 >   pgTypeOid _ = 18
->   pgNewValue v = newBinaryValue toCChar v
+>   -- need to cast to CChar because we don't know what the Storable instance
+>   -- for Char does; does it write 4 bytes, or just the lowest one?
+>   pgNewValue v = mkStorableVal (toCChar v)
 >   pgPeek p = peek (castPtr p) >>= return . fromCChar
->   pgSize _ = sizeOf (toCChar 'a')
+>   pgSize _ = sizeOf 'a'
 
 > instance PGType Int where
->   pgTypeOid _ = 23
->   pgNewValue v = newBinaryValue toCInt v
->   pgPeek p = peekValueRev undefined fromCInt p
->   pgSize _ = sizeOf (toCInt 0)
+>   pgTypeOid v = case sizeOf v of
+>     4 -> 23
+>     8 -> 20
+>     _ -> error ("Can't choose a matching PosgreSQL type for Int size " ++ show (sizeOf v))
+>   pgNewValue v = mkStorableVal v
+>   pgPeek p = peekVal p
+>   pgSize v = sizeOf v
 
 > instance PGType Int16 where
 >   pgTypeOid _ = 21
->   pgNewValue v = newBinaryValue toCInt16 v
->   pgPeek p = peekValueRev undefined fromCInt16 p
->   pgSize _ = sizeOf (toCInt16 0)
+>   pgNewValue v = mkStorableVal v
+>   pgPeek p = peekVal p
+>   pgSize v = sizeOf v
 
 > instance PGType Int32 where
 >   pgTypeOid _ = 23
->   pgNewValue v = newBinaryValue toCInt32 v
->   pgPeek p = peekValueRev undefined fromCInt32 p
->   pgSize _ = sizeOf (toCInt32 0)
+>   pgNewValue v = mkStorableVal v
+>   pgPeek p = peekVal p
+>   pgSize v = sizeOf v
 
 > instance PGType Int64 where
 >   pgTypeOid _ = 20
->   pgNewValue v = newBinaryValue toCInt64 v
->   pgPeek p = peekValueRev undefined fromCInt64 p
->   pgSize _ = sizeOf (toCInt64 0)
+>   pgNewValue v = mkStorableVal v
+>   pgPeek p = peekVal p
+>   pgSize v = sizeOf v
 
 > instance PGType Double where
->   pgTypeOid _ = 701
->   pgNewValue v = newBinaryValue toCDouble v
->   pgPeek p = peekValueRev undefined fromCDouble p
->   pgSize _ = sizeOf (toCDouble 0.0)
+>   pgTypeOid v = case sizeOf v of
+>     4 -> 700
+>     8 -> 701
+>     _ -> error ("Can't choose a matching PosgreSQL type for Double size " ++ show (sizeOf v))
+>   pgNewValue v = mkStorableVal v
+>   pgPeek p = peekVal p
+>   pgSize v = sizeOf v
 
 > instance PGType Float where
->   pgTypeOid _ = 700
->   pgNewValue v = newBinaryValue toCFloat v
->   pgPeek p = peekValueRev undefined fromCFloat p
->   pgSize _ = sizeOf (toCFloat 0.0)
+>   pgTypeOid v = case sizeOf v of
+>     4 -> 700
+>     8 -> 701
+>     _ -> error ("Can't choose a matching PosgreSQL type for Float size " ++ show (sizeOf v))
+>   pgNewValue v = mkStorableVal v
+>   pgPeek p = peekVal p
+>   pgSize v = sizeOf v
 
 > data PGBindVal = PGBindVal
 >   { bindValOid :: Oid
@@ -412,69 +447,112 @@ for passing to the stmtExec and prepare'n'exec functions.
 > bindTypes vs = map bindValOid vs
 
 Binary values are sent in network byte order,
-which means we must reverse the byte order before sending,
+which means we possibly reverse the byte order before sending,
 and after receiving.
-FIXME  We only want to reverse on little endian platforms.
-We need to add a test for endian-ness and Do The Right Thing.
 
-> newBinaryValue :: (Storable a, PGType b) => (b -> a) -> b -> IO (Ptr Word8)
-> newBinaryValue fn v = do
->   let v2 = fn v
->   let sz = pgSize v
->   alloca $ \p -> do
->   poke p v2
->   p2 <- mallocBytes sz
->   reverseBytes sz (castPtr p) p2
->   return p2
+Data.Byte contains hton and ntoh, but these do not work for
+instances of Storable, only for instances of Integral+Bits.
+Double/CDouble/Float/CFloat are not instances of Bits or Integral,
+but are instances for Storable, so we can use this to reverse them
+in the IO monad. It'd be nice to be able to do it purely...
 
-> peekValueRev :: (Storable a, PGType b) => b -> (a -> b) -> Ptr Word8 -> IO b
-> peekValueRev v fn fromptr = do
->   let sz = pgSize v
->   allocaArray sz $ \toptr -> do
->     reverseBytes sz (castPtr fromptr) (castPtr toptr)
->     peek toptr >>= return . fn
+We also can't use hton/ntoh from Data.Byte because:
+   hton (ntoh (1::Int)) == 0
+i.e. can't round-trip.
 
-> reverseBytes :: Int -> Ptr Word8 -> Ptr Word8 -> IO ()
-> reverseBytes n buffrom bufto = reverseBytes' n buffrom (plusPtr bufto (n-1))
+----------------------------- Shamelessly stolen from Data.Byte:
 
-> reverseBytes' :: Int -> Ptr Word8 -> Ptr Word8 -> IO ()
-> reverseBytes' 0 _ _ = return ()
-> reverseBytes' n buffrom bufto = do
->   b <- peek buffrom
->   poke bufto b
->   reverseBytes' (n-1) (plusPtr buffrom 1) (plusPtr bufto (-1))
+> data ByteOrder = BigEndian | LittleEndian
+>   deriving ( Eq, Show, Read )
 
+> networkByteOrder :: ByteOrder
+> networkByteOrder = BigEndian
+
+> hostByteOrder :: ByteOrder
+> hostByteOrder =
+>   let
+>     test = (word8Concat [1,2]) :: Word16
+>     answer = (unsafePerformIO $ with test firstByte) :: Word8
+>   in case answer of
+>     1 -> LittleEndian
+>     2 -> BigEndian
+>     otherwise -> throw $ ErrorCall $ "Unexpected result when checking byte order"
+>   where firstByte = (flip peekByteOff) 0
+
+|Concats a list of Word8s in little-endian byte order.
+For big-endian byte order reverse the Word8s first.
+Does not work with Integers.
+
+> word8Concat :: (Bits a, Integral a) => [Word8] -> a
+> word8Concat w8s = bwOr $ zipWith shiftL xs [0,8..sz-8]
+>   where
+>     xs = map fromIntegral w8s
+>     sz = bitSize $ head xs
+>     bwOr :: Bits a => [a] -> a
+>     bwOr = foldr (.|.) 0
+
+----------------------------- Here endeth the theft.
+
+This must be in the standard libraries somewhere...
+I just can't find it (or what it might be called).
+
+> constM_ :: (Monad m) => (a -> m b) -> a -> m a
+> constM_ f a = f a >> return a
+
+
+> peekVal :: Storable a => Ptr Word8 -> IO a
+> peekVal p = peek (castPtr p) >>= ntohIO
+> --peekVal p = peek (castPtr p) >>= constM_ (printBytes p . sizeOf) >>= ntohIO
+
+> mkStorableVal :: Storable a => a -> IO (Ptr Word8)
+> mkStorableVal v = do
+>   p <- malloc
+>   poke p v
+>   when (hostByteOrder /= networkByteOrder)
+>     (reverseInPlace (sizeOf v) (castPtr p))
+>   return (castPtr p)
+
+> htonIO :: Storable a => a -> IO a
+> htonIO v =
+>   if hostByteOrder == networkByteOrder
+>     then return v
+>     else alloca $ \p -> do
+>       poke p v
+>       reverseInPlace (sizeOf v) (castPtr p)
+>       peek p
+
+> ntohIO :: Storable a => a -> IO a
+> ntohIO = htonIO
+
+> reverseInPlace :: Int -> Ptr Word8 -> IO ()
+> reverseInPlace n ptr = reverseInPlace' (div n 2) ptr (plusPtr ptr (n-1))
+
+> reverseInPlace' :: Int -> Ptr Word8 -> Ptr Word8 -> IO ()
+> reverseInPlace' 0 ptrlo ptrhi = return ()
+> reverseInPlace' n ptrlo ptrhi = do
+>   lo <- peek ptrlo
+>   hi <- peek ptrhi
+>   poke ptrhi lo
+>   poke ptrlo hi
+>   reverseInPlace' (n-1) (plusPtr ptrlo 1) (plusPtr ptrhi (-1))
 
 Fer debuggin'.
 
-> printBytes i n ptr = do
+> printBytes :: Ptr Word8 -> Int -> IO ()
+> printBytes ptr n = printBytes' 0 n ptr
+
+> printBytes' :: Int -> Int -> Ptr Word8 -> IO ()
+> printBytes' i n ptr = do
 >   if i >= n then putStr "\n"
 >     else do
 >       b <- peekByteOff ptr i :: IO Word8
 >       putStr (' ':(show b))
->       printBytes (i+1) n ptr
+>       printBytes' (i+1) n ptr
 
-
-> clength = fromIntegral . length
-
-We make some possibly invalid assumptions here,
-like a c int = 32 bits, c short = 16 bits, c long = 64 bits.
-
-> toCInt :: Int -> CInt; toCInt = fromIntegral
-> fromCInt :: CInt -> Int; fromCInt = fromIntegral
-> toCInt16 :: Int16 -> CShort; toCInt16 = fromIntegral
-> fromCInt16 :: CShort -> Int16; fromCInt16 = fromIntegral
-> toCInt32 :: Int32 -> CInt; toCInt32 = fromIntegral
-> fromCInt32 :: CInt -> Int32; fromCInt32 = fromIntegral
-> toCInt64 :: Int64 -> CLLong; toCInt64 = fromIntegral
-> fromCInt64 :: CLLong -> Int64; fromCInt64 = fromIntegral
 > toCChar :: Char -> CChar; toCChar = toEnum . fromEnum
 > fromCChar :: CChar -> Char; fromCChar = toEnum . fromEnum
-> toCDouble :: Double -> CDouble; toCDouble = realToFrac
-> fromCDouble :: CDouble -> Double; fromCDouble = realToFrac
-> toCFloat :: Float -> CFloat; toCFloat = realToFrac
-> fromCFloat :: CFloat -> Float; fromCFloat = realToFrac
 
+> toCInt :: Int -> CInt; toCInt = fromIntegral
 
 -----------------------------------------------------------
 

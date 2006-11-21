@@ -13,7 +13,13 @@ import Control.Exception (try)
 import Control.Monad
 
 {-
-The code in this script is adapted from the various HSQL Setup scripts,
+One install script to rule them all, and in the darkness build them...
+
+This script outght to work for both ghc-6.4 and ghc-6.6.
+For ghc-6.6 you will need to first install Cabal-1.1.6.1;
+the Cabal-1.1.6 build that comes with ghc-6.6 doesn't export certain stuff.
+
+FIXME  The code in this script is adapted from the various HSQL Setup scripts,
 so the credit for it should go to Krasimir Angelov.
 
 Not sure exactly what that means for our license;
@@ -22,17 +28,12 @@ does he have to appear in our license.txt?
 
 
 To-dos for Takusen:
-fix PG installation to use pg_config
-GHC-6.6 update
-use hsc2hs to create #define constants from header files, rather than hard-code them.
-fix network-byte-order marshalling in Database.PostgreSQL.PGFunctions
-  (only works on little-endian architectures, like x86).
-Blob support (and clob?).
-ODBC back-end.
-Sql Server back-end.
+ - use hsc2hs to create #define constants from header files, rather than hard-code them.
+ - Blob support (and clob?).
+ - ODBC back-end.
+ - Sql Server back-end.
 
-Unwritten tests:
- - various failure cases?
+ - Unwritten tests:
    * incorrect fold function (doesn't match result-set)
 
 
