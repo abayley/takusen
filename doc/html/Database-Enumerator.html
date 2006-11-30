@@ -235,7 +235,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AwithSession"
 >withSession</A
-> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Typeable.html#t%3ATypeable"
+> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Typeable.html#t%3ATypeable"
 >Typeable</A
 > a, <A HREF="Database-InternalEnumerator.html#t%3AISession"
 >ISession</A
@@ -245,7 +245,7 @@
 >forall</SPAN
 > mark . <A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
-> mark sess a) -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+> mark sess a) -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
 >IO</A
 > a</TD
 ></TR
@@ -285,11 +285,11 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AbeginTransaction"
 >beginTransaction</A
-> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl//Control-Monad-Reader.html#t%3AMonadReader"
+> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl/Control-Monad-Reader.html#t%3AMonadReader"
 >MonadReader</A
-> s (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl//Control-Monad-Reader.html#t%3AReaderT"
+> s (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl/Control-Monad-Reader.html#t%3AReaderT"
 >ReaderT</A
-> s <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+> s <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
 >IO</A
 >), <A HREF="Database-InternalEnumerator.html#t%3AISession"
 >ISession</A
@@ -397,7 +397,7 @@
 >Command</A
 > stmt s =&gt; stmt -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
-> mark s <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+> mark s <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
 >Int</A
 ></TD
 ></TR
@@ -425,9 +425,9 @@
 >DBError</A
 > <A HREF="Database-InternalEnumerator.html#t%3ASqlState"
 >SqlState</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
 >Int</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
 >String</A
 ></TD
 ></TR
@@ -437,9 +437,9 @@
 >DBFatal</A
 > <A HREF="Database-InternalEnumerator.html#t%3ASqlState"
 >SqlState</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
 >Int</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
 >String</A
 ></TD
 ></TR
@@ -503,7 +503,7 @@
 >formatDBException</A
 > :: <A HREF="Database-Enumerator.html#t%3ADBException"
 >DBException</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
 >String</A
 ></TD
 ></TR
@@ -531,7 +531,7 @@
 >catchDBError</A
 > :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
 >CaughtMonadIO</A
-> m =&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+> m =&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
 >Int</A
 > -&gt; m a -&gt; (<A HREF="Database-Enumerator.html#t%3ADBException"
 >DBException</A
@@ -547,7 +547,7 @@
 >ignoreDBError</A
 > :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
 >CaughtMonadIO</A
-> m =&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+> m =&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
 >Int</A
 > -&gt; m a -&gt; m a</TD
 ></TR
@@ -585,7 +585,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AwithPreparedStatement"
 >withPreparedStatement</A
-> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Typeable.html#t%3ATypeable"
+> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Typeable.html#t%3ATypeable"
 >Typeable</A
 > a, <A HREF="Database-InternalEnumerator.html#t%3AIPrepared"
 >IPrepared</A
@@ -607,7 +607,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AwithBoundStatement"
 >withBoundStatement</A
-> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Typeable.html#t%3ATypeable"
+> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Typeable.html#t%3ATypeable"
 >Typeable</A
 > a, <A HREF="Database-InternalEnumerator.html#t%3AIPrepared"
 >IPrepared</A
@@ -663,7 +663,7 @@
 >type</SPAN
 > <A HREF="#t%3AIterResult"
 >IterResult</A
-> seedType = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Either.html#t%3AEither"
+> seedType = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Either.html#t%3AEither"
 >Either</A
 > seedType seedType</TD
 ></TR
@@ -691,9 +691,9 @@
 >currentRowNum</A
 > :: <A HREF="Database-InternalEnumerator.html#t%3AIQuery"
 >IQuery</A
-> q sess b =&gt; q -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+> q sess b =&gt; q -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
 >Int</A
 ></TD
 ></TR
@@ -739,7 +739,7 @@
 >DBM</A
 > mark s) a -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
-> mark s <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Bool.html#t%3ABool"
+> mark s <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Bool.html#t%3ABool"
 >Bool</A
 ></TD
 ></TR
@@ -781,7 +781,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AwithCursor"
 >withCursor</A
-> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Typeable.html#t%3ATypeable"
+> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Typeable.html#t%3ATypeable"
 >Typeable</A
 > a, <A HREF="Database-InternalEnumerator.html#t%3AStatement"
 >Statement</A
@@ -805,7 +805,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AifNull"
 >ifNull</A
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Maybe.html#t%3AMaybe"
 >Maybe</A
 > a -&gt; a -&gt; a</TD
 ></TR
@@ -817,7 +817,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3Aresult"
 >result</A
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Monad.html#t%3AMonad"
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Control-Monad.html#t%3AMonad"
 >Monad</A
 > m =&gt; <A HREF="Database-Enumerator.html#t%3AIterAct"
 >IterAct</A
@@ -831,7 +831,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3Aresult%27"
 >result'</A
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Monad.html#t%3AMonad"
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Control-Monad.html#t%3AMonad"
 >Monad</A
 > m =&gt; <A HREF="Database-Enumerator.html#t%3AIterAct"
 >IterAct</A
@@ -1067,12 +1067,12 @@
 ><P
 >The iteratee function returns the next value of the accumulator,
  wrapped in an <TT
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Either.html#t%3AEither"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Either.html#t%3AEither"
 >Either</A
 ></TT
 >.
  If the <TT
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Either.html#t%3AEither"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Either.html#t%3AEither"
 >Either</A
 ></TT
 > value is <TT
@@ -1107,16 +1107,16 @@
 >.
  Most backends directly support the usual lowest-common-denominator set
  supported by most DBMS's: <TT
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
 >Int</A
 ></TT
 >, <TT
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
 >String</A
 ></TT
 >,
  <TT
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Prelude.html#t%3ADouble"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3ADouble"
 >Double</A
 ></TT
 >, <TT
@@ -1125,7 +1125,7 @@
 ></TT
 >.
  (<TT
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt64"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt64"
 >Int64</A
 ></TT
 > is often, but not always, supported.)
@@ -1134,27 +1134,27 @@
 >By directly support we mean there is type-specific marshalling code
  implemented.
  Indirect support for <TT
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Read.html#t%3ARead"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Text-Read.html#t%3ARead"
 >Read</A
 ></TT
 >- and <TT
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Show.html#t%3AShow"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Text-Show.html#t%3AShow"
 >Show</A
 ></TT
 >-able types
  is supported by marshalling to and from <TT
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
 >String</A
 ></TT
 >s.
  This is done automatically by the back-end;
  there is no need for user-code to perform the marshalling,
  as long as instances of <TT
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Read.html#t%3ARead"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Text-Read.html#t%3ARead"
 >Read</A
 ></TT
 > and <TT
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Show.html#t%3AShow"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Text-Show.html#t%3AShow"
 >Show</A
 ></TT
 > are defined.
@@ -1166,7 +1166,7 @@
 ></TT
 > monad,
  so if you want to do IO in it you must use <TT
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl//Control-Monad-Trans.html#v%3AliftIO"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl/Control-Monad-Trans.html#v%3AliftIO"
 >liftIO</A
 ></TT
 >
@@ -1268,9 +1268,7 @@
 >result</A
 ></TT
 > (lazy) and <TT
-><A HREF="Database-Enumerator.html#v%3Aresult"
->result</A
-></TT
+>result'</TT
 > (strict) functions are another convenient shorthand
  for returning values from iteratee functions. The return type from an iteratee is actually
  <TT
@@ -1557,11 +1555,11 @@
 </PRE
 ><P
 >For <TT
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
 >Int</A
 ></TT
 > and <TT
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Prelude.html#t%3ADouble"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3ADouble"
 >Double</A
 ></TT
 > bind values,
@@ -1672,21 +1670,12 @@
 </P
 ><UL
 ><LI
-> the results of the first iteratee are discarded. This is not required,
-    but in this case the only column is a <TT
-><A HREF="Database-Enumerator.html#t%3ARefCursor"
->RefCursor</A
-></TT
->,
-    and the values are already saved elsewhere.
-</LI
-><LI
 > the use of a <TT
 ><A HREF="Database-Enumerator.html#t%3ARefCursor"
 >RefCursor</A
 ></TT
 > <TT
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
 >String</A
 ></TT
 >
@@ -1696,12 +1685,22 @@
     prepared statement object.
     This means that we <EM
 >must</EM
-> use the <TT
+> use <TT
 ><A HREF="Database-Enumerator.html#v%3AwithPreparedStatement"
 >withPreparedStatement</A
 ></TT
 >
-    function around code using the linear multiple-result-set processing.
+    to create a prepared statement object, which is the container for the
+    cursors returned.
+</LI
+><LI
+> the results of the first iteratee are discarded. This is not required,
+    but in this case the only column is a <TT
+><A HREF="Database-Enumerator.html#t%3ARefCursor"
+>RefCursor</A
+></TT
+>,
+    and the values are already saved elsewhere.
 </LI
 ><LI
 > saved cursors are consumed one-at-a-time by calling <TT
@@ -1716,7 +1715,7 @@
 > <TT
 >pstmt</TT
 >.
-    This simply pulls the next cursor of the list
+    This simply pulls the next cursor off the list
     - they're processed in the order they were pushed on (FIFO) -
     and processes it with the given iteratee.
 </LI
@@ -1735,8 +1734,9 @@
 >,
     then an exception will be thrown.
     OTOH, failing to process returned cursors will not raise errors,
-    but the cursors will remain open on the server until either the transaction
-    or session ends.
+    but the cursors will remain open on the server according to whatever scoping
+    rules the sever applies.
+    For PostgreSQL, this will be until either the transaction or session ends.
 </LI
 ></UL
 ><P
@@ -1769,7 +1769,7 @@
  END; $$ LANGUAGE plpgsql;
 </PRE
 ><P
->... then this code shows how nested queries mights work:
+>... then this code shows how nested queries might work:
 </P
 ><PRE
 > selectNestedMultiResultSet = do
@@ -1800,7 +1800,7 @@
 ></TT
 > to process it's result-set;
  here we use <TT
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Monad.html#v%3AmapM_"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Control-Monad.html#v%3AmapM_"
 >mapM_</A
 ></TT
 > to apply an IO action to the list returned by
@@ -1840,7 +1840,7 @@
  example, where the entire result-set is processed to give a
  list of RefCursor values, and then we run a list of actions
  over this list with <TT
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Monad.html#v%3AmapM_"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Control-Monad.html#v%3AmapM_"
 >mapM_</A
 ></TT
 >.
@@ -1914,7 +1914,9 @@
 ><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
 ><TR
 ><TD CLASS="decl"
-><A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
+><A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> si =&gt; <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
 >CaughtMonadIO</A
 > (<A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
@@ -1924,7 +1926,7 @@
 ><TD CLASS="decl"
 >(<A HREF="Database-InternalEnumerator.html#t%3AISession"
 >ISession</A
-> sess, ??? a sess) =&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Monad.html#t%3AMonad"
+> sess, ??? a sess) =&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Control-Monad.html#t%3AMonad"
 >Monad</A
 > (<A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
@@ -1934,7 +1936,7 @@
 ><TD CLASS="decl"
 >(<A HREF="Database-InternalEnumerator.html#t%3AISession"
 >ISession</A
-> sess, ??? a sess) =&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl//Control-Monad-Trans.html#t%3AMonadIO"
+> sess, ??? a sess) =&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl/Control-Monad-Trans.html#t%3AMonadIO"
 >MonadIO</A
 > (<A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
@@ -1957,7 +1959,7 @@
 ></A
 ><B
 >withSession</B
-> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Typeable.html#t%3ATypeable"
+> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Typeable.html#t%3ATypeable"
 >Typeable</A
 > a, <A HREF="Database-InternalEnumerator.html#t%3AISession"
 >ISession</A
@@ -1967,7 +1969,7 @@
 >forall</SPAN
 > mark . <A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
-> mark sess a) -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+> mark sess a) -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
 >IO</A
 > a</TD
 ></TR
@@ -2019,11 +2021,11 @@
 ></A
 ><B
 >beginTransaction</B
-> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl//Control-Monad-Reader.html#t%3AMonadReader"
+> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl/Control-Monad-Reader.html#t%3AMonadReader"
 >MonadReader</A
-> s (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl//Control-Monad-Reader.html#t%3AReaderT"
+> s (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl/Control-Monad-Reader.html#t%3AReaderT"
 >ReaderT</A
-> s <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+> s <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
 >IO</A
 >), <A HREF="Database-InternalEnumerator.html#t%3AISession"
 >ISession</A
@@ -2148,7 +2150,7 @@
 ><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
 ><TR
 ><TD CLASS="decl"
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Show.html#t%3AShow"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Text-Show.html#t%3AShow"
 >Show</A
 > <A HREF="Database-Enumerator.html#t%3AIsolationLevel"
 >IsolationLevel</A
@@ -2197,7 +2199,7 @@
 >Command</A
 > stmt s =&gt; stmt -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
-> mark s <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+> mark s <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
 >Int</A
 ></TD
 ></TR
@@ -2249,9 +2251,9 @@
 >DBError</B
 > <A HREF="Database-InternalEnumerator.html#t%3ASqlState"
 >SqlState</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
 >Int</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
 >String</A
 ></TD
 ><TD CLASS="rdoc"
@@ -2266,9 +2268,9 @@
 >DBFatal</B
 > <A HREF="Database-InternalEnumerator.html#t%3ASqlState"
 >SqlState</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
 >Int</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
 >String</A
 ></TD
 ><TD CLASS="rdoc"
@@ -2316,7 +2318,7 @@
 ><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
 ><TR
 ><TD CLASS="decl"
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Text-Show.html#t%3AShow"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Text-Show.html#t%3AShow"
 >Show</A
 > <A HREF="Database-Enumerator.html#t%3ADBException"
 >DBException</A
@@ -2324,7 +2326,7 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Typeable.html#t%3ATypeable"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Typeable.html#t%3ATypeable"
 >Typeable</A
 > <A HREF="Database-Enumerator.html#t%3ADBException"
 >DBException</A
@@ -2395,7 +2397,7 @@
 >formatDBException</B
 > :: <A HREF="Database-Enumerator.html#t%3ADBException"
 >DBException</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
 >String</A
 ></TD
 ></TR
@@ -2441,7 +2443,7 @@
 >catchDBError</B
 > :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
 >CaughtMonadIO</A
-> m =&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+> m =&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
 >Int</A
 > -&gt; m a -&gt; (<A HREF="Database-Enumerator.html#t%3ADBException"
 >DBException</A
@@ -2465,7 +2467,7 @@
 >ignoreDBError</B
 > :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
 >CaughtMonadIO</A
-> m =&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+> m =&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
 >Int</A
 > -&gt; m a -&gt; m a</TD
 ></TR
@@ -2492,7 +2494,7 @@
 ><TR
 ><TD CLASS="doc"
 >Throw a DBException. It's just a type-specific <TT
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Exception.html#v%3AthrowDyn"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Control-Exception.html#v%3AthrowDyn"
 >throwDyn</A
 ></TT
 >.
@@ -2566,7 +2568,7 @@
 ><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
 ><TR
 ><TD CLASS="arg"
->:: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Typeable.html#t%3ATypeable"
+>:: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Typeable.html#t%3ATypeable"
 >Typeable</A
 > a, <A HREF="Database-InternalEnumerator.html#t%3AIPrepared"
 >IPrepared</A
@@ -2639,7 +2641,7 @@
 ><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
 ><TR
 ><TD CLASS="arg"
->:: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Typeable.html#t%3ATypeable"
+>:: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Typeable.html#t%3ATypeable"
 >Typeable</A
 > a, <A HREF="Database-InternalEnumerator.html#t%3AIPrepared"
 >IPrepared</A
@@ -2831,7 +2833,7 @@
 ></A
 ><B
 >IterResult</B
-> seedType = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Either.html#t%3AEither"
+> seedType = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Either.html#t%3AEither"
 >Either</A
 > seedType seedType</TD
 ></TR
@@ -2878,9 +2880,9 @@
 >currentRowNum</B
 > :: <A HREF="Database-InternalEnumerator.html#t%3AIQuery"
 >IQuery</A
-> q sess b =&gt; q -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+> q sess b =&gt; q -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Int.html#t%3AInt"
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
 >Int</A
 ></TD
 ></TR
@@ -3021,7 +3023,7 @@
 >DBType</A
 > (<A HREF="Database-Enumerator.html#t%3ARefCursor"
 >RefCursor</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
 >String</A
 >) Query ColumnBuffer</TD
 ></TR
@@ -3043,7 +3045,7 @@
 >Statement</A
 > (<A HREF="Database-Enumerator.html#t%3ARefCursor"
 >RefCursor</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Char.html#t%3AString"
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
 >String</A
 >) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
 >Session</A
@@ -3070,7 +3072,7 @@
 >DBM</A
 > mark s) a -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
-> mark s <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Bool.html#t%3ABool"
+> mark s <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Bool.html#t%3ABool"
 >Bool</A
 ></TD
 ></TR
@@ -3181,7 +3183,7 @@
 ><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
 ><TR
 ><TD CLASS="arg"
->:: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Typeable.html#t%3ATypeable"
+>:: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Typeable.html#t%3ATypeable"
 >Typeable</A
 > a, <A HREF="Database-InternalEnumerator.html#t%3AStatement"
 >Statement</A
@@ -3272,7 +3274,7 @@
 ><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
 ><TR
 ><TD CLASS="arg"
->:: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+>:: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Maybe.html#t%3AMaybe"
 >Maybe</A
 > a</TD
 ><TD CLASS="rdoc"
@@ -3284,7 +3286,7 @@
 >-&gt; a</TD
 ><TD CLASS="rdoc"
 >value to substitute if first parameter is null i.e. <TT
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#v%3ANothing"
+><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Maybe.html#v%3ANothing"
 >Nothing</A
 ></TT
 >
@@ -3314,7 +3316,7 @@
 ></A
 ><B
 >result</B
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Monad.html#t%3AMonad"
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Control-Monad.html#t%3AMonad"
 >Monad</A
 > m =&gt; <A HREF="Database-Enumerator.html#t%3AIterAct"
 >IterAct</A
@@ -3342,7 +3344,7 @@
 ></A
 ><B
 >result'</B
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Monad.html#t%3AMonad"
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Control-Monad.html#t%3AMonad"
 >Monad</A
 > m =&gt; <A HREF="Database-Enumerator.html#t%3AIterAct"
 >IterAct</A
@@ -3374,7 +3376,7 @@
 ><TD CLASS="botbar"
 >Produced by <A HREF="http://www.haskell.org/haddock/"
 >Haddock</A
-> version 0.7</TD
+> version 0.8</TD
 ></TR
 ></TABLE
 ></BODY

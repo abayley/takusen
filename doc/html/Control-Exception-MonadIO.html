@@ -49,16 +49,6 @@
 ></TD
 ></TR
 ><TR
-><TD
-><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
-></TABLE
-></TD
-></TR
-><TR
-><TD CLASS="s15"
-></TD
-></TR
-><TR
 ><TD CLASS="s15"
 ></TD
 ></TR
@@ -78,7 +68,7 @@
 ><TD CLASS="decl"
 ><SPAN CLASS="keyword"
 >class</SPAN
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl//Control-Monad-Trans.html#t%3AMonadIO"
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl/Control-Monad-Trans.html#t%3AMonadIO"
 >MonadIO</A
 > m =&gt; <A NAME="t%3ACaughtMonadIO"
 ></A
@@ -108,7 +98,7 @@
 ></A
 ><B
 >gcatch</B
-> :: m a -&gt; (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Exception.html#t%3AException"
+> :: m a -&gt; (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Control-Exception.html#t%3AException"
 >Exception</A
 > -&gt; m a) -&gt; m a</TD
 ></TR
@@ -122,9 +112,9 @@
 ></A
 ><B
 >gcatchJust</B
-> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Exception.html#t%3AException"
+> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Control-Exception.html#t%3AException"
 >Exception</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Maybe.html#t%3AMaybe"
 >Maybe</A
 > b) -&gt; m a -&gt; (b -&gt; m a) -&gt; m a</TD
 ></TR
@@ -148,13 +138,15 @@
 ><TD CLASS="decl"
 ><A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
 >CaughtMonadIO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//System-IO.html#t%3AIO"
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
 >IO</A
 ></TD
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
+><A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> si =&gt; <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
 >CaughtMonadIO</A
 > (<A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
@@ -166,7 +158,7 @@
 >CaughtMonadIO</A
 > m =&gt; <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
 >CaughtMonadIO</A
-> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl//Control-Monad-Reader.html#t%3AReaderT"
+> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl/Control-Monad-Reader.html#t%3AReaderT"
 >ReaderT</A
 > a m)</TD
 ></TR
@@ -189,9 +181,9 @@
 >gtry</B
 > :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
 >CaughtMonadIO</A
-> m =&gt; m b -&gt; m (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Either.html#t%3AEither"
+> m =&gt; m b -&gt; m (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Either.html#t%3AEither"
 >Either</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Exception.html#t%3AException"
+> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Control-Exception.html#t%3AException"
 >Exception</A
 > b)</TD
 ></TR
@@ -207,11 +199,11 @@
 >gtryJust</B
 > :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
 >CaughtMonadIO</A
-> m =&gt; (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Control-Exception.html#t%3AException"
+> m =&gt; (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Control-Exception.html#t%3AException"
 >Exception</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Maybe.html#t%3AMaybe"
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Maybe.html#t%3AMaybe"
 >Maybe</A
-> b) -&gt; m b1 -&gt; m (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base//Data-Either.html#t%3AEither"
+> b) -&gt; m b1 -&gt; m (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Either.html#t%3AEither"
 >Either</A
 > b b1)</TD
 ></TR
@@ -251,7 +243,7 @@
 ><TD CLASS="botbar"
 >Produced by <A HREF="http://www.haskell.org/haddock/"
 >Haddock</A
-> version 0.7</TD
+> version 0.8</TD
 ></TR
 ></TABLE
 ></BODY

@@ -957,7 +957,7 @@ Notes:
    to the backend that it should save each cursor value returned,
    which it does by stuffing them into a list attached to the
    prepared statement object.
-   This means that we /must/ use the 'Database.Enumerator.withPreparedStatement'
+   This means that we /must/ use 'Database.Enumerator.withPreparedStatement'
    to create a prepared statement object, which is the container for the
    cursors returned.
  
@@ -1001,7 +1001,7 @@ Again for PostgreSQL, assuming we have these functions in the database:
  >     RETURN refc;
  > END; $$ LANGUAGE plpgsql;
  
-... then this code shows how nested queries mights work:
+... then this code shows how nested queries might work:
  
  > selectNestedMultiResultSet = do
  >   let
