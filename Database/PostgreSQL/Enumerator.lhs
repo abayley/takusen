@@ -436,7 +436,7 @@ you'll see that it is the same as the cursor name (currently "takusenp").
 >   let fetchq = "FETCH FORWARD " ++ countStr ++ " FROM \"" ++ cursorName ++ "\""
 >   sn <- convertEx $ DBAPI.stmtPrepare (dbHandle sess) prefetchStmtName fetchq []
 >   let
->     advanceA = convertEx (DBAPI.stmtExec0 (dbHandle sess) sn)
+>     advanceA = convertEx (DBAPI.stmtExec0t (dbHandle sess) sn)
 >     cleanupA = do
 >       executeCommand sess ("CLOSE \"" ++ cursorName ++ "\"")
 >       deallocateStmt sess prefetchStmtName

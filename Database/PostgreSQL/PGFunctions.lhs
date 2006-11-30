@@ -15,6 +15,7 @@ wrappers (in the second part of this file)
 
 > module Database.PostgreSQL.PGFunctions where
 
+> import Database.Util
 > import Control.Monad
 > import Control.Exception
 > import Data.Dynamic
@@ -180,7 +181,7 @@ We don't use fPQexec; the docs suggest fPQexecParams is better anyway
 >  = [0..] :: [ExecStatusType]
 
 > (textResultSet:binaryResultSet:_) = [0,1] :: [CInt]
-> (xxx_textParameters:binaryParameters:_) = [0,1] :: [CInt]
+> (textParameters:__binaryParameters:_) = [0,1] :: [CInt]
 
 > foreign import ccall "libpq-fe.h PQresultErrorMessage" fPQresultErrorMessage
 >   :: ResultSetHandle -> IO CString
@@ -306,17 +307,19 @@ Types we'll map:
  701 float8
 1114 timestamp
 1184 timestamptz
+1700 numeric
+
 
 For ints and doubles/floats, we need to check what size they are
 and choose the appropriate oid.
 
 PG timestamps are stored as 8-byte Doubles (i.e. double-precision
 floating point) holding the seconds before or after midnight 2000-01-01.
-timestamp with time zone = oid 1184  (8 bytes)
-timestamp without time zone = oid 1114  (8 bytes)
+date = oid 1082  (4 bytes)
 time = oid 1083  (8 bytes)
 timetz = oid 1266  (12 bytes)
-date = oid 1082  (4 bytes)
+timestamp (sans time zone) = oid 1114  (8 bytes)
+timestamptz (with time zone) = oid 1184  (8 bytes)
 
 > class PGType a where
 >   pgTypeFormat :: a -> Format  -- ^ 1 == binary (default), 0 == text
@@ -325,7 +328,7 @@ date = oid 1082  (4 bytes)
 >   pgPeek :: Ptr Word8 -> IO a
 >   pgSize :: a -> Int
 >   -- default impls
->   pgTypeFormat _ = 1
+>   pgTypeFormat _ = textParameters
 
 > instance PGType a => PGType (Maybe a) where
 >   pgTypeFormat Nothing = pgTypeFormat (undefined::a)
@@ -338,15 +341,6 @@ date = oid 1082  (4 bytes)
 >   pgSize Nothing = 0  -- what is the size of a null value?... probably irrelevant
 >   pgSize (Just v) = pgSize v
 
-> pgZeroDate :: UTCTime
-> pgZeroDate = UTCTime (fromGregorian 2000 1 1) 0
-
-> toPGTime :: UTCTime -> Double
-> toPGTime date = realToFrac (diffUTCTime date pgZeroDate)
-
-> fromPGTime :: Double -> UTCTime
-> fromPGTime secs = addUTCTime (realToFrac secs) pgZeroDate
-
 
 timestamp and timestamp with time zone are probably exactly the same
 in terms of internal representation, so it's really just an input-output
@@ -354,83 +348,59 @@ semantics that the two types distinguish.
 
 > instance PGType UTCTime where
 >   pgTypeOid _ = 1114
->   pgNewValue v = case sizeOf (0::Double) of
->     8  -> mkStorableVal (toPGTime v)
->     16 -> let f :: Float; f = realToFrac (toPGTime v) in mkStorableVal f
->     _ -> error ("Doubles have size " ++ show (sizeOf (0::Double)) ++ ", which I can't pass to PostgreSQL.")
->   pgPeek p = do
->     dbl <- case sizeOf (0::Double) of
->       8  -> do
->         ndbl <- peek (castPtr p)
->         ntohIO (asTypeOf ndbl (0::Double))
->       16 -> do
->         nflt <- peek (castPtr p)
->         flt <- ntohIO nflt
->         return (realToFrac (asTypeOf flt (0::Float)))
->       _ -> error ("Doubles have size " ++ show (sizeOf (0::Double)) ++ ",  but PostgreSQL returns 8 bytes.")
->     return (fromPGTime dbl)
->   pgSize _ = 8
-
+>   pgNewValue v = pgNewValue (utcTimeToPGDatetime v)
+>   pgPeek p = pgPeek p >>= return . pgDatetimetoUTCTime
+>   pgSize v = pgSize (utcTimeToPGDatetime v)
 
 > instance PGType String where
->   pgTypeFormat _ = 0
 >   pgTypeOid _ = 25
 >   pgNewValue s = newCString s >>= return . castPtr
->   pgPeek = peekCString . castPtr
+>   pgPeek p = peekCString (castPtr p)
 >   pgSize s = length s
 
 > instance PGType Char where
 >   pgTypeOid _ = 18
 >   -- need to cast to CChar because we don't know what the Storable instance
 >   -- for Char does; does it write 4 bytes, or just the lowest one?
->   pgNewValue v = mkStorableVal (toCChar v)
+>   pgNewValue v = malloc >>= \p -> poke p (toCChar v) >> return (castPtr p)
 >   pgPeek p = peek (castPtr p) >>= return . fromCChar
 >   pgSize _ = sizeOf 'a'
 
 > instance PGType Int where
->   pgTypeOid v = case sizeOf v of
->     4 -> 23
->     8 -> 20
->     _ -> error ("Can't choose a matching PosgreSQL type for Int size " ++ show (sizeOf v))
->   pgNewValue v = mkStorableVal v
->   pgPeek p = peekVal p
->   pgSize v = sizeOf v
+>   pgTypeOid v = 1700
+>   pgNewValue v = pgNewValue (show v)
+>   pgPeek p = pgPeek p >>= return . read
+>   pgSize v = pgSize (show v)
 
 > instance PGType Int16 where
 >   pgTypeOid _ = 21
->   pgNewValue v = mkStorableVal v
->   pgPeek p = peekVal p
->   pgSize v = sizeOf v
+>   pgNewValue v = pgNewValue (show v)
+>   pgPeek p = pgPeek p >>= return . read
+>   pgSize v = pgSize (show v)
 
 > instance PGType Int32 where
 >   pgTypeOid _ = 23
->   pgNewValue v = mkStorableVal v
->   pgPeek p = peekVal p
->   pgSize v = sizeOf v
+>   pgNewValue v = pgNewValue (show v)
+>   pgPeek p = pgPeek p >>= return . read
+>   pgSize v = pgSize (show v)
 
 > instance PGType Int64 where
 >   pgTypeOid _ = 20
->   pgNewValue v = mkStorableVal v
->   pgPeek p = peekVal p
->   pgSize v = sizeOf v
+>   pgNewValue v = pgNewValue (show v)
+>   pgPeek p = pgPeek p >>= return . read
+>   pgSize v = pgSize (show v)
 
 > instance PGType Double where
->   pgTypeOid v = case sizeOf v of
->     4 -> 700
->     8 -> 701
->     _ -> error ("Can't choose a matching PosgreSQL type for Double size " ++ show (sizeOf v))
->   pgNewValue v = mkStorableVal v
->   pgPeek p = peekVal p
->   pgSize v = sizeOf v
+>   pgTypeOid v = 1700
+>   pgNewValue v = pgNewValue (show v)
+>   pgPeek p = pgPeek p >>= return . read
+>   pgSize v = pgSize (show v)
 
 > instance PGType Float where
->   pgTypeOid v = case sizeOf v of
->     4 -> 700
->     8 -> 701
->     _ -> error ("Can't choose a matching PosgreSQL type for Float size " ++ show (sizeOf v))
->   pgNewValue v = mkStorableVal v
->   pgPeek p = peekVal p
->   pgSize v = sizeOf v
+>   pgTypeOid v = 1700
+>   pgNewValue v = pgNewValue (show v)
+>   pgPeek p = pgPeek p >>= return . read
+>   pgSize v = pgSize (show v)
 
 > data PGBindVal = PGBindVal
 >   { bindValOid :: Oid
@@ -446,108 +416,6 @@ for passing to the stmtExec and prepare'n'exec functions.
 
 > bindTypes vs = map bindValOid vs
 
-Binary values are sent in network byte order,
-which means we possibly reverse the byte order before sending,
-and after receiving.
-
-Data.Byte contains hton and ntoh, but these do not work for
-instances of Storable, only for instances of Integral+Bits.
-Double/CDouble/Float/CFloat are not instances of Bits or Integral,
-but are instances for Storable, so we can use this to reverse them
-in the IO monad. It'd be nice to be able to do it purely...
-
-We also can't use hton/ntoh from Data.Byte because:
-   hton (ntoh (1::Int)) == 0
-i.e. can't round-trip.
-
------------------------------ Shamelessly stolen from Data.Byte:
-
-> data ByteOrder = BigEndian | LittleEndian
->   deriving ( Eq, Show, Read )
-
-> networkByteOrder :: ByteOrder
-> networkByteOrder = BigEndian
-
-> hostByteOrder :: ByteOrder
-> hostByteOrder =
->   let
->     test = (word8Concat [1,2]) :: Word16
->     answer = (unsafePerformIO $ with test firstByte) :: Word8
->   in case answer of
->     1 -> LittleEndian
->     2 -> BigEndian
->     otherwise -> throw $ ErrorCall $ "Unexpected result when checking byte order"
->   where firstByte = (flip peekByteOff) 0
-
-|Concats a list of Word8s in little-endian byte order.
-For big-endian byte order reverse the Word8s first.
-Does not work with Integers.
-
-> word8Concat :: (Bits a, Integral a) => [Word8] -> a
-> word8Concat w8s = bwOr $ zipWith shiftL xs [0,8..sz-8]
->   where
->     xs = map fromIntegral w8s
->     sz = bitSize $ head xs
->     bwOr :: Bits a => [a] -> a
->     bwOr = foldr (.|.) 0
-
------------------------------ Here endeth the theft.
-
-This must be in the standard libraries somewhere...
-I just can't find it (or what it might be called).
-
-> constM_ :: (Monad m) => (a -> m b) -> a -> m a
-> constM_ f a = f a >> return a
-
-
-> peekVal :: Storable a => Ptr Word8 -> IO a
-> peekVal p = peek (castPtr p) >>= ntohIO
-> --peekVal p = peek (castPtr p) >>= constM_ (printBytes p . sizeOf) >>= ntohIO
-
-> mkStorableVal :: Storable a => a -> IO (Ptr Word8)
-> mkStorableVal v = do
->   p <- malloc
->   poke p v
->   when (hostByteOrder /= networkByteOrder)
->     (reverseInPlace (sizeOf v) (castPtr p))
->   return (castPtr p)
-
-> htonIO :: Storable a => a -> IO a
-> htonIO v =
->   if hostByteOrder == networkByteOrder
->     then return v
->     else alloca $ \p -> do
->       poke p v
->       reverseInPlace (sizeOf v) (castPtr p)
->       peek p
-
-> ntohIO :: Storable a => a -> IO a
-> ntohIO = htonIO
-
-> reverseInPlace :: Int -> Ptr Word8 -> IO ()
-> reverseInPlace n ptr = reverseInPlace' (div n 2) ptr (plusPtr ptr (n-1))
-
-> reverseInPlace' :: Int -> Ptr Word8 -> Ptr Word8 -> IO ()
-> reverseInPlace' 0 ptrlo ptrhi = return ()
-> reverseInPlace' n ptrlo ptrhi = do
->   lo <- peek ptrlo
->   hi <- peek ptrhi
->   poke ptrhi lo
->   poke ptrlo hi
->   reverseInPlace' (n-1) (plusPtr ptrlo 1) (plusPtr ptrhi (-1))
-
-Fer debuggin'.
-
-> printBytes :: Ptr Word8 -> Int -> IO ()
-> printBytes ptr n = printBytes' 0 n ptr
-
-> printBytes' :: Int -> Int -> Ptr Word8 -> IO ()
-> printBytes' i n ptr = do
->   if i >= n then putStr "\n"
->     else do
->       b <- peekByteOff ptr i :: IO Word8
->       putStr (' ':(show b))
->       printBytes' (i+1) n ptr
 
 > toCChar :: Char -> CChar; toCChar = toEnum . fromEnum
 > fromCChar :: CChar -> Char; fromCChar = toEnum . fromEnum
@@ -592,7 +460,7 @@ Because this is a frequently used function, we code it specially
 > nqExec db sqlText =
 >   withCString sqlText $ \cstr -> 
 >     do
->     stmt <- fPQexecParams db cstr 0 nullPtr nullPtr nullPtr nullPtr 0
+>     stmt <- fPQexecParams db cstr 0 nullPtr nullPtr nullPtr nullPtr textResultSet
 >             >>= check'stmt db ePGRES_COMMAND_OK
 >     -- save all information from PGresult and free it
 >     cmd'status  <- fPQcmdStatus stmt >>= peekCString
@@ -630,7 +498,7 @@ Prepare and Execute a query. Returns results as binary.
 >   -- We must remember to free these later.
 >   paramlist <- sequence (map bindValPtr bindvals)
 >   withArray paramlist $ \cparamarray -> do
->     rs <- fPQexecParams db cstr np coidarray (castPtr cparamarray) clenarray cformatarray binaryResultSet
+>     rs <- fPQexecParams db cstr np coidarray (castPtr cparamarray) clenarray cformatarray textResultSet
 >     mapM_ (\p -> if p == nullPtr then return () else free p) paramlist
 >     check'stmt db ePGRES_TUPLES_OK rs
 >     ntuples <- fPQntuples rs
@@ -642,7 +510,7 @@ A simple version with no binding parameters and returning results as text
 > stmtExecImm0 :: DBHandle -> String -> IO (ResultSetHandle, Int)
 > stmtExecImm0 db sqlText =
 >   withCString sqlText $ \cstr -> do 
->     rs <- fPQexecParams db cstr 0 nullPtr nullPtr nullPtr nullPtr 0
+>     rs <- fPQexecParams db cstr 0 nullPtr nullPtr nullPtr nullPtr textResultSet
 >     check'stmt db ePGRES_TUPLES_OK rs
 >     ntuples <- fPQntuples rs
 >     return (rs, fromIntegral ntuples)
@@ -685,7 +553,7 @@ queries return ePGRES_TUPLES_OK while commands return ePGRES_COMMAND_OK.
 >   -- We must remember to free these later.
 >   paramlist <- sequence (map bindValPtr bindvals)
 >   withArray paramlist $ \cparamarray -> do
->     rs <- fPQexecPrepared db cstmtname np (castPtr cparamarray) clenarray cformatarray binaryResultSet
+>     rs <- fPQexecPrepared db cstmtname np (castPtr cparamarray) clenarray cformatarray textResultSet
 >     mapM_ (\p -> if p == nullPtr then return () else free p) paramlist
 >     check'stmt db rc rs
 >     ntuples <- fPQntuples rs
@@ -715,27 +583,15 @@ So are the row numbers.
 > colValPtr rs row col =
 >   fPQgetvalue rs (toCInt (row-1)) (toCInt (col-1)) >>= return . castPtr
 
-> colValBinary rs row col = colValPtr rs row col >>= pgPeek
-
-Test the result-set column to see if it's in text or binary format.
-If text, then use read to parse it into the desired value.
-
-> colVal :: (Read a, PGType a) => ResultSetHandle -> Int -> Int -> IO a
+> colVal :: PGType a => ResultSetHandle -> Int -> Int -> IO a
 > colVal rs row col = do
 >   n <- fPQntuples rs
 >   if (fromIntegral n) < row || row < 1
 >     then throwPG (-1) ("Attempted fetch from invalid row number " ++ show row)
->     else do
->       fmt <- fPQfformat rs (toCInt (col-1))
->       if fmt == 0
->         then colValBinary rs row col >>= return . read
->         else colValBinary rs row col
-
-Don't want to use read to parse string values;
-they're strings already.
+>     else colValPtr rs row col >>= pgPeek
 
 > colValString :: ResultSetHandle -> Int -> Int -> IO String
-> colValString = colValBinary
+> colValString = colVal
 
 > colValInt :: ResultSetHandle -> Int -> Int -> IO Int
 > colValInt = colVal
@@ -750,7 +606,7 @@ they're strings already.
 > colValFloat = colVal
 
 > colValUTCTime :: ResultSetHandle -> Int -> Int -> IO UTCTime
-> colValUTCTime = colValBinary
+> colValUTCTime = colVal
 
 
 > colValNull :: ResultSetHandle -> Int -> Int -> IO Bool
@@ -759,8 +615,8 @@ they're strings already.
 >   return (ind /= 0)
 
 > {-
-> colValBlob :: ResultSetHandle -> Int -> IO (ForeignPtr Blob)
-> colValBlob rs stmt colnum = do
+> colValBlob :: ResultSetHandle -> Int -> Int -> IO (ForeignPtr Blob)
+> colValBlob rs row col = do
 >   let ccolnum = fromIntegral (colnum - 1)
 >   bytes <- sqliteColumnBytes stmt ccolnum
 >   src <- sqliteColumnBlob stmt ccolnum

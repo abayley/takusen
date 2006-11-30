@@ -16,11 +16,15 @@ Utility functions. Mostly used in database back-ends, and tests.
 
 > module Database.Util where
 
-> import Data.Time
 > import System.Time
 > import Control.Monad.Trans (liftIO)
 > import Control.Monad.Reader
 > import Data.Int
+> import Data.List
+> import Data.Char
+> import Data.Fixed
+> import Data.Time
+> import Text.Printf
 
 This little section contains some utility code,
 which isn't really specific to our database code.
@@ -40,12 +44,12 @@ MyShow requires overlapping AND undecidable instances.
 | Convenience for making UTCTimes. Assumes the time given is already UTC time
 i.e. there's no timezone adjustment.
 
-> mkUTCTime :: Integral a => a -> a -> a -> a -> a -> a -> UTCTime
+> mkUTCTime :: (Integral a, Real b) => a -> a -> a -> a -> a -> b -> UTCTime
 > mkUTCTime year month day hour minute second =
 >   localTimeToUTC (hoursToTimeZone 0)
 >     (LocalTime
 >       (fromGregorian (fromIntegral year) (fromIntegral month) (fromIntegral day))
->       (TimeOfDay (fromIntegral hour) (fromIntegral minute) (fromIntegral second)))
+>       (TimeOfDay (fromIntegral hour) (fromIntegral minute) (realToFrac second)))
 
 > mkCalTime :: Integral a => a -> a -> a -> a -> a -> a -> CalendarTime
 > mkCalTime year month day hour minute second =
@@ -127,8 +131,71 @@ so that we get sensible behaviour for -ve numbers.
 >   in mkUTCTime year month day hour minute second
 
 
-> zeroPad :: Int -> Int64 -> String
 > zeroPad n i =
 >   if i < 0
 >   then "-" ++ (zeroPad n (abs i))
 >   else take (n - length (show i)) (repeat '0') ++ show i
+
+> substr i n s = take n (drop (i-1) s)
+
+> wordsBy :: (Char -> Bool) -> String -> [String] 
+> wordsBy pred s = skipNonMatch pred s
+
+2 states:
+skipNonMatch is for when we are looking for the start of our next word
+consumeMatch is for when we are currently scanning a word
+
+> skipNonMatch :: (Char -> Bool) -> String -> [String] 
+> skipNonMatch pred "" = []
+> skipNonMatch pred (c:cs)
+>   | pred c = scanWord pred cs [c]
+>   | otherwise = skipNonMatch pred cs
+
+> scanWord pred "" acc = [reverse acc]
+> scanWord pred (c:cs) acc
+>   | pred c = scanWord pred cs (c:acc)
+>   | otherwise = [reverse acc] ++ skipNonMatch pred cs
+
+
+> positions :: Eq a => [a] -> [a] -> [Int]
+> positions [] _ = []
+> positions s ins = map fst (filter (isPrefixOf s . snd) (zip [1..] (tails ins)))
+
+
+ 1234567890123456789012345
+"2006-11-24 07:51:49.228+00"
+"2006-11-24 07:51:49.228"
+"2006-11-24 07:51:49.228 BC"
+"2006-11-24 07:51:49+00 BC"
+
+> pgDatetimetoUTCTime :: String -> UTCTime
+> pgDatetimetoUTCTime s =
+>   let
+>     pred c = isAlphaNum c || c == '.'
+>     ws = wordsBy pred s
+>     parts :: [Int]; parts = map read (take 5 ws)
+>     secs :: Double; secs = read (ws!!5)
+>     hasTZ = isInfixOf "+" s
+>     tz :: Int; tz = if hasTZ then read (ws !! 6) else 0
+>     isBC = isInfixOf "BC" s
+>     year :: Int; year = if isBC then (- ((parts !! 0) - 1)) else parts !! 0
+>   in mkUTCTime year (parts !! 1) (parts !! 2)
+>       (parts !! 3) (parts !! 4) secs
+
+> utcTimeToPGDatetime :: UTCTime -> String
+> utcTimeToPGDatetime utc =
+>   let
+>     (LocalTime ltday time) = utcToLocalTime (hoursToTimeZone 0) utc
+>     (TimeOfDay hour minute second) = time
+>     (year1, month, day) = toGregorian ltday
+>     suffix = if year1 < 1 then " BC" else " AD"
+>     year = if year1 < 1 then abs(year1 - 1) else year1
+>     s1 :: Double; s1 = realToFrac second
+>     secs :: String; secs = printf "%09.6f" s1
+>   in zeroPad 4 year
+>     ++ "-" ++ zeroPad 2 month
+>     ++ "-" ++ zeroPad 2 day
+>     ++ " " ++ zeroPad 2 hour
+>     ++ ":" ++ zeroPad 2 minute
+>     ++ ":" ++ secs
+>     ++ "+00" ++ suffix

@@ -745,7 +745,7 @@ reduces to (by using 'IterAct' and 'IterResult'):
 
 -- $usage_result
  
-The 'result' (lazy) and 'result\'' (strict) functions are another convenient shorthand
+The 'result' (lazy) and @result\'@ (strict) functions are another convenient shorthand
 for returning values from iteratee functions. The return type from an iteratee is actually
 @Either seed seed@, where you return @Right@ if you want processing to continue,
 or @Left@ if you want processing to stop before the result-set is exhausted.
@@ -952,21 +952,22 @@ If we assume the existence of the following PostgreSQL function
  
 Notes:
  
- * the results of the first iteratee are discarded. This is not required,
-   but in this case the only column is a 'Database.Enumerator.RefCursor',
-   and the values are already saved elsewhere.
- 
  * the use of a 'Database.Enumerator.RefCursor' 'Data.Char.String'
    type in the iteratee function indicates
    to the backend that it should save each cursor value returned,
    which it does by stuffing them into a list attached to the
    prepared statement object.
    This means that we /must/ use the 'Database.Enumerator.withPreparedStatement'
-   function around code using the linear multiple-result-set processing.
+   to create a prepared statement object, which is the container for the
+   cursors returned.
+ 
+ * the results of the first iteratee are discarded. This is not required,
+   but in this case the only column is a 'Database.Enumerator.RefCursor',
+   and the values are already saved elsewhere.
  
  * saved cursors are consumed one-at-a-time by calling 'Database.Enumerator.doQuery',
    passing 'Database.Enumerator.NextResultSet' @pstmt@.
-   This simply pulls the next cursor of the list
+   This simply pulls the next cursor off the list
    - they're processed in the order they were pushed on (FIFO) -
    and processes it with the given iteratee.
  
@@ -974,8 +975,9 @@ Notes:
    to 'Database.Enumerator.doQuery' passing 'Database.Enumerator.NextResultSet' @pstmt@,
    then an exception will be thrown.
    OTOH, failing to process returned cursors will not raise errors,
-   but the cursors will remain open on the server until either the transaction
-   or session ends.
+   but the cursors will remain open on the server according to whatever scoping
+   rules the sever applies.
+   For PostgreSQL, this will be until either the transaction or session ends.
  
 /Nested style:/
  

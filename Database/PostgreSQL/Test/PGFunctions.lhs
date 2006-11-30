@@ -25,6 +25,8 @@ Portability :  non-portable
 > import Data.Time
 
 
+This low-level test assumes that the user has a database with their name.
+If not, it won't work. I have a postgres user and a postgres database.
 
 > runTest :: String -> IO ()
 > runTest dbname = printPropagateError $ do
@@ -42,7 +44,7 @@ Portability :  non-portable
 >   , testSelectDate
 >   , testSelectDate2
 >   , testSelectDate3
->   --, testSelectNumeric
+>   , testSelectNumeric
 >   , testSelectStrings
 >   , testSelectInt64
 >   , testSelectNoRows
@@ -101,7 +103,7 @@ Portability :  non-portable
 > testSelectStrings db = do
 >   sn <- printPropagateError $
 >     stmtPrepare db "" "select text(n) from t_natural where n < 3 order by n;" []
->   (stmt,ntuples) <- stmtExec0 db sn
+>   (stmt,ntuples) <- stmtExec0t db sn
 >   assertEqual "testSelectInts: ntuples" 2 ntuples
 >   n <- colValString stmt 1 1
 >   assertEqual "testSelectInts: 1" 1 (read n)
@@ -112,7 +114,7 @@ Portability :  non-portable
 > testSelectInts db = do
 >   sn <- printPropagateError $
 >     stmtPrepare db "" "select n from t_natural where n < 65536 order by n;" []
->   (rs,ntuples) <- stmtExec0 db sn
+>   (rs,ntuples) <- stmtExec0t db sn
 >   assertEqual "testSelectInts: ntuples" 5 ntuples
 >   n <- colValInt rs 1 1
 >   assertEqual "testSelectInts: 1" 1 n
@@ -128,7 +130,7 @@ Portability :  non-portable
 >   sn <- printPropagateError $
 >     stmtPrepare db "" "select 20041225235959" []
 >     --stmtPrepare db "" "select -1 union select 1 union select 2*1000*1000*1000 order by 1"
->   (stmt,ntuples) <- stmtExec0 db sn
+>   (stmt,ntuples) <- stmtExec0t db sn
 >   n <- colValInt64 stmt 1 1
 >   assertEqual "testSelectInt64: 20041225235959" 20041225235959 n
 >   stmtFinalise stmt
@@ -136,7 +138,7 @@ Portability :  non-portable
 
 > testSelectDouble db = do
 >   sn <- printPropagateError $ stmtPrepare db "" "select 1.2::float8" []
->   (stmt,ntuples) <- stmtExec0 db sn
+>   (stmt,ntuples) <- stmtExec0t db sn
 >   n <- colValDouble stmt 1 1
 >   assertEqual "testSelectDouble: 1.2" 1.2 n
 >   stmtFinalise stmt
@@ -154,17 +156,22 @@ Portability :  non-portable
 >     d2 = UTCTime (fromGregorian 2001 1 1) 0
 >     diff1 = realToFrac (diffUTCTime d1 d0)
 >     diff2 = realToFrac (diffUTCTime d2 d0)
->   (stmt,ntuples) <- stmtExec0 db sn
->   n <- colValDouble stmt 1 1
->   assertEqual "testSelectDate: 1999" diff1 n
+>   (stmt,ntuples) <- stmtExec0t db sn
+>   -- Now that we're using text as the transmission format,
+>   -- the value is no longer passed as a Double.
+>   -- It's also possible for PostgreSQL to send us a long long
+>   -- (Int64, I think) instead, if it was compiled that way.
+>   -- So don't bother checking it value as Double.
+>   --n <- colValDouble stmt 1 1
+>   --assertEqual "testSelectDate: 1999" diff1 n
 >   d <- colValUTCTime stmt 1 1
 >   assertEqual "testSelectDate: 1999" d1 d
->   n <- colValDouble stmt 2 1
->   assertEqual "testSelectDate: 2000" 0.0 n
+>   --n <- colValDouble stmt 2 1
+>   --assertEqual "testSelectDate: 2000" 0.0 n
 >   d <- colValUTCTime stmt 2 1
 >   assertEqual "testSelectDate: 2000" d0 d
->   n <- colValDouble stmt 3 1
->   assertEqual "testSelectDate: 2001" diff2 n
+>   --n <- colValDouble stmt 3 1
+>   --assertEqual "testSelectDate: 2001" diff2 n
 >   d <- colValUTCTime stmt 3 1
 >   assertEqual "testSelectDate: 2001" d2 d
 >   stmtFinalise stmt
@@ -204,7 +211,7 @@ so it's also a poor choice if we want to test boundary dates.
 >            mkUTCTime 1916 10  1  2 25 20:
 >            mkUTCTime 1916 10  1  2 25 20:
 >          [] )
->   (stmt,ntuples) <- stmtExec0 db sn
+>   (stmt,ntuples) <- stmtExec0t db sn
 >   let
 >     loop n =
 >       if n <= ntuples
@@ -220,8 +227,8 @@ so it's also a poor choice if we want to test boundary dates.
 
 Postgres only allows specification of -ve years by use of the AD/BC suffix.
 Sadly, this differs from the astronomical year number like so:
-astro: ...3,2,1,0,-1,-2,-3,...
-ad/bc: ...3AD,2AD,1AD,1BC,2BC,3BC,...
+astro: ...  3,  2,  1,  0, -1, -2, -3,...
+ad/bc: ...3AD,2AD,1AD,1BC,2BC,3BC,4BC,...
 
 i.e. 0 astro = 1BC, -1 astro = 2BC, etc.
 
@@ -243,7 +250,7 @@ ISO8601 uses astronomical years, so we ought to be able to write
 >       mkUTCTime 0001 1  1  0 0 0 :
 >       mkUTCTime (-1000) 1  1  0 0 0 :
 >       []
->   (stmt,ntuples) <- stmtExec0 db sn
+>   (stmt,ntuples) <- stmtExec0t db sn
 >   let
 >     loop n =
 >       if n <= ntuples
@@ -260,15 +267,16 @@ ISO8601 uses astronomical years, so we ought to be able to write
 If we don't specify the type, Postgres gives the number the NUMERIC type.
 I don't yet know what the internal binary rep is, nor how to
 convert it to an appropriate Haskell type.
+Best we can do is marshal/transmist everything as text.
 
 > testSelectNumeric db = do
 >   sn <- printPropagateError $ stmtPrepare db "" "select 1.2" []
->   (rs,ntuples) <- stmtExec0 db sn
->   fmt0 <- fPQfformat rs 0
->   ct0  <- fPQftype rs 0
->   putStrLn $ "\ntestSelectNumeric: format " ++ (show fmt0) ++ ", type (oid) " ++ (show ct0)
->   --n <- colValDouble rs 1 1
->   --assertEqual "testSelectNumeric: 1.2" 1.2 n
+>   (rs,ntuples) <- stmtExec0t db sn
+>   --fmt0 <- fPQfformat rs 0
+>   --ct0  <- fPQftype rs 0
+>   --putStrLn $ "\ntestSelectNumeric: format " ++ (show fmt0) ++ ", type (oid) " ++ (show ct0)
+>   n <- colValDouble rs 1 1
+>   assertEqual "testSelectNumeric: 1.2" 1.2 n
 >   stmtFinalise rs
 
 
@@ -310,7 +318,7 @@ convert it to an appropriate Haskell type.
 
 > countRows :: DBHandle -> String -> Int -> IO Int
 > countRows db sn n = do
->   (stmt,ntuples) <- printPropagateError $ stmtExec0 db sn
+>   (stmt,ntuples) <- printPropagateError $ stmtExec0t db sn
 >   stmtFinalise stmt
 >   if ntuples == 0
 >     then return n
