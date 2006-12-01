@@ -123,7 +123,7 @@ SELECT n, takusenTestFunc(n) from t_natural where n < 10 order by n;
 >   destroyFixture execDDL_
 
 
-> runFixture :: DBLiteralValue a => a -> DBM mark Session ()
+> runFixture :: PGSqlFunctions -> DBM mark Session ()
 > runFixture fns = do
 >   makeFixture execDrop execDDL_
 >   execDDL_ makeFixtureNestedMultiResultSet1
@@ -292,6 +292,7 @@ which we can't yet marshal.
 >           assertBool "processInner2" (i < inner)
 
 
+
 > generateErrorMessageTest _ = do
 >   catchDB ( do
 >       doQuery (sql "select * from nonExistantObject") iterNoRows []
@@ -304,7 +305,7 @@ which we can't yet marshal.
 >       assertEqual "generateErrorMessageTest" expect (take (length expect) msg)
 >     )
 
-> testList :: DBLiteralValue a => [a -> DBM mark Session ()]
+> testList :: [PGSqlFunctions -> DBM mark Session ()]
 > testList =
 >   [ selectNoRows, selectTerminatesEarly, selectFloatsAndInts
 >   , selectNullString, selectEmptyString, selectUnhandledNull

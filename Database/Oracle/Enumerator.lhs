@@ -738,17 +738,8 @@ in the Oracle case, though.
 
 > clength = fromIntegral . length
 
-We make some possibly invalid assumptions here,
-like a c int = 32 bits, c short = 16 bits, c long = 64 bits.
-
 > toCInt :: Int -> CInt; toCInt = fromIntegral
 > fromCInt :: CInt -> Int; fromCInt = fromIntegral
-> toCInt16 :: Int16 -> CShort; toCInt16 = fromIntegral
-> fromCInt16 :: CShort -> Int16; fromCInt16 = fromIntegral
-> toCInt32 :: Int32 -> CInt; toCInt32 = fromIntegral
-> fromCInt32 :: CInt -> Int32; fromCInt32 = fromIntegral
-> toCInt64 :: Int64 -> CLLong; toCInt64 = fromIntegral
-> fromCInt64 :: CLLong -> Int64; fromCInt64 = fromIntegral
 > toCChar :: Char -> CChar; toCChar = toEnum . fromEnum
 > fromCChar :: CChar -> Char; fromCChar = toEnum . fromEnum
 > toCDouble :: Double -> CDouble; toCDouble = realToFrac

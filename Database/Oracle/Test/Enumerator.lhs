@@ -286,9 +286,6 @@ from t_natural nat where n < 10 order by n;
 >       assertBool "processInner2" (i < inner)
 >       result' (i:acc)
 >   withTransaction RepeatableRead $ do
->   --withPreparedStatement (prepareStmt (sql q)) $ \pstmt -> do
->   --withBoundStatement pstmt [] $ \bstmt -> do
->   --    rs <- doQuery bstmt iterMain []
 >       rs <- doQuery (sql q) iterMain []
 >       assertEqual "selectNestedMultiResultSet" [9,8,7,6,5,4,3,2,1] (map fst rs)
 >       --print_ ""
