@@ -168,8 +168,23 @@ consumeMatch is for when we are currently scanning a word
 "2006-11-24 07:51:49.228 BC"
 "2006-11-24 07:51:49+00 BC"
 
+FIXME  use TZ to specify timezone?
+Not necessary, PostgreSQL always seems to output
++00 for timezone. It's already adjusted the time,
+I think. Need to test this with different server timezones, though.
+
 > pgDatetimetoUTCTime :: String -> UTCTime
 > pgDatetimetoUTCTime s =
+>   let (year, month, day, hour, minute, second, tz) = pgDatetimetoParts s
+>   in mkUTCTime year month day hour minute second
+
+> pgDatetimetoCalTime :: String -> CalendarTime
+> pgDatetimetoCalTime s =
+>   let (year, month, day, hour, minute, second, tz) = pgDatetimetoParts s
+>   in mkCalTime year month day hour minute (round second)
+
+> pgDatetimetoParts :: String -> (Int, Int, Int, Int, Int, Double, Int)
+> pgDatetimetoParts s =
 >   let
 >     pred c = isAlphaNum c || c == '.'
 >     ws = wordsBy pred s
@@ -179,8 +194,8 @@ consumeMatch is for when we are currently scanning a word
 >     tz :: Int; tz = if hasTZ then read (ws !! 6) else 0
 >     isBC = isInfixOf "BC" s
 >     year :: Int; year = if isBC then (- ((parts !! 0) - 1)) else parts !! 0
->   in mkUTCTime year (parts !! 1) (parts !! 2)
->       (parts !! 3) (parts !! 4) secs
+>   in (year, (parts !! 1), (parts !! 2)
+>      , (parts !! 3), (parts !! 4), secs, tz)
 
 > utcTimeToPGDatetime :: UTCTime -> String
 > utcTimeToPGDatetime utc =
@@ -191,6 +206,26 @@ consumeMatch is for when we are currently scanning a word
 >     suffix = if year1 < 1 then " BC" else " AD"
 >     year = if year1 < 1 then abs(year1 - 1) else year1
 >     s1 :: Double; s1 = realToFrac second
+>     secs :: String; secs = printf "%09.6f" s1
+>   in zeroPad 4 year
+>     ++ "-" ++ zeroPad 2 month
+>     ++ "-" ++ zeroPad 2 day
+>     ++ " " ++ zeroPad 2 hour
+>     ++ ":" ++ zeroPad 2 minute
+>     ++ ":" ++ secs
+>     ++ "+00" ++ suffix
+
+| Assumes CalendarTime is also UTC i.e. ignores ctTZ component.
+
+> calTimeToPGDatetime :: CalendarTime -> String
+> calTimeToPGDatetime ct =
+>   let
+>     (year1, month, day, hour, minute, second, pico, tzsecs) =
+>       ( ctYear ct, fromEnum (ctMonth ct) + 1, ctDay ct
+>       , ctHour ct, ctMin ct, ctSec ct, ctPicosec ct, ctTZ ct)
+>     suffix = if year1 < 1 then " BC" else " AD"
+>     year = if year1 < 1 then abs(year1 - 1) else year1
+>     s1 :: Double; s1 = realToFrac second + ((fromIntegral pico) / (10.0 ^ 12) )
 >     secs :: String; secs = printf "%09.6f" s1
 >   in zeroPad 4 year
 >     ++ "-" ++ zeroPad 2 month

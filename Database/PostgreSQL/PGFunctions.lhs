@@ -25,6 +25,7 @@ wrappers (in the second part of this file)
 > import Foreign.C
 > import Foreign.Ptr
 > import System.IO
+> import System.Time
 
 
 > data DBHandleStruct = PGconn
@@ -352,6 +353,12 @@ semantics that the two types distinguish.
 >   pgPeek p = pgPeek p >>= return . pgDatetimetoUTCTime
 >   pgSize v = pgSize (utcTimeToPGDatetime v)
 
+> instance PGType CalendarTime where
+>   pgTypeOid _ = 1114
+>   pgNewValue v = pgNewValue (calTimeToPGDatetime v)
+>   pgPeek p = pgPeek p >>= return . pgDatetimetoCalTime
+>   pgSize v = pgSize (calTimeToPGDatetime v)
+
 > instance PGType String where
 >   pgTypeOid _ = 25
 >   pgNewValue s = newCString s >>= return . castPtr
@@ -365,12 +372,6 @@ semantics that the two types distinguish.
 >   pgNewValue v = malloc >>= \p -> poke p (toCChar v) >> return (castPtr p)
 >   pgPeek p = peek (castPtr p) >>= return . fromCChar
 >   pgSize _ = sizeOf 'a'
-
-> instance PGType Int where
->   pgTypeOid v = 1700
->   pgNewValue v = pgNewValue (show v)
->   pgPeek p = pgPeek p >>= return . read
->   pgSize v = pgSize (show v)
 
 > instance PGType Int16 where
 >   pgTypeOid _ = 21
@@ -386,6 +387,18 @@ semantics that the two types distinguish.
 
 > instance PGType Int64 where
 >   pgTypeOid _ = 20
+>   pgNewValue v = pgNewValue (show v)
+>   pgPeek p = pgPeek p >>= return . read
+>   pgSize v = pgSize (show v)
+
+> instance PGType Int where
+>   pgTypeOid v = 1700
+>   pgNewValue v = pgNewValue (show v)
+>   pgPeek p = pgPeek p >>= return . read
+>   pgSize v = pgSize (show v)
+
+> instance PGType Integer where
+>   pgTypeOid v = 1700
 >   pgNewValue v = pgNewValue (show v)
 >   pgPeek p = pgPeek p >>= return . read
 >   pgSize v = pgSize (show v)
@@ -608,6 +621,8 @@ So are the row numbers.
 > colValUTCTime :: ResultSetHandle -> Int -> Int -> IO UTCTime
 > colValUTCTime = colVal
 
+> colValCalTime :: ResultSetHandle -> Int -> Int -> IO CalendarTime
+> colValCalTime = colVal
 
 > colValNull :: ResultSetHandle -> Int -> Int -> IO Bool
 > colValNull rs row col = do

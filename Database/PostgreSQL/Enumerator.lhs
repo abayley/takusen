@@ -35,6 +35,7 @@ PostgreSQL implementation of Database.Enumerator.
 > import Data.Int
 > import Data.List
 > import Data.Time
+> import System.Time
 
 
 --------------------------------------------------------------------
@@ -527,6 +528,10 @@ An auxiliary function: buffer allocation
 > instance DBType (Maybe UTCTime) Query ColumnBuffer where
 >   allocBufferFor _ q n = allocBuffer q n
 >   fetchCol = bufferToAny DBAPI.colValUTCTime
+
+> instance DBType (Maybe CalendarTime) Query ColumnBuffer where
+>   allocBufferFor _ q n = allocBuffer q n
+>   fetchCol = bufferToAny DBAPI.colValCalTime
 
 > instance DBType (Maybe Int) Query ColumnBuffer where
 >   allocBufferFor _ q n = allocBuffer q n
