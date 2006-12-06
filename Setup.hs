@@ -1,4 +1,8 @@
-#!/usr/bin/env runhaskell
+-- Can't use this with -cpp; get "invalid preprocessing directive #!"
+-- #!/usr/bin/env runhaskell
+
+{-# OPTIONS -cpp #-}
+
 import Distribution.Simple
 import Distribution.PackageDescription
 import Distribution.Simple.Configure (findProgram)
@@ -15,7 +19,7 @@ import Control.Monad
 {-
 One install script to rule them all, and in the darkness build them...
 
-This script outght to work for both ghc-6.4 and ghc-6.6.
+This script ought to work for both ghc-6.4 and ghc-6.6.
 For ghc-6.6 you will need to first install Cabal-1.1.6.1;
 the Cabal-1.1.6 build that comes with ghc-6.6 doesn't export certain stuff.
 
@@ -106,11 +110,17 @@ configPG verbose = do
       res <- rawSystemGrabOutput verbose pq_config_path ["--includedir-server"]
       let inc_dirs_server = words res
       return ( Just emptyBuildInfo
-        { extraLibs = ["libpq"]
+        { extraLibs = [if we're_on_Windows then "libpq" else "pq"]
         , extraLibDirs = lib_dirs
         , includeDirs = inc_dirs ++ inc_dirs_server
         })
 
+
+#if mingw32_HOST_OS || mingw32_TARGET_OS
+we're_on_Windows = True
+#else
+we're_on_Windows = False
+#endif
 
 concatBuildInfo [] = Nothing
 concatBuildInfo [x] = x
