@@ -114,7 +114,7 @@ configPG verbose = do
       res <- rawSystemGrabOutput verbose pq_config_path ["--includedir-server"]
       let inc_dirs_server = words res
       return ( Just emptyBuildInfo
-        { extraLibs = [if we're_on_Windows then "libpq" else "pq"]
+        { extraLibs = [if we're_on_Windows then "pq" else "pq"]
         , extraLibDirs = lib_dirs
         , includeDirs = inc_dirs ++ inc_dirs_server
         })
