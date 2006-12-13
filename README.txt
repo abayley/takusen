@@ -59,33 +59,31 @@ should build a "hello" executable.
 
 
 
-Paths and GHCi
---------------
+Paths, GHCi & runhaskell
+------------------------
 Just as with ensuring that your path is correctly set when building Takusen,
 you must also ensure it is correctly set when building your programs.
 If it is not correct, then you are likely to see linker errors.
 
-You can use Takusen with ghci by invoking ghci with the -l and -L options.
-e.g.
-  $ set libopts=
-  $ set libopts=%libopts% -llibpq -L"C:\Program Files\PostgreSQL\8.1\bin"
-  $ set libopts=%libopts% -lsqlite3 -L"C:\Program Files\sqlite3"
-  $ set libopts=%libopts% -loci -L"C:\Program Files\Oracle\OraHome817\bin"
-  $ ghci %libopts%
+It seems that it is not possible to use the Takusen package in ghci.
+This appears to be because it tries to link all of the functions
+in the package, rather than just the parts you're using.
 
-It is not possible to use the Takusen package in ghci if you are missing any
-of the libraries i.e. you must have all of Sqlite, PostgreSQL, and Oracle
-installed.
-If you are missing one of these, then you will be able to start ghci and load
-your Main module, but when you try to execute main it will attempt to link
-against the missing library (even if you don't use it!).
-
-The trick in this case is to work in the root folder of the Takusen
-source tree i.e. to not use the installed package.
+This problem also affects runhaskell, unfortunately.
+I think the solution might well be to split up the various
+database-specific modules into separate packages, which is what
+HSQL does.
 
 Note that this problem does not affect ghc (the compiler).
 If you are missing a library,  but you don't use it, it will still
 compile and link without errors.
+
+If you must use ghci, then one trick is to work in the root folder of the
+Takusen source tree i.e. to not use the installed package.
+If you recompile every module with ghc (perhaps do a ghc --make on your
+main module) then that should save recompilation time, as ghci will use
+precompiled .o files.
+
 
 
 
