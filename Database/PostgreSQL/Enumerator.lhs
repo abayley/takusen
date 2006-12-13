@@ -104,6 +104,7 @@ You only need to use whatever subset is relevant for your connection.
 > connect attrs = ConnectA $ convertEx $ do
 >   db <- DBAPI.openDb (unwords $ map encode attrs)
 >   DBAPI.disableNoticeReporting db
+>   DBAPI.setClientEncoding db "UTF8"
 >   -- Use Verbose to return the SqlState in the error message.
 >   -- There doesn't seem to be a libpq API function to get it...
 >   DBAPI.setErrorVerbosity db DBAPI.ePQERRORS_VERBOSE
@@ -274,7 +275,8 @@ which contains just the result-set (and row count).
 > makeBindAction x = BindA (\_ _ -> DBAPI.newBindVal x)
 
 > instance DBBind (Maybe String) Session PreparedStmt BindObj where
->   bindP = makeBindAction
+>   bindP (Just s) = makeBindAction (Just (DBAPI.UTF8 s))
+>   bindP Nothing = makeBindAction (Nothing `asTypeOf` Just (DBAPI.UTF8 ""))
 
 > instance DBBind (Maybe UTCTime) Session PreparedStmt BindObj where
 >   bindP = makeBindAction
@@ -504,7 +506,6 @@ An auxiliary function: buffer allocation
 
 > allocBuffer q colpos = return $ ColumnBuffer { colPos = colpos }
 
-
 > bufferToAny fn query buffer = do
 >   subq <- readIORef (subquery query)
 >   ind <- DBAPI.colValNull (stmtHandle subq) (curr'row subq) (colPos buffer)
@@ -515,13 +516,17 @@ An auxiliary function: buffer allocation
 
 > instance DBType (Maybe String) Query ColumnBuffer where
 >   allocBufferFor _ q n = allocBuffer q n
->   fetchCol = bufferToAny DBAPI.colValString
+>   fetchCol query buffer = do
+>     v <- bufferToAny DBAPI.colValUTF8 query buffer
+>     case v of
+>       Just (DBAPI.UTF8 s) -> return (Just s)
+>       Nothing -> return Nothing
 
 > instance DBType (RefCursor String) Query ColumnBuffer where
 >   allocBufferFor _ q n = allocBuffer q n
 >   fetchCol query buffer = do
 >     subq <- readIORef (subquery query)
->     v <- DBAPI.colValString (stmtHandle subq) (curr'row subq) (colPos buffer)
+>     (DBAPI.UTF8 v) <- DBAPI.colValUTF8 (stmtHandle subq) (curr'row subq) (colPos buffer)
 >     appendRefCursor query (RefCursor v)
 >     return (RefCursor v)
 
@@ -564,7 +569,7 @@ and uses Read to convert the String to a Haskell data value.
 > instance (Show a, Read a) => DBType (Maybe a) Query ColumnBuffer where
 >   allocBufferFor _  = allocBufferFor (undefined::String)
 >   fetchCol q buffer = do
->     v <- bufferToAny DBAPI.colValString q buffer
+>     v <- bufferToAny DBAPI.colValUTF8 q buffer
 >     case v of
->       Just s -> if s == "" then return Nothing else return (Just (read s))
+>       Just (DBAPI.UTF8 s) -> if s == "" then return Nothing else return (Just (read s))
 >       Nothing -> return Nothing

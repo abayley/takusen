@@ -23,6 +23,7 @@ wrappers (in the second part of this file)
 > import Data.Time
 > import Foreign
 > import Foreign.C
+> import Foreign.C.Unicode
 > import Foreign.Ptr
 > import System.IO
 > import System.Time
@@ -111,6 +112,13 @@ connection.
 
 > foreign import ccall "libpq-fe.h PQerrorMessage" fPQerrorMessage
 >   :: DBHandle -> IO CString
+
+Set client charset (UTF8 etc)
+
+> foreign import ccall "libpq-fe.h PQsetClientEncoding" fPQsetClientEncoding
+>   :: DBHandle -> CString -> IO CString
+
+
 
 
 28.10. Notice Processing
@@ -289,6 +297,9 @@ conn'parm is a string with all the attributes
 
 > setErrorVerbosity db verb = fPQsetErrorVerbosity db verb >> return ()
 
+> setClientEncoding db enc =
+>   withCString enc (\s -> fPQsetClientEncoding db s)
+
 -----------------------------------------------------------
 
 Here we define a class useful in marshalling
@@ -364,6 +375,14 @@ semantics that the two types distinguish.
 >   pgNewValue s = newCString s >>= return . castPtr
 >   pgPeek p = peekCString (castPtr p)
 >   pgSize s = length s
+
+> newtype UTF8 = UTF8 String
+
+> instance PGType UTF8 where
+>   pgTypeOid _ = 25
+>   pgNewValue (UTF8 s) = newUTF8String s >>= return . castPtr
+>   pgPeek p = peekUTF8String (castPtr p) >>= return . UTF8
+>   pgSize (UTF8 s) = length (toUTF8 s)
 
 > instance PGType Char where
 >   pgTypeOid _ = 18
@@ -593,18 +612,21 @@ from given index (we present a one-indexed interface).
 So are the row numbers.
 
 > colValPtr :: ResultSetHandle -> Int -> Int -> IO (Ptr Word8)
-> colValPtr rs row col =
->   fPQgetvalue rs (toCInt (row-1)) (toCInt (col-1)) >>= return . castPtr
-
-> colVal :: PGType a => ResultSetHandle -> Int -> Int -> IO a
-> colVal rs row col = do
+> colValPtr rs row col = do
 >   n <- fPQntuples rs
 >   if (fromIntegral n) < row || row < 1
 >     then throwPG (-1) ("Attempted fetch from invalid row number " ++ show row)
->     else colValPtr rs row col >>= pgPeek
+>     else fPQgetvalue rs (toCInt (row-1)) (toCInt (col-1)) >>= return . castPtr
+
+> colVal :: PGType a => ResultSetHandle -> Int -> Int -> IO a
+> colVal rs row col = colValPtr rs row col >>= pgPeek
 
 > colValString :: ResultSetHandle -> Int -> Int -> IO String
 > colValString = colVal
+
+> colValUTF8 :: ResultSetHandle -> Int -> Int -> IO UTF8
+> colValUTF8 = colVal
+> --colValUTF8 rs row col = colValPtr rs row col >>= peekUTF8String . castPtr
 
 > colValInt :: ResultSetHandle -> Int -> Int -> IO Int
 > colValInt = colVal
