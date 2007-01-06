@@ -26,9 +26,6 @@ Utility functions. Mostly used in database back-ends, and tests.
 > import Data.Time
 > import Text.Printf
 
-This little section contains some utility code,
-which isn't really specific to our database code.
-Perhaps there should be a separate module for this...
 
 MyShow requires overlapping AND undecidable instances.
 

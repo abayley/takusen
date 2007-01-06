@@ -23,7 +23,7 @@ wrappers (in the second part of this file)
 > import Data.Time
 > import Foreign
 > import Foreign.C
-> import Foreign.C.Unicode
+> import Foreign.C.UTF8
 > import Foreign.Ptr
 > import System.IO
 > import System.Time
@@ -261,20 +261,22 @@ Really getting the values
 Get the current error message
 
 > getError :: DBHandle -> IO String
-> getError db = fPQerrorMessage db >>= peekCString
+> getError db = fPQerrorMessage db >>= peekUTF8String
 
 conn'parm is a string with all the attributes
 
 > openDb :: String -> IO DBHandle
 > openDb conn'parm =
->   withCString conn'parm $ \cstr -> do
+>   withUTF8String conn'parm $ \cstr -> do
 >   db <- fPQconnectdb cstr
 >   if db == nullPtr
 >     then throwPG (-1) "Null PGconn handle from PQconnectdb"
 >     else do
 >     rc <- fPQstatus db
 >     if rc == eCONNECTION_OK
->       then return db
+>       then do
+>         setClientEncoding db "UTF8"
+>         return db
 >       else do
 >         emsg <- getError db
 >         fPQfinish db
@@ -285,7 +287,7 @@ conn'parm is a string with all the attributes
 
 
 > ignoreNotices _ _ = return ()
-> reportNotices _ cstr = peekCString cstr >>= hPutStrLn stderr
+> reportNotices _ cstr = peekUTF8String cstr >>= hPutStrLn stderr
 
 > disableNoticeReporting db = do
 >   r <- mkNoticeProcessor ignoreNotices
@@ -298,7 +300,7 @@ conn'parm is a string with all the attributes
 > setErrorVerbosity db verb = fPQsetErrorVerbosity db verb >> return ()
 
 > setClientEncoding db enc =
->   withCString enc (\s -> fPQsetClientEncoding db s)
+>   withUTF8String enc (\s -> fPQsetClientEncoding db s)
 
 -----------------------------------------------------------
 
@@ -370,19 +372,13 @@ semantics that the two types distinguish.
 >   pgPeek p = pgPeek p >>= return . pgDatetimetoCalTime
 >   pgSize v = pgSize (calTimeToPGDatetime v)
 
+We assume all Strings are UTF8 encoded.
+
 > instance PGType String where
 >   pgTypeOid _ = 25
->   pgNewValue s = newCString s >>= return . castPtr
->   pgPeek p = peekCString (castPtr p)
->   pgSize s = length s
-
-> newtype UTF8 = UTF8 String
-
-> instance PGType UTF8 where
->   pgTypeOid _ = 25
->   pgNewValue (UTF8 s) = newUTF8String s >>= return . castPtr
->   pgPeek p = peekUTF8String (castPtr p) >>= return . UTF8
->   pgSize (UTF8 s) = length (toUTF8 s)
+>   pgNewValue s = newUTF8String s >>= return . castPtr
+>   pgPeek p = peekUTF8String (castPtr p) >>= return
+>   pgSize s = length (toUTF8 s)
 
 > instance PGType Char where
 >   pgTypeOid _ = 18
@@ -468,14 +464,14 @@ Check the ResultSetHandle returned by fPQexec and similar functions
 >   rc <- fPQresultStatus stmt
 >   if rc == expected'status then return stmt
 >     else do
->       msg <- fPQresultErrorMessage stmt >>= peekCString
+>       msg <- fPQresultErrorMessage stmt >>= peekUTF8String
 >       fPQclear stmt
 >       throwPG rc msg
 
 > stmtPrepare :: DBHandle -> String -> String -> [Oid] -> IO String
 > stmtPrepare db stmt'name sqlText types =
->   withCString stmt'name $ \csn -> do
->   withCString sqlText $ \cstr -> do
+>   withUTF8String stmt'name $ \csn -> do
+>   withUTF8String sqlText $ \cstr -> do
 >   withArray types $ \ctypearray -> do
 >     let np = fromIntegral $ length types
 >     stmt <- fPQprepare db csn cstr np ctypearray
@@ -490,13 +486,13 @@ Because this is a frequently used function, we code it specially
 
 > nqExec :: DBHandle -> String -> IO (String, String, Oid)
 > nqExec db sqlText =
->   withCString sqlText $ \cstr -> 
+>   withUTF8String sqlText $ \cstr -> 
 >     do
 >     stmt <- fPQexecParams db cstr 0 nullPtr nullPtr nullPtr nullPtr textResultSet
 >             >>= check'stmt db ePGRES_COMMAND_OK
 >     -- save all information from PGresult and free it
->     cmd'status  <- fPQcmdStatus stmt >>= peekCString
->     cmd'ntuples <- fPQcmdTuples stmt >>= peekCString
+>     cmd'status  <- fPQcmdStatus stmt >>= peekUTF8String
+>     cmd'ntuples <- fPQcmdTuples stmt >>= peekUTF8String
 >     cmd'oid     <- fPQoidValue stmt
 >     fPQclear stmt
 >     return (cmd'status, cmd'ntuples, cmd'oid)
@@ -510,8 +506,8 @@ Because this is a frequently used function, we code it specially
 > execPreparedCommand db stmtname bindvals = do
 >   (rs, ntuples) <- execPrepared db stmtname bindvals ePGRES_COMMAND_OK
 >   -- save all information from PGresult and free it
->   cmd'status  <- fPQcmdStatus rs >>= peekCString
->   cmd'ntuples <- fPQcmdTuples rs >>= peekCString
+>   cmd'status  <- fPQcmdStatus rs >>= peekUTF8String
+>   cmd'ntuples <- fPQcmdTuples rs >>= peekUTF8String
 >   cmd'oid     <- fPQoidValue rs
 >   stmtFinalise rs
 >   return (cmd'status, cmd'ntuples, cmd'oid)
@@ -521,7 +517,7 @@ Prepare and Execute a query. Returns results as binary.
 > stmtExecImm :: DBHandle -> String -> [PGBindVal] -> IO (ResultSetHandle, Int)
 > stmtExecImm db sqlText bindvals = do
 >   let np = fromIntegral $ length bindvals
->   withCString sqlText $ \cstr -> do 
+>   withUTF8String sqlText $ \cstr -> do 
 >   withArray (map bindValOid bindvals) $ \coidarray -> do
 >   withArray (map bindValSize bindvals) $ \clenarray -> do
 >   withArray (map bindValFormat bindvals) $ \cformatarray -> do
@@ -541,7 +537,7 @@ A simple version with no binding parameters and returning results as text
 
 > stmtExecImm0 :: DBHandle -> String -> IO (ResultSetHandle, Int)
 > stmtExecImm0 db sqlText =
->   withCString sqlText $ \cstr -> do 
+>   withUTF8String sqlText $ \cstr -> do 
 >     rs <- fPQexecParams db cstr 0 nullPtr nullPtr nullPtr nullPtr textResultSet
 >     check'stmt db ePGRES_TUPLES_OK rs
 >     ntuples <- fPQntuples rs
@@ -557,7 +553,7 @@ Execute a previously prepared query, with no params.
 > stmtExec0t db stmt'name = stmtExec0bt db stmt'name textResultSet
 
 > stmtExec0bt db stmt'name binary_or_text = 
->   withCString stmt'name $ \cstmtname -> do
+>   withUTF8String stmt'name $ \cstmtname -> do
 >     rs <- fPQexecPrepared db cstmtname 0 nullPtr nullPtr nullPtr
 >                           binary_or_text
 >     check'stmt db ePGRES_TUPLES_OK rs
@@ -577,7 +573,7 @@ queries return ePGRES_TUPLES_OK while commands return ePGRES_COMMAND_OK.
 > execPrepared :: DBHandle -> String -> [PGBindVal] -> CInt -> IO (ResultSetHandle, Int)
 > execPrepared db stmt'name bindvals rc = do
 >   let np = fromIntegral $ length bindvals
->   withCString stmt'name $ \cstmtname -> do
+>   withUTF8String stmt'name $ \cstmtname -> do
 >   withArray (map bindValSize bindvals) $ \clenarray -> do
 >   withArray (map bindValFormat bindvals) $ \cformatarray -> do
 >   -- The bindValPtrs are IO actions; executing them (via sequence)
@@ -594,8 +590,8 @@ queries return ePGRES_TUPLES_OK while commands return ePGRES_COMMAND_OK.
 > prepare'n'exec :: DBHandle -> String -> String -> [PGBindVal] -> IO (ResultSetHandle, Int)
 > prepare'n'exec db stmtname stmt bindvals = do
 >   let np = fromIntegral $ length bindvals
->   withCString stmtname $ \cstmtname -> do
->   withCString stmt $ \cstmt -> do
+>   withUTF8String stmtname $ \cstmtname -> do
+>   withUTF8String stmt $ \cstmt -> do
 >   withArray (map bindValOid bindvals) $ \coidarray -> do
 >     rs <- fPQprepare db cstmtname cstmt np coidarray
 >     check'stmt db ePGRES_COMMAND_OK rs
@@ -623,10 +619,6 @@ So are the row numbers.
 
 > colValString :: ResultSetHandle -> Int -> Int -> IO String
 > colValString = colVal
-
-> colValUTF8 :: ResultSetHandle -> Int -> Int -> IO UTF8
-> colValUTF8 = colVal
-> --colValUTF8 rs row col = colValPtr rs row col >>= peekUTF8String . castPtr
 
 > colValInt :: ResultSetHandle -> Int -> Int -> IO Int
 > colValInt = colVal
@@ -678,7 +670,7 @@ Execute the COPY FROM STDIN command
 
 > nqCopyIn :: DBHandle -> String -> Handle -> IO ()
 > nqCopyIn db sqlText hin =
->   withCString sqlText $ \cstr -> 
+>   withUTF8String sqlText $ \cstr -> 
 >    allocaBytes nqCopyIn_buflen $ \buffer ->
 >     do
 >     stmt <- fPQexecParams db cstr 0 nullPtr nullPtr nullPtr nullPtr 0
@@ -690,7 +682,7 @@ Execute the COPY FROM STDIN command
 >                               throwPG rc emsg
 >     let loop = do
 >          len <- hGetBuf hin buffer nqCopyIn_buflen
->          if len < 0 then withCString "IO error" $ fPQputCopyEnd db
+>          if len < 0 then withUTF8String "IO error" $ fPQputCopyEnd db
 >             else if len == 0 then fPQputCopyEnd db nullPtr
 >             else fPQputCopyData db buffer (fromIntegral len) >>=
 >               check'copy'status >> loop

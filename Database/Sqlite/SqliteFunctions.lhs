@@ -13,7 +13,7 @@ Simple wrappers for Sqlite functions (FFI).
 
 > module Database.Sqlite.SqliteFunctions where
 
-> import Foreign.C.Unicode
+> import Foreign.C.UTF8
 > import Foreign
 > import Foreign.C
 > import Foreign.Ptr

@@ -15,7 +15,7 @@ Portability :  non-portable
 
 > import Foreign
 > import Foreign.C
-> import Foreign.C.Unicode
+> import Foreign.C.UTF8
 > import Control.Monad
 > import Control.Exception
 > import Data.Dynamic
@@ -50,6 +50,7 @@ Portability :  non-portable
 >   , testBindDouble
 >   , testFetchAfterFinalise
 >   , testConstraintError
+>   , testSelectUTF8Text
 >   ]
 
 
@@ -275,3 +276,18 @@ is correctly reported by sqlite_errcode.
 >   ex@(SqliteException e m) <- getError db
 >   assertEqual "testConstraintError: errcode" 19 e
 >   assertEqual "testConstraintError: errmsg" "PRIMARY KEY must be unique" m
+
+
+> testSelectUTF8Text db = do
+>   -- GREEK SMALL LETTER PHI
+>   -- unicode code-point 966
+>   -- UTF8: CF86 (207,134)
+>   -- UTF16: 03C6
+>   let expect = ['\966']
+>   stmt <- printPropagateError $
+>     stmtPrepare db "select ?"
+>   bindString db stmt 1 expect
+>   rc <- stmtFetch db stmt
+>   Just n <- colValString stmt 1
+>   assertEqual "testSelectUTF8Text" expect n
+>   stmtFinalise db stmt

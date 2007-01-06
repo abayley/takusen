@@ -211,6 +211,14 @@ which we can't yet marshal.
 
 
 
+> selectUTF8Text _ = do
+>   let iter (s::String) (_::String) = result s
+>   -- GREEK SMALL LETTER PHI : CF86 UTF8, 03C6 UTF16, 966 decimal
+>   let expect = ['\966']
+>   result <- doQuery (sql ("select '" ++ expect ++ "'")) iter ""
+>   assertEqual "selectUTF8Text" expect result
+
+
 > dropFixtureMultiResultSet1 = "DROP FUNCTION takusenTestFunc()"
 > makeFixtureMultiResultSet1 =
 >   "CREATE OR REPLACE FUNCTION takusenTestFunc() RETURNS SETOF refcursor AS $$"
@@ -316,4 +324,5 @@ which we can't yet marshal.
 >   , selectRebindStmt
 >   , selectMultiResultSet, selectNestedMultiResultSet, polymorphicFetchTest
 >   , polymorphicFetchTestNull, exceptionRollback, generateErrorMessageTest
+>   , selectUTF8Text
 >   ]

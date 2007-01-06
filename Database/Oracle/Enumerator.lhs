@@ -755,7 +755,10 @@ in the Oracle case, though.
 We save a reference to the parent PreparedStmt.
 In a lot of cases (the simple ones) the parent is that same
 as the PreparedStmt.
-It only differs wen we use the NextResultSet instance of makeQuery.
+It only differs when we use the NextResultSet instance of makeQuery.
+It is only Nothing when we are processing a RefCursor;
+in this case we don't want to save any nested cursors returned
+by the query.
 
 > data Query = Query
 >   { queryStmt :: PreparedStmt
@@ -941,9 +944,12 @@ Database.Enumerator i.e. we need to add a function, say reallocBuffers,
 which is called before each row is fetched,
 which will give us an opportunity to reallocate memory for buffers
 if it is required.
-This might be a bad idea thought, because it is likely to lead
+This might be a bad idea though, because it is likely to lead
 to space leaks. Perhaps the current approach of reusing the
 StmtHandle is better from a memory management point-of-view.
+That said, the Oracle DBMS has a fairly low limit (on the order
+of 100 or so) on the number of open cursors, so perhaps space
+leaks aren't as likely as I think.
 
 > instance DBType (RefCursor StmtHandle) Query ColumnBuffer where
 >   allocBufferFor _ q n = allocStmtBuffer q n

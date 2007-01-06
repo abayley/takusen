@@ -23,6 +23,6 @@ Exposed-modules:
   , Database.Sqlite.SqliteFunctions
   , Database.Stub.Enumerator
   , Control.Exception.MonadIO
-  , Foreign.C.Unicode
+  , Foreign.C.UTF8
 Other-modules:
   Database.InternalEnumerator

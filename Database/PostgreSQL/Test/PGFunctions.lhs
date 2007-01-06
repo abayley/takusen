@@ -22,6 +22,7 @@ Portability :  non-portable
 > import Data.Dynamic
 > import System.Environment (getArgs)
 > import Test.MiniUnit
+> import Data.Char
 > import Data.Time
 
 
@@ -55,6 +56,7 @@ If not, it won't work. I have a postgres user and a postgres database.
 >   , testBindDouble
 >   , testBindDate
 >   , testCreateDual
+>   , testSelectUTF8Text
 >   ]
 
 
@@ -157,21 +159,10 @@ If not, it won't work. I have a postgres user and a postgres database.
 >     diff1 = realToFrac (diffUTCTime d1 d0)
 >     diff2 = realToFrac (diffUTCTime d2 d0)
 >   (stmt,ntuples) <- stmtExec0t db sn
->   -- Now that we're using text as the transmission format,
->   -- the value is no longer passed as a Double.
->   -- It's also possible for PostgreSQL to send us a long long
->   -- (Int64, I think) instead, if it was compiled that way.
->   -- So don't bother checking it value as Double.
->   --n <- colValDouble stmt 1 1
->   --assertEqual "testSelectDate: 1999" diff1 n
 >   d <- colValUTCTime stmt 1 1
 >   assertEqual "testSelectDate: 1999" d1 d
->   --n <- colValDouble stmt 2 1
->   --assertEqual "testSelectDate: 2000" 0.0 n
 >   d <- colValUTCTime stmt 2 1
 >   assertEqual "testSelectDate: 2000" d0 d
->   --n <- colValDouble stmt 3 1
->   --assertEqual "testSelectDate: 2001" diff2 n
 >   d <- colValUTCTime stmt 3 1
 >   assertEqual "testSelectDate: 2001" d2 d
 >   stmtFinalise stmt
@@ -378,3 +369,17 @@ Best we can do is marshal/transmist everything as text.
 >   n <- colValUTCTime rs 1 2
 >   assertEqual "testBindDate: 2 " v2 n
 >   stmtFinalise rs
+
+> testSelectUTF8Text db = do
+>   -- GREEK SMALL LETTER PHI
+>   -- unicode code-point 966
+>   -- UTF8: CF86 (207,134)
+>   -- UTF16: 03C6
+>   let expect = ['\966']
+>   let sql = "select '" ++ expect ++ "'"
+>   sn <- printPropagateError (stmtPrepare db "" sql [])
+>   (stmt,ntuples) <- stmtExec0t db sn
+>   assertEqual "testSelectUTF8Text: ntuples" 1 ntuples
+>   result <- colValString stmt 1 1
+>   assertEqual "testSelectUTF8Text" expect result
+
