@@ -12,7 +12,7 @@ and cursor operations.
   
 There is a stub: "Database.Stub.Enumerator".
 This lets you run the test cases without having a working DBMS installation.
-This isn't so valuable now, because it's dead easy to install SQLite,
+This isn't so valuable now, because it's dead easy to install Sqlite,
 but it's still there if you want to try it.
  
 Additional reading:
@@ -53,6 +53,10 @@ but their specific types and usage may differ between DBMS.
 >     -- ** result and result'
 >
 >     -- $usage_result
+>
+>     -- ** Rank-2 types and ($)
+>
+>     -- $usage_rank2_types
 >
 >     -- ** Bind Parameters
 >
@@ -598,17 +602,19 @@ Let's look at some example code:
  >   commit
  >   -- Use withTransaction to delimit a transaction.
  >   -- It will commit at the end, or rollback if an error occurs.
- >   withTransaction Serialisable $ do
+ >   withTransaction Serialisable ( do
  >     execDML (sql "update blah ...")
  >     execDML (sql "insert into blah ...")
+ >     )
  >
  > main :: IO ()
  > main = do
- >   withSession (connect "user" "password" "server") $ do
+ >   withSession (connect "user" "password" "server") ( do
  >     -- simple query, returning reversed list of rows.
  >     r <- doQuery (sql "select a, b, c from x") query1Iteratee []
  >     liftIO $ putStrLn $ show r
  >     otherActions session
+ >     )
  
  Notes:
  
@@ -783,6 +789,74 @@ You'll probably find that the lazy iteratee is consuming all of the stack with l
 which is why we recommend the strict function.
 
 
+
+-- $usage_rank2_types
+ 
+In some examples we use the application operator ($) instead of parentheses
+(some might argue that his is a sign of developer laziness).
+At first glance, ($) and normal function application seem to be interchangeable
+e.g.
+ 
+ > liftIO (putStrLn (show x))
+ 
+ is equivalent to
+ 
+ > liftIO $ putStrLn $ show x
+ 
+But they're not, and the places where they differ usually involve
+higher-rank types, like our 'Database.Enumerator.DBM' monad.
+That's because ($) has type (a -> b) -> a -> b, which limits it
+to rank-1 typed functions, a restriction which does not affect normal
+function application.
+ 
+Here's an example where ($) fails: 
+we supply a simple test program in the README file.
+If you change the @withSession@ line to use ($), like so
+(and remove the matching end-parenthese):
+ 
+ >   withSession (connect "sqlite_db") $ do
+ 
+then you get the error:
+ 
+ > Main.hs:7:38:
+ >     Couldn't match expected type `forall mark. DBM mark Session a'
+ >            against inferred type `a1 b'
+ >     In the second argument of `($)', namely
+ >       ...
+ 
+Another way of rewriting it is like this, where we separate the
+'Database.Enumerator.DBM' action into another function:
+ 
+ > {-# OPTIONS -fglasgow-exts #-}
+ > module Main where
+ > import Database.Sqlite.Enumerator
+ > import Database.Enumerator
+ > import Control.Monad.Trans (liftIO)
+ > main = flip catchDB reportRethrow $
+ >   withSession (connect "sqlite_db") hello
+ >
+ > hello = withTransaction RepeatableRead $ do
+ >     let iter (s::String) (_::String) = result s
+ >     result <- doQuery (sql "select 'Hello world.'") iter ""
+ >     liftIO (putStrLn result)
+ 
+which gives this error:
+ 
+ > Main.hs:9:2:
+ >     Inferred type is less polymorphic than expected
+ >       Quantified type variable `mark' is mentioned in the environment:
+ >         hello :: DBM mark Session () (bound at Main.hs:15:0)
+ >         ...
+ 
+However, if you add this type declaration:
+ 
+ > hello :: DBM mark Session ()
+ 
+then the compiler is happy, which shows that our rank-2 typed
+'Database.Enumerator.DBM' monad isn't entirely incompatible with ($).
+
+
+
 -- $usage_bindparms
  
 Support for bind variables varies between DBMS's.
@@ -800,7 +874,7 @@ the prepared query. The function to create this action varies between backends,
 and by convention is called 'Database.PostgreSQL.Enumerator.prepareStmt'
 (although it may also have differently-named variations; see
 'Database.PostgreSQL.Enumerator.preparePrefetch', for example,
-which also exists in the Oracle and SQLite interfaces).
+which also exists in the Oracle and Sqlite interfaces).
  
 With PostgreSQL, we must specify the type of the bind parameters
 when the query is prepared, so the 'Database.PostgreSQL.Enumerator.prepareStmt'
@@ -851,9 +925,9 @@ call to 'Database.Sqlite.Enumerator.prepareStmt':
 It can be a bit tedious to always use the @withPreparedStatement+withBoundStatement@
 combination, so for the case where you don't plan to re-use the query,
 we support a short-cut for bundling the query text and parameters.
-The next example is valid for PostgreSQL, Sqlite, and Oracle;
-for Sqlite we provide a dummy 'Database.Sqlite.Enumerator.prefetch'
-function to ensure we have a consistent API.
+The next example is valid for PostgreSQL, Sqlite, and Oracle
+(the Sqlite implementation provides a dummy 'Database.Sqlite.Enumerator.prefetch'
+function to ensure we have a consistent API).
 Sqlite has no facility for prefetching - it's an embedded database, so no
 network round-trip - so the Sqlite implementation ignores the prefetch count:
  
@@ -868,7 +942,7 @@ network round-trip - so the Sqlite implementation ignores the prefetch count:
  
 A caveat of using prefetch with PostgreSQL is that you must be inside a transaction.
 This is because the PostgreSQL implementation uses a cursor and \"FETCH FORWARD\"
-to implement fetching blocks of rows in network calls,
+to implement fetching a block of rows in a single network call,
 and PostgreSQL requires that cursors are only used inside transactions.
 It can be as simple as wrapping calls to 'Database.Enumerator.doQuery' by
 'Database.Enumerator.withTransaction',
@@ -880,8 +954,8 @@ or you may prefer to delimit your transactions elsewhere (the API supports
  >     actual <- doQuery query iter []
  >     liftIO (print actual)
  
-For 'Data.Int.Int' and 'Prelude.Double' bind values,
-we have to tell the compiler about the types.
+You may have noticed that For 'Data.Int.Int' and 'Prelude.Double' literal
+bind values, we have to tell the compiler the type of the literal.
 I assume this is due to interaction (which I don't fully understand and therefore
 cannot explain in any detail) with the numeric literal defaulting mechanism.
 For non-numeric literals the compiler can determine the correct types to use.
@@ -914,7 +988,7 @@ message looks something like this:
  
 Support for returning multiple result sets from a single
 statement exists for PostgreSQL and Oracle.
-Such functionality does not exist in SQLite.
+Such functionality does not exist in Sqlite.
  
 The general idea is to invoke a database procedure or function which
 returns cursor variables. The variables can be processed by
@@ -923,7 +997,7 @@ returns cursor variables. The variables can be processed by
 /Linear style:/
  
 If we assume the existence of the following PostgreSQL function
-(this function is used in the test suite in "Database.PostgreSQL.Test.Enumerator".):
+(this function is used in the test suite in "Database.PostgreSQL.Test.Enumerator"):
  
  > CREATE OR REPLACE FUNCTION takusenTestFunc() RETURNS SETOF refcursor AS $$
  > DECLARE refc1 refcursor; refc2 refcursor;
@@ -961,9 +1035,10 @@ Notes:
    to create a prepared statement object, which is the container for the
    cursors returned.
  
- * the results of the first iteratee are discarded. This is not required,
-   but in this case the only column is a 'Database.Enumerator.RefCursor',
-   and the values are already saved elsewhere.
+ * in this example we choose to discard the results of the first iteratee.
+   This is not necessary, but in this case the only column is a
+   'Database.Enumerator.RefCursor', and the values are already saved
+   in the prepared statement object.
  
  * saved cursors are consumed one-at-a-time by calling 'Database.Enumerator.doQuery',
    passing 'Database.Enumerator.NextResultSet' @pstmt@.
@@ -977,7 +1052,7 @@ Notes:
    OTOH, failing to process returned cursors will not raise errors,
    but the cursors will remain open on the server according to whatever scoping
    rules the sever applies.
-   For PostgreSQL, this will be until either the transaction or session ends.
+   For PostgreSQL, this will be until the transaction (or session) ends.
  
 /Nested style:/
  
@@ -1025,23 +1100,25 @@ here we use 'Control.Monad.mapM_' to apply an IO action to the list returned by
 'Database.Enumerator.doQuery'.
  
 For Oracle the example is slightly different.
-The reason it's different is that Oracle requires two things:
+The reason it's different is that:
  
- * the parent cursor must remain open while processing the children
+ * Oracle requires that the parent cursor must remain open
+   while processing the children
    (in the PostgreSQL example, 'Database.Enumerator.doQuery'
    closes the parent cursor after constructing the list,
    before the list is processed. This is OK because PostgreSQL
    keeps the child cursors open on the server until they are explicitly
    closed, or the transaction or session ends).
  
- * our current design prevents marshalling of the value in the result-set
+ * our current Oracle implementation prevents marshalling
+   of the value in the result-set
    buffer to a Haskell value, so each fetch overwrites the buffer value with
    a new cursor.
    This means you have to fully process a given cursor before
    fetching the next one.
    
-Contrast this with the PostgreSQL
-example, where the entire result-set is processed to give a
+Contrast this with the PostgreSQL example above,
+where the entire result-set is processed to give a
 list of RefCursor values, and then we run a list of actions
 over this list with 'Control.Monad.mapM_'.
 This is possible because PostgreSQL refcursors are just the
@@ -1069,7 +1146,7 @@ to Haskell values easily.
  
 Note that the PostgreSQL example can also be written like this
 (except, of course, that the actual query text is that
-from the PostgreSQL exanple).
+from the PostgreSQL example).
 
 
 

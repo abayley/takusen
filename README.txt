@@ -1,6 +1,9 @@
 Installing
 ----------
-Prerequisites: GHC >= 6.4, darcs, Cabal >= 1.1.6.1
+Prerequisites: GHC >= 6.6, darcs, Cabal >= 1.1.6.1
+
+(it's possible to use Takusen with GHC-6.4 and Cabal-1.1.4;
+see notes in separate section below)
 
 At present we use darcs and Cabal to download, build, and install Takusen
 (we plan to provide a zipped archive which should eliminate darcs from
@@ -21,7 +24,7 @@ configure step, and Takusen won't be able to use it.
 You can fix this by adding it to your path and going through the
 configure/build/install cycle again.
 
-Download Takusen:
+Typical steps:
   $ mkdir takusen
   $ cd takusen
   $ darcs get http://darcs.haskell.org/takusen
@@ -46,7 +49,7 @@ module Main where
 import Database.Sqlite.Enumerator
 import Database.Enumerator
 import Control.Monad.Trans (liftIO)
-main = do
+main = flip catchDB reportRethrow $
   withSession (connect "sqlite_db") (do
     let iter (s::String) (_::String) = result s
     result <- doQuery (sql "select 'Hello world.'") iter ""
@@ -59,40 +62,78 @@ should build a "hello" executable.
 
 
 
+PostgreSQL gotchas on Windows
+-----------------------------
+The PostgreSQL client library is called libpq.dll on Windows,
+rather than the more typical pq.dll.
+This is fine when using ghc to compile, as gnu ld is able to figure out
+that this is the librayr to use when you pass it -lpq, but ghci is not
+quite so slick, and it fails to load the library.
+There is any easy workaround, which is to copy libpq.dll and rename it to
+pq.dll. If you do this, then you should be able to 
+
+In the past I've had problems with older versions of PostgreSQL and
+ghc-6.4.1. Specifically, the call to PQprepare would segfault.
+This occured with C programs (i.e. no Haskell) compiled with the gcc
+and ld that came with ghc-6.4.1. If ld (version 2.15.91) was replaced
+with an older one (2.13.91) from MSYS then the test program worked.
+
+With PostgreSQL 8.1.5.1 and ghc-6.6 (gcc 3.4.5 (mingw special)
+and ld 2.15.94) this problem seems to have vanished.
+
+
+Oracle gotchas on Windows
+-------------------------
+Some users have reported linker errors because their Oracle
+bin contains hsbase.dll, which is a library related to Heterogenous Services.
+This DLL overrides GHC's HSbase.dll, and therefore causes linker errors.
+
+If you can control your Oracle client installation then either
+ - don't choose Heterogenous Services when you install,
+   or re-run the installer and remove it, or
+ - rename hsbase.dll in Oracle bin.
+
+
+
+
 Paths, GHCi & runhaskell
 ------------------------
 Just as with ensuring that your path is correctly set when building Takusen,
 you must also ensure it is correctly set when building your programs.
 If it is not correct, then you are likely to see linker errors.
 
-It seems that it is not possible to use the Takusen package in ghci.
-This appears to be because it tries to link all of the functions
-in the package, rather than just the parts you're using.
+It is not straightforward to use Takusen from within ghci, because when
+ghci links the Takusen package, it tries to resolve all symbols,
+not just the ones you're using. So, for example, if you only have
+PostgreSQL installed, it will try to link Oracle and Sqlite, and fail.
 
 This problem also affects runhaskell, unfortunately.
-I think the solution might well be to split up the various
-database-specific modules into separate packages, which is what
-HSQL does.
 
 Note that this problem does not affect ghc (the compiler).
-If you are missing a library,  but you don't use it, it will still
+If you are missing a library, but you don't use it, GHC will
 compile and link without errors.
 
-If you must use ghci, then one trick is to work in the root folder of the
-Takusen source tree i.e. to not use the installed package.
-If you recompile every module with ghc (perhaps do a ghc --make on your
-main module) then that should save recompilation time, as ghci will use
-precompiled .o files.
-
+If you realy want to use ghci, there are some options:
+ - edit the takusen.cabal file; delete the DBMS-specific modules that
+   you do not have client libraries for, then rebuild and reinstall.
+   e.g. if you only have PostgreSQL installed, then you would delete
+   all Database.Oracle.* and Database.Sqlite.* modules from the
+   "Exposed-modules" section.
+ - invoke ghci from the Takusen src folder, so that it uses the modules
+   directly from source (you can speed this up by precompiling to .o),
+   or copy the Takusen source into your project source tree.
+ - install all database client libraries and put them in your path.
 
 
 
 GHC-6.4 and Takusen
 -------------------
-If you must use Takusen with GHC-6.4, then you will need to install
-Data.Time, which is quite a chore on Windows because of the dependencies.
-You will need MSYS installed in order to run autoreconf,
-so get that out of the way first.
+It is possible to use Takusen with GHC-6.4. We have tested with Cabal-1.1.4,
+so you aren't required to upgrade to 1.1.6.1 (but it won't hurt, either).
+
+You will need to install Data.Time, which is quite a chore on Windows
+because of the dependencies. You will also need MSYS installed in order
+to be able to run autoreconf, so get that out of the way first.
 
 The summary for Windows is:
 

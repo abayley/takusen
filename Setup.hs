@@ -32,7 +32,6 @@ does he have to appear in our license.txt?
 
 
 To-dos for Takusen:
- - recover test program for ld.exe/PostgreSQL crash.
  - find out why we have to import Database.Enumerator when it's
    in the export list for every database-specific module anyway.
  - use hsc2hs to create #define constants from header files,
@@ -114,7 +113,7 @@ configPG verbose = do
       res <- rawSystemGrabOutput verbose pq_config_path ["--includedir-server"]
       let inc_dirs_server = words res
       return ( Just emptyBuildInfo
-        { extraLibs = [if we're_on_Windows then "pq" else "pq"]
+        { extraLibs = ["pq"]
         , extraLibDirs = lib_dirs
         , includeDirs = inc_dirs ++ inc_dirs_server
         })
