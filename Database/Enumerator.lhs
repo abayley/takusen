@@ -181,8 +181,8 @@ all class constraints for the Session (like IQuery, DBType, etc).
 
 > newtype IE.ISession sess => DBM mark sess a = DBM (ReaderT sess IO a)
 >   -- Haddock can't cope with the "MonadReader sess" instance
->   --deriving (Monad, MonadIO)
->   deriving (Monad, MonadIO, MonadReader sess)
+>   deriving (Monad, MonadIO)
+>   --deriving (Monad, MonadIO, MonadReader sess)
 > unDBM (DBM x) = x
 
 
@@ -804,14 +804,14 @@ seem to be interchangeable e.g.
  > liftIO $ putStrLn $ show x
  
 But they're not, because Haskell's type system gives us a nice compromise.
-
+ 
 In a Hindley-Milner type system (like ML) there is no difference between
 ($) and function application, because polymorphic functions are not
 first-class and cannot be passed to other functions.
 At the other end of the scale, ($) and function application in System F
 are equivalent, because polymorphic functions can be passed to other
 functions. However, type inference in System F is undecidable.
-
+ 
 Haskell hits the sweet spot: maintaining the full inference,
 and permitting rank-2 polymorphism, in exchange for very few
 type annotations. Only functions that take polymorphic functions (and
@@ -865,7 +865,7 @@ Sans a type signature, the function `hello' is monomorphised
 This is easily fixed by adding this type declaration:
  
  > hello :: DBM mark Session ()
- 
+
 
 
 
