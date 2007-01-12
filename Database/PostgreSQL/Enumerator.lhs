@@ -31,6 +31,7 @@ PostgreSQL implementation of Database.Enumerator.
 > import Control.Monad
 > import Control.Exception (catchDyn, throwDyn, throwIO)
 > import qualified Database.PostgreSQL.PGFunctions as DBAPI
+> import Data.Char
 > import Data.IORef
 > import Data.Int
 > import Data.List
@@ -180,6 +181,8 @@ tuning parameters later.
 > defaultResourceUsage = QueryResourceUsage 0  -- get it all at once
 
 
+> data StmtType = SelectType | CommandType
+
 Simple prepared statement: the analogue of QueryString. It is useful
 for DDL and DML statements, and for simple queries (that is, queries
 that do not need cursors and result in a small enough dataset -- because
@@ -189,9 +192,14 @@ The data constructor is not exported.
 
 > data PreparedStmt = PreparedStmt
 >   { stmtName :: String
+>   , stmtType :: StmtType
 >   , stmtPrefetch :: Int
 >   , stmtCursors :: IORef [RefCursor String]
 >   }
+
+> beginsWithSelect "" = False
+> beginsWithSelect text = isPrefixOf "select" . map toLower $ text
+> inferStmtType text = if beginsWithSelect text then SelectType else CommandType
 
 > prepareStmt ::
 >   String -> QueryString -> [DBAPI.Oid] -> PreparationA Session PreparedStmt
@@ -200,7 +208,7 @@ The data constructor is not exported.
 >   PreparationA (\sess -> do
 >     psname <- convertEx $ DBAPI.stmtPrepare (dbHandle sess) name (DBAPI.substituteBindPlaceHolders str) types
 >     c <- newIORef []
->     return (PreparedStmt psname 0 c)
+>     return (PreparedStmt psname (inferStmtType str) 0 c)
 >     )
 
 Here we use the same name for both the cursor name and the prepared statement name.
@@ -213,7 +221,7 @@ This isn't necessary, but it saves the user having to provide two names...
 >     let q = "DECLARE \"" ++ name ++ "\" NO SCROLL CURSOR FOR " ++ sqltext
 >     psname <- convertEx $ DBAPI.stmtPrepare (dbHandle sess) name (DBAPI.substituteBindPlaceHolders q) types
 >     c <- newIORef []
->     return (PreparedStmt psname count c)
+>     return (PreparedStmt psname CommandType count c)
 >     )
 
 
@@ -255,11 +263,11 @@ which contains just the result-set (and row count).
 >   bindRun sess stmt bas action = do
 >     let params = map (\(BindA ba) -> ba sess stmt) bas
 >     writeIORef (stmtCursors stmt) []
->     if (stmtPrefetch stmt) > 0
->       then do
+>     case stmtType stmt of
+>       CommandType -> do
 >         (_, _, _) <- convertEx $ DBAPI.execPreparedCommand (dbHandle sess) (stmtName stmt) params
 >         action (BoundStmtPrefetch stmt)
->       else do
+>       SelectType -> do
 >         (rs, count) <- convertEx $ DBAPI.stmtExec (dbHandle sess) (stmtName stmt) params
 >         action (BoundStmt rs count stmt)
 >   destroyStmt sess stmt = deallocateStmt sess (stmtName stmt)

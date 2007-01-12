@@ -107,6 +107,9 @@ Portability :  non-portable
 > selectRebindStmt _ = actionRebind (prepareStmt (sql sqlRebind))
 >    [bindP (1::Int)] [bindP (2::Int)]
 
+> boundStmtDML _ = actionBoundStmtDML (prepareStmt (sql sqlBoundStmtDML))
+
+
 > polymorphicFetchTest _ = actionPolymorphicFetch
 >   (prefetch 1 sqlPolymorphicFetch [bindP expectPolymorphicFetch])
 
@@ -123,6 +126,6 @@ Portability :  non-portable
 >   , selectCursor, selectExhaustCursor
 >   , selectBindString, selectBindInt, selectBindIntDoubleString
 >   , selectBindDate, selectBindBoundaryDates, selectRebindStmt
->   , polymorphicFetchTest, polymorphicFetchTestNull
+>   , boundStmtDML, polymorphicFetchTest, polymorphicFetchTestNull
 >   , exceptionRollback
 >   ]

@@ -62,15 +62,50 @@ should build a "hello" executable.
 
 
 
+
+Paths, GHCi & runhaskell
+------------------------
+Just as with ensuring that your path is correctly set when building Takusen,
+you must also ensure it is correctly set when building your programs.
+If it is not correct, then you are likely to see linker errors.
+
+If you don't have all three (PostgreSQL, Sqlite, and Oracle) back-ends
+installed then extra configuration is required to use Takusen with ghci.
+
+When ghci links the Takusen package, it tries to resolve all symbols,
+not just the ones you're using. So, for example, if you only have
+PostgreSQL installed, it will try to link Oracle and Sqlite, and fail.
+This also affects runhaskell, unfortunately.
+Note also that PostgreSQL has an another wrinkle when used with ghci;
+see the additional notes below (PostgreSQL gotchas on Windows).
+
+Note that this problem does not affect ghc (the compiler).
+If you are missing a library, but you don't use it, GHC will
+compile and link without errors.
+
+To use ghci with Takusen, there are some options:
+ - edit the takusen.cabal file; delete the DBMS-specific modules that
+   you do not have client libraries for, then rebuild and reinstall.
+   e.g. if you only have PostgreSQL installed, then you would delete
+   all Database.Oracle.* and Database.Sqlite.* modules from the
+   "Exposed-modules" section.
+ - invoke ghci from the Takusen src folder, so that it uses the modules
+   directly from source (you can speed this up by precompiling to .o),
+   or copy the Takusen source into your project source tree.
+ - install all database client libraries and put them in your path.
+
+
+
 PostgreSQL gotchas on Windows
 -----------------------------
-The PostgreSQL client library is called libpq.dll on Windows,
-rather than the more typical pq.dll.
-This is fine when using ghc to compile, as gnu ld is able to figure out
-that this is the librayr to use when you pass it -lpq, but ghci is not
-quite so slick, and it fails to load the library.
+The PostgreSQL client library is called libpq.dll on Windows, rather than
+the more typical pq.dll. This is fine when using ghc to compile, as gnu ld
+is able to figure out that this is the library to use when you pass it -lpq,
+but ghci is not quite so slick, and it fails to load the library.
+
 There is any easy workaround, which is to copy libpq.dll and rename it to
-pq.dll. If you do this, then you should be able to 
+pq.dll. If you do this, then you should be able to use ghci with PostgreSQL
+without problems. Don't forget to ensure that PostgreSQL's bin in in your path.
 
 In the past I've had problems with older versions of PostgreSQL and
 ghc-6.4.1. Specifically, the call to PQprepare would segfault.
@@ -92,37 +127,6 @@ If you can control your Oracle client installation then either
  - don't choose Heterogenous Services when you install,
    or re-run the installer and remove it, or
  - rename hsbase.dll in Oracle bin.
-
-
-
-
-Paths, GHCi & runhaskell
-------------------------
-Just as with ensuring that your path is correctly set when building Takusen,
-you must also ensure it is correctly set when building your programs.
-If it is not correct, then you are likely to see linker errors.
-
-It is not straightforward to use Takusen from within ghci, because when
-ghci links the Takusen package, it tries to resolve all symbols,
-not just the ones you're using. So, for example, if you only have
-PostgreSQL installed, it will try to link Oracle and Sqlite, and fail.
-
-This problem also affects runhaskell, unfortunately.
-
-Note that this problem does not affect ghc (the compiler).
-If you are missing a library, but you don't use it, GHC will
-compile and link without errors.
-
-If you realy want to use ghci, there are some options:
- - edit the takusen.cabal file; delete the DBMS-specific modules that
-   you do not have client libraries for, then rebuild and reinstall.
-   e.g. if you only have PostgreSQL installed, then you would delete
-   all Database.Oracle.* and Database.Sqlite.* modules from the
-   "Exposed-modules" section.
- - invoke ghci from the Takusen src folder, so that it uses the modules
-   directly from source (you can speed this up by precompiling to .o),
-   or copy the Takusen source into your project source tree.
- - install all database client libraries and put them in your path.
 
 
 

@@ -196,6 +196,10 @@ withPreparedStatement.
 >   (prepareStmt "1" (sql sqlRebind) [bindType (0::Int)])
 >   [bindP (1::Int)] [bindP (2::Int)]
 
+> boundStmtDML _ = actionBoundStmtDML
+>   (prepareStmt "boundStmtDML" (sql sqlBoundStmtDML) [bindType (0::Int), bindType ""])
+
+
 > polymorphicFetchTest _ = actionPolymorphicFetch
 >   (prefetch 0 sqlPolymorphicFetch [bindP expectPolymorphicFetch])
 
@@ -321,7 +325,7 @@ which we can't yet marshal.
 >   , selectCursor, selectExhaustCursor, selectBindString
 >   , selectBindInt, selectBindIntDoubleString
 >   , selectBindDate, selectBindBoundaryDates
->   , selectRebindStmt
+>   , selectRebindStmt, boundStmtDML
 >   , selectMultiResultSet, selectNestedMultiResultSet, polymorphicFetchTest
 >   , polymorphicFetchTestNull, exceptionRollback, generateErrorMessageTest
 >   , selectUTF8Text

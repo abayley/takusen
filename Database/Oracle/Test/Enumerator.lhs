@@ -154,6 +154,9 @@ from t_natural nat where n < 10 order by n;
 > selectRebindStmt _ = actionRebind (prepareStmt (sql sqlRebind))
 >    [bindP (1::Int)] [bindP (2::Int)]
 
+> boundStmtDML _ = actionBoundStmtDML (prepareStmt (sql sqlBoundStmtDML))
+
+
 > polymorphicFetchTest _ = actionPolymorphicFetch
 >   (prefetch 0 sqlPolymorphicFetch [bindP expectPolymorphicFetch])
 
@@ -298,7 +301,7 @@ from t_natural nat where n < 10 order by n;
 >   , selectCursor, selectExhaustCursor
 >   , selectBindString, selectBindInt, selectBindIntDoubleString
 >   , selectBindDate, selectBindBoundaryDates, selectRebindStmt
->   , polymorphicFetchTest, polymorphicFetchTestNull
+>   , boundStmtDML, polymorphicFetchTest, polymorphicFetchTestNull
 >   , exceptionRollback
 >   , selectMultiResultSet, selectNestedMultiResultSet
 >   , selectNestedMultiResultSet2, selectNestedMultiResultSet3

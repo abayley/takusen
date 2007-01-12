@@ -12,6 +12,7 @@
 module Foreign.C.UTF8
   ( peekUTF8String, newUTF8String, withUTF8String, withUTF8StringLen
   , toUTF8, fromUTF8
+  , toUTF8String, fromUTF8String
   ) where
 
 import Data.Bits
@@ -57,6 +58,26 @@ withUTF8StringLen s action = do
 
 toUTF8 = toUTF
 fromUTF8 = fromUTF
+
+-- | Convert a String that was marshalled from a CString without
+-- any decoder applied. This might be useful if the client encoding
+-- is unknown, and the user code must convert.
+-- We assume that the UTF8 CString was marshalled as if Latin-1
+-- i.e. all chars are in the range 0-255.
+fromUTF8String = fromUTF . map charToWord8
+
+-- | Convert a Haskell String into a UTF8 String, where each UTF8 byte
+-- is represented by its Char equivalent i.e. only chars 0-255 are used.
+-- The resulting String can be marshalled to CString directly i.e. with
+-- a Latin-1 encoding.
+toUTF8String = map word8ToChar . toUTF
+
+charToWord8 :: Char -> Word8
+charToWord8 = fromIntegral . fromEnum
+
+word8ToChar :: Word8 -> Char
+word8ToChar = toEnum . fromIntegral
+
 
 -- | Convert Unicode characters to UTF-8.
 toUTF :: String -> [Word8]

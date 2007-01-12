@@ -416,8 +416,9 @@ we need to specify how many times the statement should be executed.
 For select statements it is zero (!?), while everything else is one
 (>1 executions is for array binds).
 
-For a select, if you have defined output buffers then iterations
-says ho many rows to put in the buffers immediately after the execute
+For a select, if you have defined output buffers then the iterations
+parameter for 'execute'
+says how many rows to put in the buffers immediately after the execute
 (so there's no need for a call to OCIStmtFetch).
 We don't use this, and set up the buffers after the execute.
 
@@ -474,7 +475,7 @@ same lifetime/scope as that of the Query (result-set).
 We also need to note if the statement is a query (select)
 or some sort of command. This influences subsequent behaviour in two ways:
   1. when execute is done, we specify either 0 or 1 iterations,
-     for selects or or commands, respectively
+     for selects or or commands, respectively (see bindRun)
   2. when fetchRow is called by doQuery, for selects we call OCI stmtFetch,
      but for commands we ignore the call (do nothing).
 

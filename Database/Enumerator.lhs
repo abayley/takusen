@@ -54,7 +54,7 @@ but their specific types and usage may differ between DBMS.
 >
 >     -- $usage_result
 >
->     -- ** Rank-2 types and ($)
+>     -- ** Rank-2 types, ($), and the monomorphism restriction
 >
 >     -- $usage_rank2_types
 >
@@ -794,20 +794,31 @@ which is why we recommend the strict function.
  
 In some examples we use the application operator ($) instead of parentheses
 (some might argue that his is a sign of developer laziness).
-At first glance, ($) and normal function application seem to be interchangeable
-e.g.
+At first glance, ($) and conventional function application via juxtaposition
+seem to be interchangeable e.g.
  
  > liftIO (putStrLn (show x))
  
- is equivalent to
+ looks equivalent to
  
  > liftIO $ putStrLn $ show x
  
-But they're not, and the places where they differ usually involve
-higher-rank types, like our 'Database.Enumerator.DBM' monad.
-That's because ($) has type (a -> b) -> a -> b, which limits it
-to rank-1 typed functions, a restriction which does not affect normal
-function application.
+But they're not, because Haskell's type system gives us a nice compromise.
+
+In a Hindley-Milner type system (like ML) there is no difference between
+($) and function application, because polymorphic functions are not
+first-class and cannot be passed to other functions.
+At the other end of the scale, ($) and function application in System F
+are equivalent, because polymorphic functions can be passed to other
+functions. However, type inference in System F is undecidable.
+
+Haskell hits the sweet spot: maintaining the full inference,
+and permitting rank-2 polymorphism, in exchange for very few
+type annotations. Only functions that take polymorphic functions (and
+thus are higher-rank) need type signatures. Rank-2 types can't be
+inferred. The function ($) is a regular, rank-1 function, and so
+it can't take polymorphic functions as arguments and return
+polymorphic functions.
  
 Here's an example where ($) fails: 
 we supply a simple test program in the README file.
@@ -848,12 +859,13 @@ which gives this error:
  >         hello :: DBM mark Session () (bound at Main.hs:15:0)
  >         ...
  
-However, if you add this type declaration:
+This is just the monomorphism restriction in action.
+Sans a type signature, the function `hello' is monomorphised
+(that is, `mark' is replaced with (), per GHC rules).
+This is easily fixed by adding this type declaration:
  
  > hello :: DBM mark Session ()
  
-then the compiler is happy, which shows that our rank-2 typed
-'Database.Enumerator.DBM' monad isn't entirely incompatible with ($).
 
 
 

@@ -502,6 +502,9 @@ Because this is a frequently used function, we code it specially
 >   stmtPrepare db "" sqlText (bindTypes bindvals)
 >   execPreparedCommand db "" bindvals
 
+| This is for commands, as opposed to queries.
+The query equivalent of 'execPreparedCommand' is 'stmtExec'.
+
 > execPreparedCommand :: DBHandle -> String -> [PGBindVal] -> IO (String, String, Oid)
 > execPreparedCommand db stmtname bindvals = do
 >   (rs, ntuples) <- execPrepared db stmtname bindvals ePGRES_COMMAND_OK
