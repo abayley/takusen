@@ -244,13 +244,14 @@ execute it as a command), and when processing the result-set
 whereas the prefetch version must use the advance+cleanup actions).
 
 > data BoundStmt =
->   BoundStmt
+>   BoundStmtQuery
 >     { boundHandle :: DBAPI.ResultSetHandle
 >     , boundCount :: Int
 >     , boundParentStmt :: PreparedStmt
 >     }
->   | BoundStmtPrefetch
+>   | BoundStmtCommand
 >     { boundParentStmt :: PreparedStmt
+>     , boundCount :: Int
 >     }
 
 
@@ -265,11 +266,11 @@ which contains just the result-set (and row count).
 >     writeIORef (stmtCursors stmt) []
 >     case stmtType stmt of
 >       CommandType -> do
->         (_, _, _) <- convertEx $ DBAPI.execPreparedCommand (dbHandle sess) (stmtName stmt) params
->         action (BoundStmtPrefetch stmt)
+>         (_, countstr, _) <- convertEx $ DBAPI.execPreparedCommand (dbHandle sess) (stmtName stmt) params
+>         action (BoundStmtCommand stmt (read countstr))
 >       SelectType -> do
 >         (rs, count) <- convertEx $ DBAPI.stmtExec (dbHandle sess) (stmtName stmt) params
->         action (BoundStmt rs count stmt)
+>         action (BoundStmtQuery rs count stmt)
 >   destroyStmt sess stmt = deallocateStmt sess (stmtName stmt)
 
 > deallocateStmt sess name =
@@ -362,10 +363,10 @@ Simple prepared statements.
 Query has been executed and result-set is in handle.
 
 > instance Statement BoundStmt Session Query where
->   makeQuery sess bs@(BoundStmt _ _ _) = do
+>   makeQuery sess bs@(BoundStmtQuery _ _ _) = do
 >     sqr <- newIORef $ SubQuery (boundHandle bs) (boundCount bs) 0
 >     return (Query sqr Nothing Nothing sess (Just (boundParentStmt bs)))
->   makeQuery sess bs@(BoundStmtPrefetch _) = do
+>   makeQuery sess bs@(BoundStmtCommand _ _) = do
 >     let pstmt = boundParentStmt bs
 >     let ru = QueryResourceUsage (stmtPrefetch pstmt)
 >     -- prefix "ff_" to prepared-stmt/cursor name to create unique statement

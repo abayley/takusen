@@ -209,12 +209,12 @@ column_bytes tells us how big a value is in the result set.
 >   testForError db rc ()
 
 
+| This function is not used internally, so it's only provided
+as a user convenience.
 
 > stmtExec :: DBHandle -> String -> IO Int
 > stmtExec db sqlText =
 >   withUTF8String sqlText $ \cstr -> do
->   --alloca $ \errmsgptr -> do
->     --rc <- sqliteExec db cstr nullFunPtr nullPtr errmsgptr
 >     rc <- sqliteExec db cstr nullFunPtr nullPtr nullPtr
 >     rows <- sqliteChanges db
 >     testForError db rc (fromIntegral rows)

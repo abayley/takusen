@@ -91,20 +91,15 @@ Below are pretty much all of the errors that Sqlite can throw.
 > errorSqlState 21 = ("39", "000") -- library used incorrectly
 > errorSqlState 22 = ("58", "030") -- unsupported OS feature on host
 > errorSqlState 23 = ("42", "501") -- authorisation denied
+> errorSqlState 100 = ("00", "000") -- next row ready
+> errorSqlState 101 = ("00", "000") -- end of fetch
 > errorSqlState _  = ("01", "000") -- unspecified error
+
 
 |Common case: wrap an action with a convertAndRethrow.
 
 > convertEx :: IO a -> IO a
 > convertEx action = catchSqlite action convertAndRethrow
-
-|Returns number of rows modified.
-
-> executeSql :: DBHandle -> String -> IO Int
-> executeSql db sqltext = convertEx $ do
->   rc <- DBAPI.stmtExec db sqltext
->   rows <- DBAPI.stmtChanges db
->   return rows
 
 > stmtPrepare :: DBHandle -> String -> IO StmtHandle
 > stmtPrepare db sqltext = convertEx $ DBAPI.stmtPrepare db sqltext
@@ -150,13 +145,15 @@ Session objects are created by 'connect'.
 > instance Command String Session where
 >   executeCommand sess str = do
 >     stmt <- stmtPrepare (dbHandle sess) str
->     n <- fetchRow (dbHandle sess) stmt
+>     fetchRow (dbHandle sess) stmt
+>     n <- DBAPI.stmtChanges (dbHandle sess)
 >     finaliseStmt (dbHandle sess) stmt
 >     return (fromIntegral n)
 
 > instance Command BoundStmt Session where
 >   executeCommand sess (BoundStmt pstmt) = do
->     n <- fetchRow (dbHandle sess) (stmtHandle pstmt)
+>     fetchRow (dbHandle sess) (stmtHandle pstmt)
+>     n <- DBAPI.stmtChanges (dbHandle sess)
 >     return (fromIntegral n)
 
 > instance Command StmtBind Session where
@@ -164,7 +161,8 @@ Session objects are created by 'connect'.
 >     let (PreparationA action) = prepareStmt' sqltext False
 >     pstmt <- action sess
 >     sequence_ (zipWith (\i (BindA ba) -> ba sess pstmt i) [1..] bas)
->     n <- fetchRow (dbHandle sess) (stmtHandle pstmt)
+>     fetchRow (dbHandle sess) (stmtHandle pstmt)
+>     n <- DBAPI.stmtChanges (dbHandle sess)
 >     return (fromIntegral n)
 
 > instance ISession Session where

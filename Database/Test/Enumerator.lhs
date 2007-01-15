@@ -380,8 +380,8 @@ through unmolested.
 >   beginTransaction RepeatableRead
 >   withPreparedStatement stmt $ \pstmt -> do
 >   withBoundStatement pstmt [bindP (100::Int), bindP "100"] $ \bstmt -> do
->     execDML bstmt
->     return ()
+>     count <- execDML bstmt
+>     assertEqual sqlBoundStmtDML 1 count
 >   rollback
 
 
