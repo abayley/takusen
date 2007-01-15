@@ -33,6 +33,7 @@ Typical steps:
   $ runhaskell Setup.lhs install
   
 
+
 Using i.e. Writing data access code
 -----------------------------------
 There are extensive instructions and examples in the Haddock docs
@@ -62,37 +63,15 @@ should build a "hello" executable.
 
 
 
-
 Paths, GHCi & runhaskell
 ------------------------
 Just as with ensuring that your path is correctly set when building Takusen,
 you must also ensure it is correctly set when building your programs.
 If it is not correct, then you are likely to see linker errors.
 
-If you don't have all three (PostgreSQL, Sqlite, and Oracle) back-ends
-installed then extra configuration is required to use Takusen with ghci.
-
-When ghci links the Takusen package, it tries to resolve all symbols,
-not just the ones you're using. So, for example, if you only have
-PostgreSQL installed, it will try to link Oracle and Sqlite, and fail.
-This also affects runhaskell, unfortunately.
-Note also that PostgreSQL has an another wrinkle when used with ghci;
-see the additional notes below (PostgreSQL gotchas on Windows).
-
-Note that this problem does not affect ghc (the compiler).
-If you are missing a library, but you don't use it, GHC will
-compile and link without errors.
-
-To use ghci with Takusen, there are some options:
- - edit the takusen.cabal file; delete the DBMS-specific modules that
-   you do not have client libraries for, then rebuild and reinstall.
-   e.g. if you only have PostgreSQL installed, then you would delete
-   all Database.Oracle.* and Database.Sqlite.* modules from the
-   "Exposed-modules" section.
- - invoke ghci from the Takusen src folder, so that it uses the modules
-   directly from source (you can speed this up by precompiling to .o),
-   or copy the Takusen source into your project source tree.
- - install all database client libraries and put them in your path.
+Note that the Cabal build script detects which back-ends are installed by
+looking for certain executables in your path. If you install a new back-end,
+you will need to reinstall Takusen in order to use it.
 
 
 
@@ -115,6 +94,7 @@ with an older one (2.13.91) from MSYS then the test program worked.
 
 With PostgreSQL 8.1.5.1 and ghc-6.6 (gcc 3.4.5 (mingw special)
 and ld 2.15.94) this problem seems to have vanished.
+
 
 
 Oracle gotchas on Windows
