@@ -1,9 +1,12 @@
--- Can't use this with -cpp; get "invalid preprocessing directive #!"
+-- Can't use "#!" with -cpp; get "invalid preprocessing directive #!"
 -- #!/usr/bin/env runhaskell
 
 {-# OPTIONS -cpp #-}
 
 import Distribution.Simple
+import Distribution.Simple.Build
+import Distribution.Simple.Register
+import Distribution.PreProcess
 import Distribution.PackageDescription
 import Distribution.Simple.Configure (findProgram)
 import Distribution.Simple.LocalBuildInfo (LocalBuildInfo)
@@ -15,6 +18,7 @@ import System.IO(hClose, hGetContents, hPutStr, stderr)
 import System.Exit
 import Control.Exception (try)
 import Control.Monad
+import Data.List
 
 {-
 One install script to rule them all, and in the darkness build them...
@@ -52,7 +56,8 @@ Oracle  : -I"C:\Program Files\Oracle\OraHome817\oci\include" -loci -L"C:\Program
 Oracle  : -I"%ORACLE_HOME%\oci\include" -loci -L"%ORACLE_HOME%\bin"
 -}
 
-main = defaultMainWithHooks defaultUserHooks{preConf=preConf, postConf=postConf}
+main = defaultMainWithHooks defaultUserHooks
+  { preConf=preConf, postConf=postConf, buildHook=buildHook }
   where
     preConf ::  [String] -> ConfigFlags -> IO HookedBuildInfo
     preConf args flags = do
@@ -67,6 +72,50 @@ main = defaultMainWithHooks defaultUserHooks{preConf=preConf, postConf=postConf}
       let bis = [sqliteBI, pgBI, oraBI]
       writeHookedBuildInfo "takusen.buildinfo" (concatBuildInfo bis,[])
       return ExitSuccess
+    -- We patch in the buildHook so that we can modify the list of exposed
+    -- modules (we remove modules for back-ends that are not installed).
+    buildHook :: PackageDescription -> LocalBuildInfo -> Maybe UserHooks -> BuildFlags -> IO ()
+    buildHook pd lbi mbuh bf = defaultBuildHook (modifyPackageDesc pd) lbi mbuh bf
+
+modifyPackageDesc pd =
+  let
+    Just (Library modules buildInf) = library pd
+    filteredMods = filterModulesByLibs modules (extraLibs buildInf)
+  in pd { library = Just (Library filteredMods buildInf) }
+
+filterModulesByLibs modules libs =
+  removeModulesForAbsentLib "pq" "Database.PostgreSQL" libs
+  . removeModulesForAbsentLib "oci" "Database.Oracle" libs
+  . removeModulesForAbsentLib "sqlite3" "Database.Sqlite" libs
+  $ modules
+
+removeModulesForAbsentLib lib prefix libs modules =
+  if not (elem lib libs)
+  then filter (not . isPrefixOf prefix) modules
+  else modules
+
+
+
+---------------------------------------------------------------------
+-- Start of code copied verbatim from Distribution.Simple.
+defaultBuildHook :: PackageDescription -> LocalBuildInfo
+	-> Maybe UserHooks -> BuildFlags -> IO ()
+defaultBuildHook pkg_descr localbuildinfo hooks flags = do
+  build pkg_descr localbuildinfo flags (allSuffixHandlers hooks)
+  when (hasLibs pkg_descr) $
+      writeInstalledConfig pkg_descr localbuildinfo False
+
+allSuffixHandlers :: Maybe UserHooks -> [PPSuffixHandler]
+allSuffixHandlers hooks
+    = maybe knownSuffixHandlers
+      (\h -> overridesPP (hookedPreProcessors h) knownSuffixHandlers)
+      hooks
+    where
+      overridesPP :: [PPSuffixHandler] -> [PPSuffixHandler] -> [PPSuffixHandler]
+      overridesPP = unionBy (\x y -> fst x == fst y)
+-- End of code copied verbatim from Distribution.Simple.
+---------------------------------------------------------------------
+
 
 sameFolder path = return (fst (splitFileName path))
 parentFolder path = canonicalizePath (fst (splitFileName path) ++ "/..")

@@ -990,15 +990,23 @@
 >Statement</TT
 > instances
  and associated constructor functions for them.
- For example, the Sqlite and Oracle back-ends have:
+ For example, currently all back-ends have:
 </P
 ><UL
 ><LI
-> for basic, all-text statements (no bind variables):
+> for basic, all-text statements (no bind variables, default row-caching):
 </LI
 ></UL
 ><PRE
 > sql &quot;select ...&quot;
+</PRE
+><UL
+><LI
+> for a select with bind variables:
+</LI
+></UL
+><PRE
+> sqlbind &quot;select ...&quot; [bindP ..., bindP ...]
 </PRE
 ><UL
 ><LI
@@ -1032,7 +1040,7 @@
 >bindType</A
 ></TT
 > function
- to dummy values of the appropriate types.
+ to dummy values of the appropriate types. e.g.
 </P
 ><PRE
 > let stmt = prepareStmt &quot;stmtname&quot; (sql &quot;select ...&quot;) [bindType &quot;&quot;, bindType (0::Int)]

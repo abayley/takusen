@@ -26,3 +26,4 @@ Exposed-modules:
   , Foreign.C.UTF8
 Other-modules:
   Database.InternalEnumerator
+Ghc-Prof-Options: -prof -auto-all

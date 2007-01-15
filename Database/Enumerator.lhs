@@ -640,11 +640,15 @@ The first argument to 'Database.Enumerator.doQuery' must be an instance of
 'Database.InternalEnumerator.Statement'.
 Each back-end will provide a useful set of @Statement@ instances
 and associated constructor functions for them.
-For example, the Sqlite and Oracle back-ends have:
+For example, currently all back-ends have:
  
-  * for basic, all-text statements (no bind variables):
+  * for basic, all-text statements (no bind variables, default row-caching):
   
     > sql "select ..."
+    
+  * for a select with bind variables:
+  
+    > sqlbind "select ..." [bindP ..., bindP ...]
     
   * for a select with bind variables and row caching:
   
@@ -665,7 +669,7 @@ you (1) give a name to the prepared statement,
 and (2) specify types for the bind parameters.
 The list of bind-types is created by applying the
 'Database.PostgrSQL.Enumerator.bindType' function
-to dummy values of the appropriate types.
+to dummy values of the appropriate types. e.g.
  
  > let stmt = prepareStmt "stmtname" (sql "select ...") [bindType "", bindType (0::Int)]
  > withPreparedStatement stmt $ \pstmt -> ...
