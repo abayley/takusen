@@ -378,7 +378,7 @@ We assume all Strings are UTF8 encoded.
 >   pgTypeOid _ = 25
 >   pgNewValue s = newUTF8String s >>= return . castPtr
 >   pgPeek p = peekUTF8String (castPtr p) >>= return
->   pgSize s = length (toUTF8 s)
+>   pgSize s = lengthUTF8 s
 
 > instance PGType Char where
 >   pgTypeOid _ = 18
