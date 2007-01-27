@@ -68,7 +68,8 @@ but their specific types and usage may differ between DBMS.
 >
 >     -- * Sessions and Transactions
 >       DBM  -- The data constructor is not exported
->     , withSession, commit, rollback, beginTransaction
+>     , withSession, withContinuedSession
+>     , commit, rollback, beginTransaction
 >     , withTransaction
 >     , IE.IsolationLevel(..)
 >     , execDDL, execDML
@@ -174,14 +175,13 @@ It passes anything else up.
 
 The DBM data constructor is NOT exported. 
 
-?? Investigate quantification over sess in |withSession|. We won't need
+One may think to quantify over sess in |withSession|. We won't need
 any mark then, I gather.
 The quantification over Session is quite bothersome: need to enumerate
 all class constraints for the Session (like IQuery, DBType, etc).
 
 > newtype IE.ISession sess => DBM mark sess a = DBM (ReaderT sess IO a)
 >   -- Haddock can't cope with the "MonadReader sess" instance
->   --deriving (Monad, MonadIO)
 >   deriving (Monad, MonadIO, MonadReader sess)
 > unDBM (DBM x) = x
 
@@ -205,6 +205,72 @@ marked objects.
 >     IE.ConnectA sess -> (forall mark. DBM mark sess a) -> IO a
 > withSession (IE.ConnectA connecta) m = 
 >   bracket (connecta) (IE.disconnect) (runReaderT (unDBM m))
+
+
+Persistent database connections. 
+This issue has been brought up by Shanky Surana. The following design
+is inspired by that exchange.
+
+On one hand, implementing persistent connections is easy. One may say we should
+have added them long time ago, to match HSQL, HDBC, and similar
+database interfaces. Alas, implementing persistent connection
+safely is another matter. The simplest design is like the following
+
+  withContinuedSession :: (Typeable a, IE.ISession sess) => 
+      IE.ConnectA sess -> (forall mark. DBM mark sess a) -> 
+      IO (a, IE.ConnectA sess)
+  withContinuedSession (IE.ConnectA connecta) m = 
+    do conn <- connecta
+       r <- runReaderT (unDBM m) conn
+      return (r,(return conn))
+
+so that the connection object is returned as the result and can be
+used again with withContinuedSession or withSession. The problem is
+that nothing prevents us to write
+
+        do (r1,conn) <- withContinuedSession (open "...) query1
+           r2        <- withSession conn query2
+           r3        <- withSession conn query3
+
+That is, we store the suspended connection and then use it twice.
+But the first withSession closes the connection. So, the second
+withSession gets an invalid session object. Invalid in a sense that
+even memory may be deallocated, so there is no telling what happens
+next. Also, as we can see, it is difficult to handle errors and
+automatically dispose of the connections if the fatal error is
+encountered.
+
+All these problems are present in other interfaces....  In the
+case of a suspended connection, the problem is how to enforce the
+_linear_ access to a variable. It can be enforced, via a
+state-changing monad. The implementation below makes
+the non-linear use of a suspended connection a run-time checkable
+condition. It will be generic and safe -- fatal errors close the
+connection, an attempt to use a closed connection raises an error, and
+we cannot reuse a connection. We have to write
+        (r1, conn1) <- withContinuedSession conn  ...
+        (r2, conn2) <- withContinuedSession conn1 ...
+        (r3, conn3) <- withContinuedSession conn2 ...
+etc. If we reuse a suspended connection or use a closed connection,
+we get a run-time (exception). That is of course not very
+satisfactory -- and yet better than a Segmentation fault. 
+
+> withContinuedSession :: (Typeable a, IE.ISession sess) => 
+>     IE.ConnectA sess -> (forall mark. DBM mark sess a) 
+>     -> IO (a, IE.ConnectA sess)
+> withContinuedSession (IE.ConnectA connecta) m = 
+>    do conn <- connecta  -- this invalidates connecta
+>       r <- runReaderT (unDBM m) conn
+>            `Control.Exception.catch` (\e -> IE.disconnect conn >> throw e)
+>       -- make a new, one-shot connecta
+>       hasbeenused <- newIORef False
+>       let connecta = do
+>                      fl <- readIORef hasbeenused
+>                      when fl $ error "connecta has been re-used"
+>                      writeIORef hasbeenused True
+>                      return conn
+>       return (r,IE.ConnectA connecta)
+
 
 
 > beginTransaction ::
