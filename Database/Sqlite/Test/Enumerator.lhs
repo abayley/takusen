@@ -28,11 +28,18 @@ Portability :  non-portable
 > runTest runPerf args = do
 >   let (user:pswd:dbname:_) = args
 >   Low.runTest dbname
->   flip catchDB basicDBExceptionReporter $ withSession (connect dbname) (testBody runPerf)
+>   flip catchDB basicDBExceptionReporter $ do
+>     (r, conn1) <- withContinuedSession (connect dbname) (testBody runPerf)
+>     withSession conn1 testPartTwo
 
 > testBody runPerf = do
 >   runFixture SqliteFunctions
 >   when (runPerf == Perf.RunTests) runPerformanceTests
+
+> testPartTwo :: DBM mark Session ()
+> testPartTwo = do
+>   makeFixture execDrop execDDL_
+>   destroyFixture execDDL_
 
 > runPerformanceTests = do
 >   makeFixture execDrop execDDL_
@@ -81,17 +88,19 @@ Portability :  non-portable
 
 > selectDate dateFn = selectTest (sqlDate dateFn) iterDate expectDate
 
+> selectCalDate dateFn = selectTest (sqlDate dateFn) iterCalDate expectCalDate
+
 > selectBoundaryDates dateFn = selectTest (sqlBoundaryDates dateFn) iterBoundaryDates expectBoundaryDates
 
 > selectCursor fns = actionCursor (sqlCursor fns)
 > selectExhaustCursor fns = actionExhaustCursor (sqlCursor fns)
 
 > selectBindString _ = actionBindString
->     (prepareStmt (sql sqlBindString))
+>     (prepareQuery (sql sqlBindString))
 >     [bindP "a2", bindP "b1"]
 
 > selectBindInt _ = actionBindInt
->   (prepareStmt (sql sqlBindInt))
+>   (prepareQuery (sql sqlBindInt))
 >   [bindP (1::Int), bindP (2::Int)]
 
 
@@ -104,11 +113,21 @@ Portability :  non-portable
 > selectBindBoundaryDates _ = actionBindBoundaryDates
 >   (prefetch 1 sqlBindBoundaryDates (map bindP expectBoundaryDates))
 
-> selectRebindStmt _ = actionRebind (prepareStmt (sql sqlRebind))
+> selectRebindStmt _ = actionRebind (prepareQuery (sql sqlRebind))
 >    [bindP (1::Int)] [bindP (2::Int)]
 
-> boundStmtDML _ = actionBoundStmtDML (prepareStmt (sql sqlBoundStmtDML))
-
+> boundStmtDML _ = actionBoundStmtDML (prepareCommand (sql sqlBoundStmtDML))
+> boundStmtDML2 _ = do
+>   -- cannot use withTransaction with rollback/commit;
+>   -- if you explicitly end the transaction, then when withTransaction
+>   -- attempts to end it (with a commit, in the success case) then we
+>   -- get a "logic error".
+>   -- This differs from PostgreSQL and Oracle, who don't seem to care if
+>   -- you commit or rollback too many times.
+>   beginTransaction RepeatableRead
+>   count <- execDML (cmdbind sqlBoundStmtDML [bindP (100::Int), bindP "100"])
+>   rollback
+>   assertEqual sqlBoundStmtDML 1 count
 
 > polymorphicFetchTest _ = actionPolymorphicFetch
 >   (prefetch 1 sqlPolymorphicFetch [bindP expectPolymorphicFetch])
@@ -118,14 +137,15 @@ Portability :  non-portable
 
 > exceptionRollback _ = actionExceptionRollback sqlInsertTest4 sqlExceptionRollback
 
+
 > testList :: DBLiteralValue a => [a -> DBM mark Session ()]
 > testList =
 >   [ selectNoRows, selectTerminatesEarly, selectFloatsAndInts
 >   , selectNullString, selectEmptyString, selectUnhandledNull
->   , selectNullDate, selectDate, selectBoundaryDates
+>   , selectNullDate, selectDate, selectCalDate, selectBoundaryDates
 >   , selectCursor, selectExhaustCursor
 >   , selectBindString, selectBindInt, selectBindIntDoubleString
 >   , selectBindDate, selectBindBoundaryDates, selectRebindStmt
->   , boundStmtDML, polymorphicFetchTest, polymorphicFetchTestNull
->   , exceptionRollback
+>   , boundStmtDML, boundStmtDML2
+>   , polymorphicFetchTest, polymorphicFetchTestNull, exceptionRollback
 >   ]

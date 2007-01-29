@@ -863,7 +863,7 @@ which is why we recommend the strict function.
 -- $usage_rank2_types
  
 In some examples we use the application operator ($) instead of parentheses
-(some might argue that his is a sign of developer laziness).
+(some might argue that this is a sign of developer laziness).
 At first glance, ($) and conventional function application via juxtaposition
 seem to be interchangeable e.g.
  

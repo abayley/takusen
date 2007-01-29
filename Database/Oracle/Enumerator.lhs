@@ -17,7 +17,8 @@ Oracle OCI implementation of Database.Enumerator.
 > module Database.Oracle.Enumerator
 >   ( Session, connect
 >   , prepareStmt, preparePrefetch
->   , sql, sqlbind, prefetch
+>   , prepareQuery, prepareLargeQuery, prepareCommand, prepareLargeCommand
+>   , sql, sqlbind, prefetch, cmdbind
 >   , StmtHandle, Out(..)
 >   , module Database.Enumerator
 >   )
@@ -47,6 +48,8 @@ Oracle OCI implementation of Database.Enumerator.
 > import System.Time
 > import System.IO (hPutStrLn, stderr)
 
+> {-# DEPRECATED prepareStmt "Use prepareQuery or prepareCommand instead" #-}
+> {-# DEPRECATED preparePrefetch "Use prepareLargeQuery instead" #-}
 
 --------------------------------------------------------------------
 -- ** Error handling
@@ -446,10 +449,20 @@ so we need some way of distinguishing between queries and commands.
 > instance Command String Session where
 >   executeCommand sess str = executeCommand sess (sql str)
 
+> data CommandBind = CommandBind String [BindA Session PreparedStmt BindObj]
+
+> cmdbind :: String -> [BindA Session PreparedStmt BindObj] -> CommandBind
+> cmdbind sql parms = CommandBind sql parms
+
+> instance Command CommandBind Session where
+>   executeCommand sess (CommandBind sqltext bas) = do
+>     let (PreparationA pa) = prepareStmt' 0 sqltext FreeWithQuery CommandType
+>     ps <- pa sess
+>     bindRun sess ps bas (\(BoundStmt bs) -> getRowCount sess (stmtHandle bs))
+
 > instance Command BoundStmt Session where
->   executeCommand s (BoundStmt pstmt) = do
->     n <- getRowCount s (stmtHandle pstmt)
->     return n
+>   executeCommand s (BoundStmt pstmt) =
+>     getRowCount s (stmtHandle pstmt)
 
 
 > instance ISession Session where
@@ -494,17 +507,43 @@ or some sort of command. This influences subsequent behaviour in two ways:
 >       , stmtBuffers :: IORef [ColumnBuffer]
 >       }
 
+Shouldn't need this code now:
+
 > beginsWithSelect "" = False
 > beginsWithSelect text = isPrefixOf "select" . map toLower $ text
-
 > inferStmtType text = if beginsWithSelect text then SelectType else CommandType
 
 > prepareStmt :: QueryString -> PreparationA Session PreparedStmt
 > prepareStmt (QueryString sqltext) =
 >   prepareStmt' (prefetchRowCount defaultResourceUsage) sqltext FreeManually (inferStmtType sqltext)
 
+> preparePrefetch :: Int -> QueryString -> PreparationA Session PreparedStmt
 > preparePrefetch count (QueryString sqltext) =
 >   prepareStmt' count sqltext FreeManually (inferStmtType sqltext)
+
+> prepareQuery :: QueryString -> PreparationA Session PreparedStmt
+> prepareQuery (QueryString sqltext) =
+>   prepareStmt' (prefetchRowCount defaultResourceUsage) sqltext FreeManually SelectType
+
+> prepareLargeQuery :: Int -> QueryString -> PreparationA Session PreparedStmt
+> prepareLargeQuery count (QueryString sqltext) =
+>   prepareStmt' count sqltext FreeManually SelectType
+
+> prepareCommand :: QueryString -> PreparationA Session PreparedStmt
+> prepareCommand (QueryString sqltext) =
+>   prepareStmt' 0 sqltext FreeManually CommandType
+
+| Seems like an odd alternative to 'prepareCommand' (what is a large command?)
+but is actually useful for when the outer query it a procedure call that
+returns one or more cursors. The prefetch count for the inner cursors is
+inherited from the outer statement, which in this case is a command, rather
+than a select. Normally prefetch would be irrelevant (and indeed it is for
+the outer command), but we also save it in the statement so that it can be
+reused for the child cursors.
+
+> prepareLargeCommand :: Int -> QueryString -> PreparationA Session PreparedStmt
+> prepareLargeCommand n (QueryString sqltext) =
+>   prepareStmt' n sqltext FreeManually CommandType
 
 > prepareStmt' count sqltext lifetime stmtype =
 >   PreparationA (\sess -> do
@@ -773,7 +812,6 @@ by the query.
 > defaultResourceUsage :: QueryResourceUsage
 > defaultResourceUsage = QueryResourceUsage 100  -- sensible default?
 
-> data StmtBind = StmtBind String [BindA Session PreparedStmt BindObj]
 > data QueryStringTuned = QueryStringTuned QueryResourceUsage String [BindA Session PreparedStmt BindObj]
 
 > sqlbind :: String -> [BindA Session PreparedStmt BindObj] -> QueryStringTuned
@@ -792,7 +830,7 @@ by the query.
 >   makeQuery sess (QueryString sqltext) = makeQuery sess sqltext
 
 > instance Statement String Session Query where
->   makeQuery sess sqltext = makeQuery sess (StmtBind sqltext [])
+>   makeQuery sess sqltext = makeQuery sess (QueryStringTuned defaultResourceUsage sqltext [])
 
 Important to use FreeManually here...
 If we destroy the StmtHandle when the query is done,
@@ -824,15 +862,11 @@ All other instances of Statement make a statement its own parent.
 >     writeIORef (stmtCursors pstmt) (tail cursors)
 >     makeQuery sess (head cursors)
 
-> instance Statement StmtBind Session Query where
->   makeQuery sess (StmtBind sqltext bas) =
->     makeQuery sess (QueryStringTuned defaultResourceUsage sqltext bas)
-
 > instance Statement QueryStringTuned Session Query where
 >   makeQuery sess (QueryStringTuned resUsage sqltext bas) = do
 >     let
 >      (PreparationA action) =
->         prepareStmt' (prefetchRowCount resUsage) sqltext FreeWithQuery (inferStmtType sqltext)
+>         prepareStmt' (prefetchRowCount resUsage) sqltext FreeWithQuery SelectType
 >     pstmt <- action sess
 >     sequence_ (zipWith (\i (BindA ba) -> ba sess pstmt i) [1..] bas)
 >     execute sess (stmtHandle pstmt) 0

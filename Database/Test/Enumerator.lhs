@@ -381,8 +381,8 @@ through unmolested.
 >   withPreparedStatement stmt $ \pstmt -> do
 >   withBoundStatement pstmt [bindP (100::Int), bindP "100"] $ \bstmt -> do
 >     count <- execDML bstmt
+>     rollback
 >     assertEqual sqlBoundStmtDML 1 count
->   rollback
 
 
 

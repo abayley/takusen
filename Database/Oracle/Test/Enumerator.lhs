@@ -133,12 +133,12 @@ from t_natural nat where n < 10 order by n;
 > selectExhaustCursor fns = actionExhaustCursor (sqlCursor fns)
 
 > selectBindString _ = actionBindString
->     (prepareStmt (sql sqlBindString))
+>     (prepareQuery (sql sqlBindString))
 >     [bindP "a2", bindP "b1"]
 
 
 > selectBindInt _ = actionBindInt
->   (prepareStmt (sql sqlBindInt))
+>   (prepareQuery (sql sqlBindInt))
 >   [bindP (1::Int), bindP (2::Int)]
 
 
@@ -151,10 +151,14 @@ from t_natural nat where n < 10 order by n;
 > selectBindBoundaryDates _ = actionBindBoundaryDates
 >   (prefetch 1 sqlBindBoundaryDates (map bindP expectBoundaryDates))
 
-> selectRebindStmt _ = actionRebind (prepareStmt (sql sqlRebind))
+> selectRebindStmt _ = actionRebind (prepareQuery (sql sqlRebind))
 >    [bindP (1::Int)] [bindP (2::Int)]
 
-> boundStmtDML _ = actionBoundStmtDML (prepareStmt (sql sqlBoundStmtDML))
+> boundStmtDML _ = actionBoundStmtDML (prepareCommand (sql sqlBoundStmtDML))
+> boundStmtDML2 _ = withTransaction RepeatableRead $ do
+>   count <- execDML (cmdbind sqlBoundStmtDML [bindP (100::Int), bindP "100"])
+>   assertEqual sqlBoundStmtDML 1 count
+>   rollback
 
 
 > polymorphicFetchTest _ = actionPolymorphicFetch
@@ -198,7 +202,7 @@ from t_natural nat where n < 10 order by n;
 > selectMultiResultSet _ = do
 >   let refcursor :: Maybe StmtHandle; refcursor = Just undefined
 >   withTransaction RepeatableRead $ do
->   withPreparedStatement (preparePrefetch 2 (sql "begin takusenTestProc(:1,:2); end;")) $ \pstmt -> do
+>   withPreparedStatement (prepareCommand (sql "begin takusenTestProc(:1,:2); end;")) $ \pstmt -> do
 >   withBoundStatement pstmt [bindP (Out refcursor), bindP (Out refcursor)] $ \bstmt -> do
 >     dummy <- doQuery bstmt iterMain ()
 >     result1 <- doQuery (NextResultSet pstmt) iterRS1 []
@@ -233,7 +237,7 @@ from t_natural nat where n < 10 order by n;
 >         else return ()
 >       result' (i:acc)
 >   withTransaction RepeatableRead $ do
->   withPreparedStatement (prepareStmt (sql q)) $ \pstmt -> do
+>   withPreparedStatement (prepareQuery (sql q)) $ \pstmt -> do
 >   withBoundStatement pstmt [] $ \bstmt -> do
 >       rs <- doQuery bstmt iterMain []
 >       return ()
@@ -261,7 +265,7 @@ from t_natural nat where n < 10 order by n;
 >       assertBool "processInner2" (i < inner)
 >       result' (i:acc)
 >   withTransaction RepeatableRead $ do
->   withPreparedStatement (prepareStmt (sql q)) $ \pstmt -> do
+>   withPreparedStatement (prepareQuery (sql q)) $ \pstmt -> do
 >   withBoundStatement pstmt [] $ \bstmt -> do
 >       rs <- doQuery bstmt iterMain []
 >       assertEqual "selectNestedMultiResultSet" [9,8,7,6,5,4,3,2,1] (map fst rs)
@@ -301,8 +305,8 @@ from t_natural nat where n < 10 order by n;
 >   , selectCursor, selectExhaustCursor
 >   , selectBindString, selectBindInt, selectBindIntDoubleString
 >   , selectBindDate, selectBindBoundaryDates, selectRebindStmt
->   , boundStmtDML, polymorphicFetchTest, polymorphicFetchTestNull
->   , exceptionRollback
+>   , boundStmtDML, boundStmtDML2
+>   , polymorphicFetchTest, polymorphicFetchTestNull, exceptionRollback
 >   , selectMultiResultSet, selectNestedMultiResultSet
 >   , selectNestedMultiResultSet2, selectNestedMultiResultSet3
 >   ]

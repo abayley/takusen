@@ -17,7 +17,8 @@ PostgreSQL implementation of Database.Enumerator.
 > module Database.PostgreSQL.Enumerator
 >   ( Session, connect, ConnectAttr(..)
 >   , prepareStmt, preparePrefetch
->   , sql, sqlbind, prefetch
+>   , prepareQuery, prepareLargeQuery, prepareCommand
+>   , sql, sqlbind, prefetch, cmdbind
 >   , bindType
 >   , module Database.Enumerator
 >   )
@@ -38,6 +39,8 @@ PostgreSQL implementation of Database.Enumerator.
 > import Data.Time
 > import System.Time
 
+> {-# DEPRECATED prepareStmt "Use prepareQuery or prepareCommand instead" #-}
+> {-# DEPRECATED preparePrefetch "Use prepareLargeQuery instead" #-}
 
 --------------------------------------------------------------------
 -- ** API Wrappers
@@ -168,6 +171,27 @@ all default, little overhead.
 > instance Command BoundStmt Session where
 >   executeCommand s bs = return (boundCount bs)
 
+> data CommandBind = CommandBind String [BindA Session PreparedStmt BindObj]
+
+> cmdbind :: String -> [BindA Session PreparedStmt BindObj] -> CommandBind
+> cmdbind sql parms = CommandBind sql parms
+
+> instance Command CommandBind Session where
+>   executeCommand sess (CommandBind sqltext bas) = do
+>     -- tricky - can't prepare statement without list of bind types,
+>     -- but to construct list of bind types we need to evaluate the bind
+>     -- actions and then get the bind-type out of the resulting PGBindVal object.
+>     -- The bind action normally requires a valid session and stmt,
+>     -- so we have a chicken-and-egg problem.
+>     -- Good thing the sess and stmt that we pass to the bind action are
+>     -- not used (see makeBindAction below), so we can pass undefined.
+>     let params = map (\(BindA ba) -> ba sess undefined) bas
+>     let bindtypes = DBAPI.bindTypes params
+>     let (PreparationA pa) = prepareCommand "" (QueryString sqltext) bindtypes
+>     pstmt <- pa sess
+>     writeIORef (stmtCursors pstmt) []
+>     (_, countstr, _) <- convertEx $ DBAPI.execPreparedCommand (dbHandle sess) (stmtName pstmt) params
+>     return (read countstr)
 
 
 |At present the only resource tuning we support is the number of rows
@@ -211,6 +235,15 @@ The data constructor is not exported.
 >     return (PreparedStmt psname (inferStmtType str) 0 c)
 >     )
 
+> prepareQuery ::
+>   String -> QueryString -> [DBAPI.Oid] -> PreparationA Session PreparedStmt
+> prepareQuery name (QueryString str) types = 
+>   PreparationA (\sess -> do
+>     psname <- convertEx $ DBAPI.stmtPrepare (dbHandle sess) name (DBAPI.substituteBindPlaceHolders str) types
+>     c <- newIORef []
+>     return (PreparedStmt psname SelectType 0 c)
+>     )
+
 Here we use the same name for both the cursor name and the prepared statement name.
 This isn't necessary, but it saves the user having to provide two names...
 
@@ -222,6 +255,19 @@ This isn't necessary, but it saves the user having to provide two names...
 >     psname <- convertEx $ DBAPI.stmtPrepare (dbHandle sess) name (DBAPI.substituteBindPlaceHolders q) types
 >     c <- newIORef []
 >     return (PreparedStmt psname CommandType count c)
+>     )
+
+> prepareLargeQuery ::
+>   Int -> String -> QueryString -> [DBAPI.Oid] -> PreparationA Session PreparedStmt
+> prepareLargeQuery = preparePrefetch
+
+> prepareCommand ::
+>   String -> QueryString -> [DBAPI.Oid] -> PreparationA Session PreparedStmt
+> prepareCommand name (QueryString sqltext) types =
+>   PreparationA (\sess -> do
+>     psname <- convertEx $ DBAPI.stmtPrepare (dbHandle sess) name (DBAPI.substituteBindPlaceHolders sqltext) types
+>     c <- newIORef []
+>     return (PreparedStmt psname CommandType 0 c)
 >     )
 
 

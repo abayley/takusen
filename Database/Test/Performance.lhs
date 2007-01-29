@@ -31,9 +31,10 @@ Performance tests. Currently just tests large result sets.
 >     replicateM_ rows (cursorNext c)
 >     ct2 <- liftIO getClockTime
 >     let diffCt = diffClockTimes ct2 ct1
->     let secsDiff = TimeDiff 0 0 0 0 0 limit 0
+>     let limitDiff = TimeDiff 0 0 0 0 0 limit 0
 >     print_ $ "timedCursor: " ++ timeDiffToString diffCt
->     assertBool ("timedCursor: time " ++ (timeDiffToString diffCt)) (diffCt < secsDiff)
+>     assertBool ("timedCursor: time " ++ (timeDiffToString diffCt) ++ " (limit " ++ (timeDiffToString limitDiff) ++ ")")
+>       (diffCt < limitDiff)
 
 
 > timedSelect stmt limit rows = do

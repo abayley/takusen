@@ -102,11 +102,17 @@ SELECT n, takusenTestFunc(n) from t_natural where n < 10 order by n;
 >   putStrLn "PostgreSQL tests"
 >   let (user:pswd:dbname:_) = args
 >   Low.runTest user
->   flip catchDB basicDBExceptionReporter $ withSession (connect [CAuser user]) (testBody runPerf)
+>   flip catchDB basicDBExceptionReporter $ do
+>     (r, conn1) <- withContinuedSession (connect [CAuser user]) (testBody runPerf)
+>     withSession conn1 testPartTwo
 
 > testBody runPerf = do
 >   runFixture PGSqlFunctions
 >   when (runPerf == Perf.RunTests) runPerformanceTests
+
+> testPartTwo = do
+>   makeFixture execDrop execDDL_
+>   destroyFixture execDDL_
 
 > runPerformanceTests = do
 >   makeFixture execDrop execDDL_
@@ -164,6 +170,8 @@ SELECT n, takusenTestFunc(n) from t_natural where n < 10 order by n;
 
 > selectDate dateFn = selectTest (sqlDate dateFn) iterDate expectDate
 
+> selectCalDate dateFn = selectTest (sqlDate dateFn) iterCalDate expectCalDate
+
 > selectBoundaryDates dateFn = selectTest (sqlBoundaryDates dateFn) iterBoundaryDates expectBoundaryDates
 
 > selectCursor fns = actionCursor (sqlCursor fns)
@@ -175,11 +183,11 @@ This tests that the statement is properly deallocated, through use of
 withPreparedStatement.
 
 > selectBindString _ = actionBindString
->   (prepareStmt "1" (sql sqlBindString) [bindType "", bindType ""])
+>   (prepareQuery "1" (sql sqlBindString) [bindType "", bindType ""])
 >   [bindP "a2", bindP "b1"]
 
 > selectBindInt _ = actionBindInt
->   (prepareStmt "1" (sql sqlBindInt) (map bindType expectBindInt))
+>   (prepareQuery "1" (sql sqlBindInt) (map bindType expectBindInt))
 >   [bindP (1::Int), bindP (2::Int)]
 
 
@@ -193,11 +201,16 @@ withPreparedStatement.
 >   (prefetch 1 sqlBindBoundaryDates (map bindP expectBoundaryDates))
 
 > selectRebindStmt _ = actionRebind
->   (prepareStmt "1" (sql sqlRebind) [bindType (0::Int)])
+>   (prepareQuery "1" (sql sqlRebind) [bindType (0::Int)])
 >   [bindP (1::Int)] [bindP (2::Int)]
 
 > boundStmtDML _ = actionBoundStmtDML
->   (prepareStmt "boundStmtDML" (sql sqlBoundStmtDML) [bindType (0::Int), bindType ""])
+>   (prepareCommand "boundStmtDML" (sql sqlBoundStmtDML) [bindType (0::Int), bindType ""])
+> boundStmtDML2 _ = do
+>   beginTransaction RepeatableRead
+>   count <- execDML (cmdbind sqlBoundStmtDML [bindP (100::Int), bindP "100"])
+>   rollback
+>   assertEqual sqlBoundStmtDML 1 count
 
 
 > polymorphicFetchTest _ = actionPolymorphicFetch
@@ -235,7 +248,7 @@ which we can't yet marshal.
 
 > selectMultiResultSet _ = do
 >   withTransaction RepeatableRead $ do
->   withPreparedStatement (preparePrefetch 2 "stmt1" (sql "select * from takusenTestFunc()") []) $ \pstmt -> do
+>   withPreparedStatement (prepareLargeQuery 2 "stmt1" (sql "select * from takusenTestFunc()") []) $ \pstmt -> do
 >   withBoundStatement pstmt [] $ \bstmt -> do
 >     dummy <- doQuery bstmt iterMain []
 >     result1 <- doQuery (NextResultSet pstmt) iterRS1 []
@@ -321,12 +334,12 @@ which we can't yet marshal.
 > testList =
 >   [ selectNoRows, selectTerminatesEarly, selectFloatsAndInts
 >   , selectNullString, selectEmptyString, selectUnhandledNull
->   , selectNullDate, selectDate, selectBoundaryDates
->   , selectCursor, selectExhaustCursor, selectBindString
->   , selectBindInt, selectBindIntDoubleString
->   , selectBindDate, selectBindBoundaryDates
->   , selectRebindStmt, boundStmtDML
->   , selectMultiResultSet, selectNestedMultiResultSet, polymorphicFetchTest
->   , polymorphicFetchTestNull, exceptionRollback, generateErrorMessageTest
->   , selectUTF8Text
+>   , selectNullDate, selectDate, selectCalDate, selectBoundaryDates
+>   , selectCursor, selectExhaustCursor
+>   , selectBindString, selectBindInt, selectBindIntDoubleString
+>   , selectBindDate, selectBindBoundaryDates, selectRebindStmt
+>   , boundStmtDML, boundStmtDML2
+>   , polymorphicFetchTest, polymorphicFetchTestNull, exceptionRollback
+>   , selectMultiResultSet, selectNestedMultiResultSet
+>   , generateErrorMessageTest, selectUTF8Text
 >   ]

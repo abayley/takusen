@@ -17,10 +17,12 @@ Sqlite implementation of Database.Enumerator.
 > module Database.Sqlite.Enumerator
 >   ( Session, connect
 >   , prepareStmt, preparePrefetch
->   , sql, sqlbind, prefetch
+>   , prepareQuery, prepareLargeQuery, prepareCommand
+>   , sql, sqlbind, prefetch, cmdbind
 >   , module Database.Enumerator
 >   )
 > where
+
 
 
 > import qualified Database.Enumerator
@@ -39,6 +41,9 @@ Sqlite implementation of Database.Enumerator.
 > import System.Time
 > import Data.Time
 
+
+> {-# DEPRECATED prepareStmt "Use prepareQuery or prepareCommand instead" #-}
+> {-# DEPRECATED preparePrefetch "Use prepareLargeQuery instead" #-}
 
 --------------------------------------------------------------------
 -- ** API Wrappers
@@ -163,6 +168,7 @@ Session objects are created by 'connect'.
 >     sequence_ (zipWith (\i (BindA ba) -> ba sess pstmt i) [1..] bas)
 >     fetchRow (dbHandle sess) (stmtHandle pstmt)
 >     n <- DBAPI.stmtChanges (dbHandle sess)
+>     finaliseStmt (dbHandle sess) (stmtHandle pstmt)
 >     return (fromIntegral n)
 
 > instance ISession Session where
@@ -196,9 +202,20 @@ separate types for the two types of prepared statement...
 > prepareStmt :: QueryString -> PreparationA Session PreparedStmt
 > prepareStmt (QueryString sqltext) = prepareStmt' sqltext False
 
+> prepareQuery :: QueryString -> PreparationA Session PreparedStmt
+> prepareQuery (QueryString sqltext) = prepareStmt' sqltext False
+
+> prepareLargeQuery :: Int -> QueryString -> PreparationA Session PreparedStmt
+> prepareLargeQuery _ (QueryString sqltext) = prepareStmt' sqltext False
+
+> prepareCommand :: QueryString -> PreparationA Session PreparedStmt
+> prepareCommand (QueryString sqltext) = prepareStmt' sqltext False
+
+
 preparePrefetch is just here for interface consistency
 with Oracle and PostgreSQL.
 
+> preparePrefetch :: Int -> QueryString -> PreparationA Session PreparedStmt
 > preparePrefetch count (QueryString sqltext) =
 >   prepareStmt' sqltext False
 
@@ -290,6 +307,9 @@ The default instance, uses generic Show
 
 > sqlbind :: String -> [BindA Session PreparedStmt BindObj] -> StmtBind
 > sqlbind sql bas = StmtBind sql bas
+
+> cmdbind :: String -> [BindA Session PreparedStmt BindObj] -> StmtBind
+> cmdbind sql bas = StmtBind sql bas
 
 > prefetch :: Int -> String -> [BindA Session PreparedStmt BindObj] -> StmtBind
 > prefetch n sql bas = StmtBind sql bas
