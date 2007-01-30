@@ -1,7 +1,6 @@
--- Can't use "#!" with -cpp; get "invalid preprocessing directive #!"
--- #!/usr/bin/env runhaskell
+#!/usr/bin/env runhaskell
 
-{-# OPTIONS -cpp #-}
+-- Can't use "#!" with -cpp; get "invalid preprocessing directive #!"
 
 import Distribution.Simple
 import Distribution.Simple.Build
@@ -97,7 +96,8 @@ removeModulesForAbsentLib lib prefix libs modules =
 
 
 ---------------------------------------------------------------------
--- Start of code copied verbatim from Distribution.Simple.
+-- Start of code copied verbatim from Distribution.Simple,
+-- because it's not exported.
 defaultBuildHook :: PackageDescription -> LocalBuildInfo
 	-> Maybe UserHooks -> BuildFlags -> IO ()
 defaultBuildHook pkg_descr localbuildinfo hooks flags = do
@@ -166,13 +166,6 @@ configPG verbose = do
         , extraLibDirs = lib_dirs
         , includeDirs = inc_dirs ++ inc_dirs_server
         })
-
-
-#if mingw32_HOST_OS || mingw32_TARGET_OS
-we're_on_Windows = True
-#else
-we're_on_Windows = False
-#endif
 
 concatBuildInfo [] = Nothing
 concatBuildInfo [x] = x
