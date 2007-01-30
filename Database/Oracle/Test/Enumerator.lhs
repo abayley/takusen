@@ -48,7 +48,6 @@ from t_natural nat where n < 10 order by n;
 
 > import qualified Database.Oracle.Test.OCIFunctions as Low
 > import Database.Oracle.Enumerator
-> import Database.Enumerator
 > import Database.Util (print_)
 > import Database.Test.Performance as Perf
 > import Database.Test.Enumerator

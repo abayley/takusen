@@ -911,7 +911,6 @@ Another way of rewriting it is like this, where we separate the
  > {-# OPTIONS -fglasgow-exts #-}
  > module Main where
  > import Database.Sqlite.Enumerator
- > import Database.Enumerator
  > import Control.Monad.Trans (liftIO)
  > main = flip catchDB reportRethrow $
  >   withSession (connect "sqlite_db") hello

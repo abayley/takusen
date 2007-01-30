@@ -24,8 +24,7 @@ Sqlite implementation of Database.Enumerator.
 > where
 
 
-
-> import qualified Database.Enumerator
+> import Database.Enumerator
 > import Database.InternalEnumerator
 > import Database.Util
 > import Foreign.C
@@ -180,7 +179,7 @@ Session objects are created by 'connect'.
 
 About stmtFreeWithQuery:
 
-We need to keep track of the scope of the PreparedStmt
+We need to keep track of the scope of the PreparedStmtObj
 i.e. should it be freed when the Query (result-set) is freed,
 or does it have a longer lifetime?
 PreparedStmts created by prepareStmt have a lifetime possibly
@@ -194,44 +193,44 @@ same lifetime/scope as that of the Query (result-set).
 This lifetime distinction should probably be handled by having
 separate types for the two types of prepared statement...
 
-> data PreparedStmt = PreparedStmt
+> data PreparedStmtObj = PreparedStmtObj
 >   { stmtHandle :: StmtHandle
 >   , stmtFreeWithQuery :: Bool
 >   }
 
-> prepareStmt :: QueryString -> PreparationA Session PreparedStmt
+> prepareStmt :: QueryString -> PreparationA Session PreparedStmtObj
 > prepareStmt (QueryString sqltext) = prepareStmt' sqltext False
 
-> prepareQuery :: QueryString -> PreparationA Session PreparedStmt
+> prepareQuery :: QueryString -> PreparationA Session PreparedStmtObj
 > prepareQuery (QueryString sqltext) = prepareStmt' sqltext False
 
-> prepareLargeQuery :: Int -> QueryString -> PreparationA Session PreparedStmt
+> prepareLargeQuery :: Int -> QueryString -> PreparationA Session PreparedStmtObj
 > prepareLargeQuery _ (QueryString sqltext) = prepareStmt' sqltext False
 
-> prepareCommand :: QueryString -> PreparationA Session PreparedStmt
+> prepareCommand :: QueryString -> PreparationA Session PreparedStmtObj
 > prepareCommand (QueryString sqltext) = prepareStmt' sqltext False
 
 
 preparePrefetch is just here for interface consistency
 with Oracle and PostgreSQL.
 
-> preparePrefetch :: Int -> QueryString -> PreparationA Session PreparedStmt
+> preparePrefetch :: Int -> QueryString -> PreparationA Session PreparedStmtObj
 > preparePrefetch count (QueryString sqltext) =
 >   prepareStmt' sqltext False
 
 > prepareStmt' sqltext free =
 >   PreparationA (\sess -> do
 >     stmt <- stmtPrepare (dbHandle sess) sqltext
->     return (PreparedStmt stmt free))
+>     return (PreparedStmtObj stmt free))
 
 --------------------------------------------------------------------
 -- ** Binding
 --------------------------------------------------------------------
 
-> newtype BoundStmt = BoundStmt { boundStmt :: PreparedStmt }
+> newtype BoundStmt = BoundStmt { boundStmt :: PreparedStmtObj }
 > type BindObj = Int -> IO ()
 
-> instance IPrepared PreparedStmt Session BoundStmt BindObj where
+> instance IPrepared PreparedStmtObj Session BoundStmt BindObj where
 >   bindRun sess stmt bas action = do
 >     sequence_ (zipWith (\i (BindA ba) -> ba sess stmt i) [1..] bas)
 >     action (BoundStmt stmt)
@@ -239,31 +238,31 @@ with Oracle and PostgreSQL.
 >     when (not (stmtFreeWithQuery stmt)) $
 >       finaliseStmt (dbHandle sess) (stmtHandle stmt)
 
-> instance DBBind (Maybe String) Session PreparedStmt BindObj where
+> instance DBBind (Maybe String) Session PreparedStmtObj BindObj where
 >   bindP = makeBindAction
 
-> instance DBBind (Maybe Int) Session PreparedStmt BindObj where
+> instance DBBind (Maybe Int) Session PreparedStmtObj BindObj where
 >   bindP = makeBindAction
 
-> instance DBBind (Maybe Int64) Session PreparedStmt BindObj where
+> instance DBBind (Maybe Int64) Session PreparedStmtObj BindObj where
 >   bindP = makeBindAction
 
-> instance DBBind (Maybe Double) Session PreparedStmt BindObj where
+> instance DBBind (Maybe Double) Session PreparedStmtObj BindObj where
 >   bindP = makeBindAction
 
-> instance DBBind (Maybe CalendarTime) Session PreparedStmt BindObj where
+> instance DBBind (Maybe CalendarTime) Session PreparedStmtObj BindObj where
 >   bindP = makeBindAction
 
-> instance DBBind (Maybe UTCTime) Session PreparedStmt BindObj where
+> instance DBBind (Maybe UTCTime) Session PreparedStmtObj BindObj where
 >   bindP = makeBindAction
 
-> instance DBBind (Maybe a) Session PreparedStmt BindObj
->     => DBBind a Session PreparedStmt BindObj where
+> instance DBBind (Maybe a) Session PreparedStmtObj BindObj
+>     => DBBind a Session PreparedStmtObj BindObj where
 >   bindP x = bindP (Just x)
 
 The default instance, uses generic Show
 
-> instance (Show a) => DBBind (Maybe a) Session PreparedStmt BindObj where
+> instance (Show a) => DBBind (Maybe a) Session PreparedStmtObj BindObj where
 >   bindP (Just x) = bindP (Just (show x))
 >   bindP Nothing = bindP (Nothing `asTypeOf` Just "")
 
@@ -298,20 +297,20 @@ The default instance, uses generic Show
 --------------------------------------------------------------------
 
 > data Query = Query
->   { queryStmt :: PreparedStmt
+>   { queryStmt :: PreparedStmtObj
 >   , querySess :: Session
 >   , queryCount :: IORef Int
 >   }
 
-> data StmtBind = StmtBind String [BindA Session PreparedStmt BindObj]
+> data StmtBind = StmtBind String [BindA Session PreparedStmtObj BindObj]
 
-> sqlbind :: String -> [BindA Session PreparedStmt BindObj] -> StmtBind
+> sqlbind :: String -> [BindA Session PreparedStmtObj BindObj] -> StmtBind
 > sqlbind sql bas = StmtBind sql bas
 
-> cmdbind :: String -> [BindA Session PreparedStmt BindObj] -> StmtBind
+> cmdbind :: String -> [BindA Session PreparedStmtObj BindObj] -> StmtBind
 > cmdbind sql bas = StmtBind sql bas
 
-> prefetch :: Int -> String -> [BindA Session PreparedStmt BindObj] -> StmtBind
+> prefetch :: Int -> String -> [BindA Session PreparedStmtObj BindObj] -> StmtBind
 > prefetch n sql bas = StmtBind sql bas
 
 
@@ -320,7 +319,7 @@ The default instance, uses generic Show
 >     n <- newIORef 0
 >     return (Query (boundStmt bstmt) sess n)
 
-> instance Statement PreparedStmt Session Query where
+> instance Statement PreparedStmtObj Session Query where
 >   makeQuery sess pstmt = do
 >     n <- newIORef 0
 >     return (Query pstmt sess n)

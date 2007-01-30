@@ -91,7 +91,6 @@ SELECT n, takusenTestFunc(n) from t_natural where n < 10 order by n;
 > import Control.Monad (when)
 > import Control.Exception (throwDyn)
 > import Test.MiniUnit
-> import Database.Enumerator
 > import Data.Int
 > import Data.List
 > import System.Time

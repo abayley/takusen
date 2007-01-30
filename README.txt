@@ -48,7 +48,6 @@ Here's a little hello-world test case that uses Sqlite:
 {-# OPTIONS -fglasgow-exts #-}
 module Main where
 import Database.Sqlite.Enumerator
-import Database.Enumerator
 import Control.Monad.Trans (liftIO)
 main = flip catchDB reportRethrow $
   withSession (connect "sqlite_db") (do

@@ -25,8 +25,7 @@ PostgreSQL implementation of Database.Enumerator.
 > where
 
 
-> import Database.Enumerator (RefCursor(..), NextResultSet(..))
-> import qualified Database.Enumerator as Enum (PreparedStmt(..))
+> import Database.Enumerator
 > import Database.InternalEnumerator
 > import Foreign.C
 > import Control.Monad
@@ -171,9 +170,9 @@ all default, little overhead.
 > instance Command BoundStmt Session where
 >   executeCommand s bs = return (boundCount bs)
 
-> data CommandBind = CommandBind String [BindA Session PreparedStmt BindObj]
+> data CommandBind = CommandBind String [BindA Session PreparedStmtObj BindObj]
 
-> cmdbind :: String -> [BindA Session PreparedStmt BindObj] -> CommandBind
+> cmdbind :: String -> [BindA Session PreparedStmtObj BindObj] -> CommandBind
 > cmdbind sql parms = CommandBind sql parms
 
 > instance Command CommandBind Session where
@@ -214,7 +213,7 @@ it will be fetched entirely in one shot).
 
 The data constructor is not exported.
 
-> data PreparedStmt = PreparedStmt
+> data PreparedStmtObj = PreparedStmtObj
 >   { stmtName :: String
 >   , stmtType :: StmtType
 >   , stmtPrefetch :: Int
@@ -226,48 +225,48 @@ The data constructor is not exported.
 > inferStmtType text = if beginsWithSelect text then SelectType else CommandType
 
 > prepareStmt ::
->   String -> QueryString -> [DBAPI.Oid] -> PreparationA Session PreparedStmt
+>   String -> QueryString -> [DBAPI.Oid] -> PreparationA Session PreparedStmtObj
 > prepareStmt [] _ _ = error "Prepared statement name must be non-empty"
 > prepareStmt name (QueryString str) types = 
 >   PreparationA (\sess -> do
 >     psname <- convertEx $ DBAPI.stmtPrepare (dbHandle sess) name (DBAPI.substituteBindPlaceHolders str) types
 >     c <- newIORef []
->     return (PreparedStmt psname (inferStmtType str) 0 c)
+>     return (PreparedStmtObj psname (inferStmtType str) 0 c)
 >     )
 
 > prepareQuery ::
->   String -> QueryString -> [DBAPI.Oid] -> PreparationA Session PreparedStmt
+>   String -> QueryString -> [DBAPI.Oid] -> PreparationA Session PreparedStmtObj
 > prepareQuery name (QueryString str) types = 
 >   PreparationA (\sess -> do
 >     psname <- convertEx $ DBAPI.stmtPrepare (dbHandle sess) name (DBAPI.substituteBindPlaceHolders str) types
 >     c <- newIORef []
->     return (PreparedStmt psname SelectType 0 c)
+>     return (PreparedStmtObj psname SelectType 0 c)
 >     )
 
 Here we use the same name for both the cursor name and the prepared statement name.
 This isn't necessary, but it saves the user having to provide two names...
 
 > preparePrefetch ::
->   Int -> String -> QueryString -> [DBAPI.Oid] -> PreparationA Session PreparedStmt
+>   Int -> String -> QueryString -> [DBAPI.Oid] -> PreparationA Session PreparedStmtObj
 > preparePrefetch count name (QueryString sqltext) types =
 >   PreparationA (\sess -> do
 >     let q = "DECLARE \"" ++ name ++ "\" NO SCROLL CURSOR FOR " ++ sqltext
 >     psname <- convertEx $ DBAPI.stmtPrepare (dbHandle sess) name (DBAPI.substituteBindPlaceHolders q) types
 >     c <- newIORef []
->     return (PreparedStmt psname CommandType count c)
+>     return (PreparedStmtObj psname CommandType count c)
 >     )
 
 > prepareLargeQuery ::
->   Int -> String -> QueryString -> [DBAPI.Oid] -> PreparationA Session PreparedStmt
+>   Int -> String -> QueryString -> [DBAPI.Oid] -> PreparationA Session PreparedStmtObj
 > prepareLargeQuery = preparePrefetch
 
 > prepareCommand ::
->   String -> QueryString -> [DBAPI.Oid] -> PreparationA Session PreparedStmt
+>   String -> QueryString -> [DBAPI.Oid] -> PreparationA Session PreparedStmtObj
 > prepareCommand name (QueryString sqltext) types =
 >   PreparationA (\sess -> do
 >     psname <- convertEx $ DBAPI.stmtPrepare (dbHandle sess) name (DBAPI.substituteBindPlaceHolders sqltext) types
 >     c <- newIORef []
->     return (PreparedStmt psname CommandType 0 c)
+>     return (PreparedStmtObj psname CommandType 0 c)
 >     )
 
 
@@ -280,7 +279,7 @@ of the same type (the value isn't used, so 'Prelude.undefined' is OK here).
 
 We store the parent prepared-statement in BoundStmt.
 This is used by the BoundStmt instance of Statement to set up
-the parent PreparedStmt object in the Query object.
+the parent PreparedStmtObj object in the Query object.
 
 Note two different types of BoundStmt (prefetch and non-prefetch).
 The prefetch version requires different behaviour both when
@@ -293,10 +292,10 @@ whereas the prefetch version must use the advance+cleanup actions).
 >   BoundStmtQuery
 >     { boundHandle :: DBAPI.ResultSetHandle
 >     , boundCount :: Int
->     , boundParentStmt :: PreparedStmt
+>     , boundParentStmt :: PreparedStmtObj
 >     }
 >   | BoundStmtCommand
->     { boundParentStmt :: PreparedStmt
+>     { boundParentStmt :: PreparedStmtObj
 >     , boundCount :: Int
 >     }
 
@@ -306,7 +305,7 @@ which contains just the result-set (and row count).
 
 > type BindObj = DBAPI.PGBindVal
 
-> instance IPrepared PreparedStmt Session BoundStmt BindObj where
+> instance IPrepared PreparedStmtObj Session BoundStmt BindObj where
 >   bindRun sess stmt bas action = do
 >     let params = map (\(BindA ba) -> ba sess stmt) bas
 >     writeIORef (stmtCursors stmt) []
@@ -328,32 +327,32 @@ which contains just the result-set (and row count).
 
 > makeBindAction x = BindA (\_ _ -> DBAPI.newBindVal x)
 
-> instance DBBind (Maybe String) Session PreparedStmt BindObj where
+> instance DBBind (Maybe String) Session PreparedStmtObj BindObj where
 >   bindP (Just s) = makeBindAction (Just s)
 >   bindP Nothing = makeBindAction (Nothing `asTypeOf` Just "")
 
-> instance DBBind (Maybe UTCTime) Session PreparedStmt BindObj where
+> instance DBBind (Maybe UTCTime) Session PreparedStmtObj BindObj where
 >   bindP = makeBindAction
 
-> instance DBBind (Maybe Int) Session PreparedStmt BindObj where
+> instance DBBind (Maybe Int) Session PreparedStmtObj BindObj where
 >   bindP = makeBindAction
 
-> instance DBBind (Maybe Int64) Session PreparedStmt BindObj where
+> instance DBBind (Maybe Int64) Session PreparedStmtObj BindObj where
 >   bindP = makeBindAction
 
-> instance DBBind (Maybe Float) Session PreparedStmt BindObj where
+> instance DBBind (Maybe Float) Session PreparedStmtObj BindObj where
 >   bindP = makeBindAction
 
-> instance DBBind (Maybe Double) Session PreparedStmt BindObj where
+> instance DBBind (Maybe Double) Session PreparedStmtObj BindObj where
 >   bindP = makeBindAction
 
-> instance DBBind (Maybe a) Session PreparedStmt BindObj
->     => DBBind a Session PreparedStmt BindObj where
+> instance DBBind (Maybe a) Session PreparedStmtObj BindObj
+>     => DBBind a Session PreparedStmtObj BindObj where
 >   bindP x = bindP (Just x)
 
 The default instance, uses generic Show
 
-> instance (Show a) => DBBind (Maybe a) Session PreparedStmt BindObj where
+> instance (Show a) => DBBind (Maybe a) Session PreparedStmtObj BindObj where
 >   bindP (Just x) = bindP (Just (show x))
 >   bindP Nothing = bindP (Nothing `asTypeOf` Just "")
 
@@ -373,7 +372,7 @@ The default instance, uses generic Show
 >   , advance'action :: Maybe (IO (DBAPI.ResultSetHandle, Int))
 >   , cleanup'action :: Maybe (IO ())
 >   , querySession :: Session
->   , queryStmt :: Maybe PreparedStmt
+>   , queryStmt :: Maybe PreparedStmtObj
 >   }
 
 
@@ -422,8 +421,8 @@ Query has been executed and result-set is in handle.
 Here we need to pop the next cursor name from the head of the list,
 and use it to open 
 
-> instance Statement (NextResultSet mark PreparedStmt) Session Query where
->   makeQuery sess (NextResultSet (Enum.PreparedStmt pstmt)) = do
+> instance Statement (NextResultSet mark PreparedStmtObj) Session Query where
+>   makeQuery sess (NextResultSet (PreparedStmt pstmt)) = do
 >     cursors <- readIORef (stmtCursors pstmt)
 >     if null cursors then throwDB (DBError ("02", "000") (-1) "No more result sets to process.") else return ()
 >     let (RefCursor cursor) = head cursors
@@ -440,12 +439,12 @@ and use it to open
 
 Statements with resource usage
 
-> data QueryStringTuned = QueryStringTuned QueryResourceUsage String [BindA Session PreparedStmt BindObj]
+> data QueryStringTuned = QueryStringTuned QueryResourceUsage String [BindA Session PreparedStmtObj BindObj]
 
-> sqlbind :: String -> [BindA Session PreparedStmt BindObj] -> QueryStringTuned
+> sqlbind :: String -> [BindA Session PreparedStmtObj BindObj] -> QueryStringTuned
 > sqlbind sql parms = QueryStringTuned defaultResourceUsage sql parms
 
-> prefetch :: Int -> String -> [BindA Session PreparedStmt BindObj] -> QueryStringTuned
+> prefetch :: Int -> String -> [BindA Session PreparedStmtObj BindObj] -> QueryStringTuned
 > prefetch count sql parms = QueryStringTuned (QueryResourceUsage count) sql parms
 
 > instance Statement QueryStringTuned Session Query where

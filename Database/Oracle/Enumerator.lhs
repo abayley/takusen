@@ -25,9 +25,7 @@ Oracle OCI implementation of Database.Enumerator.
 > where
 
 
-> import qualified Database.Enumerator
-> import Database.Enumerator (RefCursor(..), NextResultSet(..))
-> import qualified Database.Enumerator as Enum (PreparedStmt(..))
+> import Database.Enumerator
 > import Database.InternalEnumerator
 > import Database.Oracle.OCIConstants
 > import qualified Database.Oracle.OCIFunctions as OCI
@@ -380,23 +378,23 @@ there's no equivalent for ReadUncommitted.
 >   ) (closeStmt session stmt)
 
 
-> fetchRow :: Session -> PreparedStmt -> IO CInt
+> fetchRow :: Session -> PreparedStmtObj -> IO CInt
 > fetchRow session stmt = inSession session
 >   (\_ err _ -> OCI.stmtFetch err (stmtHandle stmt))
 >   nullAction  -- cleanup handled by doQuery1Maker
 
 
-> defineCol :: Session -> PreparedStmt -> Int -> Int -> CInt -> IO OCI.ColumnInfo
+> defineCol :: Session -> PreparedStmtObj -> Int -> Int -> CInt -> IO OCI.ColumnInfo
 > defineCol session stmt posn bufsize sqldatatype = inSession session
 >   (\_ err _ -> OCI.defineByPos err (stmtHandle stmt) posn bufsize sqldatatype)
 >   (closeStmt session (stmtHandle stmt))
 
-> bindByPos :: Session -> PreparedStmt -> Int -> CShort -> OCI.BufferPtr -> Int -> CInt -> IO ()
+> bindByPos :: Session -> PreparedStmtObj -> Int -> CShort -> OCI.BufferPtr -> Int -> CInt -> IO ()
 > bindByPos session stmt posn nullind val bufsize sqldatatype = inSession session
 >   (\_ err _ -> OCI.bindByPos err (stmtHandle stmt) posn nullind val bufsize sqldatatype)
 >   (closeStmt session (stmtHandle stmt))
 
-> bindOutputByPos :: Session -> PreparedStmt -> Int -> OCI.BindBuffer -> Int -> CInt -> IO OCI.BindHandle
+> bindOutputByPos :: Session -> PreparedStmtObj -> Int -> OCI.BindBuffer -> Int -> CInt -> IO OCI.BindHandle
 > bindOutputByPos session stmt posn buffer bufsize sqldatatype = inSession session
 >   (\_ err _ -> OCI.bindOutputByPos err (stmtHandle stmt) posn buffer bufsize sqldatatype)
 >   (closeStmt session (stmtHandle stmt))
@@ -449,9 +447,9 @@ so we need some way of distinguishing between queries and commands.
 > instance Command String Session where
 >   executeCommand sess str = executeCommand sess (sql str)
 
-> data CommandBind = CommandBind String [BindA Session PreparedStmt BindObj]
+> data CommandBind = CommandBind String [BindA Session PreparedStmtObj BindObj]
 
-> cmdbind :: String -> [BindA Session PreparedStmt BindObj] -> CommandBind
+> cmdbind :: String -> [BindA Session PreparedStmtObj BindObj] -> CommandBind
 > cmdbind sql parms = CommandBind sql parms
 
 > instance Command CommandBind Session where
@@ -472,14 +470,14 @@ so we need some way of distinguishing between queries and commands.
 >   rollback sess = rollbackTrans sess
 
 
-We need to keep track of the scope of the PreparedStmt
+We need to keep track of the scope of the PreparedStmtObj
 i.e. should it be freed when the Query (result-set) is freed,
 or does it have a longer lifetime?
-PreparedStmts created by prepareStmt have a lifetime possibly
+PreparedStmtObjs created by prepareStmt have a lifetime possibly
 longer than the result-set; users should use withPreparedStatement
 to manage these.
 
-PreparedStmts can also be created internally by various instances
+PreparedStmtObjs can also be created internally by various instances
 of makeQuery (in class Statement), and these will usually have the
 same lifetime/scope as that of the Query (result-set).
 
@@ -494,7 +492,7 @@ or some sort of command. This influences subsequent behaviour in two ways:
 
 > data StmtType = SelectType | CommandType
 
-> data PreparedStmt = MkPreparedStmt
+> data PreparedStmtObj = PreparedStmtObj
 >       { stmtLifetime :: StmtLifetime
 >       , stmtType :: StmtType
 >       , stmtHandle :: StmtHandle
@@ -513,23 +511,23 @@ Shouldn't need this code now:
 > beginsWithSelect text = isPrefixOf "select" . map toLower $ text
 > inferStmtType text = if beginsWithSelect text then SelectType else CommandType
 
-> prepareStmt :: QueryString -> PreparationA Session PreparedStmt
+> prepareStmt :: QueryString -> PreparationA Session PreparedStmtObj
 > prepareStmt (QueryString sqltext) =
 >   prepareStmt' (prefetchRowCount defaultResourceUsage) sqltext FreeManually (inferStmtType sqltext)
 
-> preparePrefetch :: Int -> QueryString -> PreparationA Session PreparedStmt
+> preparePrefetch :: Int -> QueryString -> PreparationA Session PreparedStmtObj
 > preparePrefetch count (QueryString sqltext) =
 >   prepareStmt' count sqltext FreeManually (inferStmtType sqltext)
 
-> prepareQuery :: QueryString -> PreparationA Session PreparedStmt
+> prepareQuery :: QueryString -> PreparationA Session PreparedStmtObj
 > prepareQuery (QueryString sqltext) =
 >   prepareStmt' (prefetchRowCount defaultResourceUsage) sqltext FreeManually SelectType
 
-> prepareLargeQuery :: Int -> QueryString -> PreparationA Session PreparedStmt
+> prepareLargeQuery :: Int -> QueryString -> PreparationA Session PreparedStmtObj
 > prepareLargeQuery count (QueryString sqltext) =
 >   prepareStmt' count sqltext FreeManually SelectType
 
-> prepareCommand :: QueryString -> PreparationA Session PreparedStmt
+> prepareCommand :: QueryString -> PreparationA Session PreparedStmtObj
 > prepareCommand (QueryString sqltext) =
 >   prepareStmt' 0 sqltext FreeManually CommandType
 
@@ -541,7 +539,7 @@ than a select. Normally prefetch would be irrelevant (and indeed it is for
 the outer command), but we also save it in the statement so that it can be
 reused for the child cursors.
 
-> prepareLargeCommand :: Int -> QueryString -> PreparationA Session PreparedStmt
+> prepareLargeCommand :: Int -> QueryString -> PreparationA Session PreparedStmtObj
 > prepareLargeCommand n (QueryString sqltext) =
 >   prepareStmt' n sqltext FreeManually CommandType
 
@@ -556,18 +554,18 @@ reused for the child cursors.
 > newPreparedStmt lifetime iteration sess stmt = do
 >   c <- newIORef []
 >   b <- newIORef []
->   return (MkPreparedStmt lifetime iteration stmt sess c b)
+>   return (PreparedStmtObj lifetime iteration stmt sess c b)
 
 --------------------------------------------------------------------
 -- ** Binding
 --------------------------------------------------------------------
 
-> newtype BoundStmt = BoundStmt { boundStmt :: PreparedStmt }
+> newtype BoundStmt = BoundStmt { boundStmt :: PreparedStmtObj }
 
 > type BindObj = Int -> IO ()
 > newtype Out a = Out a
 
-> instance IPrepared PreparedStmt Session BoundStmt BindObj where
+> instance IPrepared PreparedStmtObj Session BoundStmt BindObj where
 >   bindRun sess stmt bas action = do
 >     sequence_ (zipWith (\i (BindA ba) -> ba sess stmt i) [1..] bas)
 >     let iteration = case (stmtType stmt) of
@@ -583,38 +581,38 @@ reused for the child cursors.
 >       FreeWithQuery -> closeStmt sess (stmtHandle pstmt)
 >       _ -> return ()
 
-> instance DBBind (Maybe String) Session PreparedStmt BindObj where
+> instance DBBind (Maybe String) Session PreparedStmtObj BindObj where
 >   bindP = makeBindAction
 
 Disable this for now, as Strings have charset conversion issues for me...
 
-> instance DBBind (Out (Maybe String)) Session PreparedStmt BindObj where
+> instance DBBind (Out (Maybe String)) Session PreparedStmtObj BindObj where
 >   bindP (Out v) = makeOutputBindAction v
 
-> instance DBBind (Maybe Int) Session PreparedStmt BindObj where
+> instance DBBind (Maybe Int) Session PreparedStmtObj BindObj where
 >   bindP = makeBindAction
 
-> instance DBBind (Out (Maybe Int)) Session PreparedStmt BindObj where
+> instance DBBind (Out (Maybe Int)) Session PreparedStmtObj BindObj where
 >   bindP (Out v) = makeOutputBindAction v
 
 I don't think Oracle supports int64 in v8i's OCI API...
 
- instance DBBind (Maybe Int64) Session PreparedStmt BindObj where
+ instance DBBind (Maybe Int64) Session PreparedStmtObj BindObj where
    bindP = makeBindAction
 
-> instance DBBind (Maybe Double) Session PreparedStmt BindObj where
+> instance DBBind (Maybe Double) Session PreparedStmtObj BindObj where
 >   bindP = makeBindAction
 
-> instance DBBind (Out (Maybe Double)) Session PreparedStmt BindObj where
+> instance DBBind (Out (Maybe Double)) Session PreparedStmtObj BindObj where
 >   bindP (Out v) = makeOutputBindAction v
 
-> instance DBBind (Maybe CalendarTime) Session PreparedStmt BindObj where
+> instance DBBind (Maybe CalendarTime) Session PreparedStmtObj BindObj where
 >   bindP = makeBindAction
 
-> instance DBBind (Maybe UTCTime) Session PreparedStmt BindObj where
+> instance DBBind (Maybe UTCTime) Session PreparedStmtObj BindObj where
 >   bindP = makeBindAction
 
-> instance DBBind (Out (Maybe UTCTime)) Session PreparedStmt BindObj where
+> instance DBBind (Out (Maybe UTCTime)) Session PreparedStmtObj BindObj where
 >   bindP (Out v) = makeOutputBindAction v
 
 StmtHandles (i.e. RefCursors) are output only, I think
@@ -622,7 +620,7 @@ StmtHandles (i.e. RefCursors) are output only, I think
 We create the StmtHandle here, so the user doesn't have to
 (is this a bad idea?...)
 
-> instance DBBind (Out (Maybe StmtHandle)) Session PreparedStmt BindObj where
+> instance DBBind (Out (Maybe StmtHandle)) Session PreparedStmtObj BindObj where
 >   bindP (Out v) = BindA (\sess stmt pos -> do
 >       stmt2 <- getStmt sess
 >       bindOutputMaybe sess stmt (Just stmt2) pos
@@ -632,21 +630,21 @@ We create the StmtHandle here, so the user doesn't have to
 
 Instances for non-Maybe types i.e. bare Int, Double, String, etc.
 
-> instance DBBind (Maybe a) Session PreparedStmt BindObj
->     => DBBind a Session PreparedStmt BindObj where
+> instance DBBind (Maybe a) Session PreparedStmtObj BindObj
+>     => DBBind a Session PreparedStmtObj BindObj where
 >   bindP x = bindP (Just x)
 
-> instance DBBind (Out (Maybe a)) Session PreparedStmt BindObj
->     => DBBind (Out a) Session PreparedStmt BindObj where
+> instance DBBind (Out (Maybe a)) Session PreparedStmtObj BindObj
+>     => DBBind (Out a) Session PreparedStmtObj BindObj where
 >   bindP (Out x) = bindP (Out (Just x))
 
 Default instances, using generic Show.
 
-> instance (Show a) => DBBind (Maybe a) Session PreparedStmt BindObj where
+> instance (Show a) => DBBind (Maybe a) Session PreparedStmtObj BindObj where
 >   bindP (Just x) = bindP (Just (show x))
 >   bindP Nothing = bindP (Nothing `asTypeOf` Just "")
 
-> instance (Show a) => DBBind (Out (Maybe a)) Session PreparedStmt BindObj where
+> instance (Show a) => DBBind (Out (Maybe a)) Session PreparedStmtObj BindObj where
 >   bindP (Out (Just x)) = bindP (Out (Just (show x)))
 >   bindP (Out Nothing) = bindP (Out (Nothing `asTypeOf` Just ""))
 
@@ -654,7 +652,7 @@ Default instances, using generic Show.
 > makeBindAction x = BindA (\ses st -> bindMaybe ses st x)
 
 > bindMaybe :: (OracleBind a)
->   => Session -> PreparedStmt -> Maybe a -> Int -> IO ()
+>   => Session -> PreparedStmtObj -> Maybe a -> Int -> IO ()
 > bindMaybe sess stmt v pos =
 >   bindWithValue v $ \ptrv -> do
 >     bindByPos sess stmt pos (bindNullInd v) (castPtr ptrv) (bindSize v) (bindType v)
@@ -665,7 +663,7 @@ it's provided when bindRun is invoked.
 > makeOutputBindAction v = BindA (\sess stmt -> bindOutputMaybe sess stmt v)
 
 > bindOutputMaybe :: (OracleBind a)
->   => Session -> PreparedStmt -> Maybe a -> Int -> IO ()
+>   => Session -> PreparedStmtObj -> Maybe a -> Int -> IO ()
 > bindOutputMaybe sess stmt v pos = do
 >       buffer <- mallocForeignPtrBytes (bindBufferSize v)
 >       nullind <- mallocForeignPtr
@@ -792,18 +790,18 @@ in the Oracle case, though.
 -- ** Queries
 --------------------------------------------------------------------
 
-We save a reference to the parent PreparedStmt.
+We save a reference to the parent PreparedStmtObj.
 In a lot of cases (the simple ones) the parent is that same
-as the PreparedStmt.
+as the PreparedStmtObj.
 It only differs when we use the NextResultSet instance of makeQuery.
 It is only Nothing when we are processing a RefCursor;
 in this case we don't want to save any nested cursors returned
 by the query.
 
 > data Query = Query
->   { queryStmt :: PreparedStmt
+>   { queryStmt :: PreparedStmtObj
 >   , querySess :: Session
->   , queryParent :: Maybe PreparedStmt
+>   , queryParent :: Maybe PreparedStmtObj
 >   }
 
 
@@ -812,18 +810,18 @@ by the query.
 > defaultResourceUsage :: QueryResourceUsage
 > defaultResourceUsage = QueryResourceUsage 100  -- sensible default?
 
-> data QueryStringTuned = QueryStringTuned QueryResourceUsage String [BindA Session PreparedStmt BindObj]
+> data QueryStringTuned = QueryStringTuned QueryResourceUsage String [BindA Session PreparedStmtObj BindObj]
 
-> sqlbind :: String -> [BindA Session PreparedStmt BindObj] -> QueryStringTuned
+> sqlbind :: String -> [BindA Session PreparedStmtObj BindObj] -> QueryStringTuned
 > sqlbind sql parms = QueryStringTuned defaultResourceUsage sql parms
 
-> prefetch :: Int -> String -> [BindA Session PreparedStmt BindObj] -> QueryStringTuned
+> prefetch :: Int -> String -> [BindA Session PreparedStmtObj BindObj] -> QueryStringTuned
 > prefetch count sql parms = QueryStringTuned (QueryResourceUsage count) sql parms
 
 > instance Statement BoundStmt Session Query where
 >   makeQuery sess bstmt = return (Query (boundStmt bstmt) sess (Just (boundStmt bstmt)))
 
-> instance Statement PreparedStmt Session Query where
+> instance Statement PreparedStmtObj Session Query where
 >   makeQuery sess pstmt = return (Query pstmt sess (Just pstmt))
 
 > instance Statement QueryString Session Query where
@@ -855,8 +853,8 @@ For NextResultSet, we call makeQuery passing (RefCursor StmtHandle).
 This creates a query with no parent statement.
 All other instances of Statement make a statement its own parent.
 
-> instance Statement (NextResultSet mark PreparedStmt) Session Query where
->   makeQuery sess (NextResultSet (Enum.PreparedStmt pstmt)) = do
+> instance Statement (NextResultSet mark PreparedStmtObj) Session Query where
+>   makeQuery sess (NextResultSet (PreparedStmt pstmt)) = do
 >     cursors <- readIORef (stmtCursors pstmt)
 >     if null cursors then throwDB (DBError ("02", "000") (-1) "No more result sets to process.") else return ()
 >     writeIORef (stmtCursors pstmt) (tail cursors)

@@ -19,7 +19,6 @@ Portability :  non-portable
 > import Control.Monad (when)
 > import Control.Exception (throwDyn)
 > import Test.MiniUnit
-> import Database.Enumerator
 > import Data.Int
 > import System.Time
 
