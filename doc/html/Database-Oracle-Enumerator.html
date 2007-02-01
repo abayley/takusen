@@ -84,6 +84,240 @@
 ></TD
 ></TR
 ><TR
+><TD CLASS="section1"
+>Synopsis</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3ASession"
+>Session</A
+> </TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Aconnect"
+>connect</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="Database-InternalEnumerator.html#t%3AConnectA"
+>ConnectA</A
+> <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AprepareStmt"
+>prepareStmt</A
+> :: QueryString -&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+>PreparationA</A
+> <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3ApreparePrefetch"
+>preparePrefetch</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; QueryString -&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+>PreparationA</A
+> <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AprepareQuery"
+>prepareQuery</A
+> :: QueryString -&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+>PreparationA</A
+> <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AprepareLargeQuery"
+>prepareLargeQuery</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; QueryString -&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+>PreparationA</A
+> <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AprepareCommand"
+>prepareCommand</A
+> :: QueryString -&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+>PreparationA</A
+> <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AprepareLargeCommand"
+>prepareLargeCommand</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; QueryString -&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+>PreparationA</A
+> <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Asql"
+>sql</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>String</A
+> -&gt; QueryString</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Asqlbind"
+>sqlbind</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>String</A
+> -&gt; [<A HREF="Database-InternalEnumerator.html#t%3ABindA"
+>BindA</A
+> <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj] -&gt; QueryStringTuned</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Aprefetch"
+>prefetch</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>String</A
+> -&gt; [<A HREF="Database-InternalEnumerator.html#t%3ABindA"
+>BindA</A
+> <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj] -&gt; QueryStringTuned</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Acmdbind"
+>cmdbind</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>String</A
+> -&gt; [<A HREF="Database-InternalEnumerator.html#t%3ABindA"
+>BindA</A
+> <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj] -&gt; CommandBind</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3AStmtHandle"
+>StmtHandle</A
+> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtStruct"
+>StmtStruct</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>newtype</SPAN
+> <A HREF="#t%3AOut"
+>Out</A
+> a = <A HREF="#v%3AOut"
+>Out</A
+> a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+>module <A HREF="Database-Enumerator.html"
+>Database.Enumerator</A
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
 ><TD CLASS="s15"
 ></TD
 ></TR
@@ -137,6 +371,14 @@
 ><TD CLASS="decl"
 ><A HREF="Database-InternalEnumerator.html#t%3ACommand"
 >Command</A
+> CommandBind <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ACommand"
+>Command</A
 > QueryString <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
 ></TD
@@ -171,7 +413,7 @@
 ><TD CLASS="decl"
 ><A HREF="Database-InternalEnumerator.html#t%3AStatement"
 >Statement</A
-> PreparedStmt <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+> PreparedStmtObj <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
 > Query</TD
 ></TR
@@ -195,14 +437,6 @@
 ><TD CLASS="decl"
 ><A HREF="Database-InternalEnumerator.html#t%3AStatement"
 >Statement</A
-> StmtBind <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
->Session</A
-> Query</TD
-></TR
-><TR
-><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3AStatement"
->Statement</A
 > <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
 >String</A
 > <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
@@ -217,17 +451,17 @@
 >Maybe</A
 > a) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj =&gt; <A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+> PreparedStmtObj BindObj =&gt; <A HREF="Database-InternalEnumerator.html#t%3ADBBind"
 >DBBind</A
 > a <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
 ><A HREF="Database-InternalEnumerator.html#t%3AIPrepared"
 >IPrepared</A
-> PreparedStmt <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+> PreparedStmtObj <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
 > BoundStmt BindObj</TD
 ></TR
@@ -253,7 +487,7 @@
 >CalendarTime</A
 >) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -265,7 +499,7 @@
 >Double</A
 >) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -277,7 +511,7 @@
 >Int</A
 >) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -289,7 +523,7 @@
 >String</A
 >) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -299,7 +533,7 @@
 >Maybe</A
 > UTCTime) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -311,7 +545,7 @@
 >Maybe</A
 > a) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -325,7 +559,7 @@
 >Double</A
 >)) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -339,7 +573,7 @@
 >Int</A
 >)) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -353,7 +587,7 @@
 >StmtHandle</A
 >)) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -367,7 +601,7 @@
 >String</A
 >)) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -379,7 +613,7 @@
 >Maybe</A
 > UTCTime)) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -393,7 +627,7 @@
 >Maybe</A
 > a)) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -405,13 +639,13 @@
 >Maybe</A
 > a)) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj =&gt; <A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+> PreparedStmtObj BindObj =&gt; <A HREF="Database-InternalEnumerator.html#t%3ADBBind"
 >DBBind</A
 > (<A HREF="Database-Oracle-Enumerator.html#t%3AOut"
 >Out</A
 > a) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -419,7 +653,7 @@
 >Statement</A
 > (<A HREF="Database-Enumerator.html#t%3ANextResultSet"
 >NextResultSet</A
-> mark PreparedStmt) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+> mark PreparedStmtObj) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
 > Query</TD
 ></TR
@@ -466,7 +700,108 @@
 >PreparationA</A
 > <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt</TD
+> PreparedStmtObj</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3ApreparePrefetch"
+></A
+><B
+>preparePrefetch</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; QueryString -&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+>PreparationA</A
+> <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AprepareQuery"
+></A
+><B
+>prepareQuery</B
+> :: QueryString -&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+>PreparationA</A
+> <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AprepareLargeQuery"
+></A
+><B
+>prepareLargeQuery</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; QueryString -&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+>PreparationA</A
+> <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AprepareCommand"
+></A
+><B
+>prepareCommand</B
+> :: QueryString -&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+>PreparationA</A
+> <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AprepareLargeCommand"
+></A
+><B
+>prepareLargeCommand</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; QueryString -&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+>PreparationA</A
+> <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Seems like an odd alternative to <TT
+><A HREF="Database-Oracle-Enumerator.html#v%3AprepareCommand"
+>prepareCommand</A
+></TT
+> (what is a large command?)
+ but is actually useful for when the outer query it a procedure call that
+ returns one or more cursors. The prefetch count for the inner cursors is
+ inherited from the outer statement, which in this case is a command, rather
+ than a select. Normally prefetch would be irrelevant (and indeed it is for
+ the outer command), but we also save it in the statement so that it can be
+ reused for the child cursors.
+</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -498,7 +833,7 @@
 >BindA</A
 > <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj] -&gt; QueryStringTuned</TD
+> PreparedStmtObj BindObj] -&gt; QueryStringTuned</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -518,7 +853,25 @@
 >BindA</A
 > <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj] -&gt; QueryStringTuned</TD
+> PreparedStmtObj BindObj] -&gt; QueryStringTuned</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Acmdbind"
+></A
+><B
+>cmdbind</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>String</A
+> -&gt; [<A HREF="Database-InternalEnumerator.html#t%3ABindA"
+>BindA</A
+> <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj] -&gt; CommandBind</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -596,7 +949,7 @@
 >Double</A
 >)) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -610,7 +963,7 @@
 >Int</A
 >)) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -624,7 +977,7 @@
 >StmtHandle</A
 >)) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -638,7 +991,7 @@
 >String</A
 >)) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -650,7 +1003,7 @@
 >Maybe</A
 > UTCTime)) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -664,7 +1017,7 @@
 >Maybe</A
 > a)) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -676,13 +1029,13 @@
 >Maybe</A
 > a)) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj =&gt; <A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+> PreparedStmtObj BindObj =&gt; <A HREF="Database-InternalEnumerator.html#t%3ADBBind"
 >DBBind</A
 > (<A HREF="Database-Oracle-Enumerator.html#t%3AOut"
 >Out</A
 > a) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ></TABLE
 ></DIV

@@ -35,8 +35,6 @@ does he have to appear in our license.txt?
 
 
 To-dos for Takusen:
- - find out why we have to import Database.Enumerator when it's
-   in the export list for every database-specific module anyway.
  - use hsc2hs to create #define constants from header files,
    rather than hard-code them.
  - Blob support (and clob?).

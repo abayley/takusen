@@ -28,9 +28,9 @@ implementation which are exposed to the API user, and which are part of
 the Takusen API, but are not (necessarily) in this module.
 They include:
  
- * connect (obviously DBMS specific)
+ * @connect@ (obviously DBMS specific)
  
- * prepareStmt, preparePrefetch, sql, sqlbind, prefetch
+ * @prepareQuery, prepareLargeQuery, prepareCommand, sql, sqlbind, prefetch, cmdbind@
  
 These functions will typically have the same names and intentions,
 but their specific types and usage may differ between DBMS.
@@ -163,7 +163,7 @@ It passes anything else up.
 >       _ | otherwise -> IE.throwDB dberror
 >   )
 
-| Analogous to catchDBError, but ignores specific errors instead
+| Analogous to 'catchDBError', but ignores specific errors instead
 (propagates anything else).
 
 > ignoreDBError :: (CaughtMonadIO m) => Int -> m a -> m a
@@ -182,7 +182,8 @@ all class constraints for the Session (like IQuery, DBType, etc).
 
 > newtype IE.ISession sess => DBM mark sess a = DBM (ReaderT sess IO a)
 >   -- Haddock can't cope with the "MonadReader sess" instance
->   deriving (Monad, MonadIO, MonadReader sess)
+>   deriving (Monad, MonadIO)
+>   --deriving (Monad, MonadIO, MonadReader sess)
 > unDBM (DBM x) = x
 
 
@@ -207,31 +208,31 @@ marked objects.
 >   bracket (connecta) (IE.disconnect) (runReaderT (unDBM m))
 
 
-Persistent database connections. 
+| Persistent database connections. 
 This issue has been brought up by Shanky Surana. The following design
 is inspired by that exchange.
-
+ 
 On one hand, implementing persistent connections is easy. One may say we should
 have added them long time ago, to match HSQL, HDBC, and similar
 database interfaces. Alas, implementing persistent connection
 safely is another matter. The simplest design is like the following
-
-  withContinuedSession :: (Typeable a, IE.ISession sess) => 
-      IE.ConnectA sess -> (forall mark. DBM mark sess a) -> 
-      IO (a, IE.ConnectA sess)
-  withContinuedSession (IE.ConnectA connecta) m = 
-    do conn <- connecta
-       r <- runReaderT (unDBM m) conn
-      return (r,(return conn))
-
+ 
+ > withContinuedSession :: (Typeable a, IE.ISession sess) => 
+ >     IE.ConnectA sess -> (forall mark. DBM mark sess a) -> 
+ >     IO (a, IE.ConnectA sess)
+ > withContinuedSession (IE.ConnectA connecta) m = do
+ >     conn <- connecta
+ >     r <- runReaderT (unDBM m) conn
+ >     return (r,(return conn))
+ 
 so that the connection object is returned as the result and can be
 used again with withContinuedSession or withSession. The problem is
-that nothing prevents us to write
-
-        do (r1,conn) <- withContinuedSession (open "...) query1
-           r2        <- withSession conn query2
-           r3        <- withSession conn query3
-
+that nothing prevents us from writing:
+ 
+ >     (r1,conn) <- withContinuedSession (connect "...") query1
+ >     r2        <- withSession conn query2
+ >     r3        <- withSession conn query3
+ 
 That is, we store the suspended connection and then use it twice.
 But the first withSession closes the connection. So, the second
 withSession gets an invalid session object. Invalid in a sense that
@@ -239,21 +240,23 @@ even memory may be deallocated, so there is no telling what happens
 next. Also, as we can see, it is difficult to handle errors and
 automatically dispose of the connections if the fatal error is
 encountered.
-
-All these problems are present in other interfaces....  In the
+ 
+All these problems are present in other interfaces...  In the
 case of a suspended connection, the problem is how to enforce the
-_linear_ access to a variable. It can be enforced, via a
+/linear/ access to a variable. It can be enforced, via a
 state-changing monad. The implementation below makes
 the non-linear use of a suspended connection a run-time checkable
-condition. It will be generic and safe -- fatal errors close the
+condition. It will be generic and safe - fatal errors close the
 connection, an attempt to use a closed connection raises an error, and
-we cannot reuse a connection. We have to write
-        (r1, conn1) <- withContinuedSession conn  ...
-        (r2, conn2) <- withContinuedSession conn1 ...
-        (r3, conn3) <- withContinuedSession conn2 ...
+we cannot reuse a connection. We have to write:
+ 
+ >     (r1, conn1) <- withContinuedSession conn  ...
+ >     (r2, conn2) <- withContinuedSession conn1 ...
+ >     (r3, conn3) <- withContinuedSession conn2 ...
+ 
 etc. If we reuse a suspended connection or use a closed connection,
 we get a run-time (exception). That is of course not very
-satisfactory -- and yet better than a Segmentation fault. 
+satisfactory - and yet better than a segmentation fault. 
 
 > withContinuedSession :: (Typeable a, IE.ISession sess) => 
 >     IE.ConnectA sess -> (forall mark. DBM mark sess a) 
@@ -334,7 +337,7 @@ in Typeable) so the bound statement can't leak either.
 >  (Typeable a, IE.IPrepared stmt sess bstmt bo)
 >  => IE.PreparationA sess stmt
 >  -- ^ preparation action to create prepared statement;
->  --   this action is usually created by @prepareStmt@
+>  --   this action is usually created by @prepareQuery\/Command@
 >  -> (PreparedStmt mark stmt -> DBM mark sess a)
 >  -- ^ DBM action that takes a prepared statement
 >  -> DBM mark sess a
@@ -708,27 +711,32 @@ Each back-end will provide a useful set of @Statement@ instances
 and associated constructor functions for them.
 For example, currently all back-ends have:
  
-  * for basic, all-text statements (no bind variables, default row-caching):
-  
-    > sql "select ..."
+  * for basic, all-text statements (no bind variables, default row-caching)
+    which can be used as queries or commands: 
+ 
+ >      sql "select ..."
     
   * for a select with bind variables:
   
-    > sqlbind "select ..." [bindP ..., bindP ...]
+ >      sqlbind "select ..." [bindP ..., bindP ...]
     
   * for a select with bind variables and row caching:
   
-    > prefetch 100 "select ..." [bindP ..., bindP ...]
+ >      prefetch 100 "select ..." [bindP ..., bindP ...]
+    
+  * for a DML command with bind variables:
+  
+ >      cmdbind "insert into ..." [bindP ..., bindP ...]
     
   * for a reusable prepared statement: we have to first create the
     prepared statement, and then bind in a separate step.
     This separation lets us re-use prepared statements:
  
-    > let stmt = prepareStmt (sql "select ...")
-    > withPreparedStatement stmt $ \pstmt ->
-    >   withBoundStatement pstmt [bindP ..., bindP ...] $ \bstmt -> do
-    >     result <- doQuery bstmt iter seed
-    >     ...
+ >      let stmt = prepareQuery (sql "select ...")
+ >      withPreparedStatement stmt $ \pstmt ->
+ >        withBoundStatement pstmt [bindP ..., bindP ...] $ \bstmt -> do
+ >          result <- doQuery bstmt iter seed
+ >          ...
  
 The PostgreSQL backend additionally requires that when preparing statements,
 you (1) give a name to the prepared statement,
@@ -737,10 +745,11 @@ The list of bind-types is created by applying the
 'Database.PostgrSQL.Enumerator.bindType' function
 to dummy values of the appropriate types. e.g.
  
- > let stmt = prepareStmt "stmtname" (sql "select ...") [bindType "", bindType (0::Int)]
+ > let stmt = prepareQuery "stmtname" (sql "select ...") [bindType "", bindType (0::Int)]
  > withPreparedStatement stmt $ \pstmt -> ...
  
-A longer explanation of bind variables is in the Bind Parameters section below.
+A longer explanation of prepared statements and
+bind variables is in the Bind Parameters section below.
 
 
 -- $usage_iteratee
@@ -882,7 +891,7 @@ At the other end of the scale, ($) and function application in System F
 are equivalent, because polymorphic functions can be passed to other
 functions. However, type inference in System F is undecidable.
  
-Haskell hits the sweet spot: maintaining the full inference,
+Haskell hits the sweet spot: maintaining full inference,
 and permitting rank-2 polymorphism, in exchange for very few
 type annotations. Only functions that take polymorphic functions (and
 thus are higher-rank) need type signatures. Rank-2 types can't be
@@ -952,18 +961,29 @@ so it can be passed to 'Database.Enumerator.doQuery' for result-set processing.
 When we call 'Database.Enumerator.withPreparedStatement', we must pass
 it a \"preparation action\", which is simply an action that returns
 the prepared query. The function to create this action varies between backends,
-and by convention is called 'Database.PostgreSQL.Enumerator.prepareStmt'
-(although it may also have differently-named variations; see
-'Database.PostgreSQL.Enumerator.preparePrefetch', for example,
-which also exists in the Oracle and Sqlite interfaces).
+and by convention is called 'Database.PostgreSQL.Enumerator.prepareQuery'.
+For DML statements, you must use 'Database.PostgreSQL.Enumerator.prepareCommand',
+as the library needs to do something different depending on whether or not the
+statement returns a result-set.
  
-With PostgreSQL, we must specify the type of the bind parameters
-when the query is prepared, so the 'Database.PostgreSQL.Enumerator.prepareStmt'
+For queries with large result-sets, we provide 
+'Database.PostgreSQL.Enumerator.prepareLargeQuery',
+which takes an extra parameter: the number of rows to prefetch
+in a network call to the server.
+This aids performance in two ways:
+1. you can limit the number of rows that come back to the
+client, in order to use less memory, and
+2. the client library will cache rows, so that a network call to
+the server is not required for every row processed.
+ 
+With PostgreSQL, we must specify the types of the bind parameters
+when the query is prepared, so the 'Database.PostgreSQL.Enumerator.prepareQuery'
 function takes a list of 'Database.PostgreSQL.Enumerator.bindType' values.
 Also, PostgreSQL requires that prepared statements are named,
 although you can use \"\" as the name.
  
-With Sqlite and Oracle, we simply pass the query text to prepareStmt,
+With Sqlite and Oracle, we simply pass the query text to
+'Database.PostgreSQL.Sqlite.prepareQuery',
 so things are slightly simpler for these backends.
  
 Perhaps an example will explain it better:
@@ -975,7 +995,7 @@ Perhaps an example will explain it better:
  >     iter s acc = result $ s:acc
  >     bindVals = [bindP (12345::Int), bindP "CODE123"]
  >     bindTypes = [bindType (0::Int), bindType ""]
- >   withPreparedStatement (prepareStmt "stmt1" query bindTypes) $ \pstmt -> do
+ >   withPreparedStatement (prepareQuery "stmt1" query bindTypes) $ \pstmt -> do
  >     withBoundStatement pstmt bindVals $ \bstmt -> do
  >       actual <- doQuery bstmt iter []
  >       liftIO (print actual)
@@ -984,13 +1004,8 @@ Note that we pass @bstmt@ to 'Database.Enumerator.doQuery';
 this is the bound statement object created by
 'Database.Enumerator.withBoundStatement'.
  
-There is also a statement preparation function
-'Database.PostgreSQL.Enumerator.preparePrefetch' which takes
-an extra parameter: the number of rows to prefetch
-(from each call to the server).
- 
 The Oracle\/Sqlite example code is almost the same, except for the
-call to 'Database.Sqlite.Enumerator.prepareStmt':
+call to 'Database.Sqlite.Enumerator.prepareQuery':
  
  > sqliteBindExample = do
  >   let
@@ -998,7 +1013,7 @@ call to 'Database.Sqlite.Enumerator.prepareStmt':
  >     iter :: (Monad m) => String -> IterAct m [String]
  >     iter s acc = result $ s:acc
  >     bindVals = [bindP (12345::Int), bindP "CODE123"]
- >   withPreparedStatement (prepareStmt query) $ \pstmt -> do
+ >   withPreparedStatement (prepareQuery query) $ \pstmt -> do
  >     withBoundStatement pstmt bindVals $ \bstmt -> do
  >       actual <- doQuery bstmt iter []
  >       liftIO (print actual)
@@ -1092,7 +1107,7 @@ If we assume the existence of the following PostgreSQL function
 ... then this code shows how linear processing of cursors would be done:
  
  >   withTransaction RepeatableRead $ do
- >   withPreparedStatement (prepareStmt "stmt1" (sql "select * from takusenTestFunc()") []) $ \pstmt -> do
+ >   withPreparedStatement (prepareQuery "stmt1" (sql "select * from takusenTestFunc()") []) $ \pstmt -> do
  >   withBoundStatement pstmt [] $ \bstmt -> do
  >     dummy <- doQuery bstmt iterMain []
  >     result1 <- doQuery (NextResultSet pstmt) iterRS1 []
@@ -1113,8 +1128,8 @@ Notes:
    which it does by stuffing them into a list attached to the
    prepared statement object.
    This means that we /must/ use 'Database.Enumerator.withPreparedStatement'
-   to create a prepared statement object, which is the container for the
-   cursors returned.
+   to create a prepared statement object; the prepared statament oject
+   is the container for the cursors returned.
  
  * in this example we choose to discard the results of the first iteratee.
    This is not necessary, but in this case the only column is a
@@ -1122,7 +1137,9 @@ Notes:
    in the prepared statement object.
  
  * saved cursors are consumed one-at-a-time by calling 'Database.Enumerator.doQuery',
-   passing 'Database.Enumerator.NextResultSet' @pstmt@.
+   passing 'Database.Enumerator.NextResultSet' @pstmt@
+   (i.e. passing the prepared statement oject wrapped by
+   'Database.Enumerator.NextResultSet').
    This simply pulls the next cursor off the list
    - they're processed in the order they were pushed on (FIFO) -
    and processes it with the given iteratee.
@@ -1192,9 +1209,8 @@ The reason it's different is that:
    closed, or the transaction or session ends).
  
  * our current Oracle implementation prevents marshalling
-   of the value in the result-set
-   buffer to a Haskell value, so each fetch overwrites the buffer value with
-   a new cursor.
+   of the cursor in the result-set buffer to a Haskell value,
+   so each fetch overwrites the buffer value with a new cursor.
    This means you have to fully process a given cursor before
    fetching the next one.
    

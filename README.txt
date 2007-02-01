@@ -83,7 +83,7 @@ but ghci is not quite so slick, and it fails to load the library.
 
 There is any easy workaround, which is to copy libpq.dll and rename it to
 pq.dll. If you do this, then you should be able to use ghci with PostgreSQL
-without problems. Don't forget to ensure that PostgreSQL's bin in in your path.
+without problems. Don't forget to ensure that PostgreSQL's bin is in your path.
 
 In the past I've had problems with older versions of PostgreSQL and
 ghc-6.4.1. Specifically, the call to PQprepare would segfault.

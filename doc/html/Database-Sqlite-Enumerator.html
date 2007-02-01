@@ -179,7 +179,7 @@
 ><TD CLASS="decl"
 ><A HREF="Database-InternalEnumerator.html#t%3AStatement"
 >Statement</A
-> PreparedStmt <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+> PreparedStmtObj <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
 >Session</A
 > Query</TD
 ></TR
@@ -217,17 +217,17 @@
 >Maybe</A
 > a) <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj =&gt; <A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+> PreparedStmtObj BindObj =&gt; <A HREF="Database-InternalEnumerator.html#t%3ADBBind"
 >DBBind</A
 > a <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
 ><A HREF="Database-InternalEnumerator.html#t%3AIPrepared"
 >IPrepared</A
-> PreparedStmt <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+> PreparedStmtObj <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
 >Session</A
 > BoundStmt BindObj</TD
 ></TR
@@ -241,7 +241,7 @@
 >CalendarTime</A
 >) <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -253,7 +253,7 @@
 >Double</A
 >) <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -265,7 +265,7 @@
 >Int</A
 >) <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -277,7 +277,7 @@
 >Int64</A
 >) <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -289,7 +289,7 @@
 >String</A
 >) <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -299,7 +299,7 @@
 >Maybe</A
 > UTCTime) <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -311,7 +311,7 @@
 >Maybe</A
 > a) <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ></TABLE
 ></DIV
@@ -352,7 +352,75 @@
 >PreparationA</A
 > <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt</TD
+> PreparedStmtObj</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3ApreparePrefetch"
+></A
+><B
+>preparePrefetch</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; QueryString -&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+>PreparationA</A
+> <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AprepareQuery"
+></A
+><B
+>prepareQuery</B
+> :: QueryString -&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+>PreparationA</A
+> <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AprepareLargeQuery"
+></A
+><B
+>prepareLargeQuery</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; QueryString -&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+>PreparationA</A
+> <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AprepareCommand"
+></A
+><B
+>prepareCommand</B
+> :: QueryString -&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+>PreparationA</A
+> <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -384,7 +452,7 @@
 >BindA</A
 > <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj] -&gt; StmtBind</TD
+> PreparedStmtObj BindObj] -&gt; StmtBind</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -404,7 +472,25 @@
 >BindA</A
 > <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj] -&gt; StmtBind</TD
+> PreparedStmtObj BindObj] -&gt; StmtBind</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Acmdbind"
+></A
+><B
+>cmdbind</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>String</A
+> -&gt; [<A HREF="Database-InternalEnumerator.html#t%3ABindA"
+>BindA</A
+> <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj] -&gt; StmtBind</TD
 ></TR
 ><TR
 ><TD CLASS="s15"

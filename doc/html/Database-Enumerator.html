@@ -197,11 +197,14 @@
 </P
 ><UL
 ><LI
-> connect (obviously DBMS specific)
+> <TT
+>connect</TT
+> (obviously DBMS specific)
 </LI
 ><LI
-> prepareStmt, preparePrefetch, sql, sqlbind, prefetch
-</LI
+><PRE
+>prepareQuery, prepareLargeQuery, prepareCommand, sql, sqlbind, prefetch, cmdbind</PRE
+></LI
 ></UL
 ><P
 >These functions will typically have the same names and intentions,
@@ -253,6 +256,30 @@
 > mark sess a) -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
 >IO</A
 > a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AwithContinuedSession"
+>withContinuedSession</A
+> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Typeable.html#t%3ATypeable"
+>Typeable</A
+> a, <A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> sess) =&gt; <A HREF="Database-InternalEnumerator.html#t%3AConnectA"
+>ConnectA</A
+> sess -&gt; (<SPAN CLASS="keyword"
+>forall</SPAN
+> mark . <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark sess a) -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+>IO</A
+> (a, <A HREF="Database-InternalEnumerator.html#t%3AConnectA"
+>ConnectA</A
+> sess)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -994,11 +1021,12 @@
 </P
 ><UL
 ><LI
-> for basic, all-text statements (no bind variables, default row-caching):
+> for basic, all-text statements (no bind variables, default row-caching)
+     which can be used as queries or commands: 
 </LI
 ></UL
 ><PRE
-> sql &quot;select ...&quot;
+>      sql &quot;select ...&quot;
 </PRE
 ><UL
 ><LI
@@ -1006,7 +1034,7 @@
 </LI
 ></UL
 ><PRE
-> sqlbind &quot;select ...&quot; [bindP ..., bindP ...]
+>      sqlbind &quot;select ...&quot; [bindP ..., bindP ...]
 </PRE
 ><UL
 ><LI
@@ -1014,7 +1042,15 @@
 </LI
 ></UL
 ><PRE
-> prefetch 100 &quot;select ...&quot; [bindP ..., bindP ...]
+>      prefetch 100 &quot;select ...&quot; [bindP ..., bindP ...]
+</PRE
+><UL
+><LI
+> for a DML command with bind variables:
+</LI
+></UL
+><PRE
+>      cmdbind &quot;insert into ...&quot; [bindP ..., bindP ...]
 </PRE
 ><UL
 ><LI
@@ -1024,11 +1060,11 @@
 </LI
 ></UL
 ><PRE
-> let stmt = prepareStmt (sql &quot;select ...&quot;)
- withPreparedStatement stmt $ \pstmt -&gt;
-   withBoundStatement pstmt [bindP ..., bindP ...] $ \bstmt -&gt; do
-     result &lt;- doQuery bstmt iter seed
-     ...
+>      let stmt = prepareQuery (sql &quot;select ...&quot;)
+      withPreparedStatement stmt $ \pstmt -&gt;
+        withBoundStatement pstmt [bindP ..., bindP ...] $ \bstmt -&gt; do
+          result &lt;- doQuery bstmt iter seed
+          ...
 </PRE
 ><P
 >The PostgreSQL backend additionally requires that when preparing statements,
@@ -1043,11 +1079,12 @@
  to dummy values of the appropriate types. e.g.
 </P
 ><PRE
-> let stmt = prepareStmt &quot;stmtname&quot; (sql &quot;select ...&quot;) [bindType &quot;&quot;, bindType (0::Int)]
+> let stmt = prepareQuery &quot;stmtname&quot; (sql &quot;select ...&quot;) [bindType &quot;&quot;, bindType (0::Int)]
  withPreparedStatement stmt $ \pstmt -&gt; ...
 </PRE
 ><P
->A longer explanation of bind variables is in the Bind Parameters section below.
+>A longer explanation of prepared statements and
+ bind variables is in the Bind Parameters section below.
 </P
 ></TD
 ></TR
@@ -1380,7 +1417,7 @@
 ><TD CLASS="doc"
 ><P
 >In some examples we use the application operator ($) instead of parentheses
- (some might argue that his is a sign of developer laziness).
+ (some might argue that this is a sign of developer laziness).
  At first glance, ($) and conventional function application via juxtaposition
  seem to be interchangeable e.g.
 </P
@@ -1405,7 +1442,7 @@
  functions. However, type inference in System F is undecidable.
 </P
 ><P
->Haskell hits the sweet spot: maintaining the full inference,
+>Haskell hits the sweet spot: maintaining full inference,
  and permitting rank-2 polymorphism, in exchange for very few
  type annotations. Only functions that take polymorphic functions (and
  thus are higher-rank) need type signatures. Rank-2 types can't be
@@ -1446,7 +1483,6 @@
 > {-# OPTIONS -fglasgow-exts #-}
  module Main where
  import Database.Sqlite.Enumerator
- import Database.Enumerator
  import Control.Monad.Trans (liftIO)
  main = flip catchDB reportRethrow $
    withSession (connect &quot;sqlite_db&quot;) hello
@@ -1534,23 +1570,38 @@
  it a &quot;preparation action&quot;, which is simply an action that returns
  the prepared query. The function to create this action varies between backends,
  and by convention is called <TT
-><A HREF="Database-PostgreSQL-Enumerator.html#v%3AprepareStmt"
->prepareStmt</A
+><A HREF="Database-PostgreSQL-Enumerator.html#v%3AprepareQuery"
+>prepareQuery</A
 ></TT
->
- (although it may also have differently-named variations; see
- <TT
-><A HREF="Database-PostgreSQL-Enumerator.html#v%3ApreparePrefetch"
->preparePrefetch</A
+>.
+ For DML statements, you must use <TT
+><A HREF="Database-PostgreSQL-Enumerator.html#v%3AprepareCommand"
+>prepareCommand</A
 ></TT
->, for example,
- which also exists in the Oracle and Sqlite interfaces).
+>,
+ as the library needs to do something different depending on whether or not the
+ statement returns a result-set.
 </P
 ><P
->With PostgreSQL, we must specify the type of the bind parameters
+>For queries with large result-sets, we provide 
+ <TT
+><A HREF="Database-PostgreSQL-Enumerator.html#v%3AprepareLargeQuery"
+>prepareLargeQuery</A
+></TT
+>,
+ which takes an extra parameter: the number of rows to prefetch
+ in a network call to the server.
+ This aids performance in two ways:
+ 1. you can limit the number of rows that come back to the
+ client, in order to use less memory, and
+ 2. the client library will cache rows, so that a network call to
+ the server is not required for every row processed.
+</P
+><P
+>With PostgreSQL, we must specify the types of the bind parameters
  when the query is prepared, so the <TT
-><A HREF="Database-PostgreSQL-Enumerator.html#v%3AprepareStmt"
->prepareStmt</A
+><A HREF="Database-PostgreSQL-Enumerator.html#v%3AprepareQuery"
+>prepareQuery</A
 ></TT
 >
  function takes a list of <TT
@@ -1562,7 +1613,12 @@
  although you can use &quot;&quot; as the name.
 </P
 ><P
->With Sqlite and Oracle, we simply pass the query text to prepareStmt,
+>With Sqlite and Oracle, we simply pass the query text to
+ <TT
+><A HREF="Database-PostgreSQL-Sqlite.html#v%3AprepareQuery"
+>prepareQuery</A
+></TT
+>,
  so things are slightly simpler for these backends.
 </P
 ><P
@@ -1576,7 +1632,7 @@
      iter s acc = result $ s:acc
      bindVals = [bindP (12345::Int), bindP &quot;CODE123&quot;]
      bindTypes = [bindType (0::Int), bindType &quot;&quot;]
-   withPreparedStatement (prepareStmt &quot;stmt1&quot; query bindTypes) $ \pstmt -&gt; do
+   withPreparedStatement (prepareQuery &quot;stmt1&quot; query bindTypes) $ \pstmt -&gt; do
      withBoundStatement pstmt bindVals $ \bstmt -&gt; do
        actual &lt;- doQuery bstmt iter []
        liftIO (print actual)
@@ -1597,20 +1653,10 @@
 >.
 </P
 ><P
->There is also a statement preparation function
- <TT
-><A HREF="Database-PostgreSQL-Enumerator.html#v%3ApreparePrefetch"
->preparePrefetch</A
-></TT
-> which takes
- an extra parameter: the number of rows to prefetch
- (from each call to the server).
-</P
-><P
 >The Oracle/Sqlite example code is almost the same, except for the
  call to <TT
-><A HREF="Database-Sqlite-Enumerator.html#v%3AprepareStmt"
->prepareStmt</A
+><A HREF="Database-Sqlite-Enumerator.html#v%3AprepareQuery"
+>prepareQuery</A
 ></TT
 >:
 </P
@@ -1621,7 +1667,7 @@
      iter :: (Monad m) =&gt; String -&gt; IterAct m [String]
      iter s acc = result $ s:acc
      bindVals = [bindP (12345::Int), bindP &quot;CODE123&quot;]
-   withPreparedStatement (prepareStmt query) $ \pstmt -&gt; do
+   withPreparedStatement (prepareQuery query) $ \pstmt -&gt; do
      withBoundStatement pstmt bindVals $ \bstmt -&gt; do
        actual &lt;- doQuery bstmt iter []
        liftIO (print actual)
@@ -1783,7 +1829,7 @@
 </P
 ><PRE
 >   withTransaction RepeatableRead $ do
-   withPreparedStatement (prepareStmt &quot;stmt1&quot; (sql &quot;select * from takusenTestFunc()&quot;) []) $ \pstmt -&gt; do
+   withPreparedStatement (prepareQuery &quot;stmt1&quot; (sql &quot;select * from takusenTestFunc()&quot;) []) $ \pstmt -&gt; do
    withBoundStatement pstmt [] $ \bstmt -&gt; do
      dummy &lt;- doQuery bstmt iterMain []
      result1 &lt;- doQuery (NextResultSet pstmt) iterRS1 []
@@ -1821,8 +1867,8 @@
 >withPreparedStatement</A
 ></TT
 >
-    to create a prepared statement object, which is the container for the
-    cursors returned.
+    to create a prepared statement object; the prepared statament oject
+    is the container for the cursors returned.
 </LI
 ><LI
 > in this example we choose to discard the results of the first iteratee.
@@ -1846,7 +1892,13 @@
 ></TT
 > <TT
 >pstmt</TT
->.
+>
+    (i.e. passing the prepared statement oject wrapped by
+    <TT
+><A HREF="Database-Enumerator.html#t%3ANextResultSet"
+>NextResultSet</A
+></TT
+>).
     This simply pulls the next cursor off the list
     - they're processed in the order they were pushed on (FIFO) -
     and processes it with the given iteratee.
@@ -1962,9 +2014,8 @@
 </LI
 ><LI
 > our current Oracle implementation prevents marshalling
-    of the value in the result-set
-    buffer to a Haskell value, so each fetch overwrites the buffer value with
-    a new cursor.
+    of the cursor in the result-set buffer to a Haskell value,
+    so each fetch overwrites the buffer value with a new cursor.
     This means you have to fully process a given cursor before
     fetching the next one.
 </LI
@@ -2112,6 +2163,97 @@
 >Typeable constraint is to prevent the leakage of Session and other
  marked objects.
 </TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AwithContinuedSession"
+></A
+><B
+>withContinuedSession</B
+> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Typeable.html#t%3ATypeable"
+>Typeable</A
+> a, <A HREF="Database-InternalEnumerator.html#t%3AISession"
+>ISession</A
+> sess) =&gt; <A HREF="Database-InternalEnumerator.html#t%3AConnectA"
+>ConnectA</A
+> sess -&gt; (<SPAN CLASS="keyword"
+>forall</SPAN
+> mark . <A HREF="Database-Enumerator.html#t%3ADBM"
+>DBM</A
+> mark sess a) -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+>IO</A
+> (a, <A HREF="Database-InternalEnumerator.html#t%3AConnectA"
+>ConnectA</A
+> sess)</TD
+></TR
+><TR
+><TD CLASS="doc"
+><P
+>Persistent database connections. 
+ This issue has been brought up by Shanky Surana. The following design
+ is inspired by that exchange.
+</P
+><P
+>On one hand, implementing persistent connections is easy. One may say we should
+ have added them long time ago, to match HSQL, HDBC, and similar
+ database interfaces. Alas, implementing persistent connection
+ safely is another matter. The simplest design is like the following
+</P
+><PRE
+> withContinuedSession :: (Typeable a, IE.ISession sess) =&gt; 
+     IE.ConnectA sess -&gt; (forall mark. DBM mark sess a) -&gt; 
+     IO (a, IE.ConnectA sess)
+ withContinuedSession (IE.ConnectA connecta) m = do
+     conn &lt;- connecta
+     r &lt;- runReaderT (unDBM m) conn
+     return (r,(return conn))
+</PRE
+><P
+>so that the connection object is returned as the result and can be
+ used again with withContinuedSession or withSession. The problem is
+ that nothing prevents us from writing:
+</P
+><PRE
+>     (r1,conn) &lt;- withContinuedSession (connect &quot;...&quot;) query1
+     r2        &lt;- withSession conn query2
+     r3        &lt;- withSession conn query3
+</PRE
+><P
+>That is, we store the suspended connection and then use it twice.
+ But the first withSession closes the connection. So, the second
+ withSession gets an invalid session object. Invalid in a sense that
+ even memory may be deallocated, so there is no telling what happens
+ next. Also, as we can see, it is difficult to handle errors and
+ automatically dispose of the connections if the fatal error is
+ encountered.
+</P
+><P
+>All these problems are present in other interfaces...  In the
+ case of a suspended connection, the problem is how to enforce the
+ <EM
+>linear</EM
+> access to a variable. It can be enforced, via a
+ state-changing monad. The implementation below makes
+ the non-linear use of a suspended connection a run-time checkable
+ condition. It will be generic and safe - fatal errors close the
+ connection, an attempt to use a closed connection raises an error, and
+ we cannot reuse a connection. We have to write:
+</P
+><PRE
+>     (r1, conn1) &lt;- withContinuedSession conn  ...
+     (r2, conn2) &lt;- withContinuedSession conn1 ...
+     (r3, conn3) &lt;- withContinuedSession conn2 ...
+</PRE
+><P
+>etc. If we reuse a suspended connection or use a closed connection,
+ we get a run-time (exception). That is of course not very
+ satisfactory - and yet better than a segmentation fault. 
+</P
+></TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2607,7 +2749,11 @@
 ></TR
 ><TR
 ><TD CLASS="doc"
->Analogous to catchDBError, but ignores specific errors instead
+>Analogous to <TT
+><A HREF="Database-Enumerator.html#v%3AcatchDBError"
+>catchDBError</A
+></TT
+>, but ignores specific errors instead
  (propagates anything else).
 </TD
 ></TR
@@ -2718,7 +2864,7 @@
 ><TD CLASS="rdoc"
 >preparation action to create prepared statement;
    this action is usually created by <TT
->prepareStmt</TT
+>prepareQuery/Command</TT
 >
 </TD
 ></TR
@@ -3074,7 +3220,7 @@
 >Statement</A
 > (<A HREF="Database-Enumerator.html#t%3ANextResultSet"
 >NextResultSet</A
-> mark PreparedStmt) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+> mark PreparedStmtObj) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Session</A
 > Query</TD
 ></TR
@@ -3084,7 +3230,7 @@
 >Statement</A
 > (<A HREF="Database-Enumerator.html#t%3ANextResultSet"
 >NextResultSet</A
-> mark PreparedStmt) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+> mark PreparedStmtObj) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
 >Session</A
 > Query</TD
 ></TR

@@ -238,7 +238,7 @@
 >PreparationA</A
 > <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt</TD
+> PreparedStmtObj</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -258,7 +258,63 @@
 >PreparationA</A
 > <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt</TD
+> PreparedStmtObj</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AprepareQuery"
+>prepareQuery</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>String</A
+> -&gt; QueryString -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+>Oid</A
+>] -&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+>PreparationA</A
+> <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AprepareLargeQuery"
+>prepareLargeQuery</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>String</A
+> -&gt; QueryString -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+>Oid</A
+>] -&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+>PreparationA</A
+> <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AprepareCommand"
+>prepareCommand</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>String</A
+> -&gt; QueryString -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+>Oid</A
+>] -&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+>PreparationA</A
+> <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -286,7 +342,7 @@
 >BindA</A
 > <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj] -&gt; QueryStringTuned</TD
+> PreparedStmtObj BindObj] -&gt; QueryStringTuned</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -304,7 +360,23 @@
 >BindA</A
 > <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj] -&gt; QueryStringTuned</TD
+> PreparedStmtObj BindObj] -&gt; QueryStringTuned</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Acmdbind"
+>cmdbind</A
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>String</A
+> -&gt; [<A HREF="Database-InternalEnumerator.html#t%3ABindA"
+>BindA</A
+> <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj] -&gt; CommandBind</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -387,6 +459,14 @@
 ><TD CLASS="decl"
 ><A HREF="Database-InternalEnumerator.html#t%3ACommand"
 >Command</A
+> CommandBind <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-InternalEnumerator.html#t%3ACommand"
+>Command</A
 > QueryString <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
 >Session</A
 ></TD
@@ -451,17 +531,17 @@
 >Maybe</A
 > a) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj =&gt; <A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+> PreparedStmtObj BindObj =&gt; <A HREF="Database-InternalEnumerator.html#t%3ADBBind"
 >DBBind</A
 > a <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
 ><A HREF="Database-InternalEnumerator.html#t%3AIPrepared"
 >IPrepared</A
-> PreparedStmt <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+> PreparedStmtObj <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
 >Session</A
 > BoundStmt BindObj</TD
 ></TR
@@ -487,7 +567,7 @@
 >Double</A
 >) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -499,7 +579,7 @@
 >Float</A
 >) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -511,7 +591,7 @@
 >Int</A
 >) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -523,7 +603,7 @@
 >Int64</A
 >) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -535,7 +615,7 @@
 >String</A
 >) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -545,7 +625,7 @@
 >Maybe</A
 > UTCTime) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -557,7 +637,7 @@
 >Maybe</A
 > a) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj</TD
+> PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -565,7 +645,7 @@
 >Statement</A
 > (<A HREF="Database-Enumerator.html#t%3ANextResultSet"
 >NextResultSet</A
-> mark PreparedStmt) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+> mark PreparedStmtObj) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
 >Session</A
 > Query</TD
 ></TR
@@ -772,7 +852,7 @@
 >PreparationA</A
 > <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt</TD
+> PreparedStmtObj</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -794,7 +874,69 @@
 >PreparationA</A
 > <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt</TD
+> PreparedStmtObj</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AprepareQuery"
+></A
+><B
+>prepareQuery</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>String</A
+> -&gt; QueryString -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+>Oid</A
+>] -&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+>PreparationA</A
+> <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AprepareLargeQuery"
+></A
+><B
+>prepareLargeQuery</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>Int</A
+> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>String</A
+> -&gt; QueryString -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+>Oid</A
+>] -&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+>PreparationA</A
+> <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AprepareCommand"
+></A
+><B
+>prepareCommand</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>String</A
+> -&gt; QueryString -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+>Oid</A
+>] -&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+>PreparationA</A
+> <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -832,7 +974,7 @@
 >BindA</A
 > <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj] -&gt; QueryStringTuned</TD
+> PreparedStmtObj BindObj] -&gt; QueryStringTuned</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -852,7 +994,25 @@
 >BindA</A
 > <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmt BindObj] -&gt; QueryStringTuned</TD
+> PreparedStmtObj BindObj] -&gt; QueryStringTuned</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Acmdbind"
+></A
+><B
+>cmdbind</B
+> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>String</A
+> -&gt; [<A HREF="Database-InternalEnumerator.html#t%3ABindA"
+>BindA</A
+> <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj] -&gt; CommandBind</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
