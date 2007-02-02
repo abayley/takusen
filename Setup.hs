@@ -33,6 +33,8 @@ Not sure exactly what that means for our license;
 does he have to appear in our license.txt?
 (His code is also BSD3 licensed.)
 
+See this page for useful notes on tagging and releasing:
+  http://www.haskell.org/haskellwiki/How_to_write_a_Haskell_program
 
 To-dos for Takusen:
  - use hsc2hs to create #define constants from header files,
