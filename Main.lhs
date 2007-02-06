@@ -34,11 +34,13 @@ Invoke main like this (assuming the compiled executable is called @takusen@):
 > import System.Environment (getArgs)
 > import Database.Test.Performance as Perf
 > import Database.Test.Util as Util
+> import Foreign.C.Test.UTF8 as UTF8
 
 
 > main :: IO ()
 > main = do
 >   Util.runTest
+>   UTF8.runTest
 >   (impl:perf:args) <- getArgs
 >   let runPerf = if perf == "perf" then Perf.RunTests else Perf.Don'tRunTests
 >   case lookup impl backendTests of

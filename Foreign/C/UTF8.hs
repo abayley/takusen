@@ -172,6 +172,8 @@ fromUTF8 (x:xs)
       | x <= 0xDF = remaining 1 (bAND x 0x1F) xs
       | x <= 0xEF = remaining 2 (bAND x 0x0F) xs
       | x <= 0xF7 = remaining 3 (bAND x 0x07) xs
+      | otherwise = err x
+      -- Again, only works for chars > 0x0010FFFF, which we can't test.
       | x <= 0xFB = remaining 4 (bAND x 0x03) xs
       | x <= 0xFD = remaining 5 (bAND x 0x01) xs
       | otherwise = err x
@@ -199,6 +201,8 @@ fromUTF8Ptr p = do
       | x<=0xDF -> remaining 1 (bAND x 0x1F) (advance p)
       | x<=0xEF -> remaining 2 (bAND x 0x0F) (advance p)
       | x<=0xF7 -> remaining 3 (bAND x 0x07) (advance p)
+      | otherwise -> err x
+      -- Again, only works for chars > 0x0010FFFF, which we can't test.
       | x<=0xFB -> remaining 4 (bAND x 0x03) (advance p)
       | x<=0xFD -> remaining 5 (bAND x 0x01) (advance p)
       | otherwise -> err x
