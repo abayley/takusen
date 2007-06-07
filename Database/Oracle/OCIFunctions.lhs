@@ -166,7 +166,7 @@ plsqlArrayMaxLen, plsqlCurrEltPtr, mode
 > foreign import ccall "oci.h OCIBindByPos" ociBindByPos ::
 >   StmtHandle -> Ptr BindHandle -> ErrorHandle -> CUInt -> BufferPtr -> CInt
 >   -> CUShort -> Ptr CShort -> Ptr CUShort -> Ptr CUShort
->   -> Ptr CUInt -> Ptr CUInt -> CUInt -> IO CInt
+>   -> CUInt -> Ptr CUInt -> CUInt -> IO CInt
 
 > foreign import ccall "oci.h OCIBindDynamic" ociBindDynamic ::
 >   BindHandle -> ErrorHandle -> ContextPtr -> FunPtr OCICallbackInBind
@@ -574,7 +574,7 @@ direction.
 >   withForeignPtr bufFPtr $ \bufPtr -> do
 >     rc <- ociBindByPos stmt bindHdl err (fromIntegral pos) bufPtr
 >             (fromIntegral sze) (fromIntegral sqltype)
->             indPtr sizePtr nullPtr nullPtr nullPtr (fromIntegral oci_DEFAULT)
+>             indPtr sizePtr nullPtr 0 nullPtr (fromIntegral oci_DEFAULT)
 >     testForError rc "bindOutputByPos" ()
 >     bptr <- peek bindHdl
 >     return bptr
