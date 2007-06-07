@@ -22,16 +22,22 @@ import qualified Test.QuickCheck as QC
 import Word (Word8)
 
 
-runTest :: IO ()
-runTest = do
-  counts <- runTestTT "Util module tests" testlist
-  return ()
+runTest :: a -> [String] -> IO ()
+runTest _ args = runTestTT "UTF8" mkTestList >> return ()
 
+--mkTestList :: Test
+--mkTestList = TestList (map TestCase testlist)
+mkTestList = testlist
+
+testlist :: [IO ()]
 testlist = 
   [ testUTF8RoundTrip
+  , testUTF8StringLenRoundTrip
   , quickCheckUTF8RoundTrip
   , testFromUTF8Failure5Bytes
   , testFromUTF8Failure6Bytes
+  -- , testLargeFromUTF8
+  -- , testLargeFromUTF8Len
   ]
 
 
@@ -64,6 +70,31 @@ utf8RoundTrip msg unicode utf8 = do
     s <- peekUTF8String cstr
     assertEqual ("testFromUTF8Ptr-" ++ msg) [chr unicode] s
 
+testUTF8StringLenRoundTrip = do
+  utf8StringLenRoundTrip "1ByteLow"   [0x000001, 0x000001] [0x01, 0x01]
+  utf8StringLenRoundTrip "2BytesLow"  [0x000080, 0x00007F] [0xC2, 0x80, 0x7F]
+  utf8StringLenRoundTrip "3BytesLow"  [0x000800, 0x000001] [0xE0, 0xA0, 0x80, 0x01]
+  utf8StringLenRoundTrip "4BytesLow"  [0x010000, 0x00007F] [0xF0, 0x90, 0x80, 0x80, 0x7F]
+  utf8StringLenRoundTrip "4BytesHigh" [0x10FFFF, 0x00007F] [0xF4, 0x8F, 0xBF, 0xBF, 0x01]
+
+utf8StringLenRoundTrip :: String -> [Int] -> [Word8] -> IO ()
+utf8StringLenRoundTrip msg codepoints utf8 = do
+  let unicode = map chr codepoints
+  let expect = take (length unicode - 1) unicode
+  -- convert our unicode code-points (Haskell String)
+  -- into a UTF8 CStringLen.
+  -- Pass this back to peekUTF8StringLen to convert back into Haskell String.
+  -- Chop off the last char - make sure it's only one byte.
+  withUTF8StringLen unicode $ \(cstr, clen) -> do
+    assertEqual ("testUTF8StringLenRoundTrip-" ++ msg) (length utf8) clen
+    s <- peekUTF8StringLen (cstr, clen - 1)
+    assertEqual ("testUTF8StringLenRoundTrip-" ++ msg) expect s
+
+
+
+--testUTF8StringLenRoundTrip = do
+
+
 testFromUTF8Failure5Bytes = do
   let utf8 = [0xF8, 0x80, 0x80, 0x80, 0x80]
   catchJust errorCalls (do
@@ -81,3 +112,27 @@ testFromUTF8Failure6Bytes = do
     ) (\msg -> do
       assertEqual "testFromUTF8Failure6Bytes" "fromUTF8: illegal UTF-8 character 253" msg
     )
+
+{-
+testLargeFromUTF8 = do
+  let sz = 1000000
+  withCString (take sz (repeat 'a')) $ \cstr -> do
+    s <- peekUTF8String cstr
+    assertEqual "testLargeFromUTF8" sz (length s)
+    s <- peekUTF8StringB cstr
+    assertEqual "testLargeFromUTF8B" sz (length s)
+    s <- peekUTF8StringLen (cstr, sz)
+    assertEqual "testLargeFromUTF8Len" sz (length s)
+    s <- peekUTF8StringLenB (cstr, sz)
+    assertEqual "testLargeFromUTF8LenB" sz (length s)
+-}
+
+{-
+testLargeFromUTF8Len = do
+  let sz = 1000000
+  withCStringLen (take sz (repeat 'a')) $ \(cstr, clen) -> do
+    putStrLn "testLargeFromUTF8Len: call peekUTF8StringLen"
+    s <- peekUTF8StringLen (cstr, clen)
+    putStrLn "testLargeFromUTF8Len: assert length"
+    assertEqual "testLargeFromUTF8Len" sz (length s)
+-}
