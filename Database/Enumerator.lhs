@@ -36,6 +36,7 @@ These functions will typically have the same names and intentions,
 but their specific types and usage may differ between DBMS.
 
 
+> {-# OPTIONS -cpp #-}
 > {-# OPTIONS -fglasgow-exts #-}
 > {-# OPTIONS -fallow-overlapping-instances #-}
 > {-# OPTIONS -fallow-undecidable-instances #-}
@@ -95,6 +96,7 @@ but their specific types and usage may differ between DBMS.
 >     , ifNull, result, result'
 >   ) where
 
+> import Prelude hiding (catch)
 > import Data.Dynamic
 > import Data.IORef
 > import Data.Time
@@ -102,7 +104,6 @@ but their specific types and usage may differ between DBMS.
 > import Control.Exception (throw, 
 >            dynExceptions, throwDyn, bracket, Exception, finally)
 > import qualified Control.Exception (catch)
-> import Control.Monad.Fix
 > import Control.Monad.Reader
 > import Control.Exception.MonadIO
 > import qualified Database.InternalEnumerator as IE
@@ -182,18 +183,9 @@ The quantification over Session is quite bothersome: need to enumerate
 all class constraints for the Session (like IQuery, DBType, etc).
 
 > newtype IE.ISession sess => DBM mark sess a = DBM (ReaderT sess IO a)
->   -- Haddock can't cope with the "MonadReader sess" instance
->   --deriving (Monad, MonadIO)
->   deriving (Functor, Monad, MonadIO, MonadFix, MonadReader sess)
+#ifndef __HADDOCK__
+>   deriving (Monad, MonadIO, MonadReader sess)
 > unDBM (DBM x) = x
-
-
- instance Monad (DBM mark si) where
-   return x = DBM (return x)
-   m >>= f  = DBM (unDBM m >>= unDBM . f)
- instance MonadIO (DBM mark si) where
-   liftIO x = DBM (liftIO x)
- instance MonadReader sess (ReaderT sess (DBM mark si)) where ...
 
 
 > instance IE.ISession si => CaughtMonadIO (DBM mark si) where
@@ -265,7 +257,7 @@ satisfactory - and yet better than a segmentation fault.
 > withContinuedSession (IE.ConnectA connecta) m = 
 >    do conn <- connecta  -- this invalidates connecta
 >       r <- runReaderT (unDBM m) conn
->            `Control.Exception.catch` (\e -> IE.disconnect conn >> throw e)
+>            `catch` (\e -> IE.disconnect conn >> throw e)
 >       -- make a new, one-shot connecta
 >       hasbeenused <- newIORef False
 >       let connecta = do
