@@ -53,7 +53,7 @@ guarantee that the only thing to do with the result of
 'Database.Enumerator.Sqlite.connect' function is to pass it out
 directly to 'Database.Enumerator.withSession'.
 
-> newtype ConnectA sess = ConnectA (IO sess)
+> newtype ConnectA sess = ConnectA (IO sess) deriving Typeable
 
 
 

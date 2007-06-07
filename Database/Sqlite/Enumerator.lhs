@@ -35,6 +35,7 @@ Sqlite implementation of Database.Enumerator.
 > import qualified Database.Sqlite.SqliteFunctions as DBAPI
 > import Control.Monad.Trans
 > import Control.Monad.Reader
+> import Data.Dynamic
 > import Data.IORef
 > import Data.Int
 > import System.Time
@@ -127,7 +128,7 @@ Below are pretty much all of the errors that Sqlite can throw.
 We don't need much in an Sqlite Session record.
 Session objects are created by 'connect'.
 
-> newtype Session = Session { dbHandle :: DBHandle }
+> newtype Session = Session { dbHandle :: DBHandle } deriving Typeable
 
 > connect :: String -> ConnectA Session
 > connect dbname = ConnectA $ do

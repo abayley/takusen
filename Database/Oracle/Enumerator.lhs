@@ -39,6 +39,7 @@ Oracle OCI implementation of Database.Enumerator.
 > import Control.Monad.Trans
 > import Control.Monad.Reader
 > import Data.Char (toLower)
+> import Data.Dynamic
 > import Data.List (isPrefixOf)
 > import Data.IORef
 > import Data.Int
@@ -152,7 +153,7 @@ and never OCIExceptions.
 >   , errorHandle :: ErrorHandle
 >   , connHandle :: ConnHandle
 >   }
-
+>   deriving Typeable
 
 > class FreeHandle ht where dispose :: ht -> IO ()
 

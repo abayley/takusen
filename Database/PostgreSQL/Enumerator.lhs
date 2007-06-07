@@ -32,6 +32,7 @@ PostgreSQL implementation of Database.Enumerator.
 > import Control.Exception (catchDyn, throwDyn, throwIO)
 > import qualified Database.PostgreSQL.PGFunctions as DBAPI
 > import Data.Char
+> import Data.Dynamic
 > import Data.IORef
 > import Data.Int
 > import Data.List
@@ -85,8 +86,11 @@ ERROR:  42P01: relation "blahblahblah" does not exist.
 
 We don't need much in an PostgreSQL Session record.
 Session objects are created by 'connect'.
+Deriving Typeable allows us to store Session objects in a
+HashMap (say) of Dynamic objects e.g. for a connection pool.
 
 > newtype Session = Session { dbHandle :: DBAPI.DBHandle }
+>   deriving Typeable
 
 | Specify connection options to 'connect'.
 You only need to use whatever subset is relevant for your connection.
