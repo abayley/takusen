@@ -1,5 +1,4 @@
 
-{-# OPTIONS_GHC -fbang-patterns #-}
 {-# LANGUAGE CPP #-}
 
 -- |
@@ -99,6 +98,9 @@ withUTF8StringLen s action = do
 fromUTF8String :: String -> String
 fromUTF8String = fromUTF8 . map charToWord8
 
+charToWord8 :: Char -> Word8
+charToWord8 = fromIntegral . fromEnum
+
 -- | Convert a Haskell String into a UTF8 String, where each UTF8 byte
 -- is represented by its Char equivalent i.e. only chars 0-255 are used.
 -- The resulting String can be marshalled to CString directly i.e. with
@@ -106,11 +108,9 @@ fromUTF8String = fromUTF8 . map charToWord8
 toUTF8String :: String -> String
 toUTF8String = map word8ToChar . toUTF8
 
-charToWord8 :: Char -> Word8
-charToWord8 = fromIntegral . fromEnum
-
 word8ToChar :: Word8 -> Char
-word8ToChar = toEnum . fromIntegral
+word8ToChar = unsafeChr . fromIntegral
+
 
 lengthUTF8 :: String -> Int
 lengthUTF8 s = length (toUTF8 s)
@@ -250,11 +250,8 @@ fromUTF8Ptr0 p = do
 -- i.e. if the CString has length 2, then you should pass
 -- bytes=1.
 fromUTF8Ptr :: Int -> Ptr Word8 -> String -> IO String
-#ifdef __GLASGOW_HASKELL__
-fromUTF8Ptr !bytes !p !acc
-#else
 fromUTF8Ptr bytes p acc
-#endif
+  | () `seq` bytes `seq` p `seq` acc `seq` False = undefined
   | bytes < 0 = return acc
   | otherwise = do
   x <- liftM fromIntegral (peekElemOff p bytes)
@@ -269,11 +266,9 @@ fromUTF8Ptr bytes p acc
 
 
 readUTF8Char :: Int -> Int -> Ptr Word8 -> IO Char
-#ifdef __GLASGOW_HASKELL__
-readUTF8Char !x !offset !p =
-#else
-readUTF8Char x offset p =
-#endif
+readUTF8Char x offset p
+  | () `seq` x `seq` offset `seq` p `seq` False = undefined
+  | otherwise =
   case () of
     _ | x == 0 -> err x
       | x <= 0x7F -> return (unsafeChr x)
