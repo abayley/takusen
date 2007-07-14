@@ -102,6 +102,7 @@ but their specific types and usage may differ between DBMS.
 > import Control.Exception (throw, 
 >            dynExceptions, throwDyn, bracket, Exception, finally)
 > import qualified Control.Exception (catch)
+> import Control.Monad.Fix
 > import Control.Monad.Reader
 > import Control.Exception.MonadIO
 > import qualified Database.InternalEnumerator as IE
@@ -183,7 +184,7 @@ all class constraints for the Session (like IQuery, DBType, etc).
 > newtype IE.ISession sess => DBM mark sess a = DBM (ReaderT sess IO a)
 >   -- Haddock can't cope with the "MonadReader sess" instance
 >   --deriving (Monad, MonadIO)
->   deriving (Monad, MonadIO, MonadReader sess)
+>   deriving (Functor, Monad, MonadIO, MonadFix, MonadReader sess)
 > unDBM (DBM x) = x
 
 
