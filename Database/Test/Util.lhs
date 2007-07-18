@@ -1,13 +1,14 @@
 > module Database.Test.Util where
 
+> import Database.Test.Performance as Perf
 > import Database.Util
 > import Test.MiniUnit
 > import Data.Int
 > import Data.Char
 
 
-> runTest :: IO ()
-> runTest = do
+> runTest :: a -> [String] -> IO ()
+> runTest _ _ = do
 >   counts <- runTestTT "Util module tests" testlist
 >   return ()
 
