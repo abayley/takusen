@@ -235,9 +235,7 @@ with Oracle and PostgreSQL.
 >   bindRun sess stmt bas action = do
 >     sequence_ (zipWith (\i (BindA ba) -> ba sess stmt i) [1..] bas)
 >     action (BoundStmt stmt)
->   destroyStmt sess stmt = do
->     when (not (stmtFreeWithQuery stmt)) $
->       finaliseStmt (dbHandle sess) (stmtHandle stmt)
+>   destroyStmt sess stmt = finaliseStmt (dbHandle sess) (stmtHandle stmt)
 
 > instance DBBind (Maybe String) Session PreparedStmtObj BindObj where
 >   bindP = makeBindAction
