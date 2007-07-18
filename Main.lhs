@@ -28,6 +28,7 @@ Invoke main like this (assuming the compiled executable is called @takusen@):
 > import Database.Sqlite.Test.Enumerator as Sqlite
 > import Database.Oracle.Test.Enumerator as Oracle
 > --import Database.Test.MultiConnect as Multi
+> import Database.ODBC.Test.Enumerator as ODBC
 > import Database.Stub.Test.Enumerator as Stub
 > --import Database.MSSqlServer.Test.Enumerator as MSSql
 > import Database.PostgreSQL.Test.Enumerator as PGSql
@@ -39,9 +40,17 @@ Invoke main like this (assuming the compiled executable is called @takusen@):
 
 > main :: IO ()
 > main = do
->   Util.runTest
->   UTF8.runTest
->   (impl:perf:args) <- getArgs
+>   args <- getArgs
+>   if (length args < 2)
+>     then showUsage
+>     else do
+>       let (impl:perf:as) = args
+>       doTests impl perf as
+
+> showUsage = do
+>   putStrLn "usage: takusen backend {no}perf user pswd database"
+
+> doTests impl perf args = do
 >   let runPerf = if perf == "perf" then Perf.RunTests else Perf.Don'tRunTests
 >   case lookup impl backendTests of
 >     Nothing -> putStrLn $ "No backend for " ++ impl ++ "."
@@ -51,8 +60,11 @@ Invoke main like this (assuming the compiled executable is called @takusen@):
 > backendTests =
 >   [ ("sqlite", Sqlite.runTest)
 >   , ("pgsql", PGSql.runTest)
+>   , ("odbc", ODBC.runTest)
 >   --, ("mssql", MSSql.runTest)
 >   , ("oracle", Oracle.runTest)
 >   --, ("multi", Multi.runTest)
 >   , ("stub", Stub.runTest)
+>   , ("utf8", UTF8.runTest)
+>   , ("util", Util.runTest)
 >   ]
