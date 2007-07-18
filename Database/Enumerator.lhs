@@ -104,6 +104,7 @@ but their specific types and usage may differ between DBMS.
 > import Control.Exception (throw, 
 >            dynExceptions, throwDyn, bracket, Exception, finally)
 > import qualified Control.Exception (catch)
+> import Control.Monad.Fix
 > import Control.Monad.Reader
 > import Control.Exception.MonadIO
 > import qualified Database.InternalEnumerator as IE
@@ -184,7 +185,11 @@ all class constraints for the Session (like IQuery, DBType, etc).
 
 > newtype IE.ISession sess => DBM mark sess a = DBM (ReaderT sess IO a)
 #ifndef __HADDOCK__
->   deriving (Monad, MonadIO, MonadReader sess)
+>   deriving (Functor, Monad, MonadIO, MonadFix, MonadReader sess)
+#else
+>   -- Haddock can't cope with the "MonadReader sess" instance
+>   deriving (Functor, Monad, MonadIO, MonadFix)
+#endif
 > unDBM (DBM x) = x
 
 
@@ -257,7 +262,7 @@ satisfactory - and yet better than a segmentation fault.
 > withContinuedSession (IE.ConnectA connecta) m = 
 >    do conn <- connecta  -- this invalidates connecta
 >       r <- runReaderT (unDBM m) conn
->            `catch` (\e -> IE.disconnect conn >> throw e)
+>            `Control.Exception.catch` (\e -> IE.disconnect conn >> throw e)
 >       -- make a new, one-shot connecta
 >       hasbeenused <- newIORef False
 >       let connecta = do
