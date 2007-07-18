@@ -77,6 +77,7 @@ functions and types. See the various backend-specific test modules for examples.
 > data SqliteFunctions = SqliteFunctions
 > data OracleFunctions = OracleFunctions
 > data PGSqlFunctions = PGSqlFunctions
+> data ODBCFunctions = ODBCFunctions
 
 > instance DBLiteralValue SqliteFunctions where
 >   literalDate _ i = dateSqlite i
@@ -91,6 +92,10 @@ functions and types. See the various backend-specific test modules for examples.
 >   literalFloat _ i = show i ++ "::float4"
 >   literalDouble _ i = show i ++ "::float8"
 
+> instance DBLiteralValue ODBCFunctions where
+>   literalDate _ i = dateISO i
+
+
 
 > dateSqlite :: Int64 -> String
 > dateSqlite i = if i == 0 then "99999999999999" else show i
@@ -100,6 +105,17 @@ functions and types. See the various backend-specific test modules for examples.
 >   | i == 0 = "to_date(null)"
 >   | i > 0  = "to_date('" ++ (zeroPad 14 i) ++ "', 'yyyymmddhh24miss')"
 >   | i < 0  = "to_date('" ++ (zeroPad 14 i) ++ "', 'syyyymmddhh24miss')"
+
+> dateISO :: Int64 -> String
+> dateISO i =
+>   let
+>     (year, month, day, hour, minute, second) = int64ToDateParts i
+>     zp = zeroPad
+>   in
+>   if i == 0 then "null"
+>   else zp 4 year ++ "-" ++ zp 2 month ++ "-" ++ zp 2 day
+>     ++ "T" ++ zp 2 hour ++ ":" ++ zp 2 minute ++ ":" ++ zp 2 second
+
 
 For postgres:
 0000-01-01 AD -> 0001-01-01 BC
