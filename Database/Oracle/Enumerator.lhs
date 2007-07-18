@@ -577,10 +577,7 @@ reused for the child cursors.
 >     -- after execute, save any RefCursor Out values...
 >     -- or should we save all Out values?
 >     action (BoundStmt stmt)
->   destroyStmt sess pstmt =
->     case stmtLifetime pstmt of
->       FreeWithQuery -> closeStmt sess (stmtHandle pstmt)
->       _ -> return ()
+>   destroyStmt sess pstmt = closeStmt sess (stmtHandle pstmt)
 
 > instance DBBind (Maybe String) Session PreparedStmtObj BindObj where
 >   bindP = makeBindAction
