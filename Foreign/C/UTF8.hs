@@ -252,7 +252,11 @@ fromUTF8Ptr0 p = do
 fromUTF8Ptr :: Int -> Ptr Word8 -> String -> IO String
 fromUTF8Ptr bytes p acc
   | () `seq` bytes `seq` p `seq` acc `seq` False = undefined
-  | bytes < 0 = return acc
+  | bytes < 0 = do
+  if null acc then return acc
+    else  -- BOM = chr 65279 ( EF BB BF )
+    if head acc /= chr 65279 then return acc
+    else return (tail acc)
   | otherwise = do
   x <- liftM fromIntegral (peekElemOff p bytes)
   case () of
