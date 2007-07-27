@@ -1,4 +1,4 @@
-#!/usr/bin/env runhaskell
+#!/usr/bin/env runhaskell 
 
 -- Can't use "#!" with -cpp; get "invalid preprocessing directive #!"
 
@@ -11,13 +11,16 @@ import Distribution.Simple.Configure (findProgram)
 import Distribution.Simple.LocalBuildInfo (LocalBuildInfo)
 import Distribution.Setup
 import Distribution.Compat.FilePath (splitFileName, joinPaths)
-import System.Directory (removeFile, canonicalizePath)
-import System.Process(runInteractiveProcess, waitForProcess)
-import System.IO(hClose, hGetContents, hPutStr, stderr)
+import System.Directory (removeFile, getTemporaryDirectory, canonicalizePath)
+import System.Process(runProcess, waitForProcess)
+import System.IO(hClose, openFile, hGetLine, hIsEOF, openTempFile, IOMode(..))
 import System.Exit
-import Control.Exception (try)
+import Control.Exception (try, bracket)
 import Control.Monad
 import Data.List
+
+-- splitFileName = undefined
+-- joinPaths = undefined
 
 {-
 One install script to rule them all, and in the darkness build them...
@@ -167,11 +170,8 @@ configPG verbose = do
         , includeDirs = inc_dirs ++ inc_dirs_server
         })
 
-concatBuildInfo [] = Nothing
-concatBuildInfo [x] = x
-concatBuildInfo (bi:bis) = combineBuildInfo bi (concatBuildInfo bis)
+concatBuildInfo = foldr1 combineBuildInfo 
 
-combineBuildInfo Nothing Nothing = Nothing
 combineBuildInfo mbi Nothing = mbi
 combineBuildInfo Nothing mbi = mbi
 combineBuildInfo (Just bi1) (Just bi2) =
@@ -183,15 +183,24 @@ combineBuildInfo (Just bi1) (Just bi2) =
 
 rawSystemGrabOutput :: Int -> FilePath -> [String] -> IO String
 rawSystemGrabOutput verbose path args = do
-  when (verbose > 0) (putStrLn (path ++ concatMap (' ':) args))
-  (inp,out,err,pid) <- runInteractiveProcess path args Nothing Nothing
+  when (verbose > 0) . putStrLn . unwords $ path:args
+  tmp_dir <- getTemporaryDirectory
+  (outf,outh) <- openTempFile tmp_dir "out.dat"
+		 -- process' stderr goes to our stderr
+  pid <- runProcess path args Nothing Nothing Nothing (Just outh) Nothing
   exitCode <- waitForProcess pid
-  if exitCode /= ExitSuccess
-    then do
-      errMsg <- hGetContents err
-      hPutStr stderr errMsg
-      exitWith exitCode
-    else return ()
-  hClose inp
-  hClose err
-  hGetContents out
+  when (exitCode /= ExitSuccess) $ exitWith exitCode
+  file_to_contents outf
+
+-- properly, this time, with no lazy IO
+file_to_contents fname = 
+   bracket (openFile fname ReadMode) 
+	   (\h -> hClose h >> removeFile fname) 
+	   (reader [])
+ where
+ reader acc h = do
+		eof <- hIsEOF h
+		if eof then return . concat $ reverse acc
+		   else do
+			l <- hGetLine h
+			reader (" ":l:acc) h
