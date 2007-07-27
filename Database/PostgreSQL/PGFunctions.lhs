@@ -253,6 +253,35 @@ Really getting the values
 > foreign import ccall "libpq-fe.h PQsetErrorVerbosity" fPQsetErrorVerbosity
 >   :: DBHandle -> PGVerbosity -> IO PGVerbosity
 
+28.3. Large Objects. Client Interfaces
+
+> type LOAccessType = CInt -- enumeration, see libpq-fs.h
+> [eINV_WRITE,eINV_READ] = [0x00020000,0x00040000]::[LOAccessType]
+> type WhenceType = CInt -- enumeration, see <sys/unistd.h>
+> [eSEEK_SET,eSEEK_CUR,eSEEK_END] = [0,1,2]::[WhenceType]
+
+> foreign import ccall "libpq-fe.h lo_creat" flo_creat
+>   :: DBHandle -> LOAccessType -> IO Oid
+
+> foreign import ccall "libpq-fe.h lo_import" flo_import
+>   :: DBHandle -> CString -> IO Oid
+> foreign import ccall "libpq-fe.h lo_export" flo_export
+>   :: DBHandle -> Oid -> CString -> IO CInt
+
+> foreign import ccall "libpq-fe.h lo_open" flo_open
+>   :: DBHandle -> Oid -> LOAccessType -> IO CInt
+> foreign import ccall "libpq-fe.h lo_write" flo_write
+>   :: DBHandle -> CInt -> Ptr Word8  -> CUInt -> IO CInt
+> foreign import ccall "libpq-fe.h lo_read" flo_read
+>   :: DBHandle -> CInt -> Ptr Word8  -> CUInt -> IO CInt
+> foreign import ccall "libpq-fe.h lo_lseek" flo_lseek
+>   :: DBHandle -> CInt -> CInt  -> WhenceType -> IO CInt
+> foreign import ccall "libpq-fe.h lo_tell" flo_tell
+>   :: DBHandle -> CInt -> IO CInt
+> foreign import ccall "libpq-fe.h lo_close" flo_close
+>   :: DBHandle -> CInt -> IO CInt
+> foreign import ccall "libpq-fe.h lo_unlink" flo_unlink
+>   :: DBHandle -> Oid -> IO CInt
 
 
 -------------------------------------------------------------------
