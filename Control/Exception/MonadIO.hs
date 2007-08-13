@@ -48,4 +48,3 @@ instance CaughtMonadIO m => CaughtMonadIO (ReaderT a m) where
          Just e' -> runReaderT (h e') r
        )
 
- 
