@@ -54,6 +54,21 @@
 -4712 (4713BC?) is a very common minimum date among DBMS implementations.
 Maximum varies, but is often 5874897 AD.
 
+ghc-6.4.1 needs this, because it only has Show instances for
+up to 5-tuples.
+
+> instance (Show a, Show b, Show c, Show d, Show e, Show f)
+>   => Show (a,b,c,d,e,f) where
+>   show (a,b,c,d,e,f) =
+>     "(" ++ show a
+>     ++ "," ++ show a
+>     ++ "," ++ show b
+>     ++ "," ++ show c
+>     ++ "," ++ show d
+>     ++ "," ++ show e
+>     ++ "," ++ show f
+>     ++ ")"
+
 > testInt64ToDatePartsMinDate = do
 >   let expect :: (Int64,Int64,Int64,Int64,Int64,Int64); expect = (-4712,1,1,0,0,0)
 >   assertEqual "testInt64ToDatePartsMinDate" expect (int64ToDateParts (-47120101000000))

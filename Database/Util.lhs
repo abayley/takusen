@@ -22,7 +22,6 @@ Utility functions. Mostly used in database back-ends, and tests.
 > import Data.Int
 > import Data.List
 > import Data.Char
-> import Data.Fixed
 > import Data.Time
 > import Text.Printf
 
@@ -180,6 +179,11 @@ I think. Need to test this with different server timezones, though.
 >   let (year, month, day, hour, minute, second, tz) = pgDatetimetoParts s
 >   in mkCalTime year month day hour minute (round second)
 
+isInfixOf is defined in the Data.List that comes with ghc-6.6,
+but it is not in the libs that come with ghc-6.4.1.
+
+> myIsInfixOf srch list = or (map (isPrefixOf srch) (tails list))
+
 > pgDatetimetoParts :: String -> (Int, Int, Int, Int, Int, Double, Int)
 > pgDatetimetoParts s =
 >   let
@@ -187,9 +191,9 @@ I think. Need to test this with different server timezones, though.
 >     ws = wordsBy pred s
 >     parts :: [Int]; parts = map read (take 5 ws)
 >     secs :: Double; secs = read (ws!!5)
->     hasTZ = isInfixOf "+" s
+>     hasTZ = myIsInfixOf "+" s
 >     tz :: Int; tz = if hasTZ then read (ws !! 6) else 0
->     isBC = isInfixOf "BC" s
+>     isBC = myIsInfixOf "BC" s
 >     year :: Int; year = if isBC then (- ((parts !! 0) - 1)) else parts !! 0
 >   in (year, (parts !! 1), (parts !! 2)
 >      , (parts !! 3), (parts !! 4), secs, tz)
