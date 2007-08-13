@@ -14,6 +14,10 @@ Utility functions. Mostly used in database back-ends, and tests.
 > {-# OPTIONS -fallow-overlapping-instances #-}
 > {-# OPTIONS -fallow-undecidable-instances #-}
 
+> {-# LANGUAGE FlexibleInstances #-}
+> {-# LANGUAGE OverlappingInstances #-}
+> {-# LANGUAGE UndecidableInstances #-}
+
 > module Database.Util where
 
 > import System.Time
