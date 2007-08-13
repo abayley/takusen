@@ -36,10 +36,20 @@ These functions will typically have the same names and intentions,
 but their specific types and usage may differ between DBMS.
 
 
+Had better keep the old style, for older versions of GHC.
+
 > {-# OPTIONS -cpp #-}
 > {-# OPTIONS -fglasgow-exts #-}
 > {-# OPTIONS -fallow-overlapping-instances #-}
 > {-# OPTIONS -fallow-undecidable-instances #-}
+
+New style extension declarations.
+
+> {-# LANGUAGE CPP #-}
+> {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+> {-# LANGUAGE OverlappingInstances #-}
+> {-# LANGUAGE UndecidableInstances #-}
+
 
 > module Database.Enumerator
 >   (
