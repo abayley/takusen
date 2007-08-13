@@ -3,7 +3,7 @@ Version:        0.6
 License:        BSD3
 License-file:   doc/license.txt
 Author:         Alistair Bayley, Oleg Kiselyov
-Copyright:      2003-2006, Alistair Bayley, Oleg Kiselyov
+Copyright:      2003-2007, Alistair Bayley, Oleg Kiselyov
 Maintainer:     alistair@abayley.org, oleg@pobox.com
 Stability:      experimental
 Homepage:       http://darcs.haskell.org/takusen
@@ -27,3 +27,5 @@ Exposed-modules:
 Other-modules:
   Database.InternalEnumerator
 Ghc-Prof-Options: -prof -auto-all
+--Ghc-Options: -O2
+Extensions: CPP

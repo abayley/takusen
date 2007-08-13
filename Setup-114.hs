@@ -1,63 +1,38 @@
 #!/usr/bin/env runhaskell 
 
--- Can't use "#!" with -cpp; get "invalid preprocessing directive #!"
+-- This Setup script is for cabal-1.1.4.
 
+import Distribution.Setup (InstallUserFlag(..))
 import Distribution.Simple
 import Distribution.Simple.Build (build)
+import Distribution.Simple.Configure (LocalBuildInfo(..))
 import Distribution.Simple.Install (install)
-import Distribution.Simple.Register (writeInstalledConfig, register)
+import Distribution.Simple.Register	(register, writeInstalledConfig)
 import Distribution.PreProcess (PPSuffixHandler, knownSuffixHandlers)
+import Distribution.PackageDescription (HookedBuildInfo, BuildInfo
+  , emptyHookedBuildInfo, writeHookedBuildInfo, emptyBuildInfo
+  , extraLibs, extraLibDirs, includeDirs)
+import Distribution.Simple.Configure (findProgram)
+import Distribution.Simple.LocalBuildInfo (LocalBuildInfo)
+import Distribution.Setup (ConfigFlags, configVerbose)
 import Distribution.PackageDescription
   ( HookedBuildInfo, emptyHookedBuildInfo, PackageDescription
   , writeHookedBuildInfo, Library(..), library, extraLibs
   , hasLibs, emptyBuildInfo, extraLibDirs, includeDirs, BuildInfo(..)
   )
-import Distribution.Simple.Configure (findProgram)
-import Distribution.Simple.LocalBuildInfo (LocalBuildInfo)
-import Distribution.Setup (ConfigFlags, configVerbose, BuildFlags
+import Distribution.Setup (ConfigFlags, configVerbose
   , InstallFlags(..), CopyFlags(..), CopyDest(..)
-  , emptyRegisterFlags, regUser, regVerbose
+--  , emptyRegisterFlags, regUser, regVerbose
   )
 import System.Directory (removeFile, getTemporaryDirectory, canonicalizePath)
-import System.FilePath (splitFileName, combine)
 import System.Process(runProcess, waitForProcess)
 import System.IO(hClose, openFile, hGetLine, hIsEOF, openTempFile, IOMode(..))
 import System.Exit (ExitCode(..), exitWith)
+import System.FilePath (splitFileName, combine)
 import Control.Exception (try, bracket)
 import Control.Monad (when)
 import Data.List (isPrefixOf, unionBy)
 
-{-
-One install script to rule them all, and in the darkness build them...
-
-Some of the code in this script is adapted from the various
-HSQL Setup scripts, so some credit for it should go to Krasimir Angelov.
-Not sure exactly what that means for our license;
-does he have to appear in our license.txt?
-(His code is also BSD3 licensed.)
-
-See this page for useful notes on tagging and releasing:
-  http://www.haskell.org/haskellwiki/How_to_write_a_Haskell_program
-
-To-dos for Takusen:
- - use hsc2hs to create #define constants from header files,
-   rather than hard-code them.
- - Blob support (and clob?).
- - ODBC back-end.
- - FreeTDS back-end.
- - POP3 & IMAP back-ends?
-
- - Unwritten tests:
-   * incorrect fold function (doesn't match result-set)
-
-
-GHC compiler/linker options:
-
-Postgres: -I"C:\Program Files\PostgreSQL\8.1\include" -lpq -L"C:\Program Files\PostgreSQL\8.1\bin"
-Sqlite  : -I"C:\Program Files\sqlite" -lsqlite3 -L"C:\Program Files\sqlite"
-Oracle  : -I"C:\Program Files\Oracle\OraHome817\oci\include" -loci -L"C:\Program Files\Oracle\OraHome817\bin"
-Oracle  : -I"%ORACLE_HOME%\oci\include" -loci -L"%ORACLE_HOME%\bin"
--}
 
 main = defaultMainWithHooks defaultUserHooks
   { preConf=preConf, postConf=postConf, buildHook=buildHook, instHook=installHook }
@@ -77,10 +52,10 @@ main = defaultMainWithHooks defaultUserHooks
       return ExitSuccess
     -- We patch in the buildHook so that we can modify the list of exposed
     -- modules (we remove modules for back-ends that are not installed).
-    buildHook :: PackageDescription -> LocalBuildInfo -> Maybe UserHooks -> BuildFlags -> IO ()
+    buildHook :: PackageDescription -> LocalBuildInfo -> Int -> [PPSuffixHandler] -> IO ()
     buildHook pd lbi mbuh bf = defaultBuildHook (modifyPackageDesc pd) lbi mbuh bf
     -- also patch the installHook
-    installHook :: PackageDescription -> LocalBuildInfo -> Maybe UserHooks -> InstallFlags -> IO ()
+    installHook :: PackageDescription -> LocalBuildInfo -> Int -> InstallUserFlag -> IO ()
     installHook pd lbi mbuh insf = defaultInstallHook (modifyPackageDesc pd) lbi mbuh insf
 
 modifyPackageDesc pd =
@@ -100,25 +75,24 @@ removeModulesForAbsentLib lib prefix libs modules =
   then filter (not . isPrefixOf prefix) modules
   else modules
 
-
-
 ---------------------------------------------------------------------
 -- Start of code copied verbatim from Distribution.Simple,
 -- because it's not exported.
-defaultBuildHook :: PackageDescription -> LocalBuildInfo
-    -> Maybe UserHooks -> BuildFlags -> IO ()
-defaultBuildHook pkg_descr localbuildinfo hooks flags = do
-  build pkg_descr localbuildinfo flags (allSuffixHandlers hooks)
-  when (hasLibs pkg_descr) $
-      writeInstalledConfig pkg_descr localbuildinfo False
 
-defaultInstallHook :: PackageDescription -> LocalBuildInfo
-    -> Maybe UserHooks ->InstallFlags -> IO ()
-defaultInstallHook pkg_descr localbuildinfo _ (InstallFlags uInstFlag verbose) = do
-  install pkg_descr localbuildinfo (CopyFlags NoCopyDest verbose)
+defaultInstallHook pkg_descr localbuildinfo verbose uInstFlag = do
+  let uInst = case uInstFlag of
+               InstallUserUser   -> True
+               InstallUserGlobal -> False --over-rides configure setting
+               -- no flag, check how it was configured:
+               InstallUserNone   -> userConf localbuildinfo
+  install pkg_descr localbuildinfo (NoCopyDest, verbose)
+  when (hasLibs pkg_descr)
+           (register pkg_descr localbuildinfo (uInst, False, verbose))
+
+defaultBuildHook pkg_descr localbuildinfo flags pps = do
+  build pkg_descr localbuildinfo flags pps
   when (hasLibs pkg_descr) $
-      register pkg_descr localbuildinfo 
-           emptyRegisterFlags{ regUser=uInstFlag, regVerbose=verbose }
+      writeInstalledConfig pkg_descr localbuildinfo
 
 allSuffixHandlers :: Maybe UserHooks -> [PPSuffixHandler]
 allSuffixHandlers hooks
@@ -131,9 +105,22 @@ allSuffixHandlers hooks
 -- End of code copied verbatim from Distribution.Simple.
 ---------------------------------------------------------------------
 
+{-
+dropLastElementFromPath path = reverse . dropWhile (\c -> c /= '\\' && c /= '/') . reverse $ path
+joinPaths path item =
+  let lastChar = last path
+  in
+  if lastChar == '\\' || lastChar == '/'
+  then path ++ item
+  else path ++ "/" ++ item
+sameFolder path = return (dropLastElementFromPath path)
+parentFolder path = canonicalizePath (dropLastElementFromPath (dropLastElementFromPath path))
+-}
+
 joinPaths = combine
 sameFolder path = return (fst (splitFileName path))
 parentFolder path = canonicalizePath (fst (splitFileName path) ++ "/..")
+
 
 makeConfig path libName libDir includeDir = do
   libDirs <- canonicalizePath (joinPaths path libDir)
@@ -205,12 +192,12 @@ rawSystemGrabOutput verbose path args = do
 -- properly, this time, with no lazy IO
 file_to_contents fname = 
    bracket (openFile fname ReadMode) 
-       (\h -> hClose h >> removeFile fname) 
-       (reader [])
+	   (\h -> hClose h >> removeFile fname) 
+	   (reader [])
  where
  reader acc h = do
-        eof <- hIsEOF h
-        if eof then return . concat $ reverse acc
-           else do
-            l <- hGetLine h
-            reader (" ":l:acc) h
+		eof <- hIsEOF h
+		if eof then return . concat $ reverse acc
+		   else do
+			l <- hGetLine h
+			reader (" ":l:acc) h

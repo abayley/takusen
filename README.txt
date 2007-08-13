@@ -1,21 +1,12 @@
 Installing
 ----------
-Prerequisites: GHC >= 6.6, darcs, Cabal >= 1.1.6.1
+Prerequisites: GHC >= 6.6, Cabal >= 1.1.6, filepath
 
 (it's possible to use Takusen with GHC-6.4 and Cabal-1.1.4;
 see notes in separate section below)
 
-At present we use darcs and Cabal to download, build, and install Takusen
-(we plan to provide a zipped archive which should eliminate darcs from
-the dependencies).
-You will need ghc and darcs installed and on your path,
-and you will need to upgrade Cabal to 1.1.6.1 (or better).
-Note that Cabal-1.1.6, which is bundled with GHC-6.6, will NOT build Takusen.
-
-To upgrade Cabal, download from http://www.haskell.org/cabal and unpack.
-  $ runhaskell Setup.lhs configure
-  $ runhaskell Setup.lhs build
-  $ runhaskell Setup.lhs install
+To run or build Setup.hs you will need filepath installed.
+This is only needed by Setup.hs, and is not required by Takusen itself.
 
 Ensure that the database libraries for any particular database you plan
 to use are in your path e.g. ensure that %ORA_HOME%\bin is in your path.
@@ -24,7 +15,12 @@ configure step, and Takusen won't be able to use it.
 You can fix this by adding it to your path and going through the
 configure/build/install cycle again.
 
-Typical steps:
+Typical build, after unzipping the distribution archive (Takusen-?.?.gz):
+  $ runhaskell Setup.lhs configure
+  $ runhaskell Setup.lhs build
+  $ runhaskell Setup.lhs install
+
+Typical build, using darcs to get latest code:
   $ mkdir takusen
   $ cd takusen
   $ darcs get http://darcs.haskell.org/takusen
@@ -46,6 +42,7 @@ create a program that uses Takusen.
 Here's a little hello-world test case that uses Sqlite:
 
 {-# OPTIONS -fglasgow-exts #-}
+{-# OPTIONS -fallow-overlapping-instances #-}
 module Main where
 import Database.Sqlite.Enumerator
 import Control.Monad.Trans (liftIO)
@@ -69,8 +66,10 @@ you must also ensure it is correctly set when building your programs.
 If it is not correct, then you are likely to see linker errors.
 
 Note that the Cabal build script detects which back-ends are installed by
-looking for certain executables in your path. If you install a new back-end,
-you will need to reinstall Takusen in order to use it.
+looking for certain executables in your path. The script modifies the
+package description in the build stage so that it only builds libraries
+for the back-ends it detects. If you install a new back-end, you will
+need to re-run the installation process in order for Takusen to use it.
 
 
 
@@ -98,8 +97,8 @@ and ld 2.15.94) this problem seems to have vanished.
 
 Oracle gotchas on Windows
 -------------------------
-Some users have reported linker errors because their Oracle
-bin contains hsbase.dll, which is a library related to Heterogenous Services.
+Some users have reported linker errors because their Oracle bin contains
+hsbase.dll, which is an Oracle library related to Heterogenous Services.
 This DLL overrides GHC's HSbase.dll, and therefore causes linker errors.
 
 If you can control your Oracle client installation then either
@@ -112,7 +111,9 @@ If you can control your Oracle client installation then either
 GHC-6.4 and Takusen
 -------------------
 It is possible to use Takusen with GHC-6.4. We have tested with Cabal-1.1.4,
-so you aren't required to upgrade to 1.1.6.1 (but it won't hurt, either).
+so you aren't required to upgrade to 1.1.6 (but it won't hurt, either).
+If you use Cabal-1.1.4, then you should use the Setup-114.hs script.
+If you use Cabal-1.1.6, then you should use the normal Setup.hs script.
 
 You will need to install Data.Time, which is quite a chore on Windows
 because of the dependencies. You will also need MSYS installed in order
@@ -120,7 +121,12 @@ to be able to run autoreconf, so get that out of the way first.
 
 The summary for Windows is:
 
+darcs get --partial http://www-users.cs.york.ac.uk/~ndm/filepath/
+(or download and unzip the prepared distribution)
+normal cabal configure, build, install
+
 darcs get --partial http://www.cse.unsw.edu.au/~dons/code/fps
+(or download and unzip the prepared distribution)
 normal cabal configure, build, install
 
 darcs get http://darcs.haskell.org/packages/Win32
@@ -141,3 +147,6 @@ From MSYS shell, not Windows cmd.exe:
   runhaskell Setup.hs configure
   runhaskell Setup.hs build
   runhaskell Setup.hs install
+
+And finally, build Takusen with the normal cabal configure,
+build, install.
