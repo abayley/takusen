@@ -1,4 +1,5 @@
 
+{-# OPTIONS_GHC -cpp #-}
 {-# LANGUAGE CPP #-}
 
 -- |
@@ -155,7 +156,11 @@ toUTF8 (x:xs) = toUTF8' (ord x) where
         = w8 0xC0  6 : w8 0x80  0 : more
       | x <= 0x0000FFFF
         = w8 0xE0 12 : w8 0x80  6 : w8 0x80  0 : more
-      | x <= 0x0010FFFF   -- should be 0x001FFFFF
+      -- If we want to encode chars > 1114111 then this test should be
+      --   x <= 0x001FFFFF
+      -- because that's the upper limit of the 4-byte encoding
+      -- (and the 5- and 6-byte cases below might also be enabled).
+      | x <= 0x0010FFFF
         = w8 0xF0 18 : w8 0x80 12 : w8 0x80  6 : w8 0x80  0 : more
       | otherwise = error ("toUTF8: codepoint " ++ show x
          ++ " is greater than the largest allowed (decimal 1114111, hex 0x10FFFF).")
