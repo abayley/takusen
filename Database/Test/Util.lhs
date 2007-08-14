@@ -1,3 +1,6 @@
+> {-# LANGUAGE CPP #-}
+> {-# OPTIONS -cpp #-}
+
 > module Database.Test.Util where
 
 > import Database.Test.Performance as Perf
@@ -57,6 +60,7 @@ Maximum varies, but is often 5874897 AD.
 ghc-6.4.1 needs this, because it only has Show instances for
 up to 5-tuples.
 
+#if __GLASGOW_HASKELL__ <= 604
 > instance (Show a, Show b, Show c, Show d, Show e, Show f)
 >   => Show (a,b,c,d,e,f) where
 >   show (a,b,c,d,e,f) =
@@ -68,6 +72,7 @@ up to 5-tuples.
 >     ++ "," ++ show e
 >     ++ "," ++ show f
 >     ++ ")"
+#endif
 
 > testInt64ToDatePartsMinDate = do
 >   let expect :: (Int64,Int64,Int64,Int64,Int64,Int64); expect = (-4712,1,1,0,0,0)
