@@ -3,7 +3,6 @@
 
 > module Database.Test.Util where
 
-> import Database.Test.Performance as Perf
 > import Database.Util
 > import Test.MiniUnit
 > import Data.Int
