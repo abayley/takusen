@@ -16,17 +16,19 @@ You can fix this by adding it to your path and going through the
 configure/build/install cycle again.
 
 Typical build, after unzipping the distribution archive (Takusen-?.?.gz):
-  $ runhaskell Setup.lhs configure
-  $ runhaskell Setup.lhs build
-  $ runhaskell Setup.lhs install
+  $ ghc --make Setup
+  $ Setup configure
+  $ Setup build
+  $ Setup install
 
 Typical build, using darcs to get latest code:
   $ mkdir takusen
   $ cd takusen
   $ darcs get http://darcs.haskell.org/takusen
-  $ runhaskell Setup.lhs configure
-  $ runhaskell Setup.lhs build
-  $ runhaskell Setup.lhs install
+  $ ghc --make Setup
+  $ Setup configure
+  $ Setup build
+  $ Setup install
   
 
 
@@ -143,10 +145,11 @@ create Setup.hs:
   import Distribution.Simple
   main = defaultMainWithHooks defaultUserHooks
 From MSYS shell, not Windows cmd.exe:
-  autoreconf
-  runhaskell Setup.hs configure
-  runhaskell Setup.hs build
-  runhaskell Setup.hs install
+  $ autoreconf
+  $ ghc --make Setup
+  $ Setup configure
+  $ Setup build
+  $ Setup install
 
 And finally, build Takusen with the normal cabal configure,
 build, install.
