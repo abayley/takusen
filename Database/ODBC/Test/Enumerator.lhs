@@ -8,7 +8,7 @@ Stability   :  experimental
 Portability :  non-portable
 
 
- 
+
 > {- # OPTIONS -fglasgow-exts #-}
 > {- # OPTIONS -fallow-overlapping-instances #-}
 
@@ -32,6 +32,7 @@ Portability :  non-portable
 >     (r, conn1) <- withContinuedSession (connect dsn) (testBody runPerf)
 >     withSession conn1 testPartTwo
 
+> testBody :: Perf.ShouldRunTests -> DBM mark Session ()
 > testBody runPerf = do
 >   runFixture ODBCFunctions
 >   when (runPerf == Perf.RunTests) runPerformanceTests
@@ -42,6 +43,7 @@ Portability :  non-portable
 >   destroyFixture execDDL_
 
 
+> runPerformanceTests :: DBM mark Session ()
 > runPerformanceTests = do
 >   makeFixture execDrop execDDL_
 >   beginTransaction RepeatableRead

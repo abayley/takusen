@@ -231,16 +231,16 @@ with Oracle and PostgreSQL.
 >   destroyStmt sess pstmt = freeStmt (stmtHandle pstmt)
 
 > instance DBBind (Maybe String) Session PreparedStmtObj BindObj where
->   bindP val = makeBindAction val DBAPI.bindParamUTF8String
+>   bindP val = makeBindAction val DBAPI.bindParamBuffer
 
 > instance DBBind (Maybe Int) Session PreparedStmtObj BindObj where
->   bindP val = makeBindAction val DBAPI.bindParamInt
+>   bindP val = makeBindAction val DBAPI.bindParamBuffer
 
 > instance DBBind (Maybe Double) Session PreparedStmtObj BindObj where
->   bindP val = makeBindAction val DBAPI.bindParamDouble
+>   bindP val = makeBindAction val DBAPI.bindParamBuffer
 
 > instance DBBind (Maybe UTCTime) Session PreparedStmtObj BindObj where
->   bindP val = makeBindAction val DBAPI.bindParamUtcTime
+>   bindP val = makeBindAction val DBAPI.bindParamBuffer
 
 > instance DBBind (Maybe a) Session PreparedStmtObj BindObj
 >     => DBBind a Session PreparedStmtObj BindObj where
@@ -326,8 +326,8 @@ The default instance, uses generic Show
 > nullIf :: Bool -> a -> Maybe a
 > nullIf test v = if test then Nothing else Just v
 
-> bufferToString buffer =
->   convertEx (DBAPI.getUTF8StringFromBuffer (colBuffer buffer))
+> --bufferToString buffer =
+> --  convertEx (DBAPI.getUTF8StringFromBuffer (colBuffer buffer))
 
 
 > data ColumnBuffer = ColumnBuffer
@@ -335,8 +335,9 @@ The default instance, uses generic Show
 >   , colBuffer :: DBAPI.BindBuffer
 >   }
 
-> allocBuffer q pos sqltype size = do
->   bindbuffer <- convertEx (DBAPI.bindColBuffer (stmtHandle (queryStmt q)) pos sqltype size)
+> allocBuffer q pos size val = do
+>   --putStrLn ("allocBuffer: pos " ++ show pos ++ ", size " ++ show size)
+>   bindbuffer <- convertEx (DBAPI.bindColBuffer (stmtHandle (queryStmt q)) pos size val)
 >   return (ColumnBuffer pos bindbuffer)
 
 > buffer_pos q buffer = do
@@ -345,20 +346,20 @@ The default instance, uses generic Show
 
 
 > instance DBType (Maybe String) Query ColumnBuffer where
->   allocBufferFor _ q n = allocBuffer q n DBAPI.sqlDTypeString 32000
->   fetchCol q buffer = bufferToString buffer
+>   allocBufferFor v q n = allocBuffer q n 32000 v
+>   fetchCol q buffer = convertEx (DBAPI.getFromBuffer (colBuffer buffer))
 
 > instance DBType (Maybe Int) Query ColumnBuffer where
->   allocBufferFor v q n = allocBuffer q n DBAPI.sqlDTypeInt (sizeOf (0::Int))
->   fetchCol q buffer = convertEx (DBAPI.getIntFromBuffer (colBuffer buffer))
+>   allocBufferFor v q n = allocBuffer q n 0 v
+>   fetchCol q buffer = convertEx (DBAPI.getFromBuffer (colBuffer buffer))
 
 > instance DBType (Maybe Double) Query ColumnBuffer where
->   allocBufferFor v q n = allocBuffer q n DBAPI.sqlDTypeDouble (sizeOf (0::Double))
->   fetchCol q buffer = convertEx (DBAPI.getDoubleFromBuffer (colBuffer buffer))
+>   allocBufferFor v q n = allocBuffer q n 0 v
+>   fetchCol q buffer = convertEx (DBAPI.getFromBuffer (colBuffer buffer))
 
 > instance DBType (Maybe UTCTime) Query ColumnBuffer where
->   allocBufferFor v q n = allocBuffer q n DBAPI.sqlDTypeTimestamp 32
->   fetchCol q buffer = convertEx (DBAPI.getUtcTimeFromBindBuffer (colBuffer buffer))
+>   allocBufferFor v q n = allocBuffer q n 32 v
+>   fetchCol q buffer = convertEx (DBAPI.getFromBuffer (colBuffer buffer))
 
 
 |This single polymorphic instance replaces all of the type-specific non-Maybe instances
@@ -366,7 +367,7 @@ e.g. String, Int, Double, etc.
 
 > instance DBType (Maybe a) Query ColumnBuffer
 >     => DBType a Query ColumnBuffer where
->   allocBufferFor _ q n = allocBufferFor (undefined::Maybe a) q n
+>   allocBufferFor v q n = allocBufferFor (Just v) q n
 >   fetchCol q buffer = throwIfDBNull (buffer_pos q buffer) (fetchCol q buffer)
 
 
@@ -374,9 +375,9 @@ e.g. String, Int, Double, etc.
 and uses Read to convert the String to a Haskell data value.
 
 > instance (Show a, Read a) => DBType (Maybe a) Query ColumnBuffer where
->   allocBufferFor v q n = allocBuffer q n DBAPI.sqlDTypeString 32000
+>   allocBufferFor v q n = allocBuffer q n 32000 (Just "")
 >   fetchCol q buffer = do
->     v <- bufferToString buffer
+>     v <- convertEx (DBAPI.getFromBuffer (colBuffer buffer))
 >     case v of
 >       Just s -> if s == "" then return Nothing else return (Just (read s))
 >       Nothing -> return Nothing

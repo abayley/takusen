@@ -2,14 +2,17 @@
 > module Database.ODBC.Test.OdbcFunctions where
 
 > import Database.ODBC.OdbcFunctions
-
 > import Data.Char
 > import Data.List
 > import Data.Time
+> import Data.Word (Word8)
 > import Database.Util
 > import Test.MiniUnit
-> import Foreign
-> import Numeric
+> import Foreign.ForeignPtr (withForeignPtr)
+> import Foreign.Ptr (castPtr)
+> import Foreign.Storable (peek)
+> import Foreign.Marshal.Array (peekArray0)
+> import Numeric (showHex)
 
 
 > ignoreError action =
@@ -91,7 +94,7 @@
 >   prepareStmt stmt ("select '" ++ string1
 >     ++ "' union select '" ++ string2 ++ "' order by 1")
 >   executeStmt stmt
->   buffer <- bindColBuffer stmt 1 sqlDTypeString 100
+>   buffer <- bindColBuffer stmt 1 100 (Just "")
 >   more <- fetch stmt
 >   s <- getUTF8StringFromBuffer buffer
 >   assertEqual "testFetchStringWithBuffer" (Just string1) s
@@ -107,7 +110,7 @@
 >   prepareStmt stmt "select 101"
 >   executeStmt stmt
 >   more <- fetch stmt
->   s <- getDataInt stmt 1
+>   s <- getData stmt 1
 >   let expect :: Int; expect = 101
 >   assertEqual "testFetchInt" (Just expect) s
 >   more <- fetch stmt
@@ -118,9 +121,9 @@
 >   stmt <- allocStmt conn
 >   prepareStmt stmt "select 101"
 >   executeStmt stmt
->   buffer <- bindColBuffer stmt 1 sqlDTypeInt 8
+>   buffer <- bindColBuffer stmt 1 0 (Just (0::Int))
 >   more <- fetch stmt
->   s <- getIntFromBuffer buffer
+>   s <- getFromBuffer buffer
 >   let expect :: Int; expect = 101
 >   assertEqual "testFetchInt" (Just expect) s
 >   more <- fetch stmt
@@ -134,7 +137,7 @@
 >   --buffer <- bindColBuffer stmt 1 sqlDTypeDouble 16
 >   more <- fetch stmt
 >   --s <- getDoubleFromBuffer buffer
->   s <- getDataDouble stmt 1
+>   s <- getData stmt 1
 >   let expect :: Double; expect = 123.456789
 >   assertEqual "testFetchDouble" (Just expect) s
 >   more <- fetch stmt
@@ -160,11 +163,11 @@
 > testBindInt conn = do
 >   stmt <- allocStmt conn
 >   prepareStmt stmt "select ?"
->   bindParamInt stmt 1 (Just 101)
+>   bindParamBuffer stmt 1 (Just (101::Int))
 >   executeStmt stmt
->   buffer <- bindColBuffer stmt 1 sqlDTypeInt 8
+>   buffer <- bindColBuffer stmt 1 0 (Just (0::Int))
 >   more <- fetch stmt
->   s <- getIntFromBuffer buffer
+>   s <- getFromBuffer buffer
 >   let expect :: Int; expect = 101
 >   assertEqual "testFetchInt" (Just expect) s
 >   more <- fetch stmt
@@ -178,9 +181,9 @@
 >   prepareStmt stmt "select ?"
 >   let expect = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
 >   --let expect = "abc" ++ map chr [0x000078, 0x000079]
->   bindParamUTF8String stmt 1 (Just expect)
+>   bindParamBuffer stmt 1 (Just expect)
 >   executeStmt stmt
->   buffer <- bindColBuffer stmt 1 sqlDTypeString 1000
+>   buffer <- bindColBuffer stmt 1 1000 (Just expect)
 >   more <- fetch stmt
 >   s <- getUTF8StringFromBuffer buffer
 >   assertEqual "testBindString" (Just expect) s
@@ -201,23 +204,23 @@
 >   --let expect = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
 >   let expect = "" ++ map chr [0x10FFFF]
 >   prepareStmt stmt "insert into t_utf8 values ( ? )"
->   buffer <- bindParamUTF8String stmt 1 (Just expect)
+>   buffer <- bindParamBuffer stmt 1 (Just expect)
 >   printBufferContents buffer
 >   executeStmt stmt
 >   prepareStmt stmt "set client_encoding to 'SQL_ASCII'"
 >   executeStmt stmt
 >   prepareStmt stmt "select s from t_utf8"
 >   executeStmt stmt
->   buffer <- bindColBuffer stmt 1 sqlDTypeString 100
+>   buffer <- bindColBuffer stmt 1 100 (Just expect)
 >   more <- fetch stmt
 >   printBufferContents buffer
 >   s <- getUTF8StringFromBuffer buffer
 >   assertEqual "testBindString2" (Just expect) s
 >   freeStmt stmt
 
-> printBufferContents (BindBuffer (bfptr, szfptr)) = do
->   withForeignPtr bfptr $ \bptr -> do
->   withForeignPtr szfptr $ \szptr -> do
+> printBufferContents buffer = do
+>   withForeignPtr (bindBufPtr buffer) $ \bptr -> do
+>   withForeignPtr (bindBufSzPtr buffer) $ \szptr -> do
 >   sz <- peek szptr
 >   putStrLn ("printBufferContents: sz = " ++ show sz)
 >   --l <- peekArray (fromIntegral sz) (castPtr bptr)
@@ -243,7 +246,7 @@
 >   executeStmt stmt
 >   prepareStmt stmt "select s from t_utf8"
 >   executeStmt stmt
->   buffer <- bindColBuffer stmt 1 sqlDTypeString 100
+>   buffer <- bindColBuffer stmt 1 100 (Just expect)
 >   more <- fetch stmt
 >   printBufferContents buffer
 >   s <- getUTF8StringFromBuffer buffer
@@ -254,11 +257,11 @@
 >   stmt <- allocStmt conn
 >   prepareStmt stmt "select ?"
 >   let expect :: UTCTime; expect = mkUTCTime 1916 10  1  2 25 21
->   bindParamUtcTime stmt 1 (Just expect)
+>   bindParamBuffer stmt 1 (Just expect)
 >   executeStmt stmt
->   buffer <- bindColBuffer stmt 1 sqlDTypeTimestamp 50
+>   buffer <- bindColBuffer stmt 1 50 (Just expect)
 >   more <- fetch stmt
->   t <- getUtcTimeFromBindBuffer buffer
+>   t <- getUtcTimeFromBuffer buffer
 >   assertEqual "testBindUTCTime" (Just expect) t
 >   more <- fetch stmt
 >   assertBool "testBindUTCTime: EOD" (not more)
@@ -271,14 +274,14 @@
 >   let input1 :: UTCTime; input1 = mkUTCTime 0 1 1 0 0 0
 >   let expect2 :: UTCTime; expect2 = mkUTCTime 9999 10  1  2 25 21
 >   let input2 = expect2
->   bindParamUtcTime stmt 1 (Just input1)
->   bindParamUtcTime stmt 2 (Just input2)
+>   bindParamBuffer stmt 1 (Just input1)
+>   bindParamBuffer stmt 2 (Just input2)
 >   executeStmt stmt
->   buffer1 <- bindColBuffer stmt 1 sqlDTypeTimestamp 32
->   buffer2 <- bindColBuffer stmt 2 sqlDTypeTimestamp 32
+>   buffer1 <- bindColBuffer stmt 1 32 (Just expect1)
+>   buffer2 <- bindColBuffer stmt 2 32 (Just expect1)
 >   more <- fetch stmt
->   t1 <- getUtcTimeFromBindBuffer buffer1
->   t2 <- getUtcTimeFromBindBuffer buffer2
+>   t1 <- getUtcTimeFromBuffer buffer1
+>   t2 <- getUtcTimeFromBuffer buffer2
 >   assertEqual "testBindUTCTimeBoundary1" (Just expect1) t1
 >   assertEqual "testBindUTCTimeBoundary2" (Just expect2) t2
 >   more <- fetch stmt
@@ -290,9 +293,9 @@
 >   prepareStmt stmt "select ?"
 >   --
 >   let expect = "abc"
->   bindParamUTF8String stmt 1 (Just expect)
+>   bindParamBuffer stmt 1 (Just expect)
 >   executeStmt stmt
->   buffer <- bindColBuffer stmt 1 sqlDTypeString 100
+>   buffer <- bindColBuffer stmt 1 100 (Just "")
 >   more <- fetch stmt
 >   s <- getUTF8StringFromBuffer buffer
 >   assertEqual "testRebind1" (Just expect) s
@@ -300,9 +303,9 @@
 >   closeCursor stmt
 >   --
 >   let expect = "xyz"
->   bindParamUTF8String stmt 1 (Just expect)
+>   bindParamBuffer stmt 1 (Just expect)
 >   executeStmt stmt
->   buffer <- bindColBuffer stmt 1 sqlDTypeString 100
+>   buffer <- bindColBuffer stmt 1 100 (Just "")
 >   more <- fetch stmt
 >   s <- getUTF8StringFromBuffer buffer
 >   assertEqual "testRebind2" (Just expect) s
