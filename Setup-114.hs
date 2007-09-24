@@ -1,4 +1,9 @@
-#!/usr/bin/env runhaskell 
+-- #!/usr/bin/env runhaskell 
+
+{-# OPTIONS -cpp #-}
+{-# LANGUAGE CPP #-}
+
+-- Can't use "#!" with -cpp; get "invalid preprocessing directive #!"
 
 -- This Setup script is for cabal-1.1.4.
 
@@ -47,7 +52,8 @@ main = defaultMainWithHooks defaultUserHooks
       sqliteBI <- configSqlite3 verbose
       pgBI <- configPG verbose
       oraBI <- configOracle verbose
-      let bis = [sqliteBI, pgBI, oraBI]
+      odbcBI <- configOdbc verbose
+      let bis = [sqliteBI, pgBI, oraBI, odbcBI]
       writeHookedBuildInfo "takusen.buildinfo" (concatBuildInfo bis,[])
       return ExitSuccess
     -- We patch in the buildHook so that we can modify the list of exposed
@@ -68,11 +74,17 @@ filterModulesByLibs modules libs =
   removeModulesForAbsentLib "pq" "Database.PostgreSQL" libs
   . removeModulesForAbsentLib "oci" "Database.Oracle" libs
   . removeModulesForAbsentLib "sqlite3" "Database.Sqlite" libs
+  . filterODBCModules libs
   $ modules
 
 removeModulesForAbsentLib lib prefix libs modules =
   if not (elem lib libs)
   then filter (not . isPrefixOf prefix) modules
+  else modules
+
+filterODBCModules libs modules =
+  if not (elem "odbc" libs || elem "odbc32" libs)
+  then filter (not . isPrefixOf "Database.ODBC") modules
   else modules
 
 ---------------------------------------------------------------------
@@ -147,6 +159,19 @@ createConfigByFindingExe desc exe relativeFolder libName libDir includeDir = do
 configSqlite3 verbose = createConfigByFindingExe "Sqlite" "sqlite3" sameFolder "sqlite3" "" ""
 
 configOracle verbose = createConfigByFindingExe "Oracle" "sqlplus" parentFolder "oci" "bin" "oci/include"
+
+-- On Windows the ODBC stuff is in c:\windows\system32, which is always in the PATH.
+-- So I think we only need to pass -lodbc32.
+-- The include files are already in the ghc/include/mingw folder.
+-- FIXME: I don't know how this should look for unixODBC.
+
+#ifdef mingw32_HOST_OS
+configOdbc verbose = do
+  message ("Using odbc: <on Windows => lib already in PATH>")
+  return ( Just emptyBuildInfo { extraLibs = ["odbc32"] })
+#else
+configOdbc verbose = createConfigByFindingExe "ODBC" "sqlplus" parentFolder "odbc" "" ""
+#endif
 
 configPG :: Int -> IO (Maybe BuildInfo)
 configPG verbose = do

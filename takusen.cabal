@@ -1,5 +1,5 @@
 Name:           Takusen
-Version:        0.6
+Version:        0.7
 License:        BSD3
 License-file:   doc/license.txt
 Author:         Alistair Bayley, Oleg Kiselyov
@@ -14,8 +14,8 @@ Synopsis:       Database access library with left-fold interface. Supports Postg
 Exposed-modules:
   Database.Enumerator
   , Database.Util
---  , Database.ODBC.Enumerator
---  , Database.ODBC.OdbcFunctions
+  , Database.ODBC.Enumerator
+  , Database.ODBC.OdbcFunctions
   , Database.Oracle.Enumerator
   , Database.Oracle.OCIConstants
   , Database.Oracle.OCIFunctions
@@ -32,14 +32,9 @@ Ghc-Prof-Options: -prof -auto-all
 --Ghc-Options: -O2
 --Ghc-Options: -optl-Wl--enable-stdcall-fixup
 Extensions: CPP
---C-Sources: Database/ODBC/OdbcFunctions_hsc.c
---Include-dirs: .
---Extra-tmp-files: 
---  Database/ODBC/OdbcFunctions_hsc.c
---  Database/ODBC/OdbcFunctions_hsc.h
---  Database/ODBC/OdbcFunctions.hs
---  Database/Oracle/OCIFunctions_stub.c
---  Database/Oracle/OCIFunctions_stub.h
---  Database/PostgreSQL/PGFunctions_stub.c
---  Database/PostgreSQL/PGFunctions_stub.h
+Extra-tmp-files: 
+  Database/Oracle/OCIFunctions_stub.c
+  Database/Oracle/OCIFunctions_stub.h
+  Database/PostgreSQL/PGFunctions_stub.c
+  Database/PostgreSQL/PGFunctions_stub.h
 --
