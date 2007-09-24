@@ -5,30 +5,53 @@
 
 -- Can't use "#!" with -cpp; get "invalid preprocessing directive #!"
 
-import Distribution.Simple
-import Distribution.Simple.Build (build)
-import Distribution.Simple.Install (install)
-import Distribution.Simple.Register (writeInstalledConfig, register)
-import Distribution.PreProcess (PPSuffixHandler, knownSuffixHandlers)
-import Distribution.PackageDescription
-  ( HookedBuildInfo, emptyHookedBuildInfo, PackageDescription
-  , writeHookedBuildInfo, Library(..), library, extraLibs
-  , hasLibs, emptyBuildInfo, extraLibDirs, includeDirs, BuildInfo(..)
-  )
-import Distribution.Simple.Configure (findProgram)
-import Distribution.Simple.LocalBuildInfo (LocalBuildInfo)
-import Distribution.Setup (ConfigFlags, configVerbose, BuildFlags
-  , InstallFlags(..), CopyFlags(..), CopyDest(..)
-  , emptyRegisterFlags, regUser, regVerbose
-  )
-import System.Directory (removeFile, getTemporaryDirectory, canonicalizePath)
-import System.FilePath (splitFileName, combine)
-import System.Process(runProcess, waitForProcess)
-import System.IO(hClose, openFile, hGetLine, hIsEOF, openTempFile, IOMode(..))
-import System.Exit (ExitCode(..), exitWith)
-import Control.Exception (try, bracket)
+import SetupAux
+import Bird2Hs (bird2hs)
+import Control.Exception (bracket)
 import Control.Monad (when)
-import Data.List (isPrefixOf, unionBy)
+import Data.List (isPrefixOf)
+import Data.Maybe (fromJust)
+import Distribution.Compiler (Compiler(..))
+import Distribution.Package ( showPackageId, PackageIdentifier(..) )
+import Distribution.PackageDescription
+  ( PackageDescription(..)
+  , BuildInfo(..), emptyBuildInfo
+  , HookedBuildInfo, emptyHookedBuildInfo, writeHookedBuildInfo
+  , Library(..), withLib, setupMessage
+  , haddockName, hasLibs
+  )
+import Distribution.PreProcess
+  ( preprocessSources, ppCpp'
+  )
+import Distribution.Program
+  ( programName, haddockProgram, lookupProgram, rawSystemProgram
+  , programArgs )
+import Distribution.Setup (ConfigFlags, configVerbose, BuildFlags
+  , InstallFlags(..), HaddockFlags(..)
+  )
+import Distribution.Simple
+  ( defaultMainWithHooks, defaultUserHooks, UserHooks(..), Args
+  , hookedPreProcessors )
+import Distribution.Simple.Configure (findProgram)
+import Distribution.Simple.LocalBuildInfo
+  ( withPrograms, LocalBuildInfo(..), buildDir, packageDeps )
+import Distribution.Simple.Utils (moduleToFilePath, die, haddockPref)
+import Language.Haskell.Extension (Extension(..))
+import System.Directory
+  ( removeFile, getTemporaryDirectory, canonicalizePath
+  , doesFileExist, removeFile
+  , getPermissions, setPermissions
+  , doesDirectoryExist, createDirectory
+  , getDirectoryContents, removeDirectory
+  )
+import System.Exit (ExitCode(..), exitWith)
+import System.FilePath
+  ( splitFileName, dropFileName, combine, joinPath
+  , splitExtension, addExtension, replaceExtension, takeDirectory )
+import System.IO(hClose, openFile, hGetLine, hIsEOF
+  , openTempFile, IOMode(..) )
+import System.IO.Error (try, ioError)
+import System.Process(runProcess, waitForProcess)
 
 {-
 One install script to rule them all, and in the darkness build them...
@@ -56,6 +79,7 @@ To-dos for Takusen:
 
 GHC compiler/linker options:
 
+ODBC    : <none on Windows, because the .dll is in c:\windows\system32, and the headers are in ghc's include/mingw>
 Postgres: -I"C:\Program Files\PostgreSQL\8.1\include" -lpq -L"C:\Program Files\PostgreSQL\8.1\bin"
 Sqlite  : -I"C:\Program Files\sqlite" -lsqlite3 -L"C:\Program Files\sqlite"
 Oracle  : -I"C:\Program Files\Oracle\OraHome817\oci\include" -loci -L"C:\Program Files\Oracle\OraHome817\bin"
@@ -63,7 +87,11 @@ Oracle  : -I"%ORACLE_HOME%\oci\include" -loci -L"%ORACLE_HOME%\bin"
 -}
 
 main = defaultMainWithHooks defaultUserHooks
-  { preConf=preConf, postConf=postConf, buildHook=buildHook, instHook=installHook }
+  { preConf=preConf, postConf=postConf
+  , buildHook=buildHook, instHook=installHook
+  , haddockHook = haddockHook2
+  , postHaddock = postHaddock
+  }
   where
     preConf ::  [String] -> ConfigFlags -> IO HookedBuildInfo
     preConf args flags = do
@@ -75,9 +103,8 @@ main = defaultMainWithHooks defaultUserHooks
       sqliteBI <- configSqlite3 verbose
       pgBI <- configPG verbose
       oraBI <- configOracle verbose
-      --odbcBI <- configOdbc verbose
-      --let bis = [sqliteBI, pgBI, oraBI, odbcBI]
-      let bis = [sqliteBI, pgBI, oraBI]
+      odbcBI <- configOdbc verbose
+      let bis = [sqliteBI, pgBI, oraBI, odbcBI]
       writeHookedBuildInfo "takusen.buildinfo" (concatBuildInfo bis,[])
       return ExitSuccess
     -- We patch in the buildHook so that we can modify the list of exposed
@@ -87,6 +114,47 @@ main = defaultMainWithHooks defaultUserHooks
     -- also patch the installHook
     installHook :: PackageDescription -> LocalBuildInfo -> Maybe UserHooks -> InstallFlags -> IO ()
     installHook pd lbi mbuh insf = defaultInstallHook (modifyPackageDesc pd) lbi mbuh insf
+    --
+    haddockHook2 :: PackageDescription -> LocalBuildInfo -> Maybe UserHooks -> HaddockFlags -> IO ()
+    haddockHook2 pkg_descr lbi hooks flags = do
+      withLib pkg_descr () $ \lib -> do
+        let fp :: [FilePath]; fp = hsSourceDirs (libBuildInfo lib)
+        sequence_ (map (createLhsForHs fp) ((exposedModules lib) ++ (otherModules (libBuildInfo lib))))
+      haddock pkg_descr lbi hooks flags
+    --
+    postHaddock :: Args -> HaddockFlags -> PackageDescription -> LocalBuildInfo -> IO ExitCode
+    postHaddock args flags pkg_descr lbi = do
+      withLib pkg_descr () $ \lib -> do
+        let fp :: [FilePath]; fp = hsSourceDirs (libBuildInfo lib)
+        sequence_ (map (removeHsForLhs fp) ((exposedModules lib) ++ (otherModules (libBuildInfo lib))))
+      return ExitSuccess
+
+
+createLhsForHs :: [FilePath] -> String -> IO ()
+createLhsForHs searchLoc modname = do
+  srcFiles <- moduleToFilePath searchLoc modname ["lhs"]
+  case srcFiles of
+    [] -> return ()
+    (lhsFile:_) -> do
+      let (srcStem, ext) = splitExtension lhsFile
+      let hsFile = addExtension srcStem "hs"
+      hsExists <- doesFileExist hsFile
+      --when (not hsExists) (putStrLn ("createLhsForHs: create " ++ hsFile))
+      when (not hsExists) (bird2hs lhsFile hsFile)
+      return ()
+
+removeHsForLhs :: [FilePath] -> String -> IO ()
+removeHsForLhs searchLoc modname = do
+  srcFiles <- moduleToFilePath searchLoc modname ["hs"]
+  case srcFiles of
+    [] -> return ()
+    (hsFile:_) -> do
+      let (srcStem, ext) = splitExtension hsFile
+      let lhsFile = addExtension srcStem "lhs"
+      lhsExists <- doesFileExist lhsFile
+      --when (lhsExists) (putStrLn ("removeHsForLhs: delete " ++ hsFile))
+      when (lhsExists) (removeFile hsFile)
+      return ()
 
 modifyPackageDesc pd =
   let
@@ -111,34 +179,76 @@ filterODBCModules libs modules =
   then filter (not . isPrefixOf "Database.ODBC") modules
   else modules
 
----------------------------------------------------------------------
--- Start of code copied verbatim from Distribution.Simple,
--- because it's not exported.
-defaultBuildHook :: PackageDescription -> LocalBuildInfo
-    -> Maybe UserHooks -> BuildFlags -> IO ()
-defaultBuildHook pkg_descr localbuildinfo hooks flags = do
-  build pkg_descr localbuildinfo flags (allSuffixHandlers hooks)
-  when (hasLibs pkg_descr) $
-      writeInstalledConfig pkg_descr localbuildinfo False
 
-defaultInstallHook :: PackageDescription -> LocalBuildInfo
-    -> Maybe UserHooks ->InstallFlags -> IO ()
-defaultInstallHook pkg_descr localbuildinfo _ (InstallFlags uInstFlag verbose) = do
-  install pkg_descr localbuildinfo (CopyFlags NoCopyDest verbose)
-  when (hasLibs pkg_descr) $
-      register pkg_descr localbuildinfo 
-           emptyRegisterFlags{ regUser=uInstFlag, regVerbose=verbose }
+-- haddock is copied from Distribution.Simple,
+-- and modified to work in this script.
 
-allSuffixHandlers :: Maybe UserHooks -> [PPSuffixHandler]
-allSuffixHandlers hooks
-    = maybe knownSuffixHandlers
-      (\h -> overridesPP (hookedPreProcessors h) knownSuffixHandlers)
-      hooks
-    where
-      overridesPP :: [PPSuffixHandler] -> [PPSuffixHandler] -> [PPSuffixHandler]
-      overridesPP = unionBy (\x y -> fst x == fst y)
--- End of code copied verbatim from Distribution.Simple.
----------------------------------------------------------------------
+haddock :: PackageDescription -> LocalBuildInfo -> Maybe UserHooks -> HaddockFlags -> IO ()
+haddock pkg_descr lbi hooks (HaddockFlags hoogle verbose) = do
+    let pps = allSuffixHandlers hooks
+    confHaddock <- do
+      let programConf = withPrograms lbi
+      mHaddock <- lookupProgram (programName haddockProgram) programConf
+      maybe (die "haddock command not found") return mHaddock
+
+    let tmpDir = combine (buildDir lbi) "tmp"
+    createDirectoryIfMissing True tmpDir
+    createDirectoryIfMissing True haddockPref
+    preprocessSources pkg_descr lbi verbose pps
+
+    setupMessage "Running Haddock for" pkg_descr
+
+    let replaceLitExts = map (combine tmpDir . flip replaceExtension "hs")
+    let mockAll bi = mapM_ (mockPP ["-D__HADDOCK__"] pkg_descr bi lbi tmpDir verbose)
+    let showPkg     = showPackageId (package pkg_descr)
+    let showDepPkgs = map showPackageId (packageDeps lbi)
+    let outputFlag  = if hoogle then "--hoogle" else "--html"
+
+    withLib pkg_descr () $ \lib -> do
+        let bi = libBuildInfo lib
+        inFiles <- getModulePaths bi (exposedModules lib ++ otherModules bi)
+        mockAll bi inFiles
+        let prologName = showPkg ++ "-haddock-prolog.txt"
+        writeFile prologName (description pkg_descr ++ "\n")
+        let outFiles = replaceLitExts inFiles
+        let haddockFile = combine haddockPref (haddockName pkg_descr)
+        -- FIX: replace w/ rawSystemProgramConf?
+        rawSystemProgram verbose confHaddock
+                ([outputFlag,
+                  "--odir=" ++ haddockPref,
+                  "--title=" ++ showPkg ++ ": " ++ synopsis pkg_descr,
+                  "--package=" ++ showPkg,
+                  "--dump-interface=" ++ haddockFile,
+                  "--prologue=" ++ prologName]
+                 -- ++ map ("--use-package=" ++) showDepPkgs
+                 ++ map readInf (packageDeps lbi)
+                 ++ programArgs confHaddock
+                 ++ (if verbose > 4 then ["--verbose"] else [])
+                 ++ outFiles
+                 ++ map ("--hide=" ++) (otherModules bi)
+                )
+        removeFile prologName
+    removeDirectoryRecursive tmpDir
+  where 
+        compilerTopDir = takeDirectory (takeDirectory (dropFileName (compilerPath (compiler lbi))))
+        readInf pkgId = "--read-interface=http://www.haskell.org/ghc/docs/latest/html/libraries/"
+          ++ pkgName pkgId ++ ","
+          ++ joinPath [compilerTopDir, "html", "libraries", pkgName pkgId, pkgName pkgId ++ ".haddock"]
+        mockPP inputArgs pkg_descr bi lbi pref verbose file
+            = do let (filePref, fileName) = splitFileName file
+                 let targetDir = combine pref filePref
+                 let targetFile = combine targetDir fileName
+                 let (targetFileNoext, targetFileExt) = splitExtension targetFile
+                 createDirectoryIfMissing True targetDir
+                 if (needsCpp pkg_descr)
+                    then ppCpp' inputArgs bi lbi file targetFile verbose
+                    else copyFile file targetFile >> return ExitSuccess
+        needsCpp :: PackageDescription -> Bool
+        needsCpp p =
+           hasLibs p &&
+           any (== CPP) (extensions $ libBuildInfo $ fromJust $ library p)
+
+
 
 sameFolder path = return (fst (splitFileName path))
 parentFolder path = canonicalizePath (fst (splitFileName path) ++ "/..")
@@ -171,10 +281,10 @@ configOracle verbose = createConfigByFindingExe "Oracle" "sqlplus" parentFolder 
 
 -- On Windows the ODBC stuff is in c:\windows\system32, which is always in the PATH.
 -- So I think we only need to pass -lodbc32.
--- The include files are alwready in the ghc/include/mingw folder.
--- I don't know how this should look for unixODBC...
+-- The include files are already in the ghc/include/mingw folder.
+-- FIXME: I don't know how this should look for unixODBC.
 
-#ifdef mingw32_HOST_OS
+#if mingw32_HOST_OS || mingw32_TARGET_OS
 configOdbc verbose = do
   message ("Using odbc: <on Windows => lib already in PATH>")
   return ( Just emptyBuildInfo { extraLibs = ["odbc32"] })
