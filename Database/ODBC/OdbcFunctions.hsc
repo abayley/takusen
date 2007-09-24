@@ -21,6 +21,17 @@ http://msdn.microsoft.com/library/default.asp?url=/library/en-us/odbc/htm/odbcod
 http://www.dbmaker.com.tw/reference/manuals/odbc/odbc_chap_04.html
 -}
 
+
+-- |
+-- Module      :  Database.ODBC.OdbcFunctions
+-- Copyright   :  (c) 2007 Oleg Kiselyov, Alistair Bayley
+-- License     :  BSD-style
+-- Maintainer  :  oleg@pobox.com, alistair@abayley.org
+-- Stability   :  experimental
+-- Portability :  non-portable
+-- 
+-- Wrappers for ODBC FFI functions, plus buffer marshaling.
+
 module Database.ODBC.OdbcFunctions where
 
 import Control.Exception
@@ -51,14 +62,6 @@ data BindBuffer = BindBuffer
   , bindBufSize :: SqlLen
   }
 
-{-
-   Copied from HDBC's ODBC helper code.
-   SQL_OV_ODBC3 expands to 3, but we can't cast a numeric literal 3
-   into a pointer in Haskell. C has no such compunctions, though.
--}
--- #def void *getSqlOvOdbc3(void) {  return (void *)3UL; }
-#def void *getSqlOvOdbc3(void) {  return (void *)SQL_OV_ODBC3; }
- 
 type SqlInteger = #{type SQLINTEGER}
 type SqlUInteger = #{type SQLUINTEGER}
 type SqlSmallInt = #{type SQLSMALLINT}
@@ -225,7 +228,7 @@ catchOdbc = catchDyn
 throwOdbc :: OdbcException -> a
 throwOdbc = throwDyn
 
--- #define SQL_SUCCEEDED(rc) (((rc)&(~1))==0)
+-- define SQL_SUCCEEDED(rc) (((rc)&(~1))==0)
 sqlSucceeded rc = rc == sqlRcSuccess || rc == sqlRcSuccessWithInfo
 
 type MyCString = CString
@@ -260,7 +263,7 @@ getDiagRec retcode htype handle row =
 
 checkError :: SqlReturn -> SqlHandleType -> Handle -> IO ()
 checkError rc htype handle =
-  when (rc /= sqlRcSuccess)
+  when (rc /= sqlRcSuccess && rc /= sqlRcSuccessWithInfo)
     (do
       exs <- getDiagRec rc htype handle 1
       if null exs
@@ -301,6 +304,12 @@ freeConn conn = freeHelper sqlHTypeConn (castPtr conn)
 freeStmt :: StmtHandle -> IO ()
 freeStmt stmt = freeHelper sqlHTypeStmt (castPtr stmt)
 
+-- Copied from/inspired by HDBC's ODBC helper code.
+-- SQL_OV_ODBC3 expands to 3, but we need to cast this to a
+-- pointer in Haskell.
+getSqlOvOdbc3 :: Ptr ()
+getSqlOvOdbc3 = plusPtr nullPtr #{const SQL_OV_ODBC3}
+ 
 setOdbcVer :: EnvHandle -> IO ()
 setOdbcVer env = do
   rc <- sqlSetEnvAttr env sqlAttrOdbcVersion getSqlOvOdbc3 0
@@ -532,12 +541,21 @@ wrapSizedBuffer valptr size = do
   bfptr <- newForeignPtr finalizerFree valptr
   return (BindBuffer (castForeignPtr bfptr) szfptr (fromIntegral size))
 
-bindParam :: StmtHandle -> Int -> SqlParamDirection -> SqlCDataType -> SqlDataType -> BindBuffer -> IO ()
-bindParam stmt pos direction ctype sqltype buffer =
+bindParam ::
+  StmtHandle
+  -> Int
+  -> SqlParamDirection
+  -> SqlCDataType
+  -> SqlDataType
+  -> SqlULen
+  -> SqlSmallInt
+  -> BindBuffer
+  -> IO ()
+bindParam stmt pos direction ctype sqltype precision scale buffer =
   withForeignPtr (bindBufPtr buffer) $ \bptr -> do
   withForeignPtr (bindBufSzPtr buffer) $ \szptr -> do
   size <- peek szptr
-  rc <- sqlBindParameter stmt (fromIntegral pos) direction ctype sqltype 0 0 bptr size szptr
+  rc <- sqlBindParameter stmt (fromIntegral pos) direction ctype sqltype precision scale bptr size szptr
   checkError rc sqlHTypeStmt (castPtr stmt)
 
 -- sqlParamInput
@@ -545,7 +563,7 @@ bindNull :: StmtHandle -> Int -> SqlParamDirection -> SqlCDataType -> SqlDataTyp
 bindNull stmt pos direction ctype dtype = do
   let val :: Maybe Int; val = Nothing
   buffer <- createBufferForStorable val
-  bindParam stmt pos direction ctype dtype buffer
+  bindParam stmt pos direction ctype dtype 0 0 buffer
   return buffer
 
 bindParamCStringLen :: StmtHandle -> Int -> SqlParamDirection -> Maybe CStringLen -> IO BindBuffer
@@ -553,7 +571,7 @@ bindParamCStringLen stmt pos direction Nothing =
   bindNull stmt pos direction sqlCTypeString sqlDTypeString
 bindParamCStringLen stmt pos direction (Just (cstr, clen)) = do
   buffer <- wrapSizedBuffer cstr (fromIntegral clen)
-  bindParam stmt pos direction sqlCTypeString sqlDTypeString buffer
+  bindParam stmt pos direction sqlCTypeString sqlDTypeString (fromIntegral clen) 0 buffer
   return buffer
 
 bindEncodedString :: StmtHandle -> Int -> SqlParamDirection -> Maybe String -> (String -> ((Ptr a, Int) -> IO BindBuffer) -> IO BindBuffer) -> IO BindBuffer
@@ -598,11 +616,12 @@ bindParamUtcTime stmt pos direction (Just utc) = do
   let secs :: SqlUSmallInt; secs = round second
   let fraction :: SqlUInteger; fraction = 0
   pokeUSmallInt buffer #{offset TIMESTAMP_STRUCT, second} secs
+  -- FIXME:
   -- what do we do with fraction? What sort of fraction is it?
   -- millisecs? microsecs? picosecs?
   --pokeUInteger buffer #{offset TIMESTAMP_STRUCT, fraction} fraction
   buffer <- wrapSizedBuffer buffer (fromIntegral (sizeOf fraction) + #{offset TIMESTAMP_STRUCT, fraction})
-  bindParam stmt pos direction sqlCTypeTimestamp sqlDTypeTimestamp buffer
+  bindParam stmt pos direction sqlCTypeTimestamp sqlDTypeTimestamp 33 0 buffer
   return buffer
 
 
@@ -670,13 +689,13 @@ class OdbcBindParam a where
 instance OdbcBindParam (Maybe Int) where
   bindParamBuffer stmt pos val = do
     buffer <- createBufferForStorable val
-    bindParam stmt pos sqlParamInput sqlCTypeInt sqlDTypeInt buffer
+    bindParam stmt pos sqlParamInput sqlCTypeInt sqlDTypeInt 30 0 buffer
     return buffer
 
 instance OdbcBindParam (Maybe Double) where
   bindParamBuffer stmt pos val = do
     buffer <- createBufferForStorable val
-    bindParam stmt pos sqlParamInput sqlCTypeDouble sqlDTypeDouble buffer
+    bindParam stmt pos sqlParamInput sqlCTypeDouble sqlDTypeDouble 50 50 buffer
     return buffer
 
 instance OdbcBindParam (Maybe String) where
@@ -689,8 +708,6 @@ instance OdbcBindParam (Maybe UTCTime) where
 ---------------------------------------------------------------------
 -- FFI
 
-foreign import #{CALLCONV} unsafe "OdbcFunctions_hsc.h getSqlOvOdbc3" getSqlOvOdbc3 :: Ptr ()
-
 -- From sql.h:
 -- SQLRETURN SQL_API SQLAllocHandle(SQLSMALLINT,SQLHANDLE,SQLHANDLE*);
 foreign import #{CALLCONV} unsafe "sql.h SQLAllocHandle" sqlAllocHandle ::
@@ -702,27 +719,47 @@ foreign import #{CALLCONV} unsafe "sql.h SQLFreeHandle" sqlFreeHandle ::
 
 -- SQLRETURN SQL_API SQLSetEnvAttr(SQLHENV,SQLINTEGER,SQLPOINTER,SQLINTEGER);
 foreign import #{CALLCONV} unsafe "sql.h SQLSetEnvAttr" sqlSetEnvAttr ::
-  EnvHandle -> SqlInteger -> Ptr () -> SqlInteger -> IO SqlReturn
+  EnvHandle  -- ^ Env Handle
+  -> SqlInteger  -- ^ Attribute (enumeration)
+  -> Ptr ()  -- ^ value (cast to void*)
+  -> SqlInteger  -- ^ ? - set to 0
+  -> IO SqlReturn
 
 -- SQLRETURN SQL_API SQLGetDiagRec(SQLSMALLINT,SQLHANDLE,SQLSMALLINT,SQLCHAR*,SQLINTEGER*,SQLCHAR*,SQLSMALLINT,SQLSMALLINT*); 
 foreign import #{CALLCONV} unsafe "sql.h SQLGetDiagRec" sqlGetDiagRec ::
-  SqlHandleType -> Handle
-  -> SqlSmallInt  -- row/message number
-  -> MyCString  -- OUT: state
-  -> Ptr SqlInteger  -- OUT: error number
-  -> MyCString  -- OUT: error message
-  -> SqlSmallInt  -- IN: message buffer size
-  -> Ptr SqlSmallInt  -- OUT: message length
+  SqlHandleType  -- ^ enum: which handle type is the next parameter?
+  -> Handle  -- ^ generic handle ptr
+  -> SqlSmallInt  -- ^ row (or message) number
+  -> MyCString  -- ^ OUT: state
+  -> Ptr SqlInteger  -- ^ OUT: error number
+  -> MyCString  -- ^ OUT: error message
+  -> SqlSmallInt  -- ^ IN: message buffer size
+  -> Ptr SqlSmallInt  -- ^ OUT: message length
   -> IO SqlReturn
 
 -- SQLRETURN SQL_API SQLDriverConnect(SQLHDBC,SQLHWND,SQLCHAR*,SQLSMALLINT,SQLCHAR*,SQLSMALLINT,SQLSMALLINT*,SQLUSMALLINT);
 foreign import #{CALLCONV} unsafe "sql.h SQLDriverConnect" sqlDriverConnect ::
-  ConnHandle -> WindowHandle -> MyCString -> SqlSmallInt ->
-  MyCString -> SqlSmallInt -> Ptr SqlSmallInt -> SqlUSmallInt -> IO SqlReturn
+  ConnHandle
+  -> WindowHandle  -- ^ just pass nullPtr
+  -> MyCString  -- ^ connection string
+  -> SqlSmallInt  -- ^ connection string size
+  -> MyCString  -- ^ OUT: buffer for normalised connection string
+  -> SqlSmallInt  -- ^ buffer size
+  -> Ptr SqlSmallInt  -- ^ OUT: length of returned string
+  -> SqlUSmallInt  -- ^ enum: should driver prompt user for missing info?
+  -> IO SqlReturn
 
 -- SQLRETURN SQL_API SQLDisconnect(SQLHDBC);
 foreign import #{CALLCONV} unsafe "sql.h SQLDisconnect" sqlDisconnect ::
   ConnHandle -> IO SqlReturn
+
+-- SQLRETURN SQL_API SQLSetConnectAttr(SQLHDBC,SQLINTEGER,SQLPOINTER,SQLINTEGER);
+foreign import #{CALLCONV} unsafe "sql.h SQLSetConnectAttr" sqlSetConnectAttr ::
+  ConnHandle  -- ^ Connection Handle
+  -> SqlInteger  -- ^ Attribute (enumeration)
+  -> Ptr ()  -- ^ value (cast to void*)
+  -> SqlInteger  -- ^ ? - set to 0
+  -> IO SqlReturn
 
 -- SQLRETURN SQL_API SQLPrepare(SQLHSTMT,SQLCHAR*,SQLINTEGER);
 foreign import #{CALLCONV} unsafe "sql.h SQLPrepare" sqlPrepare ::
@@ -743,21 +780,21 @@ foreign import #{CALLCONV} unsafe "sql.h SQLRowCount" sqlRowCount ::
 -- SQLRETURN SQL_API SQLGetData(SQLHSTMT,SQLUSMALLINT,SQLSMALLINT,SQLPOINTER,SQLLEN,SQLLEN*);
 foreign import #{CALLCONV} unsafe "sql.h SQLGetData" sqlGetData ::
   StmtHandle
-  -> SqlUSmallInt  -- column position, 1-indexed
-  -> SqlDataType  -- SQL data type: string, int, long, date, etc
-  -> Ptr Buffer  -- output buffer
-  -> SqlLen  -- output buffer size
-  -> Ptr SqlLen -- output data size, or -1 (SQL_NULL_DATA) for null
+  -> SqlUSmallInt  -- ^ column position, 1-indexed
+  -> SqlDataType  -- ^ SQL data type: string, int, long, date, etc
+  -> Ptr Buffer  -- ^ output buffer
+  -> SqlLen  -- ^ output buffer size
+  -> Ptr SqlLen -- ^ output data size, or -1 (SQL_NULL_DATA) for null
   -> IO SqlReturn
 
 -- SQLRETURN SQL_API SQLBindCol(SQLHSTMT,SQLUSMALLINT,SQLSMALLINT,SQLPOINTER,SQLLEN,SQLLEN*);
 foreign import #{CALLCONV} unsafe "sql.h SQLBindCol" sqlBindCol ::
   StmtHandle
-  -> SqlUSmallInt  -- column position, 1-indexed
-  -> SqlDataType  -- SQL data type: string, int, long, date, etc
-  -> Ptr Buffer  -- output buffer
-  -> SqlLen  -- output buffer size
-  -> Ptr SqlLen -- output data size, or -1 (SQL_NULL_DATA) for null
+  -> SqlUSmallInt  -- ^ column position, 1-indexed
+  -> SqlDataType  -- ^ SQL data type: string, int, long, date, etc
+  -> Ptr Buffer  -- ^ output buffer
+  -> SqlLen  -- ^ output buffer size
+  -> Ptr SqlLen -- ^ output data size, or -1 (SQL_NULL_DATA) for null
   -> IO SqlReturn
 
 -- SQLRETURN SQL_API SQLFetch(SQLHSTMT);
@@ -767,17 +804,21 @@ foreign import #{CALLCONV} unsafe "sql.h SQLFetch" sqlFetch ::
 -- SQLRETURN SQL_API SQLBindParameter(SQLHSTMT,SQLUSMALLINT,SQLSMALLINT,SQLSMALLINT,SQLSMALLINT,SQLULEN,SQLSMALLINT,SQLPOINTER,SQLLEN,SQLLEN*);
 foreign import #{CALLCONV} unsafe "sql.h SQLBindParameter" sqlBindParameter ::
   StmtHandle
-  -> SqlUSmallInt  -- position, 1-indexed
-  -> SqlParamDirection  -- direction: IN, OUT
-  -> SqlCDataType  -- C data type: char, int, long, float, etc
-  -> SqlDataType  -- SQL data type: string, int, long, date, etc
-  -> SqlULen  -- col size 
-  -> SqlSmallInt  -- decimal digits
-  -> Ptr Buffer  -- input+output buffer
-  -> SqlLen  -- buffer size
-  -> Ptr SqlLen -- input+output data size, or -1 (SQL_NULL_DATA) for null
+  -> SqlUSmallInt  -- ^ position, 1-indexed
+  -> SqlParamDirection  -- ^ direction: IN, OUT
+  -> SqlCDataType  -- ^ C data type: char, int, long, float, etc
+  -> SqlDataType  -- ^ SQL data type: string, int, long, date, etc
+  -> SqlULen  -- ^ col size (precision)
+  -> SqlSmallInt  -- ^ decimal digits (scale)
+  -> Ptr Buffer  -- ^ input+output buffer
+  -> SqlLen  -- ^ buffer size
+  -> Ptr SqlLen -- ^ input+output data size, or -1 (SQL_NULL_DATA) for null
   -> IO SqlReturn
 
 -- SQLRETURN SQL_API SQLMoreResults(SQLHSTMT);
 foreign import #{CALLCONV} unsafe "sql.h SQLMoreResults" sqlMoreResults ::
   StmtHandle -> IO SqlReturn
+
+-- SQLRETURN SQL_API SQLEndTran(SQLSMALLINT,SQLHANDLE,SQLSMALLINT);
+foreign import #{CALLCONV} unsafe "sql.h SQLEndTran" sqlEndTran ::
+  SqlSmallInt -> StmtHandle -> SqlSmallInt -> IO SqlReturn
