@@ -1,7 +1,7 @@
 
 |
 Module      :  Database.ODBC.Test.Enumerator
-Copyright   :  (c) 2004 Oleg Kiselyov, Alistair Bayley
+Copyright   :  (c) 2007 Oleg Kiselyov, Alistair Bayley
 License     :  BSD-style
 Maintainer  :  oleg@pobox.com, alistair@abayley.org
 Stability   :  experimental
@@ -27,7 +27,8 @@ Portability :  non-portable
 > runTest :: Perf.ShouldRunTests -> [String] -> IO ()
 > runTest runPerf args = do
 >   let (dsn:_) = args
->   Low.runTest args
+>   --Low.runTest args
+>   putStrLn "ODBC Enum tests"
 >   flip catchDB basicDBExceptionReporter $ do
 >     (r, conn1) <- withContinuedSession (connect dsn) (testBody runPerf)
 >     withSession conn1 testPartTwo

@@ -105,6 +105,9 @@ because they never throw exceptions.
 
 > disconnectDb conn = convertEx (DBAPI.disconnect conn)
 
+> commitTrans conn = convertEx (DBAPI.commit conn)
+> rollbackTrans conn = convertEx (DBAPI.rollback conn)
+
 --------------------------------------------------------------------
 -- ** Sessions
 --------------------------------------------------------------------
@@ -162,10 +165,11 @@ Session objects are created by 'connect'.
 >     disconnectDb (connHandle sess)
 >     freeConn (connHandle sess)
 >     freeEnv (envHandle sess)
->   beginTransaction sess isolation =
->     executeCommand sess "begin transaction;" >> return ()
->   commit sess = executeCommand sess "commit;" >> return ()
->   rollback sess = executeCommand sess "rollback;" >> return ()
+>   -- With ODBC, transactions a implicitly started.
+>   -- There is no beginTrans.
+>   beginTransaction sess isolation = return ()
+>   commit sess = commitTrans (connHandle sess)
+>   rollback sess = rollbackTrans (connHandle sess)
 
 About stmtFreeWithQuery:
 

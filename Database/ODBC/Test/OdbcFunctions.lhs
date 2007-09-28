@@ -1,4 +1,14 @@
 
+|
+Module      :  Database.ODBC.Test.OdbcFunctions
+Copyright   :  (c) 2007 Oleg Kiselyov, Alistair Bayley
+License     :  BSD-style
+Maintainer  :  oleg@pobox.com, alistair@abayley.org
+Stability   :  experimental
+Portability :  non-portable
+
+
+
 > module Database.ODBC.Test.OdbcFunctions where
 
 > import Database.ODBC.OdbcFunctions
@@ -144,7 +154,7 @@
 >   assertBool "testFetchDouble: EOD" (not more)
 >   freeStmt stmt
 
-> testFetchDatetime conn = do
+> testFetchDatetimePG conn = do
 >   stmt <- allocStmt conn
 >   prepareStmt stmt "select timestamp without time zone '1916-10-01 02:25:21'"
 >   --prepareStmt stmt "select timestamp without time zone '2007-10-01 02:25:21'"
@@ -176,8 +186,8 @@
 
 > testBindString conn = do
 >   stmt <- allocStmt conn
->   prepareStmt stmt "set client_encoding to 'UTF8'"
->   executeStmt stmt
+>   --prepareStmt stmt "set client_encoding to 'UTF8'"
+>   --executeStmt stmt
 >   prepareStmt stmt "select ?"
 >   let expect = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
 >   --let expect = "abc" ++ map chr [0x000078, 0x000079]
@@ -193,9 +203,9 @@
 
 > testBindString2 conn = do
 >   stmt <- allocStmt conn
->   prepareStmt stmt "set client_encoding to 'UTF8'"
+>   --prepareStmt stmt "set client_encoding to 'UTF8'"
 >   --prepareStmt stmt "set client_encoding to 'SQL_ASCII'"
->   executeStmt stmt
+>   --executeStmt stmt
 >   printIgnoreError (prepareStmt stmt "drop table t_utf8")
 >   executeStmt stmt
 >   prepareStmt stmt "create table t_utf8(s text)"
@@ -231,9 +241,9 @@
 
 > testUTF8 conn = do
 >   stmt <- allocStmt conn
->   prepareStmt stmt "set client_encoding to 'UTF8'"
+>   --prepareStmt stmt "set client_encoding to 'UTF8'"
 >   --prepareStmt stmt "set client_encoding to 'SQL_ASCII'"
->   executeStmt stmt
+>   --executeStmt stmt
 >   printIgnoreError (prepareStmt stmt "drop table t_utf8")
 >   executeStmt stmt
 >   prepareStmt stmt "create table t_utf8(s text)"
@@ -322,7 +332,8 @@
 >   testFetchInt :
 >   testFetchIntWithBuffer :
 >   testFetchDouble :
->   testFetchDatetime :
+>   -- There is no standard for datetime literal text
+>   --testFetchDatetime :
 >   testBindInt :
 >   testBindString :
 >   testBindUTCTime :
@@ -341,10 +352,10 @@
 > runTest :: [String] -> IO ()
 > runTest as = do
 >   connstr <- parseArgs as
->   testCreateEnv
->   testCreateConn
->   testConnect connstr
->   (env, conn) <- createConn connstr
+>   printPropagateError testCreateEnv
+>   printPropagateError testCreateConn
+>   printPropagateError (testConnect connstr)
+>   (env, conn) <- printPropagateError (createConn connstr)
 >   counts <- runTestTT "ODBC low-level tests" (mkTestlist conn testlist)
 >   closeConn (env, conn)
 >   return ()

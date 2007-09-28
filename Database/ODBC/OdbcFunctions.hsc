@@ -134,6 +134,13 @@ sqlNullTermedString = #{const SQL_NTS}
 sqlNullData :: SqlLen
 sqlNullData = #{const SQL_NULL_DATA}
 
+sqlTransCommit :: SqlSmallInt
+sqlTransCommit = #{const SQL_COMMIT}
+
+sqlTransRollback :: SqlSmallInt
+sqlTransRollback = #{const SQL_ROLLBACK}
+
+
 -- ODBC SQL data types
 (
   sqlDTypeString :
@@ -369,6 +376,18 @@ moreResults stmt = do
   when (rc /= sqlRcNoData)
     (checkError rc sqlHTypeStmt (castPtr stmt))
   return (rc /= sqlRcNoData)
+
+
+commit :: ConnHandle -> IO ()
+commit conn = do
+  rc <- sqlEndTran sqlHTypeConn (castPtr conn) sqlTransCommit
+  checkError rc sqlHTypeConn (castPtr conn)
+
+rollback :: ConnHandle -> IO ()
+rollback conn = do
+  rc <- sqlEndTran sqlHTypeConn (castPtr conn) sqlTransRollback
+  checkError rc sqlHTypeConn (castPtr conn)
+
 
 ---------------------------------------------------------------------
 -- Get column values with SQLGetData
@@ -621,7 +640,7 @@ bindParamUtcTime stmt pos direction (Just utc) = do
   -- millisecs? microsecs? picosecs?
   --pokeUInteger buffer #{offset TIMESTAMP_STRUCT, fraction} fraction
   buffer <- wrapSizedBuffer buffer (fromIntegral (sizeOf fraction) + #{offset TIMESTAMP_STRUCT, fraction})
-  bindParam stmt pos direction sqlCTypeTimestamp sqlDTypeTimestamp 33 0 buffer
+  bindParam stmt pos direction sqlCTypeTimestamp sqlDTypeTimestamp 33 33 buffer
   return buffer
 
 
@@ -821,4 +840,4 @@ foreign import #{CALLCONV} unsafe "sql.h SQLMoreResults" sqlMoreResults ::
 
 -- SQLRETURN SQL_API SQLEndTran(SQLSMALLINT,SQLHANDLE,SQLSMALLINT);
 foreign import #{CALLCONV} unsafe "sql.h SQLEndTran" sqlEndTran ::
-  SqlSmallInt -> StmtHandle -> SqlSmallInt -> IO SqlReturn
+  SqlSmallInt -> Handle -> SqlSmallInt -> IO SqlReturn
