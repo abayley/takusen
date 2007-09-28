@@ -1,33 +1,13 @@
 
 module Bird2Hs where
+
 import System.Environment (getArgs)
 import System.IO (hPutStrLn, hIsEOF, openFile, hClose, hGetLine, IOMode(..))
-import Data.List (isPrefixOf, tails)
-import Data.Char (isSpace)
-
-
-hasDotLhsSuffix = isPrefixOf "shl." . reverse
-
-removeDotLhsSuffix = reverse . (drop 4) . reverse
-
-replaceSuffix f = (removeDotLhsSuffix f) ++ ".hs"
-
-outFileName f = 
-  if hasDotLhsSuffix f
-  then replaceSuffix f
-  else f ++ ".hs"
-
-inFileName f =
-  if hasDotLhsSuffix f
-  then f
-  else f ++ ".lhs"
-
-trimLeading = dropWhile isSpace
-trimTrailing = reverse . dropWhile isSpace . reverse
-contains s = all (isPrefixOf s) . tails
+import Data.List (isPrefixOf)
 
 isBirdTrack = isPrefixOf ">"
-
+-- isCpp test might not be quite correct, but it'll do for Takusen for now.
+isCpp = isPrefixOf "#"
 isLineComment = isPrefixOf "--"
 isCodeStart = isPrefixOf "\\begin{code}"
 isCodeEnd = isPrefixOf "\\end{code}"
@@ -45,15 +25,16 @@ startStateMachine handleIn handleOut = stateComment ""
           nextState nextLine
 
     stateComment line
-      | null line = transition line stateComment
-      | isLineComment line = transition line stateComment
+      | null line || isLineComment line || isCpp line
+          = transition line stateComment
       | isBirdTrack line = transition (drop 2 line) stateBirdTrack
       | isCodeStart line = transition ("-- " ++ line) stateCodeSection
       | otherwise = transition ("-- " ++ line) stateComment
 
     stateBirdTrack line
+      | isCpp line || null line = transition line stateBirdTrack
       | isBirdTrack line = transition (drop 2 line) stateBirdTrack
-      | otherwise = transition line stateComment
+      | otherwise = transition ("-- " ++ line) stateComment
 
     stateCodeSection line
       | isCodeStart line = error "encountered \\begin{code} in code!?"

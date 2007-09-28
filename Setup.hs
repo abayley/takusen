@@ -139,7 +139,7 @@ createLhsForHs searchLoc modname = do
       let (srcStem, ext) = splitExtension lhsFile
       let hsFile = addExtension srcStem "hs"
       hsExists <- doesFileExist hsFile
-      --when (not hsExists) (putStrLn ("createLhsForHs: create " ++ hsFile))
+      when (not hsExists) (putStrLn ("Setup: unlit " ++ lhsFile))
       when (not hsExists) (bird2hs lhsFile hsFile)
       return ()
 
@@ -152,7 +152,7 @@ removeHsForLhs searchLoc modname = do
       let (srcStem, ext) = splitExtension hsFile
       let lhsFile = addExtension srcStem "lhs"
       lhsExists <- doesFileExist lhsFile
-      --when (lhsExists) (putStrLn ("removeHsForLhs: delete " ++ hsFile))
+      when (lhsExists) (putStrLn ("Setup: delete " ++ hsFile ++ "\n  (generated from " ++ lhsFile ++ ")"))
       when (lhsExists) (removeFile hsFile)
       return ()
 

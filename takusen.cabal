@@ -12,7 +12,7 @@ Category:       Database
 Build-Depends:  base, mtl, time
 Synopsis:       Database access library with left-fold interface. Supports PostgreSQL, Oracle, SQLite.
 Exposed-modules:
-  Database.Enumerator
+    Database.Enumerator
   , Database.Util
   , Database.ODBC.Enumerator
   , Database.ODBC.OdbcFunctions
@@ -27,7 +27,19 @@ Exposed-modules:
   , Control.Exception.MonadIO
   , Foreign.C.UTF8
 Other-modules:
-  Database.InternalEnumerator
+    Database.InternalEnumerator
+--  , Database.Oracle.Test.Enumerator
+--  , Database.Oracle.Test.OCIFunctions
+--  , Database.PostgreSQL.Test.Enumerator
+--  , Database.PostgreSQL.Test.PGFunctions
+--  , Database.Sqlite.Test.Enumerator
+--  , Database.Sqlite.Test.SqliteFunctions
+--  , Database.Stub.Test.Enumerator
+--  , Database.Test.Enumerator
+--  , Database.Test.Performance
+--  , Database.Test.Util
+--  , Test.MiniUnit
+--  , Test.MiniUnitTest
 Ghc-Prof-Options: -prof -auto-all
 --Ghc-Options: -O2
 --Ghc-Options: -optl-Wl--enable-stdcall-fixup
