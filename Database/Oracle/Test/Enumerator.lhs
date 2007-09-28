@@ -197,6 +197,37 @@ from t_natural nat where n < 10 order by n;
 >   ++ " OPEN refc2 FOR SELECT n, n*n, n*n*n from t_natural where n < 10 order by 1;"
 >   ++ " END;"
 
+What would you need to do to make database functions and procedures
+callable from Haskell as if they were local functions (IO actions)?
+
+wrapPLSQLFunc funcname parms =
+  let
+     sqltext = "begin " ++ (head args) ++ " := " ++ funcname ++ "(" ++ placeholders ++ "); end;"
+     placeholders = concat (intersperse "," (tail args))
+     args = take (length parms) (map (\n -> ":x" ++ show n) [1..])
+  in cmdbind sqltext parms
+
+wrapPLSQLProc procname parms =
+  let
+     sqltext = "begin " ++ procname ++ "(" ++ placeholders ++ "); end;"
+     placeholders = concat (intersperse "," args)
+     args = take (length parms) (map (\n -> ":x" ++ show n) [1..])
+  in cmdbind sqltext parms
+
+convertCcy :: String -> Double -> String -> UTCTime -> DBM mark Session (String, Double)
+convertCcy ccyFrom valFrom ccyTo onDate = do
+  sqlcmd = wrapPLSQLProc "pk_fx.convert_ccy"
+    [ bindP (Out (0 :: Double))
+    , bindP ccyFrom
+    , bindP valFrom
+    , bindP ccyTo
+    , bindP onDate
+    ]
+  let
+    iter :: Monad m => Double -> IterAct m Double
+    iter val seed = return (Left val)
+  result = doQuery sqlcmd iter undefined
+  return result
 
 > selectMultiResultSet _ = do
 >   let refcursor :: Maybe StmtHandle; refcursor = Just undefined
