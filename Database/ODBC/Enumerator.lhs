@@ -101,12 +101,15 @@ because they never throw exceptions.
 >   DBAPI.setOdbcVer env
 >   conn <- DBAPI.allocConn env
 >   connstr <- DBAPI.connect conn connstr
+>   DBAPI.setAutoCommitOff conn
 >   return (env, conn)
 
 > disconnectDb conn = convertEx (DBAPI.disconnect conn)
 
 > commitTrans conn = convertEx (DBAPI.commit conn)
 > rollbackTrans conn = convertEx (DBAPI.rollback conn)
+
+> setTransLevel conn level = convertEx (DBAPI.setTxnIsolation conn level)
 
 --------------------------------------------------------------------
 -- ** Sessions
@@ -160,14 +163,28 @@ Session objects are created by 'connect'.
 >     freeStmt stmt
 >     return n
 
+Note: the PostgreSQL ODBC driver only supports ReadCommitted
+and Serializable. It throws an error on other values.
+It'd be nicer if it just silently upgraded, but c'est la vie...
+
+Apparently MS SQL Server upgrades RepeatableRead to Serializable.
+Presumably the other modes are still supported.
+
+> isolationLevel ReadUncommitted = DBAPI.sqlTxnReadUncommitted
+> isolationLevel ReadCommitted = DBAPI.sqlTxnReadCommitted
+> isolationLevel RepeatableRead = DBAPI.sqlTxnRepeatableRead
+> isolationLevel Serialisable = DBAPI.sqlTxnSerializable
+> isolationLevel Serializable = DBAPI.sqlTxnSerializable
+
 > instance ISession Session where
 >   disconnect sess = do
 >     disconnectDb (connHandle sess)
 >     freeConn (connHandle sess)
 >     freeEnv (envHandle sess)
->   -- With ODBC, transactions a implicitly started.
->   -- There is no beginTrans.
->   beginTransaction sess isolation = return ()
+>   -- With ODBC, transactions are implicitly started.
+>   beginTransaction sess isolation = do
+>     commitTrans (connHandle sess)
+>     setTransLevel (connHandle sess) (isolationLevel isolation)
 >   commit sess = commitTrans (connHandle sess)
 >   rollback sess = rollbackTrans (connHandle sess)
 
