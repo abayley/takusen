@@ -164,24 +164,28 @@ int64 -4712-01-01 -> 4713-01-01 BC
 
 
 
-> execDDL_ s = catchDB (execDDL s) (\e -> liftIO (reportError s e) >> throwDB e)
+> execDDL_ s = catchDB (execDDL s >> commit)
+>   (\e -> rollback >> liftIO (reportError s e) >> throwDB e)
 
 > execDML_ s = catchDB (execDDL s) (\e -> liftIO (reportError s e) >> throwDB e)
 
 Use execDrop when the DDL likely to raise an error.
+Note that PostgreSQL + ODBC seems to require you commit or rollback the DDL;
+if you don't then the next statement will fail with a 25P02
+("in failed SQL transaction")
+I guess that's a result of PostgreSQL's transactional DDL feature.
 
-> execDrop s = catchDB (execDDL s) (\e -> return ())
+> execDrop s = catchDB (execDDL s >> commit) (\e -> rollback >> return ())
 
-> makeFixture execDrop execDDL_ = flip catchDB reportRethrow $ do
+> makeFixture execDrop execDDL_ = flip catchDB (reportRethrowMsg "makeFixture: ") $ do
 >   execDrop sqlDropDual
 >   execDrop sqlDropTest
 >   execDDL_ sqlCreateDual
->   beginTransaction Serialisable
+>   beginTransaction ReadCommitted
 >   execDDL_ sqlInsertDual
 >   commit
 >   execDDL_ sqlCreateTest
->   --withTransaction Serialisable $ do
->   withTransaction RepeatableRead $ do
+>   withTransaction Serialisable $ do
 >     execDDL_ sqlInsertTest1
 >     execDDL_ sqlInsertTest2
 >     execDDL_ sqlInsertTest3
@@ -393,7 +397,7 @@ through unmolested.
 
 > sqlBoundStmtDML = "insert into " ++ testTable ++ " (id, v) values (?, ?)"
 > actionBoundStmtDML stmt = do
->   beginTransaction RepeatableRead
+>   beginTransaction Serialisable
 >   withPreparedStatement stmt $ \pstmt -> do
 >   withBoundStatement pstmt [bindP (100::Int), bindP "100"] $ \bstmt -> do
 >     count <- execDML bstmt
