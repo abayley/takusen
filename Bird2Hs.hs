@@ -11,6 +11,7 @@ isCpp = isPrefixOf "#"
 isLineComment = isPrefixOf "--"
 isCodeStart = isPrefixOf "\\begin{code}"
 isCodeEnd = isPrefixOf "\\end{code}"
+isEmptyLine s = null s || s == "\r"
 
 
 startStateMachine handleIn handleOut = stateComment ""
@@ -25,14 +26,14 @@ startStateMachine handleIn handleOut = stateComment ""
           nextState nextLine
 
     stateComment line
-      | null line || isLineComment line || isCpp line
+      | isEmptyLine line || isLineComment line || isCpp line
           = transition line stateComment
       | isBirdTrack line = transition (drop 2 line) stateBirdTrack
       | isCodeStart line = transition ("-- " ++ line) stateCodeSection
       | otherwise = transition ("-- " ++ line) stateComment
 
     stateBirdTrack line
-      | isCpp line || null line = transition line stateBirdTrack
+      | isCpp line || isEmptyLine line = transition line stateBirdTrack
       | isBirdTrack line = transition (drop 2 line) stateBirdTrack
       | otherwise = transition ("-- " ++ line) stateComment
 
