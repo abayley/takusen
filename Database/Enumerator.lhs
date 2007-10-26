@@ -87,7 +87,8 @@ New style extension declarations.
 >
 >     -- * Exceptions and handlers
 >     , DBException(..)
->     , basicDBExceptionReporter, reportRethrow, formatDBException
+>     , formatDBException, basicDBExceptionReporter
+>     , reportRethrow, reportRethrowMsg
 >     , catchDB, catchDBError, ignoreDBError, IE.throwDB
 >
 >     -- * Preparing and Binding
@@ -152,7 +153,16 @@ i.e. it doesn't propagate.
 (usually to force the program to halt).
 
 > reportRethrow :: CaughtMonadIO m => DBException -> m ()
-> reportRethrow e = basicDBExceptionReporter e >> IE.throwDB e
+> --reportRethrow e = basicDBExceptionReporter e >> IE.throwDB e
+> reportRethrow e = reportRethrowMsg "" e
+
+| Same as reportRethrow, but you can prefix some text to the error
+(perhaps to indicate which part of your program raised it).
+
+> reportRethrowMsg :: CaughtMonadIO m => String -> DBException -> m ()
+> reportRethrowMsg m e = liftIO (putStr m) >> basicDBExceptionReporter e >> IE.throwDB e
+
+| A show for 'Database.InteralEnumerator.DBException's.
 
 > formatDBException :: DBException -> String
 > formatDBException (DBError (ssc, sssc) e m) =
