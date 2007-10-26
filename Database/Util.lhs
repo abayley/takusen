@@ -240,7 +240,22 @@ Parses ISO format datetimes, and also the variation that PostgreSQL uses.
 >     ++ " " ++ zeroPad 2 hour
 >     ++ ":" ++ zeroPad 2 minute
 >     ++ ":" ++ secs
->     ++ "+00"
+>     ++ "Z"
+
+> utcTimeToOdbcDatetime :: UTCTime -> String
+> utcTimeToOdbcDatetime utc =
+>   let
+>     (LocalTime ltday time) = utcToLocalTime (hoursToTimeZone 0) utc
+>     (TimeOfDay hour minute second) = time
+>     (year, month, day) = toGregorian ltday
+>     s1 :: Double; s1 = realToFrac second
+>     secs :: String; secs = printf "%09.6f" s1
+>   in zeroPad 4 year
+>     ++ "-" ++ zeroPad 2 month
+>     ++ "-" ++ zeroPad 2 day
+>     ++ " " ++ zeroPad 2 hour
+>     ++ ":" ++ zeroPad 2 minute
+>     ++ ":" ++ secs
 
 
 | Assumes CalendarTime is also UTC i.e. ignores ctTZ component.
