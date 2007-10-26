@@ -12,6 +12,7 @@ Portability :  non-portable
 > module Database.ODBC.Test.OdbcFunctions where
 
 > import Database.ODBC.OdbcFunctions
+> import Control.Exception (finally)
 > import Data.Char
 > import Data.List
 > import Data.Time
@@ -21,7 +22,7 @@ Portability :  non-portable
 > import Foreign.ForeignPtr (withForeignPtr)
 > import Foreign.Ptr (castPtr)
 > import Foreign.Storable (peek)
-> import Foreign.Marshal.Array (peekArray0)
+> import Foreign.Marshal.Array (peekArray0, peekArray)
 > import Numeric (showHex)
 
 
@@ -80,6 +81,21 @@ Portability :  non-portable
 >   executeStmt stmt
 >   freeStmt stmt
 
+> createDual conn = do
+>   stmt <- allocStmt conn
+>   prepareStmt stmt "create table tdual (dummy varchar(1) primary key)"
+>   executeStmt stmt
+>   prepareStmt stmt "insert into tdual values ('X')"
+>   executeStmt stmt
+>   freeStmt stmt
+
+> dropDual conn = do
+>   stmt <- allocStmt conn
+>   prepareStmt stmt "drop table tdual"
+>   executeStmt stmt
+>   freeStmt stmt
+
+
 > testFetchString conn = do
 >   stmt <- allocStmt conn
 >   let string1 = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
@@ -102,7 +118,7 @@ Portability :  non-portable
 >   let string1 = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
 >   let string2 = "xyz" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
 >   prepareStmt stmt ("select '" ++ string1
->     ++ "' union select '" ++ string2 ++ "' order by 1")
+>     ++ "' from tdual union select '" ++ string2 ++ "' from tdual order by 1")
 >   executeStmt stmt
 >   buffer <- bindColBuffer stmt 1 100 (Just "")
 >   more <- fetch stmt
@@ -117,7 +133,7 @@ Portability :  non-portable
 
 > testFetchInt conn = do
 >   stmt <- allocStmt conn
->   prepareStmt stmt "select 101"
+>   prepareStmt stmt "select 101 from tdual"
 >   executeStmt stmt
 >   more <- fetch stmt
 >   s <- getData stmt 1
@@ -129,7 +145,7 @@ Portability :  non-portable
 
 > testFetchIntWithBuffer conn = do
 >   stmt <- allocStmt conn
->   prepareStmt stmt "select 101"
+>   prepareStmt stmt "select 101 from tdual"
 >   executeStmt stmt
 >   buffer <- bindColBuffer stmt 1 0 (Just (0::Int))
 >   more <- fetch stmt
@@ -142,7 +158,7 @@ Portability :  non-portable
 
 > testFetchDouble conn = do
 >   stmt <- allocStmt conn
->   prepareStmt stmt "select 123.456789"
+>   prepareStmt stmt "select 123.456789 from tdual"
 >   executeStmt stmt
 >   --buffer <- bindColBuffer stmt 1 sqlDTypeDouble 16
 >   more <- fetch stmt
@@ -154,25 +170,28 @@ Portability :  non-portable
 >   assertBool "testFetchDouble: EOD" (not more)
 >   freeStmt stmt
 
-> testFetchDatetimePG conn = do
+> testFetchDatetime conn = do
 >   stmt <- allocStmt conn
->   prepareStmt stmt "select timestamp without time zone '1916-10-01 02:25:21'"
->   --prepareStmt stmt "select timestamp without time zone '2007-10-01 02:25:21'"
->   executeStmt stmt
->   --buffer <- bindColBuffer stmt 1 sqlDTypeTimestamp 50
->   more <- fetch stmt
->   let expect :: UTCTime; expect = mkUTCTime 1916 10  1  2 25 21
->   --let expect :: UTCTime; expect = mkUTCTime 2007 10  1  2 25 21
->   --t <- getUtcTimeFromBindBuffer buffer
->   t <- getDataUtcTime stmt 1
->   assertEqual "testFetchDatetime" (Just expect) t
->   more <- fetch stmt
->   assertBool "testFetchDatetime: EOD" (not more)
->   freeStmt stmt
+>   flip finally (freeStmt stmt) ( do
+>     -- There is no common SQL standard for datetime literal text.
+>     -- Well, there is (timestamp), but MS SQL Server doesn't support it. Pah.
+>     prepareStmt stmt "select cast ('1916-10-01 02:25:21' as timestamp) from tdual"
+>     --prepareStmt stmt "select cast ('1916-10-01 02:25:21' as datetime) from tdual"
+>     executeStmt stmt
+>     let expect :: UTCTime; expect = mkUTCTime 1916 10  1  2 25 21
+>     buffer <- bindColBuffer stmt 1 0 (Just expect)
+>     more <- fetch stmt
+>     t <- getUtcTimeFromBuffer buffer
+>     --t <- getDataUtcTime stmt 1
+>     assertEqual "testFetchDatetime" (Just expect) t
+>     more <- fetch stmt
+>     assertBool "testFetchDatetime: EOD" (not more)
+>     )
+
 
 > testBindInt conn = do
 >   stmt <- allocStmt conn
->   prepareStmt stmt "select ?"
+>   prepareStmt stmt "select ? from tdual"
 >   bindParamBuffer stmt 1 (Just (101::Int))
 >   executeStmt stmt
 >   buffer <- bindColBuffer stmt 1 0 (Just (0::Int))
@@ -186,46 +205,16 @@ Portability :  non-portable
 
 > testBindString conn = do
 >   stmt <- allocStmt conn
->   --prepareStmt stmt "set client_encoding to 'UTF8'"
->   --executeStmt stmt
->   prepareStmt stmt "select ?"
+>   prepareStmt stmt "select ? from tdual"
 >   let expect = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
->   --let expect = "abc" ++ map chr [0x000078, 0x000079]
 >   bindParamBuffer stmt 1 (Just expect)
 >   executeStmt stmt
 >   buffer <- bindColBuffer stmt 1 1000 (Just expect)
 >   more <- fetch stmt
 >   s <- getUTF8StringFromBuffer buffer
->   assertEqual "testBindString" (Just expect) s
+>   assertEqual "testBindString (PostgreSQL fails this one)" (Just expect) s
 >   more <- fetch stmt
 >   assertBool "testBindString: EOD" (not more)
->   freeStmt stmt
-
-> testBindString2 conn = do
->   stmt <- allocStmt conn
->   --prepareStmt stmt "set client_encoding to 'UTF8'"
->   --prepareStmt stmt "set client_encoding to 'SQL_ASCII'"
->   --executeStmt stmt
->   printIgnoreError (prepareStmt stmt "drop table t_utf8")
->   executeStmt stmt
->   prepareStmt stmt "create table t_utf8(s text)"
->   executeStmt stmt
->   --let expect = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
->   --let expect = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
->   let expect = "" ++ map chr [0x10FFFF]
->   prepareStmt stmt "insert into t_utf8 values ( ? )"
->   buffer <- bindParamBuffer stmt 1 (Just expect)
->   printBufferContents buffer
->   executeStmt stmt
->   prepareStmt stmt "set client_encoding to 'SQL_ASCII'"
->   executeStmt stmt
->   prepareStmt stmt "select s from t_utf8"
->   executeStmt stmt
->   buffer <- bindColBuffer stmt 1 100 (Just expect)
->   more <- fetch stmt
->   printBufferContents buffer
->   s <- getUTF8StringFromBuffer buffer
->   assertEqual "testBindString2" (Just expect) s
 >   freeStmt stmt
 
 > printBufferContents buffer = do
@@ -233,55 +222,50 @@ Portability :  non-portable
 >   withForeignPtr (bindBufSzPtr buffer) $ \szptr -> do
 >   sz <- peek szptr
 >   putStrLn ("printBufferContents: sz = " ++ show sz)
->   --l <- peekArray (fromIntegral sz) (castPtr bptr)
->   l <- peekArray0 0 (castPtr bptr)
+>   l <- peekArray (fromIntegral sz) (castPtr bptr)
 >   let toHex :: Word8 -> String; toHex i = showHex i ""
 >   let h :: [String]; h = map toHex l
 >   putStrLn (concat (intersperse " " h))
 
 > testUTF8 conn = do
 >   stmt <- allocStmt conn
->   --prepareStmt stmt "set client_encoding to 'UTF8'"
->   --prepareStmt stmt "set client_encoding to 'SQL_ASCII'"
->   --executeStmt stmt
->   printIgnoreError (prepareStmt stmt "drop table t_utf8")
->   executeStmt stmt
+>   prepareStmt stmt "drop table t_utf8"
+>   ignoreError (executeStmt stmt)
 >   prepareStmt stmt "create table t_utf8(s text)"
 >   executeStmt stmt
->   --let expect = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
->   --let expect = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
->   --let expect = "" ++ map chr [0x10FFFF]
->   let expect = "" ++ map chr [0x0411]
+>   let expect = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
 >   prepareStmt stmt ("insert into t_utf8 values ( '" ++ expect ++ "' )")
 >   executeStmt stmt
 >   prepareStmt stmt "select s from t_utf8"
 >   executeStmt stmt
 >   buffer <- bindColBuffer stmt 1 100 (Just expect)
 >   more <- fetch stmt
->   printBufferContents buffer
 >   s <- getUTF8StringFromBuffer buffer
 >   assertEqual "testUTF8" (Just expect) s
 >   freeStmt stmt
 
 > testBindUTCTime conn = do
 >   stmt <- allocStmt conn
->   prepareStmt stmt "select ?"
->   let expect :: UTCTime; expect = mkUTCTime 1916 10  1  2 25 21
->   bindParamBuffer stmt 1 (Just expect)
->   executeStmt stmt
->   buffer <- bindColBuffer stmt 1 50 (Just expect)
->   more <- fetch stmt
->   t <- getUtcTimeFromBuffer buffer
->   assertEqual "testBindUTCTime" (Just expect) t
->   more <- fetch stmt
->   assertBool "testBindUTCTime: EOD" (not more)
->   freeStmt stmt
+>   flip finally (freeStmt stmt) ( do
+>     prepareStmt stmt "select ? from tdual"
+>     let expect :: UTCTime; expect = mkUTCTime 1916 10  1  2 25 21
+>     bindbuf <- bindParamBuffer stmt 1 (Just expect)
+>     executeStmt stmt
+>     buffer <- bindColBuffer stmt 1 undefined (Just expect)
+>     more <- fetch stmt
+>     t <- getUtcTimeFromBuffer buffer
+>     assertEqual "testBindUTCTime" (Just expect) t
+>     more <- fetch stmt
+>     assertBool "testBindUTCTime: EOD" (not more)
+>     )
+
 
 > testBindUTCTimeBoundary conn = do
 >   stmt <- allocStmt conn
->   prepareStmt stmt "select ?, ?"
->   let expect1 :: UTCTime; expect1 = mkUTCTime 1 1 1 0 0 0
->   let input1 :: UTCTime; input1 = mkUTCTime 0 1 1 0 0 0
+>   prepareStmt stmt "select ?, ? from tdual"
+>   -- 1753 seems to be about the earliest year MS SQL Server supports.
+>   let expect1 :: UTCTime; expect1 = mkUTCTime 1753 1 1 0 0 0
+>   let input1 = expect1
 >   let expect2 :: UTCTime; expect2 = mkUTCTime 9999 10  1  2 25 21
 >   let input2 = expect2
 >   bindParamBuffer stmt 1 (Just input1)
@@ -300,7 +284,7 @@ Portability :  non-portable
 
 > testRebind conn = do
 >   stmt <- allocStmt conn
->   prepareStmt stmt "select ?"
+>   prepareStmt stmt "select ? from tdual"
 >   --
 >   let expect = "abc"
 >   bindParamBuffer stmt 1 (Just expect)
@@ -325,15 +309,26 @@ Portability :  non-portable
 >   freeStmt stmt
 
 
+> testIsolationLevel conn = do
+>   -- For PostgreSQL this fails with:
+>   -- 206 HY009 Illegal parameter value for SQL_TXN_ISOLATION
+>   --setTxnIsolation conn sqlTxnReadUncommitted
+>   setTxnIsolation conn sqlTxnReadCommitted  -- This is OK
+>   -- For PostgreSQL this fails with:
+>   -- 206 HY009 Illegal parameter value for SQL_TXN_ISOLATION
+>   --setTxnIsolation conn sqlTxnRepeatableRead
+>   setTxnIsolation conn sqlTxnSerializable  -- This is OK
+
+
 > testlist =
 >   testCreateStmt :
+>   testIsolationLevel :
 >   testFetchString :
 >   testFetchStringWithBuffer :
 >   testFetchInt :
 >   testFetchIntWithBuffer :
 >   testFetchDouble :
->   -- There is no standard for datetime literal text
->   --testFetchDatetime :
+>   testFetchDatetime :
 >   testBindInt :
 >   testBindString :
 >   testBindUTCTime :
@@ -356,6 +351,9 @@ Portability :  non-portable
 >   printPropagateError testCreateConn
 >   printPropagateError (testConnect connstr)
 >   (env, conn) <- printPropagateError (createConn connstr)
+>   ignoreError (dropDual conn)
+>   printPropagateError (createDual conn)
 >   counts <- runTestTT "ODBC low-level tests" (mkTestlist conn testlist)
+>   printPropagateError (dropDual conn)
 >   closeConn (env, conn)
 >   return ()
