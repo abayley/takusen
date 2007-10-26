@@ -27,7 +27,7 @@ Portability :  non-portable
 > runTest :: Perf.ShouldRunTests -> [String] -> IO ()
 > runTest runPerf args = do
 >   let (dsn:_) = args
->   --Low.runTest args
+>   Low.runTest args
 >   putStrLn "ODBC Enum tests"
 >   flip catchDB basicDBExceptionReporter $ do
 >     (r, conn1) <- withContinuedSession (connect dsn) (testBody runPerf)
@@ -66,7 +66,7 @@ Portability :  non-portable
 >   runTestTT "ODBC tests" (map (runOneTest fns) testList)
 >   destroyFixture execDDL_
 
-> runOneTest fns t = catchDB (t fns) reportRethrow
+> runOneTest fns t = catchDB (t fns) (reportRethrowMsg "runOneTest ")
 
 -----------------------------------------------------------
 
@@ -111,9 +111,10 @@ Portability :  non-portable
 >   (prefetch 1 sqlBindBoundaryDates (map bindP expectBoundaryDatesLocal))
 
 > expectBoundaryDatesLocal =
->   [ int64ToUTCTime      10101000000
->   , int64ToUTCTime      10102000000
->   , int64ToUTCTime      10103000000
+>   -- 1753 seems to be about the earliest year MS SQL Server supports.
+>   [ int64ToUTCTime   17530101000000
+>   , int64ToUTCTime   20010102000000
+>   , int64ToUTCTime   20010103000000
 >   , int64ToUTCTime   99991231000000
 >   ]
 > actionBindBoundaryDatesLocal stmt = do
@@ -127,13 +128,13 @@ Portability :  non-portable
 
 > boundStmtDML _ = actionBoundStmtDML (prepareCommand (sql sqlBoundStmtDML))
 > boundStmtDML2 _ = do
->   -- cannot use withTransaction with rollback/commit;
+>   -- With MS SQL Server cannot use withTransaction with rollback/commit;
 >   -- if you explicitly end the transaction, then when withTransaction
 >   -- attempts to end it (with a commit, in the success case) then we
 >   -- get a "logic error".
 >   -- This differs from PostgreSQL and Oracle, who don't seem to care if
 >   -- you commit or rollback too many times.
->   beginTransaction RepeatableRead
+>   beginTransaction ReadCommitted
 >   count <- execDML (cmdbind sqlBoundStmtDML [bindP (100::Int), bindP "100"])
 >   rollback
 >   assertEqual sqlBoundStmtDML 1 count
