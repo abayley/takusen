@@ -125,9 +125,6 @@ showReturnCode rc
 sqlDriverNoPrompt :: SqlUSmallInt
 sqlDriverNoPrompt = #{const SQL_DRIVER_NOPROMPT}
 
-sqlAttrOdbcVersion :: SqlInteger
-sqlAttrOdbcVersion = #{const SQL_ATTR_ODBC_VERSION}
-
 sqlNullTermedString :: SqlInteger
 sqlNullTermedString = #{const SQL_NTS}
 
@@ -139,6 +136,49 @@ sqlTransCommit = #{const SQL_COMMIT}
 
 sqlTransRollback :: SqlSmallInt
 sqlTransRollback = #{const SQL_ROLLBACK}
+
+sqlAutoCommitOn, sqlAutoCommitOff :: SqlInteger
+sqlAutoCommitOn = #{const SQL_AUTOCOMMIT_ON}
+sqlAutoCommitOff = #{const SQL_AUTOCOMMIT_OFF}
+
+-- These are attribute types, which are passed as the second parameter
+-- to sqlSetEnvAttr.
+
+(
+  sqlAttrOdbcVersion :
+  sqlAttrAutoCommit :
+  sqlAttrTxnIsolation :
+  []) =
+  (
+  #{const SQL_ATTR_ODBC_VERSION} :
+  #{const SQL_ATTR_AUTOCOMMIT} :
+  #{const SQL_ATTR_TXN_ISOLATION} :
+  []) :: [SqlInteger]
+
+-- These are attribute values, which are passed as the third parameter
+-- to sqlSetEnvAttr. Obviously that must accompany the relevant
+-- attribute type.
+
+(
+  sqlOvOdbc3 :
+  sqlTxnCapable :
+  sqlDefaultTxnIsolation :
+  sqlTxnIsolationOption :
+  sqlTxnReadUncommitted :
+  sqlTxnReadCommitted :
+  sqlTxnRepeatableRead :
+  sqlTxnSerializable :
+  []) =
+  (
+  #{const SQL_OV_ODBC3} : -- 3 (UL)
+  #{const SQL_TXN_CAPABLE} :  -- 46
+  #{const SQL_DEFAULT_TXN_ISOLATION} :  -- 26
+  #{const SQL_TXN_ISOLATION_OPTION} :  -- 72
+  #{const SQL_TXN_READ_UNCOMMITTED} :  -- 1
+  #{const SQL_TXN_READ_COMMITTED} :  -- 2
+  #{const SQL_TXN_REPEATABLE_READ} :  -- 4
+  #{const SQL_TXN_SERIALIZABLE} :  -- 8
+  []) :: [SqlInteger]
 
 
 -- ODBC SQL data types
@@ -157,9 +197,12 @@ sqlTransRollback = #{const SQL_ROLLBACK}
   #{const SQL_INTEGER} :  -- 4
   #{const SQL_BINARY} :  -- -2
   #{const SQL_DOUBLE} :  -- 8
-  #{const SQL_DATE} :  -- 9
-  #{const SQL_TIME} :  -- 10
-  #{const SQL_TIMESTAMP} :  -- 11
+  -- #{const SQL_DATE} :  -- 9
+  -- #{const SQL_TIME} :  -- 10
+  -- #{const SQL_TIMESTAMP} :  -- 11
+  #{const SQL_TYPE_DATE} :  -- 9
+  #{const SQL_TYPE_TIME} :  -- 10
+  #{const SQL_TYPE_TIMESTAMP} :  -- 11
   #{const SQL_CURSOR_TYPE} :  -- 6
   []) :: [SqlDataType]
 
@@ -179,9 +222,12 @@ sqlTransRollback = #{const SQL_ROLLBACK}
   #{const SQL_C_LONG} :
   #{const SQL_C_BINARY} :
   #{const SQL_C_DOUBLE} :
-  #{const SQL_C_DATE} :
-  #{const SQL_C_TIME} :
-  #{const SQL_C_TIMESTAMP} :
+  -- #{const SQL_C_DATE} :
+  -- #{const SQL_C_TIME} :
+  -- #{const SQL_C_TIMESTAMP} :
+  #{const SQL_C_TYPE_DATE} :
+  #{const SQL_C_TYPE_TIME} :
+  #{const SQL_C_TYPE_TIMESTAMP} :
   []) :: [SqlCDataType]
 
 {-
@@ -266,7 +312,7 @@ getDiagRec retcode htype handle row =
           more <- getDiagRec retcode htype handle (row+1)
           return ((OdbcException (fromIntegral errnum) state msg []) : more)
         | rc == sqlRcNoData -> return []
-        | otherwise -> return [OdbcException (fromIntegral rc) "01000" (showReturnCode rc) []]
+        | otherwise -> return [OdbcException (fromIntegral rc) "01000" (showReturnCode retcode) []]
 
 checkError :: SqlReturn -> SqlHandleType -> Handle -> IO ()
 checkError rc htype handle =
@@ -311,15 +357,12 @@ freeConn conn = freeHelper sqlHTypeConn (castPtr conn)
 freeStmt :: StmtHandle -> IO ()
 freeStmt stmt = freeHelper sqlHTypeStmt (castPtr stmt)
 
--- Copied from/inspired by HDBC's ODBC helper code.
--- SQL_OV_ODBC3 expands to 3, but we need to cast this to a
--- pointer in Haskell.
-getSqlOvOdbc3 :: Ptr ()
-getSqlOvOdbc3 = plusPtr nullPtr #{const SQL_OV_ODBC3}
- 
+int2Ptr :: SqlInteger -> Ptr ()
+int2Ptr i = plusPtr nullPtr (fromIntegral i)
+
 setOdbcVer :: EnvHandle -> IO ()
 setOdbcVer env = do
-  rc <- sqlSetEnvAttr env sqlAttrOdbcVersion getSqlOvOdbc3 0
+  rc <- sqlSetEnvAttr env sqlAttrOdbcVersion (int2Ptr sqlOvOdbc3) 0
   checkError rc sqlHTypeEnv (castPtr env)
 
 connect :: ConnHandle -> String -> IO String
@@ -388,6 +431,21 @@ rollback conn = do
   rc <- sqlEndTran sqlHTypeConn (castPtr conn) sqlTransRollback
   checkError rc sqlHTypeConn (castPtr conn)
 
+setAutoCommitOn :: ConnHandle -> IO ()
+setAutoCommitOn conn = do
+  rc <- sqlSetConnectAttr conn sqlAttrAutoCommit (int2Ptr sqlAutoCommitOn) 0
+  checkError rc sqlHTypeConn (castPtr conn)
+
+setAutoCommitOff :: ConnHandle -> IO ()
+setAutoCommitOff conn = do
+  rc <- sqlSetConnectAttr conn sqlAttrAutoCommit (int2Ptr sqlAutoCommitOff) 0
+  checkError rc sqlHTypeConn (castPtr conn)
+
+setTxnIsolation :: ConnHandle -> SqlInteger -> IO ()
+setTxnIsolation conn level = do
+  rc <- sqlSetConnectAttr conn sqlAttrTxnIsolation (int2Ptr level) 0
+  checkError rc sqlHTypeConn (castPtr conn)
+
 
 ---------------------------------------------------------------------
 -- Get column values with SQLGetData
@@ -408,7 +466,7 @@ getDataStorable stmt pos sqltype buffersize convert = do
 
 getDataUtcTime :: StmtHandle -> Int -> IO (Maybe UTCTime)
 getDataUtcTime stmt pos = do
-  allocaBytes 33 $ \bptr -> do
+  allocaBytes #{size TIMESTAMP_STRUCT} $ \bptr -> do
   alloca $ \szptr -> do
   rc <- sqlGetData stmt (fromIntegral pos) sqlDTypeTimestamp (castPtr bptr) 50 szptr
   checkError rc sqlHTypeStmt (castPtr stmt)
@@ -447,7 +505,7 @@ getDataCString stmt pos = do
     Just cstrlen -> peekCStringLen cstrlen >>= return . Just
 
 {- from sqltypes.h. Struct size depends on size of SmallInt etc,
-but probably 16 bytes on a 32-bit platform. 32 bytes on 64-bit?
+but is 16 bytes on a 32-bit platform. 32 bytes on 64-bit?
 typedef struct tagTIMESTAMP_STRUCT {
     SQLSMALLINT year;
     SQLUSMALLINT month;
@@ -477,9 +535,9 @@ readUtcTimeFromMemory buffer = do
   hour <- peekUSmallInt buffer #{offset TIMESTAMP_STRUCT, hour}
   minute <- peekUSmallInt buffer #{offset TIMESTAMP_STRUCT, minute}
   second <- peekUSmallInt buffer #{offset TIMESTAMP_STRUCT, second}
-  -- what do we do with fraction? What sort of fraction is it?
-  -- millisecs? microsecs? picosecs?
-  fraction <- peekUInteger buffer #{offset TIMESTAMP_STRUCT, fraction}
+  -- Fraction ranges from 0 - 999,999,999,
+  frac <- peekUInteger buffer #{offset TIMESTAMP_STRUCT, fraction}
+  let secs :: Double; secs = fromIntegral second + (fromIntegral frac / 1000000000.0)
   return (mkUTCTime (fromIntegral year) month day hour minute second)
 
 ---------------------------------------------------------------------
@@ -618,38 +676,79 @@ pokeUSmallInt buffer offset val = pokeByteOff buffer offset val
 pokeUInteger :: Ptr a -> Int -> SqlUInteger -> IO ()
 pokeUInteger buffer offset val = pokeByteOff buffer offset val
 
-bindParamUtcTime :: StmtHandle -> Int -> SqlParamDirection -> Maybe UTCTime -> IO BindBuffer
-bindParamUtcTime stmt pos direction Nothing = do
-  bindNull stmt pos direction sqlCTypeTimestamp sqlDTypeTimestamp
-bindParamUtcTime stmt pos direction (Just utc) = do
+writeUTCTimeToMemory :: Ptr Word8 -> UTCTime -> IO ()
+writeUTCTimeToMemory buffer utc = do
   let
     (LocalTime ltday time) = utcToLocalTime (hoursToTimeZone 0) utc
     (TimeOfDay hour minute second) = time
     (year, month, day) = toGregorian ltday
-  buffer <- mallocBytes 33
   pokeSmallInt buffer #{offset TIMESTAMP_STRUCT, year} (fromIntegral year)
   pokeUSmallInt buffer #{offset TIMESTAMP_STRUCT, month} (fromIntegral month)
   pokeUSmallInt buffer #{offset TIMESTAMP_STRUCT, day} (fromIntegral day)
   pokeUSmallInt buffer #{offset TIMESTAMP_STRUCT, hour} (fromIntegral hour)
   pokeUSmallInt buffer #{offset TIMESTAMP_STRUCT, minute} (fromIntegral minute)
-  let secs :: SqlUSmallInt; secs = round second
-  let fraction :: SqlUInteger; fraction = 0
-  pokeUSmallInt buffer #{offset TIMESTAMP_STRUCT, second} secs
-  -- FIXME:
   -- what do we do with fraction? What sort of fraction is it?
-  -- millisecs? microsecs? picosecs?
-  --pokeUInteger buffer #{offset TIMESTAMP_STRUCT, fraction} fraction
-  buffer <- wrapSizedBuffer buffer (fromIntegral (sizeOf fraction) + #{offset TIMESTAMP_STRUCT, fraction})
-  bindParam stmt pos direction sqlCTypeTimestamp sqlDTypeTimestamp 33 33 buffer
-  return buffer
+  -- apparently can range from 0 - 999,999,999,
+  -- but MS SQL Server only handles milliseconds (0 - 999) i.e. precision 3
+  let (secs, frac) = properFraction second
+  let fraction :: SqlUInteger; fraction = round (frac * 1000000000.0)
+  pokeUSmallInt buffer #{offset TIMESTAMP_STRUCT, second} secs
+  pokeUInteger buffer #{offset TIMESTAMP_STRUCT, fraction} fraction
+
+-- writeUTCTimeToMemory and makeUtcTimeBuffer don't work with MS SQL Server;
+-- it always returns 22008 "Datetime field overflow".
+-- They work with PostgreSQL and Oracle ODBC drivers.
+-- So I'll leave the code here, in case anyone is desperate
+-- to marshal via TIMESTAMP_STRUCT, rather than strings.
+
+makeUtcTimeBuffer :: UTCTime -> IO BindBuffer
+makeUtcTimeBuffer utc = do
+  mem <- mallocBytes #{size TIMESTAMP_STRUCT}
+  writeUTCTimeToMemory (castPtr mem) utc
+  wrapSizedBuffer mem #{size TIMESTAMP_STRUCT}
+
+makeUtcTimeStringBuffer :: UTCTime -> IO BindBuffer
+makeUtcTimeStringBuffer utc = do
+  mem <- mallocBytes 40
+  let s = utcTimeToOdbcDatetime utc
+  withCStringLen s $ \(cstr, clen) -> do
+    copyBytes mem cstr (fromIntegral clen)
+    pokeByteOff mem (fromIntegral clen) (0 :: Word8)
+    wrapSizedBuffer mem (fromIntegral clen)
+  
+bindParamUtcTime :: StmtHandle -> Int -> SqlParamDirection -> Maybe UTCTime -> IO BindBuffer
+bindParamUtcTime stmt pos direction Nothing = do
+  bindNull stmt pos direction sqlCTypeTimestamp sqlDTypeTimestamp
+bindParamUtcTime stmt pos direction (Just utc) = do
+  -- For TimeStamp:
+  --   Size/Length should be 16 bytes.
+  --   Precision should be 8 (or 16?).
+  --   Scale is the number of digits in the fraction component (SQL Server only allows 0-3).
+  -- ** We're not using the TIMESTAMP_STRUCT to marshal any more.
+  --buffer <- makeUtcTimeBuffer utc
+  --bindParam stmt pos direction sqlCTypeTimestamp sqlDTypeTimestamp #{size TIMESTAMP_STRUCT} 0 buffer
+  --
+  -- We have to pass in a String, rather than a TIMESTAMP_STRUCT,
+  -- and let the ODBC driver do the conversion.
+  -- I cannot get TIMESTAMP_STRUCT to work with MS SQL Server;
+  -- it always returns 22008 "Datetime field overflow".
+  buffer <- makeUtcTimeStringBuffer utc
+  withForeignPtr (bindBufSzPtr buffer) $ \szptr -> do
+    size <- peek szptr
+    -- 23 is the largest precision value allowed by MS SQL Server.
+    -- That gives us "yyyy-mm-dd hh:mm:ss.fff"
+    bindParam stmt pos direction sqlCTypeString sqlDTypeTimestamp 23 0 buffer
+    return buffer
 
 
 ---------------------------------------------------------------------
 -- Binding with class...
 
-sizeOfMaybe :: Storable a => Maybe a -> Int
-sizeOfMaybe v@Nothing = sizeOfMaybe (asTypeOf (Just undefined) v)
-sizeOfMaybe (Just v) = sizeOf v
+sizeOfMaybe :: forall a. Storable a => Maybe a -> Int
+sizeOfMaybe _ = sizeOf ( undefined :: a )
+-- H98 stylee...
+--sizeOfMaybe v@Nothing = sizeOfMaybe (asTypeOf (Just undefined) v)
+--sizeOfMaybe (Just v) = sizeOf v
 
 newtype OutParam a = OutParam a
 newtype InOutParam a = InOutParam a
@@ -673,7 +772,12 @@ of the column data type, so that we know which instance to use.
 -}
 
 class OdbcBindBuffer a where
-  bindColBuffer :: StmtHandle -> Int -> Int -> a -> IO BindBuffer
+  bindColBuffer
+    :: StmtHandle  -- ^ stmt handle
+    -> Int  -- ^ column position (1-indexed)
+    -> Int  -- ^ size of result buffer (ignored when it can be inferred from type of a)
+    -> a  -- ^ dummy value of the appropriate type (just to ensure we get the right class instance)
+    -> IO BindBuffer  -- ^ returns a 'BindBuffer' object
   getFromBuffer :: BindBuffer -> IO a
   getData :: StmtHandle -> Int -> IO a
 
@@ -697,13 +801,17 @@ instance OdbcBindBuffer (Maybe String) where
   getData stmt pos = getDataUTF8String stmt pos
 
 instance OdbcBindBuffer (Maybe UTCTime) where
-  bindColBuffer stmt pos size val = bindColumnBuffer stmt pos sqlDTypeTimestamp 32
+  bindColBuffer stmt pos size val = bindColumnBuffer stmt pos sqlDTypeTimestamp #{size TIMESTAMP_STRUCT}
   getFromBuffer buffer = getUtcTimeFromBuffer buffer
   getData stmt pos = getDataUtcTime stmt pos
 
 
 class OdbcBindParam a where
-  bindParamBuffer :: StmtHandle -> Int -> a -> IO BindBuffer
+  bindParamBuffer
+    :: StmtHandle  -- ^ stmt handle
+    -> Int  -- ^ parameter position (1-indexed)
+    -> a  -- ^ value to write to buffer
+    -> IO BindBuffer  -- ^ returns a 'BindBuffer' object
 
 instance OdbcBindParam (Maybe Int) where
   bindParamBuffer stmt pos val = do
@@ -736,14 +844,6 @@ foreign import #{CALLCONV} unsafe "sql.h SQLAllocHandle" sqlAllocHandle ::
 foreign import #{CALLCONV} unsafe "sql.h SQLFreeHandle" sqlFreeHandle ::
   SqlSmallInt -> Handle -> IO SqlReturn
 
--- SQLRETURN SQL_API SQLSetEnvAttr(SQLHENV,SQLINTEGER,SQLPOINTER,SQLINTEGER);
-foreign import #{CALLCONV} unsafe "sql.h SQLSetEnvAttr" sqlSetEnvAttr ::
-  EnvHandle  -- ^ Env Handle
-  -> SqlInteger  -- ^ Attribute (enumeration)
-  -> Ptr ()  -- ^ value (cast to void*)
-  -> SqlInteger  -- ^ ? - set to 0
-  -> IO SqlReturn
-
 -- SQLRETURN SQL_API SQLGetDiagRec(SQLSMALLINT,SQLHANDLE,SQLSMALLINT,SQLCHAR*,SQLINTEGER*,SQLCHAR*,SQLSMALLINT,SQLSMALLINT*); 
 foreign import #{CALLCONV} unsafe "sql.h SQLGetDiagRec" sqlGetDiagRec ::
   SqlHandleType  -- ^ enum: which handle type is the next parameter?
@@ -771,6 +871,14 @@ foreign import #{CALLCONV} unsafe "sql.h SQLDriverConnect" sqlDriverConnect ::
 -- SQLRETURN SQL_API SQLDisconnect(SQLHDBC);
 foreign import #{CALLCONV} unsafe "sql.h SQLDisconnect" sqlDisconnect ::
   ConnHandle -> IO SqlReturn
+
+-- SQLRETURN SQL_API SQLSetEnvAttr(SQLHENV,SQLINTEGER,SQLPOINTER,SQLINTEGER);
+foreign import #{CALLCONV} unsafe "sql.h SQLSetEnvAttr" sqlSetEnvAttr ::
+  EnvHandle  -- ^ Env Handle
+  -> SqlInteger  -- ^ Attribute (enumeration)
+  -> Ptr ()  -- ^ value (cast to void*)
+  -> SqlInteger  -- ^ ? - set to 0
+  -> IO SqlReturn
 
 -- SQLRETURN SQL_API SQLSetConnectAttr(SQLHDBC,SQLINTEGER,SQLPOINTER,SQLINTEGER);
 foreign import #{CALLCONV} unsafe "sql.h SQLSetConnectAttr" sqlSetConnectAttr ::
