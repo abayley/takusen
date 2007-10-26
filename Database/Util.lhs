@@ -175,12 +175,14 @@ I think. Need to test this with different server timezones, though.
 
 > pgDatetimetoUTCTime :: String -> UTCTime
 > pgDatetimetoUTCTime s =
->   let (year, month, day, hour, minute, second, tz) = pgDatetimetoParts s
+>   let (year, month, day, hour, minute, second, tz) = pgDatetimeToParts s
 >   in mkUTCTime year month day hour minute second
+
+> isoDatetimeToUTCTime s = pgDatetimetoUTCTime s
 
 > pgDatetimetoCalTime :: String -> CalendarTime
 > pgDatetimetoCalTime s =
->   let (year, month, day, hour, minute, second, tz) = pgDatetimetoParts s
+>   let (year, month, day, hour, minute, second, tz) = pgDatetimeToParts s
 >   in mkCalTime year month day hour minute (round second)
 
 isInfixOf is defined in the Data.List that comes with ghc-6.6,
@@ -188,8 +190,10 @@ but it is not in the libs that come with ghc-6.4.1.
 
 > myIsInfixOf srch list = or (map (isPrefixOf srch) (tails list))
 
-> pgDatetimetoParts :: String -> (Int, Int, Int, Int, Int, Double, Int)
-> pgDatetimetoParts s =
+Parses ISO format datetimes, and also the variation that PostgreSQL uses.
+
+> pgDatetimeToParts :: String -> (Int, Int, Int, Int, Int, Double, Int)
+> pgDatetimeToParts s =
 >   let
 >     pred c = isAlphaNum c || c == '.'
 >     ws = wordsBy pred s
@@ -198,6 +202,8 @@ but it is not in the libs that come with ghc-6.4.1.
 >     hasTZ = myIsInfixOf "+" s
 >     tz :: Int; tz = if hasTZ then read (ws !! 6) else 0
 >     isBC = myIsInfixOf "BC" s
+>     -- It seems only PostgreSQL uses the AD/BC suffix.
+>     -- If BC is present then we need to do something odd with the year.
 >     year :: Int; year = if isBC then (- ((parts !! 0) - 1)) else parts !! 0
 >   in (year, (parts !! 1), (parts !! 2)
 >      , (parts !! 3), (parts !! 4), secs, tz)
@@ -219,6 +225,23 @@ but it is not in the libs that come with ghc-6.4.1.
 >     ++ ":" ++ zeroPad 2 minute
 >     ++ ":" ++ secs
 >     ++ "+00" ++ suffix
+
+> utcTimeToIsoDatetime :: UTCTime -> String
+> utcTimeToIsoDatetime utc =
+>   let
+>     (LocalTime ltday time) = utcToLocalTime (hoursToTimeZone 0) utc
+>     (TimeOfDay hour minute second) = time
+>     (year, month, day) = toGregorian ltday
+>     s1 :: Double; s1 = realToFrac second
+>     secs :: String; secs = printf "%09.6f" s1
+>   in zeroPad 4 year
+>     ++ "-" ++ zeroPad 2 month
+>     ++ "-" ++ zeroPad 2 day
+>     ++ " " ++ zeroPad 2 hour
+>     ++ ":" ++ zeroPad 2 minute
+>     ++ ":" ++ secs
+>     ++ "+00"
+
 
 | Assumes CalendarTime is also UTC i.e. ignores ctTZ component.
 
