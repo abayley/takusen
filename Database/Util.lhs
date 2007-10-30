@@ -208,54 +208,37 @@ Parses ISO format datetimes, and also the variation that PostgreSQL uses.
 >   in (year, (parts !! 1), (parts !! 2)
 >      , (parts !! 3), (parts !! 4), secs, tz)
 
-> utcTimeToPGDatetime :: UTCTime -> String
-> utcTimeToPGDatetime utc =
+
+> utcTimeToIsoString :: (Integral a, Integral b) =>
+>   UTCTime -> String -> (a -> a) -> (b -> String) -> String
+> utcTimeToIsoString utc dtSep adjYear mkSuffix =
 >   let
 >     (LocalTime ltday time) = utcToLocalTime (hoursToTimeZone 0) utc
 >     (TimeOfDay hour minute second) = time
 >     (year1, month, day) = toGregorian ltday
->     suffix = if year1 < 1 then " BC" else " AD"
->     year = if year1 < 1 then abs(year1 - 1) else year1
+>     suffix = mkSuffix (fromIntegral year1)
+>     year = adjYear (fromIntegral year1)
 >     s1 :: Double; s1 = realToFrac second
 >     secs :: String; secs = printf "%09.6f" s1
 >   in zeroPad 4 year
 >     ++ "-" ++ zeroPad 2 month
 >     ++ "-" ++ zeroPad 2 day
->     ++ " " ++ zeroPad 2 hour
+>     ++ dtSep ++ zeroPad 2 hour
 >     ++ ":" ++ zeroPad 2 minute
 >     ++ ":" ++ secs
 >     ++ "+00" ++ suffix
 
+> utcTimeToPGDatetime :: UTCTime -> String
+> utcTimeToPGDatetime utc = utcTimeToIsoString utc "T" adjYear mkSuffix
+>   where 
+>     mkSuffix year1 = if year1 < 1 then " BC" else " AD"
+>     adjYear year1 = if year1 < 1 then abs(year1 - 1) else year1
+
 > utcTimeToIsoDatetime :: UTCTime -> String
-> utcTimeToIsoDatetime utc =
->   let
->     (LocalTime ltday time) = utcToLocalTime (hoursToTimeZone 0) utc
->     (TimeOfDay hour minute second) = time
->     (year, month, day) = toGregorian ltday
->     s1 :: Double; s1 = realToFrac second
->     secs :: String; secs = printf "%09.6f" s1
->   in zeroPad 4 year
->     ++ "-" ++ zeroPad 2 month
->     ++ "-" ++ zeroPad 2 day
->     ++ " " ++ zeroPad 2 hour
->     ++ ":" ++ zeroPad 2 minute
->     ++ ":" ++ secs
->     ++ "Z"
+> utcTimeToIsoDatetime utc = utcTimeToIsoString utc "T" id (const "Z") 
 
 > utcTimeToOdbcDatetime :: UTCTime -> String
-> utcTimeToOdbcDatetime utc =
->   let
->     (LocalTime ltday time) = utcToLocalTime (hoursToTimeZone 0) utc
->     (TimeOfDay hour minute second) = time
->     (year, month, day) = toGregorian ltday
->     s1 :: Double; s1 = realToFrac second
->     secs :: String; secs = printf "%09.6f" s1
->   in zeroPad 4 year
->     ++ "-" ++ zeroPad 2 month
->     ++ "-" ++ zeroPad 2 day
->     ++ " " ++ zeroPad 2 hour
->     ++ ":" ++ zeroPad 2 minute
->     ++ ":" ++ secs
+> utcTimeToOdbcDatetime utc = utcTimeToIsoString utc " " id (const "") 
 
 
 | Assumes CalendarTime is also UTC i.e. ignores ctTZ component.
