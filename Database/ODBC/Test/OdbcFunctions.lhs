@@ -75,12 +75,6 @@ Portability :  non-portable
 >   freeEnv env
 
 
-> testCreateStmt conn = do
->   stmt <- allocStmt conn
->   prepareStmt stmt "select 'x'"
->   executeStmt stmt
->   freeStmt stmt
-
 > createDual conn = do
 >   stmt <- allocStmt conn
 >   prepareStmt stmt "create table tdual (dummy varchar(1) primary key)"
@@ -96,12 +90,18 @@ Portability :  non-portable
 >   freeStmt stmt
 
 
+> testCreateStmt conn = do
+>   stmt <- allocStmt conn
+>   prepareStmt stmt "select 'x' from tdual"
+>   executeStmt stmt
+>   freeStmt stmt
+
 > testFetchString conn = do
 >   stmt <- allocStmt conn
 >   let string1 = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
 >   let string2 = "xyz" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
 >   prepareStmt stmt ("select '" ++ string1
->     ++ "' union select '" ++ string2 ++ "' order by 1")
+>     ++ "' from tdual union select '" ++ string2 ++ "' from tdual order by 1")
 >   executeStmt stmt
 >   more <- fetch stmt
 >   s <- getDataUTF8String stmt 1
@@ -231,7 +231,7 @@ Portability :  non-portable
 >   stmt <- allocStmt conn
 >   prepareStmt stmt "drop table t_utf8"
 >   ignoreError (executeStmt stmt)
->   prepareStmt stmt "create table t_utf8(s text)"
+>   prepareStmt stmt "create table t_utf8(s varchar(50))"
 >   executeStmt stmt
 >   let expect = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
 >   prepareStmt stmt ("insert into t_utf8 values ( '" ++ expect ++ "' )")
