@@ -5,11 +5,9 @@
 
 -- Can't use "#!" with -cpp; get "invalid preprocessing directive #!"
 
-import SetupAux
-import Bird2Hs (bird2hs)
 import Control.Exception (bracket)
 import Control.Monad (when)
-import Data.List (isPrefixOf)
+import Data.List (isPrefixOf, unionBy)
 import Data.Maybe (fromJust)
 import Distribution.Compiler (Compiler(..))
 import Distribution.Package ( showPackageId, PackageIdentifier(..) )
@@ -21,20 +19,24 @@ import Distribution.PackageDescription
   , haddockName, hasLibs
   )
 import Distribution.PreProcess
-  ( preprocessSources, ppCpp'
+  ( preprocessSources, ppCpp', PPSuffixHandler, knownSuffixHandlers
   )
 import Distribution.Program
   ( programName, haddockProgram, lookupProgram, rawSystemProgram
   , programArgs )
 import Distribution.Setup (ConfigFlags, configVerbose, BuildFlags
-  , InstallFlags(..), HaddockFlags(..)
+  , InstallFlags(..), HaddockFlags(..), RegisterFlags(..), emptyRegisterFlags
+  , CopyFlags(..), CopyDest(..)
   )
 import Distribution.Simple
   ( defaultMainWithHooks, defaultUserHooks, UserHooks(..), Args
   , hookedPreProcessors )
+import Distribution.Simple.Build (build)
 import Distribution.Simple.Configure (findProgram)
+import Distribution.Simple.Install (install)
 import Distribution.Simple.LocalBuildInfo
   ( withPrograms, LocalBuildInfo(..), buildDir, packageDeps )
+import Distribution.Simple.Register (writeInstalledConfig, register)
 import Distribution.Simple.Utils (moduleToFilePath, die, haddockPref)
 import Language.Haskell.Extension (Extension(..))
 import System.Directory
@@ -89,8 +91,6 @@ Oracle  : -I"%ORACLE_HOME%\oci\include" -loci -L"%ORACLE_HOME%\bin"
 main = defaultMainWithHooks defaultUserHooks
   { preConf=preConf, postConf=postConf
   , buildHook=buildHook, instHook=installHook
-  , haddockHook = haddockHook2
-  , postHaddock = postHaddock
   }
   where
     preConf ::  [String] -> ConfigFlags -> IO HookedBuildInfo
@@ -114,47 +114,40 @@ main = defaultMainWithHooks defaultUserHooks
     -- also patch the installHook
     installHook :: PackageDescription -> LocalBuildInfo -> Maybe UserHooks -> InstallFlags -> IO ()
     installHook pd lbi mbuh insf = defaultInstallHook (modifyPackageDesc pd) lbi mbuh insf
-    --
-    haddockHook2 :: PackageDescription -> LocalBuildInfo -> Maybe UserHooks -> HaddockFlags -> IO ()
-    haddockHook2 pkg_descr lbi hooks flags = do
-      withLib pkg_descr () $ \lib -> do
-        let fp :: [FilePath]; fp = hsSourceDirs (libBuildInfo lib)
-        sequence_ (map (createLhsForHs fp) ((exposedModules lib) ++ (otherModules (libBuildInfo lib))))
-      haddock pkg_descr lbi hooks flags
-    --
-    postHaddock :: Args -> HaddockFlags -> PackageDescription -> LocalBuildInfo -> IO ExitCode
-    postHaddock args flags pkg_descr lbi = do
-      withLib pkg_descr () $ \lib -> do
-        let fp :: [FilePath]; fp = hsSourceDirs (libBuildInfo lib)
-        sequence_ (map (removeHsForLhs fp) ((exposedModules lib) ++ (otherModules (libBuildInfo lib))))
-      return ExitSuccess
 
+---------------------------------------------------------------------
+-- Start of code copied verbatim from Distribution.Simple,
+-- because it's not exported.
+--getModulePaths :: BuildInfo -> [String] -> IO [FilePath]
+--getModulePaths bi =
+--   fmap concat .
+--      mapM (flip (moduleToFilePath (hsSourceDirs bi)) ["hs", "lhs"])
 
-createLhsForHs :: [FilePath] -> String -> IO ()
-createLhsForHs searchLoc modname = do
-  srcFiles <- moduleToFilePath searchLoc modname ["lhs"]
-  case srcFiles of
-    [] -> return ()
-    (lhsFile:_) -> do
-      let (srcStem, ext) = splitExtension lhsFile
-      let hsFile = addExtension srcStem "hs"
-      hsExists <- doesFileExist hsFile
-      when (not hsExists) (putStrLn ("Setup: unlit " ++ lhsFile))
-      when (not hsExists) (bird2hs lhsFile hsFile)
-      return ()
+defaultBuildHook :: PackageDescription -> LocalBuildInfo
+    -> Maybe UserHooks -> BuildFlags -> IO ()
+defaultBuildHook pkg_descr localbuildinfo hooks flags = do
+  build pkg_descr localbuildinfo flags (allSuffixHandlers hooks)
+  when (hasLibs pkg_descr) $
+      writeInstalledConfig pkg_descr localbuildinfo False
 
-removeHsForLhs :: [FilePath] -> String -> IO ()
-removeHsForLhs searchLoc modname = do
-  srcFiles <- moduleToFilePath searchLoc modname ["hs"]
-  case srcFiles of
-    [] -> return ()
-    (hsFile:_) -> do
-      let (srcStem, ext) = splitExtension hsFile
-      let lhsFile = addExtension srcStem "lhs"
-      lhsExists <- doesFileExist lhsFile
-      when (lhsExists) (putStrLn ("Setup: delete " ++ hsFile ++ "\n  (generated from " ++ lhsFile ++ ")"))
-      when (lhsExists) (removeFile hsFile)
-      return ()
+defaultInstallHook :: PackageDescription -> LocalBuildInfo
+    -> Maybe UserHooks ->InstallFlags -> IO ()
+defaultInstallHook pkg_descr localbuildinfo _ (InstallFlags uInstFlag verbose) = do
+  install pkg_descr localbuildinfo (CopyFlags NoCopyDest verbose)
+  when (hasLibs pkg_descr) $
+      register pkg_descr localbuildinfo 
+           emptyRegisterFlags{ regUser=uInstFlag, regVerbose=verbose }
+
+allSuffixHandlers :: Maybe UserHooks -> [PPSuffixHandler]
+allSuffixHandlers hooks
+    = maybe knownSuffixHandlers
+      (\h -> overridesPP (hookedPreProcessors h) knownSuffixHandlers)
+      hooks
+    where
+      overridesPP :: [PPSuffixHandler] -> [PPSuffixHandler] -> [PPSuffixHandler]
+      overridesPP = unionBy (\x y -> fst x == fst y)
+-- End of code copied verbatim from Distribution.Simple.
+---------------------------------------------------------------------
 
 modifyPackageDesc pd =
   let
@@ -178,76 +171,6 @@ filterODBCModules libs modules =
   if not (elem "odbc" libs || elem "odbc32" libs)
   then filter (not . isPrefixOf "Database.ODBC") modules
   else modules
-
-
--- haddock is copied from Distribution.Simple,
--- and modified to work in this script.
-
-haddock :: PackageDescription -> LocalBuildInfo -> Maybe UserHooks -> HaddockFlags -> IO ()
-haddock pkg_descr lbi hooks (HaddockFlags hoogle verbose) = do
-    let pps = allSuffixHandlers hooks
-    confHaddock <- do
-      let programConf = withPrograms lbi
-      mHaddock <- lookupProgram (programName haddockProgram) programConf
-      maybe (die "haddock command not found") return mHaddock
-
-    let tmpDir = combine (buildDir lbi) "tmp"
-    createDirectoryIfMissing True tmpDir
-    createDirectoryIfMissing True haddockPref
-    preprocessSources pkg_descr lbi verbose pps
-
-    setupMessage "Running Haddock for" pkg_descr
-
-    let replaceLitExts = map (combine tmpDir . flip replaceExtension "hs")
-    let mockAll bi = mapM_ (mockPP ["-D__HADDOCK__"] pkg_descr bi lbi tmpDir verbose)
-    let showPkg     = showPackageId (package pkg_descr)
-    let showDepPkgs = map showPackageId (packageDeps lbi)
-    let outputFlag  = if hoogle then "--hoogle" else "--html"
-
-    withLib pkg_descr () $ \lib -> do
-        let bi = libBuildInfo lib
-        inFiles <- getModulePaths bi (exposedModules lib ++ otherModules bi)
-        mockAll bi inFiles
-        let prologName = showPkg ++ "-haddock-prolog.txt"
-        writeFile prologName (description pkg_descr ++ "\n")
-        let outFiles = replaceLitExts inFiles
-        let haddockFile = combine haddockPref (haddockName pkg_descr)
-        -- FIX: replace w/ rawSystemProgramConf?
-        rawSystemProgram verbose confHaddock
-                ([outputFlag,
-                  "--odir=" ++ haddockPref,
-                  "--title=" ++ showPkg ++ ": " ++ synopsis pkg_descr,
-                  "--package=" ++ showPkg,
-                  "--dump-interface=" ++ haddockFile,
-                  "--prologue=" ++ prologName]
-                 -- ++ map ("--use-package=" ++) showDepPkgs
-                 ++ map readInf (packageDeps lbi)
-                 ++ programArgs confHaddock
-                 ++ (if verbose > 4 then ["--verbose"] else [])
-                 ++ outFiles
-                 ++ map ("--hide=" ++) (otherModules bi)
-                )
-        removeFile prologName
-    removeDirectoryRecursive tmpDir
-  where 
-        compilerTopDir = takeDirectory (takeDirectory (dropFileName (compilerPath (compiler lbi))))
-        readInf pkgId = "--read-interface=http://www.haskell.org/ghc/docs/latest/html/libraries/"
-          ++ pkgName pkgId ++ ","
-          ++ joinPath [compilerTopDir, "html", "libraries", pkgName pkgId, pkgName pkgId ++ ".haddock"]
-        mockPP inputArgs pkg_descr bi lbi pref verbose file
-            = do let (filePref, fileName) = splitFileName file
-                 let targetDir = combine pref filePref
-                 let targetFile = combine targetDir fileName
-                 let (targetFileNoext, targetFileExt) = splitExtension targetFile
-                 createDirectoryIfMissing True targetDir
-                 if (needsCpp pkg_descr)
-                    then ppCpp' inputArgs bi lbi file targetFile verbose
-                    else copyFile file targetFile >> return ExitSuccess
-        needsCpp :: PackageDescription -> Bool
-        needsCpp p =
-           hasLibs p &&
-           any (== CPP) (extensions $ libBuildInfo $ fromJust $ library p)
-
 
 
 sameFolder path = return (fst (splitFileName path))
