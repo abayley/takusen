@@ -8,10 +8,6 @@ Stability   :  experimental
 Portability :  non-portable
 
 
-
-> {- # OPTIONS -fglasgow-exts #-}
-> {- # OPTIONS -fallow-overlapping-instances #-}
-
 > module Database.ODBC.Test.Enumerator (runTest) where
 
 > import qualified Database.ODBC.Test.OdbcFunctions as Low

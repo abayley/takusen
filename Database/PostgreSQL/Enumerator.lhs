@@ -516,7 +516,7 @@ you'll see that it is the same as the cursor name (currently "takusenp").
 >     -- Don't bother saving returned RefCursors.
 >     Nothing -> return ()
 >     Just pstmt -> modifyIORef (stmtCursors pstmt) (++ [cname])
-  
+
 > instance IQuery Query Session ColumnBuffer where
 >
 >   destroyQuery query = do

@@ -197,9 +197,6 @@ sqlAutoCommitOff = #{const SQL_AUTOCOMMIT_OFF}
   #{const SQL_INTEGER} :  -- 4
   #{const SQL_BINARY} :  -- -2
   #{const SQL_DOUBLE} :  -- 8
-  -- #{const SQL_DATE} :  -- 9
-  -- #{const SQL_TIME} :  -- 10
-  -- #{const SQL_TIMESTAMP} :  -- 11
   #{const SQL_TYPE_DATE} :  -- 9
   #{const SQL_TYPE_TIME} :  -- 10
   #{const SQL_TYPE_TIMESTAMP} :  -- 11
@@ -222,9 +219,6 @@ sqlAutoCommitOff = #{const SQL_AUTOCOMMIT_OFF}
   #{const SQL_C_LONG} :
   #{const SQL_C_BINARY} :
   #{const SQL_C_DOUBLE} :
-  -- #{const SQL_C_DATE} :
-  -- #{const SQL_C_TIME} :
-  -- #{const SQL_C_TIMESTAMP} :
   #{const SQL_C_TYPE_DATE} :
   #{const SQL_C_TYPE_TIME} :
   #{const SQL_C_TYPE_TIMESTAMP} :
@@ -724,7 +718,7 @@ bindParamUtcTime stmt pos direction (Just utc) = do
   --   Size/Length should be 16 bytes.
   --   Precision should be 8 (or 16?).
   --   Scale is the number of digits in the fraction component (SQL Server only allows 0-3).
-  -- ** We're not using the TIMESTAMP_STRUCT to marshal any more.
+  -- We're not using the TIMESTAMP_STRUCT to marshal any more.
   --buffer <- makeUtcTimeBuffer utc
   --bindParam stmt pos direction sqlCTypeTimestamp sqlDTypeTimestamp #{size TIMESTAMP_STRUCT} 0 buffer
   --

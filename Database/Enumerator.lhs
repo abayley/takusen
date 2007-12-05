@@ -461,7 +461,7 @@ or closes the cursor (when applied to False).
 If @Maybe@ f is @Nothing@, then the result-set has been exhausted
 (or the iteratee function terminated early),
 and the cursor has already been closed.
- 
+
 > newtype DBCursor mark ms a =
 >     DBCursor (IORef (a, Maybe (Bool-> ms (DBCursor mark ms a))))
 
@@ -668,7 +668,7 @@ That's the code... now for the documentation.
 ====================================================================
 
 
--- $usage_example
+$usage_example
  
 Let's look at some example code:
  
@@ -770,7 +770,7 @@ A longer explanation of prepared statements and
 bind variables is in the Bind Parameters section below.
 
 
--- $usage_iteratee
+$usage_iteratee
  
 'Database.Enumerator.doQuery' takes an iteratee function, of n arguments.
 Argument n is the accumulator (or seed).
@@ -846,7 +846,7 @@ reduces to (by using 'IterAct' and 'IterResult'):
  
 
 
--- $usage_result
+$usage_result
  
 The 'result' (lazy) and @result\'@ (strict) functions are another convenient shorthand
 for returning values from iteratee functions. The return type from an iteratee is actually
@@ -887,7 +887,7 @@ which is why we recommend the strict function.
 
 
 
--- $usage_rank2_types
+$usage_rank2_types
  
 In some examples we use the application operator ($) instead of parentheses
 (some might argue that this is a sign of developer laziness).
@@ -965,7 +965,7 @@ This is easily fixed by adding this type declaration:
 
 
 
--- $usage_bindparms
+$usage_bindparms
  
 Support for bind variables varies between DBMS's.
  
@@ -1068,7 +1068,7 @@ or you may prefer to delimit your transactions elsewhere (the API supports
  >     actual <- doQuery query iter []
  >     liftIO (print actual)
  
-You may have noticed that For 'Data.Int.Int' and 'Prelude.Double' literal
+You may have noticed that for 'Data.Int.Int' and 'Prelude.Double' literal
 bind values, we have to tell the compiler the type of the literal.
 I assume this is due to interaction (which I don't fully understand and therefore
 cannot explain in any detail) with the numeric literal defaulting mechanism.
@@ -1098,7 +1098,7 @@ message looks something like this:
  >                        ....
 
 
--- $usage_multiresultset
+$usage_multiresultset
  
 Support for returning multiple result sets from a single
 statement exists for PostgreSQL and Oracle.
@@ -1110,8 +1110,8 @@ returns cursor variables. The variables can be processed by
  
 /Linear style:/
  
-If we assume the existence of the following PostgreSQL function
-(this function is used in the test suite in "Database.PostgreSQL.Test.Enumerator"):
+If we assume the existence of the following PostgreSQL function,
+which is used in the test suite in "Database.PostgreSQL.Test.Enumerator":
  
  > CREATE OR REPLACE FUNCTION takusenTestFunc() RETURNS SETOF refcursor AS $$
  > DECLARE refc1 refcursor; refc2 refcursor;

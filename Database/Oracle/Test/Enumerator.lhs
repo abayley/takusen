@@ -40,7 +40,7 @@ select n, cursor(
 )
 from t_natural nat where n < 10 order by n;
 
- 
+
 > {-# OPTIONS -fglasgow-exts #-}
 > {-# OPTIONS -fallow-overlapping-instances #-}
 

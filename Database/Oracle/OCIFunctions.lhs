@@ -158,7 +158,7 @@ If we can't derive Typeable then the following code should do the trick:
 >   :: StmtHandle -> Ptr DefnHandle -> ErrorHandle -> CInt -> BufferPtr -> CInt -> CUShort -> Ptr CShort -> Ptr CUShort -> Ptr CUShort -> CInt -> IO CInt
 > foreign import ccall "oci.h OCIStmtExecute" ociStmtExecute :: ConnHandle -> StmtHandle -> ErrorHandle -> CInt -> CInt -> OCIHandle -> OCIHandle -> CInt -> IO CInt
 > foreign import ccall "oci.h OCIStmtFetch" ociStmtFetch :: StmtHandle -> ErrorHandle -> CInt -> CShort -> CInt -> IO CInt
- 
+
 stmt, ptr bindHdl, err, pos, valuePtr, sizeOfValue,
 datatype, indicatorPtr, lenArrayPtr, retCodeArrayPtr,
 plsqlArrayMaxLen, plsqlCurrEltPtr, mode
@@ -347,7 +347,7 @@ Deref'ing it returns that value immediately, rather than a Ptr to that value.
 > getParam err stmt posn = alloca $ \ptr -> do
 >   rc <- ociParamGet (castPtr stmt) oci_HTYPE_STMT err ptr (mkCInt posn)
 >   testForErrorWithPtr rc "getParam" (castPtr ptr)
-     
+
 
 ---------------------------------------------------------------------------------
 -- ** Connecting and detaching

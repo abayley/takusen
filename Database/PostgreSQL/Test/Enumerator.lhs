@@ -78,7 +78,7 @@ END;
 
 SELECT n, takusenTestFunc(n) from t_natural where n < 10 order by n;
 
- 
+
 > {-# OPTIONS -fglasgow-exts #-}
 > {-# OPTIONS -fallow-overlapping-instances #-}
 
