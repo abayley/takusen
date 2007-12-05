@@ -10,7 +10,7 @@ Homepage:       http://darcs.haskell.org/takusen
 Package-url:    http://darcs.haskell.org/takusen
 Category:       Database
 Build-Depends:  base, mtl, time
-Synopsis:       Database access library with left-fold interface. Supports PostgreSQL, Oracle, SQLite.
+Synopsis:       Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.
 Exposed-modules:
     Database.Enumerator
   , Database.Util
@@ -28,18 +28,10 @@ Exposed-modules:
   , Foreign.C.UTF8
 Other-modules:
     Database.InternalEnumerator
---  , Database.Oracle.Test.Enumerator
---  , Database.Oracle.Test.OCIFunctions
---  , Database.PostgreSQL.Test.Enumerator
---  , Database.PostgreSQL.Test.PGFunctions
---  , Database.Sqlite.Test.Enumerator
---  , Database.Sqlite.Test.SqliteFunctions
---  , Database.Stub.Test.Enumerator
---  , Database.Test.Enumerator
---  , Database.Test.Performance
---  , Database.Test.Util
---  , Test.MiniUnit
---  , Test.MiniUnitTest
+-- We don't expose the Test modules; the only reason to do so would be so Haddock
+-- can use them (to stop the warnings "could not find link destination for:"),
+-- and for that they'd have to be in Exposed-modules.
+-- Modules in Other-modules are passed to Haddock with --hide=<module-name>.
 Ghc-Prof-Options: -prof -auto-all
 --Ghc-Options: -O2
 --Ghc-Options: -optl-Wl--enable-stdcall-fixup
