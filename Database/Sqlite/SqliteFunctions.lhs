@@ -7,7 +7,7 @@ License     :  BSD-style
 Maintainer  :  oleg@pobox.com, alistair@abayley.org
 Stability   :  experimental
 Portability :  non-portable
- 
+.
 Simple wrappers for Sqlite functions (FFI).
 
 
