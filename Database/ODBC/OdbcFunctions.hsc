@@ -566,7 +566,7 @@ testForNull buffer action = do
   if len < 0 then return Nothing
     else withForeignPtr (bindBufPtr buffer) $ \bptr ->
       action bptr len >>= return . Just
-  
+
 getStorableFromBuffer :: Storable a => BindBuffer -> IO (Maybe a)
 getStorableFromBuffer buffer =
   testForNull buffer (\bptr _ -> peek (castPtr bptr))
@@ -709,7 +709,7 @@ makeUtcTimeStringBuffer utc = do
     copyBytes mem cstr (fromIntegral clen)
     pokeByteOff mem (fromIntegral clen) (0 :: Word8)
     wrapSizedBuffer mem (fromIntegral clen)
-  
+
 bindParamUtcTime :: StmtHandle -> Int -> SqlParamDirection -> Maybe UTCTime -> IO BindBuffer
 bindParamUtcTime stmt pos direction Nothing = do
   bindNull stmt pos direction sqlCTypeTimestamp sqlDTypeTimestamp
