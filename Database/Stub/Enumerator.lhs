@@ -6,11 +6,11 @@ License     :  BSD-style
 Maintainer  :  oleg@pobox.com, alistair@abayley.org
 Stability   :  experimental
 Portability :  non-portable
- 
+.
 Stub implementation of Database.Enumerator.
 Useful for people who can't or won't install a DBMS,
 so that they can try out the Enumerator interface.
- 
+.
 Currently last last row of any fetch will have a null in its Int columns
 (this makes it easier to test handling of nulls and DBUnexpectedNull).
 See fetchIntVal.
