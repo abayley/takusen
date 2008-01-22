@@ -329,6 +329,7 @@ which we can't yet marshal.
 >       assertEqual "generateErrorMessageTest" expect (take (length expect) msg)
 >     )
 
+
 > testList :: [PGSqlFunctions -> DBM mark Session ()]
 > testList =
 >   [ selectNoRows, selectTerminatesEarly, selectFloatsAndInts
