@@ -6,11 +6,11 @@ License     :  BSD-style
 Maintainer  :  oleg@pobox.com, alistair@abayley.org
 Stability   :  experimental
 Portability :  non-portable
- 
+.
 Simple test harness for Stub.
 Stub can't share the tests for \"real\" backends because it
 returns a somewhat contrived result set.
- 
+
 
 > {-# OPTIONS -fglasgow-exts #-}
 > {-# OPTIONS -fallow-overlapping-instances #-}
