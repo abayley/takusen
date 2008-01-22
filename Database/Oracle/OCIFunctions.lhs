@@ -6,14 +6,14 @@ License     :  BSD-style
 Maintainer  :  oleg@pobox.com, alistair@abayley.org
 Stability   :  experimental
 Portability :  non-portable
- 
+.
 Simple wrappers for OCI functions (FFI).
- 
+.
 The functions in this file are simple wrappers for OCI functions.
 The wrappers add error detection and exceptions;
 functions in this module raise 'OCIException'.
 The next layer up traps these and turns them into 'Database.Enumerator.DBException'.
- 
+.
 Note that 'OCIException' /does not/ contain the error number and text
 returned by 'getOCIErrorMsg'.
 It is the job of the next layer (module) up to catch the 'OCIException'
@@ -44,10 +44,10 @@ See 'formatErrorCodeDesc' for the set of possible values for the OCI error numbe
 |
  * Each handle type has its own data type, to prevent stupid errors
    i.e. using the wrong handle at the wrong time.
- 
+.
  * In GHC you can simply say @data OCIStruct@ i.e. there's no need for @= OCIStruct@.
    I've decided to be more portable, as it doesn't cost much.
- 
+.
  * Use castPtr if you need to convert handles (say 'OCIHandle' to a more specific type, or vice versa).
 
 > data OCIStruct = OCIStruct
@@ -264,15 +264,15 @@ They're just type-safe wrappers for 'formatMsgCommon'.
 so if you want to change or embellish it, your changes will be localised here.
 These functions factor out common error handling code
 from the OCI wrapper functions that follow.
- 
+.
 Typically an OCI wrapper function would look like:
- 
+.
  > handleAlloc handleType env = alloca ptr -> do
  >   rc <- ociHandleAlloc env ptr handleType 0 nullPtr
  >   if rc < 0
  >     then throwOCI (OCIException rc msg)
  >     else return ()
- 
+.
 where the code from @if rc < 0@ onwards was identical.
 'testForError' replaces the code from @if rc < 0 ...@ onwards.
 
@@ -447,15 +447,15 @@ but I haven't implemented it yet.
 ---------------------------------------------------------------------------------
 
 |With the OCI you do queries with these steps:
- 
+.
  * prepare your statement (it's just a String) - no communication with DBMS
- 
+.
  * execute it (this sends it to the DBMS for parsing etc)
- 
+.
  * allocate result set buffers by calling 'defineByPos' for each column
- 
+.
  * call fetch for each row.
- 
+.
  * call 'handleFree' for the 'StmtHandle'
    (I assume this is the approved way of terminating the query;
    the OCI docs aren't explicit about this.)
@@ -477,13 +477,13 @@ but I haven't implemented it yet.
 
 |defineByPos allocates memory for a single column value.
 The allocated components are:
- 
+.
  * the result (i.e. value) - you have to say how big with bufsize.
- 
+.
  * the null indicator (int16)
- 
+.
  * the size of the returned data (int16)
- 
+.
 Previously it was the caller's responsibility to free the memory after they're done with it.
 Now we use 'Foreign.ForeignPtr.mallocForeignPtr', so manual memory management is hopefully
 a thing of the past.
@@ -515,7 +515,7 @@ where x is a number or a variable name.
 Most other DBMS's use ? as a placeholder,
 so we have this function to substitute ? with :n,
 where n starts at one and increases with each ?.
- 
+.
 We don't use this function into this library though;
 it's used in the higher-level implementation of Enumerator.
 We prefer to retain flexibility at this lower-level,
