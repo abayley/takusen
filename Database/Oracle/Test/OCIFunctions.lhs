@@ -6,7 +6,7 @@ License     :  BSD-style
 Maintainer  :  oleg@pobox.com, alistair@abayley.org
 Stability   :  experimental
 Portability :  non-portable
- 
+.
 Test harness for "Database.Oracle.OCIFunctions".
 This module depends on on "Database.Oracle.OCIFunctions".
 so it should only use functions from there (and "Database.Oracle.OCIConstants").
