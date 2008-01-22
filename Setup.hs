@@ -12,9 +12,12 @@ import Distribution.PackageDescription
   ( PackageDescription(..), Library(..), BuildInfo(..), HookedBuildInfo
   , emptyHookedBuildInfo, writeHookedBuildInfo, emptyBuildInfo, hasLibs
   )
-import Distribution.Simple.Setup (ConfigFlags, configVerbose, BuildFlags
-  , InstallFlags(..), HaddockFlags(..), CopyFlags(..), CopyDest(..)
-  , emptyRegisterFlags, RegisterFlags(..)
+import Distribution.Simple.Setup -- ( --Flag, fromFlag, toFlag
+  ( ConfigFlags(..), BuildFlags(..)
+  , InstallFlags(..), HaddockFlags(..)
+  , CopyFlags(..)
+  , RegisterFlags(..), emptyRegisterFlags
+  , CopyDest(..)
   )
 import Distribution.Simple
   ( defaultMainWithHooks, defaultUserHooks, UserHooks(..), Args )
@@ -77,7 +80,7 @@ main = defaultMainWithHooks defaultUserHooks
       return emptyHookedBuildInfo
     postConf :: Args -> ConfigFlags -> PackageDescription -> LocalBuildInfo -> IO ()
     postConf args flags _ localbuildinfo = do
-      let verbose = configVerbose flags
+      let verbose = (configVerbose flags)
       sqliteBI <- configSqlite3 verbose
       pgBI <- configPG verbose
       oraBI <- configOracle verbose
@@ -92,12 +95,7 @@ main = defaultMainWithHooks defaultUserHooks
     installHook :: PackageDescription -> LocalBuildInfo -> UserHooks -> InstallFlags -> IO ()
     installHook pd lbi uh insf = defaultInstallHook (modifyPackageDesc pd) lbi uh insf
 
--- BEGIN: Copied verbatim from Distribution.Simple
-defaultBuildHook pkg_descr localbuildinfo hooks flags = do
-  build pkg_descr localbuildinfo flags (allSuffixHandlers hooks)
-  when (hasLibs pkg_descr) $
-      writeInstalledConfig pkg_descr localbuildinfo False Nothing
-
+-- BEGIN: Copied verbatim from Distribution.Simple (in Cabal-1.2.2.0)
 defaultInstallHook :: PackageDescription -> LocalBuildInfo
                    -> UserHooks -> InstallFlags -> IO ()
 defaultInstallHook pkg_descr localbuildinfo _ (InstallFlags uInstFlag verbosity) = do
@@ -105,6 +103,13 @@ defaultInstallHook pkg_descr localbuildinfo _ (InstallFlags uInstFlag verbosity)
   when (hasLibs pkg_descr) $
       register pkg_descr localbuildinfo
            emptyRegisterFlags{ regPackageDB=uInstFlag, regVerbose=verbosity }
+
+defaultBuildHook :: PackageDescription -> LocalBuildInfo
+	-> UserHooks -> BuildFlags -> IO ()
+defaultBuildHook pkg_descr localbuildinfo hooks flags = do
+  build pkg_descr localbuildinfo flags (allSuffixHandlers hooks)
+  when (hasLibs pkg_descr) $
+      writeInstalledConfig pkg_descr localbuildinfo False Nothing
 
 allSuffixHandlers :: UserHooks
                   -> [PPSuffixHandler]
@@ -217,7 +222,7 @@ combineBuildInfo (Just bi1) (Just bi2) =
 
 --rawSystemGrabOutput :: Int -> FilePath -> [String] -> IO String
 rawSystemGrabOutput verbose path args = do
-  when (verbose > silent) . putStrLn . unwords $ path:args
+  when (verbose > normal) . putStrLn . unwords $ path:args
   tmp_dir <- getTemporaryDirectory
   (outf,outh) <- openTempFile tmp_dir "out.dat"
   -- process' stderr goes to our stderr
