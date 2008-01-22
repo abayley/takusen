@@ -6,7 +6,7 @@ License     :  BSD-style
 Maintainer  :  oleg@pobox.com, alistair@abayley.org
 Stability   :  experimental
 Portability :  non-portable
- 
+.
 Simple wrappers for PostgreSQL functions (FFI) plus middle-level
 wrappers (in the second part of this file)
 
