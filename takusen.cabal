@@ -9,7 +9,7 @@ Stability:      experimental
 Homepage:       http://darcs.haskell.org/takusen
 Package-url:    http://darcs.haskell.org/takusen
 Category:       Database
-Build-Depends:  base, mtl, time
+Build-Depends:  base, mtl, time, old-time
 Synopsis:       Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.
 Exposed-modules:
     Database.Enumerator
