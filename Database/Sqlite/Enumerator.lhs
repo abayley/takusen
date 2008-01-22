@@ -6,7 +6,7 @@ License     :  BSD-style
 Maintainer  :  oleg@pobox.com, alistair@abayley.org
 Stability   :  experimental
 Portability :  non-portable
- 
+.
 Sqlite implementation of Database.Enumerator.
 
 
