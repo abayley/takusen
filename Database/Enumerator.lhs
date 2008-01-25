@@ -83,7 +83,7 @@ New style extension declarations.
 >     , commit, rollback, beginTransaction
 >     , withTransaction
 >     , IE.IsolationLevel(..)
->     , execDDL, execDML
+>     , execDDL, execDML, execAction
 >
 >     -- * Exceptions and handlers
 >     , DBException(..)
@@ -303,8 +303,15 @@ satisfactory - and yet better than a segmentation fault.
 > rollback :: IE.ISession s => DBM mark s ()
 > rollback = DBM( ask >>= lift . IE.rollback )
 
+| Execute an arbitrary IO action (taking a Session object)
+in the DBM monad.
+
+> execAction :: IE.ISession s => (s -> IO a) -> DBM mark s a
+> execAction action = DBM (ask >>= \s -> lift (action s))
+
 > executeCommand :: IE.Command stmt s => stmt -> DBM mark s Int
 > executeCommand stmt = DBM( ask >>= \s -> lift $ IE.executeCommand s stmt )
+> --executeCommand stmt = execAction (\s -> IE.executeCommand s stmt)
 
 | DDL operations don't manipulate data, so we return no information.
 If there is a problem, an exception will be raised.
