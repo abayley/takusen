@@ -164,31 +164,29 @@ int64 -4712-01-01 -> 4713-01-01 BC
 
 
 
-> execDDL_ s = catchDB (execDDL s >> commit)
->   (\e -> rollback >> liftIO (reportError s e) >> throwDB e)
+> execDDL_ s = catchDB (execDDL s) (\e -> liftIO (reportError s e) >> throwDB e)
+> execDML_ s = execDDL_ s
 
-> execDML_ s = catchDB (execDDL s) (\e -> liftIO (reportError s e) >> throwDB e)
-
-Use execDrop when the DDL likely to raise an error.
+Use execDrop when the DDL is likely to raise an error.
 Note that PostgreSQL + ODBC seems to require you commit or rollback the DDL;
 if you don't then the next statement will fail with a 25P02
 ("in failed SQL transaction")
 I guess that's a result of PostgreSQL's transactional DDL feature.
 
-> execDrop s = catchDB (execDDL s >> commit) (\e -> rollback >> return ())
+> execDrop s = catchDB (withTransaction Serializable (execDDL s)) (\e -> return ())
 
-> makeFixture execDrop execDDL_ = flip catchDB (reportRethrowMsg "makeFixture: ") $ do
->   execDrop sqlDropDual
->   execDrop sqlDropTest
->   execDDL_ sqlCreateDual
+> makeFixture doDrop doDDL = flip catchDB (reportRethrowMsg "makeFixture: ") $ do
+>   doDrop sqlDropDual
+>   doDrop sqlDropTest
+>   doDDL sqlCreateDual
 >   beginTransaction ReadCommitted
->   execDDL_ sqlInsertDual
+>   doDDL sqlInsertDual
 >   commit
->   execDDL_ sqlCreateTest
+>   doDDL sqlCreateTest
 >   withTransaction Serialisable $ do
->     execDDL_ sqlInsertTest1
->     execDDL_ sqlInsertTest2
->     execDDL_ sqlInsertTest3
+>     doDDL sqlInsertTest1
+>     doDDL sqlInsertTest2
+>     doDDL sqlInsertTest3
 
 > destroyFixture execDDL_ = flip catchDB reportRethrow $ do
 >   execDDL_ sqlDropDual
