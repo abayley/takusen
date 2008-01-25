@@ -89,6 +89,9 @@ whatever that means.
 > foreign import ccall "sqlite.h sqlite3_changes" sqliteChanges
 >   :: DBHandle -> IO CInt
 
+> foreign import ccall "sqlite.h sqlite3_last_insert_rowid" sqliteLastInsertRowid
+>   :: DBHandle -> IO CLLong
+
 > foreign import ccall "sqlite.h sqlite3_free" sqliteFree
 >   :: Ptr a -> IO ()
 
