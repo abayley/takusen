@@ -135,8 +135,8 @@ You only need to use whatever subset is relevant for your connection.
 >           (s,(c:t))  -> s ++ ('\\' : c : qu t)
 
 
-> isolationLevelText ReadUncommitted = "read uncomitted"
-> isolationLevelText ReadCommitted = "read comitted"
+> isolationLevelText ReadUncommitted = "read uncommitted"
+> isolationLevelText ReadCommitted = "read committed"
 > isolationLevelText RepeatableRead = "repeatable read"
 > isolationLevelText Serialisable = "serializable"
 > isolationLevelText Serializable = "serializable" 
