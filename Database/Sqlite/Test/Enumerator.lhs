@@ -18,6 +18,7 @@ Portability :  non-portable
 > import Database.Test.Performance as Perf
 > import Database.Test.Enumerator
 > import Control.Monad (when)
+> import Control.Monad.Trans (liftIO)
 > import Control.Exception (throwDyn)
 > import Test.MiniUnit
 > import Data.Int
@@ -137,6 +138,12 @@ Portability :  non-portable
 
 > exceptionRollback _ = actionExceptionRollback sqlInsertTest4 sqlExceptionRollback
 
+> insertGetRowId _ =
+>   withTransaction RepeatableRead ( do
+>     execDML (sql ("insert into " ++ testTable ++ " values (100, '100')"))
+>     rowid <- execAction lastInsertRowid
+>     liftIO $ putStrLn ("last insert row id " ++ show rowid)
+>   )
 
 > testList :: DBLiteralValue a => [a -> DBM mark Session ()]
 > testList =
@@ -148,4 +155,5 @@ Portability :  non-portable
 >   , selectBindDate, selectBindBoundaryDates, selectRebindStmt
 >   , boundStmtDML, boundStmtDML2
 >   , polymorphicFetchTest, polymorphicFetchTestNull, exceptionRollback
+>   , insertGetRowId
 >   ]
