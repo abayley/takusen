@@ -16,6 +16,7 @@ Portability :  non-portable
 > import Database.Test.Enumerator
 > import Database.Util
 > import Control.Monad (when)
+> import Control.Monad.Trans (liftIO)
 > import Control.Exception (throwDyn)
 > import Test.MiniUnit
 
@@ -24,7 +25,6 @@ Portability :  non-portable
 > runTest runPerf args = do
 >   let (dsn:_) = args
 >   Low.runTest args
->   putStrLn "ODBC Enum tests"
 >   flip catchDB basicDBExceptionReporter $ do
 >     (r, conn1) <- withContinuedSession (connect dsn) (testBody runPerf)
 >     withSession conn1 testPartTwo
@@ -39,6 +39,13 @@ Portability :  non-portable
 >   makeFixture execDrop execDDL_
 >   destroyFixture execDDL_
 
+> runFixture :: DBLiteralValue a => a -> DBM mark Session ()
+> runFixture fns = do
+>   makeFixture execDrop execDDL_
+>   runTestTT "ODBC tests" (map (runOneTest fns) testList)
+>   destroyFixture execDDL_
+
+> runOneTest fns t = catchDB (t fns) (reportRethrowMsg "runOneTest ")
 
 > runPerformanceTests :: DBM mark Session ()
 > runPerformanceTests = do
@@ -55,14 +62,6 @@ Portability :  non-portable
 >   commit
 >   destroyFixture execDDL_
 
-
-> runFixture :: DBLiteralValue a => a -> DBM mark Session ()
-> runFixture fns = do
->   makeFixture execDrop execDDL_
->   runTestTT "ODBC tests" (map (runOneTest fns) testList)
->   destroyFixture execDDL_
-
-> runOneTest fns t = catchDB (t fns) (reportRethrowMsg "runOneTest ")
 
 -----------------------------------------------------------
 
