@@ -6,7 +6,7 @@ License     :  BSD-style
 Maintainer  :  oleg@pobox.com, alistair@abayley.org
 Stability   :  experimental
 Portability :  non-portable
-.
+
 Tests Database.Enumerator code in the context of multiple
 database connections to different DBMS products.
 We should add tests to shift data between databases, too.

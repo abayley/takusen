@@ -6,7 +6,7 @@ License     :  BSD-style
 Maintainer  :  oleg@pobox.com, alistair@abayley.org
 Stability   :  experimental
 Portability :  non-portable
-.
+
 Simple test harness. Demonstrates possible usage.
 
 Tests in this module are organised in groups of three/four functions:
@@ -311,7 +311,7 @@ i.e. open and fetch all rows, close after last row.
 
 |Goal: ensure exception raised when too many rows
 fetched from cursor.
-.
+
 This test will raise an exception, as it tries to
 fetch too many rows from the cursor.
 The exception handler is coded as if we expect the

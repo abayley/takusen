@@ -6,10 +6,10 @@ License     :  BSD-style
 Maintainer  :  oleg@pobox.com, alistair@abayley.org
 Stability   :  experimental
 Portability :  non-portable
-.
+
 This is the interface between the middle Enumerator layer and the
 low-level, Database-specific layer. This file is not exported to the end user.
-.
+
 Only the programmer for a new back-end needs to consult this file.
 
 > {-# OPTIONS -fglasgow-exts #-}
@@ -103,9 +103,9 @@ engine and other related stuff). Session objects for different databases
 normally have different types -- yet they all belong to the class ISession
 so we can do generic operations like @commit@, @execDDL@, etc. 
 in a database-independent manner.
-.
+
 Session objects per se are created by database connection\/login functions.
-.
+
 The class 'ISession' is thus an interface between low-level (and
 database-specific) code and the Enumerator, database-independent
 code.
@@ -153,11 +153,11 @@ a (pointer to) a Session object, so a Query object determines the
 Session object.
 A back-end provides an instance (or instances) of IQuery.
 The end user never seens the IQuery class (let alone its methods).
-.
+
 Can a session have several types of query objects?
 Let's assume that it can: but a statement plus the session uniquely
 determine the query,
-.
+
 Note that we explicitly use IO monad because we will have to explicitly
 do FFI.
 
@@ -176,7 +176,7 @@ are typed (e.g., Integer, CalendarDate, etc), column buffers hide that
 type. Think of the column buffer as Dynamics. The class DBType below
 describes marshalling functions, to fetch a typed value out of the
 \'untyped\' columnBuffer.
-.
+
 Different DBMS's (that is, different session objects) have, in
 general, columnBuffers of different types: the type of Column Buffer
 is specific to a database.
@@ -213,7 +213,7 @@ Prepared commands and statements
 
 | This type is not visible to the end user (cf. ConnectA). It forms a private
 `communication channel' between Database.Enumerator and a back end.
-.
+
 Why don't we make a user-visible class with a @prepare@ method?
 Because it means to standardize the preparation method signature
 across all databases. Some databases need more parameters, some

@@ -7,6 +7,8 @@ Maintainer  :  oleg@pobox.com, alistair@abayley.org
 Stability   :  experimental
 Portability :  non-portable
 
+
+
 Can we support database functions that return/create multiple result-sets?
 Oracle, MS Sql Server, and Sybase have them,
 and we can simulate them in Postgres with the code below.

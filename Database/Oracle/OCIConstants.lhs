@@ -6,7 +6,7 @@ License     :  BSD-style
 Maintainer  :  oleg@pobox.com, alistair@abayley.org
 Stability   :  experimental
 Portability :  non-portable
-.
+
 Contains CInt equivalents of the #defines in the oci library headers.
 This is not a complete set; just enough to get the Haskell libraries working.
 This also might not be particularly portable, but I don't think Oracle are going

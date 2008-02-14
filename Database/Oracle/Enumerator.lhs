@@ -6,7 +6,7 @@ License     :  BSD-style
 Maintainer  :  oleg@pobox.com, alistair@abayley.org
 Stability   :  experimental
 Portability :  non-portable
-.
+
 Oracle OCI implementation of Database.Enumerator.
 
 
@@ -305,7 +305,7 @@ If you ask for RepeatableRead, we must go one better and choose Serialisable
 (ReadCommitted is no good because you can get non-reapeatable reads).
 Oracle has a ReadOnly mode which will give you RepeatableRead,
 but you can't do any updates.
-.
+
 Oracle's default (and weakest) behaviour is ReadCommitted;
 there's no equivalent for ReadUncommitted.
 
