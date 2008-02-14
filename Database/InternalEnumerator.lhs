@@ -18,7 +18,7 @@ Only the programmer for a new back-end needs to consult this file.
 >   (
 >     -- * Session object.
 >       ISession(..), ConnectA(..)
->     , Statement(..), Command(..)
+>     , Statement(..), Command(..), EnvInquiry(..)
 >     , PreparationA(..), IPrepared(..)
 >     , BindA(..), DBBind(..)
 >     , IsolationLevel(..)
@@ -138,6 +138,11 @@ tables, or changes database state.
 > class ISession sess => Command stmt sess where
 >   -- insert/update/delete; returns number of rows affected
 >   executeCommand :: sess -> stmt -> IO Int
+
+> class ISession sess =>
+>   EnvInquiry inquirykey sess result | inquirykey sess -> result where
+>   inquire :: inquirykey -> sess -> IO result
+
 
 | 'Statement' defines the API for query objects i.e.
 which types can be queries.

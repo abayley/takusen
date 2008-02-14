@@ -83,7 +83,7 @@ New style extension declarations.
 >     , commit, rollback, beginTransaction
 >     , withTransaction
 >     , IE.IsolationLevel(..)
->     , execDDL, execDML, execAction
+>     , execDDL, execDML, inquire
 >
 >     -- * Exceptions and handlers
 >     , DBException(..)
@@ -303,15 +303,9 @@ satisfactory - and yet better than a segmentation fault.
 > rollback :: IE.ISession s => DBM mark s ()
 > rollback = DBM( ask >>= lift . IE.rollback )
 
-| Execute an arbitrary IO action (taking a Session object)
-in the DBM monad.
-
-> execAction :: IE.ISession s => (s -> IO a) -> DBM mark s a
-> execAction action = DBM (ask >>= \s -> lift (action s))
 
 > executeCommand :: IE.Command stmt s => stmt -> DBM mark s Int
 > executeCommand stmt = DBM( ask >>= \s -> lift $ IE.executeCommand s stmt )
-> --executeCommand stmt = execAction (\s -> IE.executeCommand s stmt)
 
 | DDL operations don't manipulate data, so we return no information.
 If there is a problem, an exception will be raised.
@@ -323,6 +317,14 @@ If there is a problem, an exception will be raised.
 
 > execDML :: IE.Command stmt s => stmt -> DBM mark s Int
 > execDML = executeCommand
+
+| Allows arbitrary actions to be run the DBM monad.
+the back-end developer must supply instances of EnvInquiry,
+which is hidden away in "Database.InternalEnumerator".
+An example of this is 'Database.Sqlite.Enumerator.LastInsertRowid'.
+
+> inquire :: IE.EnvInquiry key s result => key -> DBM mark s result
+> inquire key = DBM( ask >>= \s -> lift $ IE.inquire key s )
 
 --------------------------------------------------------------------
 -- ** Statements; Prepared statements
@@ -1290,9 +1292,7 @@ the "-- *", "-- **", etc, syntax to give section headings.
 comments to make headings. The headings will appear in the docs in the the locations
 as they do in the source, as do functions, data types, etc.)
 
- - An "empty line" (as mentioned subsequently in these notes) is actually a single space on a line.
-   This results in a "-- " line in the generated .hs file,
-   which continues the comment block from Haddock's point of view.
+ - One blank line continues a comment block. Two or more end it.
  - The module comment must contain a empty line between "Portability: ..." and the description.
  - bullet-lists:
      - items must be preceded by an empty line.
