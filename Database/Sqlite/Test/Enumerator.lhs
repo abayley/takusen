@@ -141,7 +141,7 @@ Portability :  non-portable
 > insertGetRowId _ =
 >   withTransaction RepeatableRead ( do
 >     execDML (sql ("insert into " ++ testTable ++ " values (100, '100')"))
->     rowid <- execAction lastInsertRowid
+>     rowid <- inquire LastInsertRowid
 >     liftIO $ putStrLn ("last insert row id " ++ show rowid)
 >   )
 

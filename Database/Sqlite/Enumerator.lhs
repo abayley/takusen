@@ -19,7 +19,7 @@ Sqlite implementation of Database.Enumerator.
 >   , prepareStmt, preparePrefetch
 >   , prepareQuery, prepareLargeQuery, prepareCommand
 >   , sql, sqlbind, prefetch, cmdbind
->   , lastInsertRowid
+>   , LastInsertRowid(..)
 >   , module Database.Enumerator
 >   )
 > where
@@ -176,6 +176,14 @@ Session objects are created by 'connect'.
 >     n <- DBAPI.stmtChanges (dbHandle sess)
 >     finaliseStmt (dbHandle sess) (stmtHandle pstmt)
 >     return (fromIntegral n)
+
+
+> data LastInsertRowid = LastInsertRowid
+
+> instance EnvInquiry LastInsertRowid Session Int64 where
+>   inquire LastInsertRowid sess =
+>     liftM fromIntegral (DBAPI.sqliteLastInsertRowid (dbHandle sess))
+
 
 > instance ISession Session where
 >   disconnect sess = closeDb (dbHandle sess)
