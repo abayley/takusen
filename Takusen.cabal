@@ -10,6 +10,7 @@ Homepage:       http://darcs.haskell.org/takusen
 Package-url:    http://darcs.haskell.org/takusen
 Category:       Database
 Build-Depends:  base, mtl, time, old-time
+Build-type:     Simple
 Synopsis:       Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.
 Description:   
     Takusen is a DBMS access library. It has a backend for Oracle on Unix,
