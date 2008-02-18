@@ -31,32 +31,31 @@ Description:
     errors including various IO errors. No unsafe operations are used.
 Exposed-modules:
     Database.Enumerator
-  , Database.Util
-  , Database.ODBC.Enumerator
-  , Database.ODBC.OdbcFunctions
-  , Database.Oracle.Enumerator
-  , Database.Oracle.OCIConstants
-  , Database.Oracle.OCIFunctions
-  , Database.PostgreSQL.Enumerator
-  , Database.PostgreSQL.PGFunctions
-  , Database.Sqlite.Enumerator
-  , Database.Sqlite.SqliteFunctions
-  , Database.Stub.Enumerator
-  , Control.Exception.MonadIO
-  , Foreign.C.UTF8
+    , Database.Util
+    , Database.ODBC.Enumerator
+    , Database.ODBC.OdbcFunctions
+    , Database.Oracle.Enumerator
+    , Database.Oracle.OCIConstants
+    , Database.Oracle.OCIFunctions
+    , Database.PostgreSQL.Enumerator
+    , Database.PostgreSQL.PGFunctions
+    , Database.Sqlite.Enumerator
+    , Database.Sqlite.SqliteFunctions
+    , Database.Stub.Enumerator
+    , Control.Exception.MonadIO
+    , Foreign.C.UTF8
 Other-modules:
     Database.InternalEnumerator
--- We don't expose the Test modules; the only reason to do so would be so Haddock
--- can use them (to stop the warnings "could not find link destination for:"),
--- and for that they'd have to be in Exposed-modules.
--- Modules in Other-modules are passed to Haddock with --hide=<module-name>.
+    -- We don't expose the Test modules; the only reason to do so would be so Haddock
+    -- can use them (to stop the warnings "could not find link destination for:"),
+    -- and for that they'd have to be in Exposed-modules.
+    -- Modules in Other-modules are passed to Haddock with --hide=<module-name>.
 Ghc-Prof-Options: -prof -auto-all
---Ghc-Options: -O2
---Ghc-Options: -optl-Wl--enable-stdcall-fixup
+        --Ghc-Options: -O2
+        --Ghc-Options: -optl-Wl--enable-stdcall-fixup
 Extensions: CPP
 Extra-tmp-files: 
-  Database/Oracle/OCIFunctions_stub.c
-  Database/Oracle/OCIFunctions_stub.h
-  Database/PostgreSQL/PGFunctions_stub.c
-  Database/PostgreSQL/PGFunctions_stub.h
---
+    Database/Oracle/OCIFunctions_stub.c
+    Database/Oracle/OCIFunctions_stub.h
+    Database/PostgreSQL/PGFunctions_stub.c
+    Database/PostgreSQL/PGFunctions_stub.h
