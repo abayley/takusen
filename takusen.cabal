@@ -1,7 +1,7 @@
 Name:           Takusen
 Version:        0.7
 License:        BSD3
-License-file:   doc/license.txt
+License-file:   LICENSE
 Author:         Alistair Bayley, Oleg Kiselyov
 Copyright:      2003-2007, Alistair Bayley, Oleg Kiselyov
 Maintainer:     alistair@abayley.org, oleg@pobox.com
