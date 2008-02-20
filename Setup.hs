@@ -187,7 +187,9 @@ configOdbc verbose = do
   message ("Using odbc: <on Windows => lib already in PATH>")
   return ( Just emptyBuildInfo { extraLibs = ["odbc32"] })
 #else
-configOdbc verbose = createConfigByFindingExe "ODBC" "sqlplus" parentFolder "odbc" "" ""
+configOdbc verbose = do
+  message ("Using odbc: <on *nix => assume lib already in PATH>")
+  return ( Just emptyBuildInfo { extraLibs = ["odbc"] })
 #endif
 
 --configPG :: Int -> IO (Maybe BuildInfo)
