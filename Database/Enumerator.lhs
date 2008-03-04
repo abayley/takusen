@@ -1176,7 +1176,7 @@ Notes:
    then an exception will be thrown.
    OTOH, failing to process returned cursors will not raise errors,
    but the cursors will remain open on the server according to whatever scoping
-   rules the sever applies.
+   rules the server applies.
    For PostgreSQL, this will be until the transaction (or session) ends.
 
 /Nested style:/
