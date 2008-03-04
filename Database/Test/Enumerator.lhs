@@ -395,12 +395,18 @@ through unmolested.
 
 > sqlBoundStmtDML = "insert into " ++ testTable ++ " (id, v) values (?, ?)"
 > actionBoundStmtDML stmt = do
->   beginTransaction Serialisable
 >   withPreparedStatement stmt $ \pstmt -> do
->   withBoundStatement pstmt [bindP (100::Int), bindP "100"] $ \bstmt -> do
->     count <- execDML bstmt
->     rollback
->     assertEqual sqlBoundStmtDML 1 count
+>     -- do it twice, to check that prepared stmt can be reused.
+>     withBoundStatement pstmt [bindP (100::Int), bindP "100"] $ \bstmt -> do
+>       beginTransaction Serialisable
+>       count <- execDML bstmt
+>       rollback
+>       assertEqual sqlBoundStmtDML 1 count
+>     withBoundStatement pstmt [bindP (100::Int), bindP "100"] $ \bstmt -> do
+>       beginTransaction Serialisable
+>       count <- execDML bstmt
+>       rollback
+>       assertEqual sqlBoundStmtDML 1 count
 
 
 

@@ -165,6 +165,8 @@ Session objects are created by 'connect'.
 >   executeCommand sess (BoundStmt pstmt) = do
 >     fetchRow (dbHandle sess) (stmtHandle pstmt)
 >     n <- DBAPI.stmtChanges (dbHandle sess)
+>     -- reset, so prepared stmt can be reused
+>     resetStmt (dbHandle sess) (stmtHandle pstmt)
 >     return (fromIntegral n)
 
 > instance Command StmtBind Session where
