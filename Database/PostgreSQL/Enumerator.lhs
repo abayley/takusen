@@ -481,7 +481,7 @@ Now, prepare and open the cursor
 
 
 
-commencePreparedQueryn assumes that the DECLARE CURSOR statement
+commencePreparedQuery assumes that the DECLARE CURSOR statement
 has been prepared and executed.
 Note there are two statement names (and therefore two statements) in scope here.
 The first is the name we give to the DECLARE CURSOR statement;
@@ -578,7 +578,6 @@ An auxiliary function: buffer allocation
 > instance DBType (RefCursor String) Query ColumnBuffer where
 >   allocBufferFor _ q n = allocBuffer q n
 >   fetchCol query buffer = do
->     subq <- readIORef (subquery query)
 >     (Just v) <- bufferToAny DBAPI.colValString query buffer
 >     appendRefCursor query (RefCursor v)
 >     return (RefCursor v)
