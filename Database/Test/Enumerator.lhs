@@ -397,13 +397,15 @@ through unmolested.
 > actionBoundStmtDML stmt = do
 >   withPreparedStatement stmt $ \pstmt -> do
 >     -- do it twice, to check that prepared stmt can be reused.
+>     -- Note that with bound statements, the query (or command)
+>     -- already been executed, so it's too late to begin the transaction.
+>     beginTransaction Serialisable
 >     withBoundStatement pstmt [bindP (100::Int), bindP "100"] $ \bstmt -> do
->       beginTransaction Serialisable
 >       count <- execDML bstmt
 >       rollback
 >       assertEqual sqlBoundStmtDML 1 count
+>     beginTransaction Serialisable
 >     withBoundStatement pstmt [bindP (100::Int), bindP "100"] $ \bstmt -> do
->       beginTransaction Serialisable
 >       count <- execDML bstmt
 >       rollback
 >       assertEqual sqlBoundStmtDML 1 count
@@ -451,7 +453,7 @@ values as Strings i.e. we create our own datatype for the test.
 >   gcatch (
 >     withTransaction Serialisable $ do
 >       execDML insertStmt
->       assertFailure "selectExhaustCursor"
+>       assertFailure "actionExceptionRollback"
 >     ) (\e -> return () )
 >   count <- doQuery selectStmt iterExceptionRollback []
 >   assertEqual sqlExceptionRollback [3] count
