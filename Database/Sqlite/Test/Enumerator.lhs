@@ -142,7 +142,8 @@ Portability :  non-portable
 >   withTransaction RepeatableRead ( do
 >     execDML (sql ("insert into " ++ testTable ++ " values (100, '100')"))
 >     rowid <- inquire LastInsertRowid
->     liftIO $ putStrLn ("last insert row id " ++ show rowid)
+>     assertBool "insertGetRowId" (rowid > 0)
+>     --liftIO $ putStrLn ("last insert row id " ++ show rowid)
 >   )
 
 > testList :: DBLiteralValue a => [a -> DBM mark Session ()]
