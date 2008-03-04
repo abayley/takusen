@@ -1,5 +1,5 @@
 Name:           Takusen
-Version:        0.7
+Version:        0.8
 License:        BSD3
 License-file:   LICENSE
 Author:         Alistair Bayley, Oleg Kiselyov
@@ -13,25 +13,24 @@ Build-Depends:  base, mtl, time, old-time
 Build-type:     Simple
 Synopsis:       Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.
 Description:   
-    Takusen is a DBMS access library. It has a backend for Oracle on Unix,
-    Linux or Windows via OCI, and a stub to test the library without any database.
-    The infrastructure and the stub let one interface natively with other
-    databases.
-
-    The distinguished feature of Takusen is processing query results using a
-    left-fold enumerator.  The user supplies an iteratee function, which receives
-    rows one-at-a-time from the result-set.  The number of the arguments to the
-    iteratee is the number of the columns in the result-set, plus the seed. Each
-    column in the result-set has its own Haskell type. The latter could be a Maybe
-    type if the particular iteratee wishes to process NULLs.
-
-    The benefits are: more convenient and intuitive enumeration, iteration, and
-    accumulation (see tests for examples); the retrieved data are not merely
-    strings but have Haskell types: Int, Float, Date, etc.; buffer preallocation;
-    pre-fetching; support for both enumerators and cursors, proper handling of all
-    errors including various IO errors. No unsafe operations are used.
+    Takusen is a DBMS access library. Like HSQL, we support
+    arbitrary SQL statements (currently strings, extensible to anything
+    that can be converted to a string).
+    .
+    Takusen's unique selling point is safety and efficiency.
+    We statically ensure all acquired database resources - such
+    as cursors, connections, and statement handles - are released, exactly
+    once, at predictable times. Takusen can avoid loading the whole result
+    set in memory, and so can handle queries returning millions of rows in
+    constant space. Takusen also supports automatic marshalling and
+    unmarshalling of results and query parameters. These benefits come
+    from the design of query result processing around a left-fold
+    enumerator.
+    .
+    Currently we fully support ODBC, Oracle, Sqlite, and PostgreSQL.
 Exposed-modules:
     Database.Enumerator
+    , Database.InternalEnumerator
     , Database.Util
     , Database.ODBC.Enumerator
     , Database.ODBC.OdbcFunctions
@@ -46,7 +45,6 @@ Exposed-modules:
     , Control.Exception.MonadIO
     , Foreign.C.UTF8
 Other-modules:
-    Database.InternalEnumerator
     -- We don't expose the Test modules; the only reason to do so would be so Haddock
     -- can use them (to stop the warnings "could not find link destination for:"),
     -- and for that they'd have to be in Exposed-modules.
