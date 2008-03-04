@@ -258,5 +258,5 @@ The latter are the dual of DBType.
 
 > class ISession sess => DBBind a sess stmt bo | stmt -> bo where
 >   -- | This is really just a wrapper that lets us write lists of
->   -- heterogenous bind values e.g. @[bindP "string", bindP (0::Int), ...]@
+>   -- heterogenous bind values e.g. @[bindP \"string\", bindP (0::Int), ...]@
 >   bindP :: a -> BindA sess stmt bo
