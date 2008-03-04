@@ -769,7 +769,7 @@ The PostgreSQL backend additionally requires that when preparing statements,
 you (1) give a name to the prepared statement,
 and (2) specify types for the bind parameters.
 The list of bind-types is created by applying the
-'Database.PostgrSQL.Enumerator.bindType' function
+'Database.PostgreSQL.Enumerator.bindType' function
 to dummy values of the appropriate types. e.g.
 
  > let stmt = prepareQuery "stmtname" (sql "select ...") [bindType "", bindType (0::Int)]
