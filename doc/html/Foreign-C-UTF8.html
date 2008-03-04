@@ -1,0 +1,523 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!--Rendered using the Haskell Html Library v0.2-->
+<HTML
+><HEAD
+><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8"
+><TITLE
+>Foreign.C.UTF8</TITLE
+><LINK HREF="haddock.css" REL="stylesheet" TYPE="text/css"
+><SCRIPT SRC="haddock.js" TYPE="text/javascript"
+></SCRIPT
+></HEAD
+><BODY
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="topbar"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD
+><IMG SRC="haskell_icon.gif" WIDTH="16" HEIGHT="16" ALT=" "
+></TD
+><TD CLASS="title"
+>Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
+><TD CLASS="topbut"
+><A HREF="index.html"
+>Contents</A
+></TD
+><TD CLASS="topbut"
+><A HREF="doc-index.html"
+>Index</A
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="modulebar"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD
+><FONT SIZE="6"
+>Foreign.C.UTF8</FONT
+></TD
+><TD ALIGN="right"
+><TABLE CLASS="narrow" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="infohead"
+>Portability</TD
+><TD CLASS="infoval"
+>portable</TD
+></TR
+><TR
+><TD CLASS="infohead"
+>Stability</TD
+><TD CLASS="infoval"
+>experimental</TD
+></TR
+><TR
+><TD CLASS="infohead"
+>Maintainer</TD
+><TD CLASS="infoval"
+>alistair@abayley.org</TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section1"
+>Description</TD
+></TR
+><TR
+><TD CLASS="doc"
+><P
+>Marshall Haskell Strings to and from UTF8-encoded CStrings.
+ This module's code is inspired by John Meacham's UTF8 en- &amp; de-coders,
+ and also those found in the HXT library (module Text.XML.HXT.DOM.Unicode).
+</P
+><P
+>Note that the -Len functions all return the length in bytes,
+ not Chars (this is more useful, as you are most likely to want
+ to pass the length to an FFI function, which is most likely
+ expecting the length in bytes). If you want the length in Chars,
+ well, you have the original String, so...
+</P
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section1"
+>Synopsis</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3ApeekUTF8String"
+>peekUTF8String</A
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
+>CString</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3ApeekUTF8StringLen"
+>peekUTF8StringLen</A
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACStringLen"
+>CStringLen</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AnewUTF8String"
+>newUTF8String</A
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
+>CString</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AwithUTF8String"
+>withUTF8String</A
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+> -&gt; (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
+>CString</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> a) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AwithUTF8StringLen"
+>withUTF8StringLen</A
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+> -&gt; (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACStringLen"
+>CStringLen</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> a) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> a</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AtoUTF8String"
+>toUTF8String</A
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AfromUTF8String"
+>fromUTF8String</A
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AlengthUTF8"
+>lengthUTF8</A
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
+>Int</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AfromUTF8"
+>fromUTF8</A
+> :: [<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
+>Word8</A
+>] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AtoUTF8"
+>toUTF8</A
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+> -&gt; [<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
+>Word8</A
+>]</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="section1"
+>Documentation</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3ApeekUTF8String"
+></A
+><B
+>peekUTF8String</B
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
+>CString</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="doc"
+>Analogous to peekCString. Converts UTF8 CString to String.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3ApeekUTF8StringLen"
+></A
+><B
+>peekUTF8StringLen</B
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACStringLen"
+>CStringLen</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="doc"
+>Analogous to peekCStringLen. Converts UTF8 CString to String.
+ The resulting String will end either when <TT
+>len</TT
+> bytes
+ have been converted, or when a NULL is found.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AnewUTF8String"
+></A
+><B
+>newUTF8String</B
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
+>CString</A
+></TD
+></TR
+><TR
+><TD CLASS="doc"
+>Analogous to newCString. Creates UTF8 encoded CString.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AwithUTF8String"
+></A
+><B
+>withUTF8String</B
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+> -&gt; (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
+>CString</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> a) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> a</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Analogous to withCString. Creates UTF8 encoded CString.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AwithUTF8StringLen"
+></A
+><B
+>withUTF8StringLen</B
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+> -&gt; (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACStringLen"
+>CStringLen</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> a) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> a</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Analogous to withCStringLen.
+ The length returned is in bytes (encoding units), not chars.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AtoUTF8String"
+></A
+><B
+>toUTF8String</B
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="doc"
+>Convert a Haskell String into a UTF8 String, where each UTF8 byte
+ is represented by its Char equivalent i.e. only chars 0-255 are used.
+ The resulting String can be marshalled to CString directly i.e. with
+ a Latin-1 encoding.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AfromUTF8String"
+></A
+><B
+>fromUTF8String</B
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="doc"
+>Convert a String that was marshalled from a CString without
+ any decoder applied. This might be useful if the client encoding
+ is unknown, and the user code must convert.
+ We assume that the UTF8 CString was marshalled as if Latin-1
+ i.e. all chars are in the range 0-255.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AlengthUTF8"
+></A
+><B
+>lengthUTF8</B
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
+>Int</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AfromUTF8"
+></A
+><B
+>fromUTF8</B
+> :: [<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
+>Word8</A
+>] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="doc"
+>Convert UTF-8 to Unicode.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AtoUTF8"
+></A
+><B
+>toUTF8</B
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+> -&gt; [<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
+>Word8</A
+>]</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Convert Unicode characters to UTF-8.
+</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="botbar"
+>Produced by <A HREF="http://www.haskell.org/haddock/"
+>Haddock</A
+> version 0.7</TD
+></TR
+></TABLE
+></BODY
+></HTML
+>
