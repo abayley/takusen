@@ -4,7 +4,7 @@
 ><HEAD
 ><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8"
 ><TITLE
-> (Index)</TITLE
+>Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC. (Index)</TITLE
 ><LINK HREF="haddock.css" REL="stylesheet" TYPE="text/css"
 ></HEAD
 ><BODY
@@ -17,7 +17,7 @@
 ><IMG SRC="haskell_icon.gif" WIDTH="16" HEIGHT="16" ALT=" "
 ></TD
 ><TD CLASS="title"
-></TD
+>Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
 ><TD CLASS="topbut"
 ><A HREF="index.html"
 >Contents</A
@@ -137,7 +137,7 @@
 >Database.InternalEnumerator</A
 >, <A HREF="Database-Enumerator.html#v%3ASerialisable"
 >Database.Enumerator</A
->, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexentry"
@@ -147,7 +147,7 @@
 >Database.InternalEnumerator</A
 >, <A HREF="Database-Enumerator.html#v%3ASerializable"
 >Database.Enumerator</A
->, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexentry"
@@ -213,13 +213,21 @@
 ><TD CLASS="indexannot"
 >1 (Type/Class)</TD
 ><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Database.ODBC.Enumerator</A
+></TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>2 (Type/Class)</TD
+><TD CLASS="indexlinks"
 ><A HREF="Database-Oracle-Enumerator.html#t%3ASession"
 >Database.Oracle.Enumerator</A
 ></TD
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->2 (Type/Class)</TD
+>3 (Type/Class)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
 >Database.PostgreSQL.Enumerator</A
@@ -227,7 +235,7 @@
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->3 (Type/Class)</TD
+>4 (Type/Class)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
 >Database.Sqlite.Enumerator</A
@@ -235,7 +243,7 @@
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->4 (Type/Class)</TD
+>5 (Type/Class)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Stub-Enumerator.html#t%3ASession"
 >Database.Stub.Enumerator</A
@@ -243,10 +251,74 @@
 ></TR
 ><TR
 ><TD CLASS="indexentry"
->ShouldRunTests</TD
+>SizeFPtr</TD
 ><TD CLASS="indexlinks"
-><A HREF="Database-Test-Performance.html#t%3AShouldRunTests"
->Database.Test.Performance</A
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3ASizeFPtr"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>SqlCDataType</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlCDataType"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>SqlDataType</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlDataType"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>SqlHandleType</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlHandleType"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>SqlInteger</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInteger"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>SqlLen</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>SqlParamDirection</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>SqlReturn</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>SqlSmallInt</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
+>Database.ODBC.OdbcFunctions</A
 ></TD
 ></TR
 ><TR
@@ -271,6 +343,30 @@
 ><TD CLASS="indexlinks"
 ><A HREF="Database-InternalEnumerator.html#t%3ASqlStateSubClass"
 >Database.InternalEnumerator</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>SqlUInteger</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUInteger"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>SqlULen</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlULen"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>SqlUSmallInt</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUSmallInt"
+>Database.ODBC.OdbcFunctions</A
 ></TD
 ></TR
 ><TR
@@ -302,26 +398,6 @@
 ></TD
 ></TR
 ><TR
-><TD CLASS="indexentry" COLSPAN="2"
->SqliteFunctions</TD
-></TR
-><TR
-><TD CLASS="indexannot"
->1 (Type/Class)</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-Test-Enumerator.html#t%3ASqliteFunctions"
->Database.Test.Enumerator</A
-></TD
-></TR
-><TR
-><TD CLASS="indexannot"
->2 (Data Constructor)</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-Test-Enumerator.html#v%3ASqliteFunctions"
->Database.Test.Enumerator</A
-></TD
-></TR
-><TR
 ><TD CLASS="indexentry"
 >Statement</TD
 ><TD CLASS="indexlinks"
@@ -337,6 +413,14 @@
 ><TD CLASS="indexannot"
 >1 (Type/Class)</TD
 ><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>2 (Type/Class)</TD
+><TD CLASS="indexlinks"
 ><A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
 >Database.Oracle.OCIFunctions</A
 >, <A HREF="Database-Oracle-Enumerator.html#t%3AStmtHandle"
@@ -345,10 +429,30 @@
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->2 (Type/Class)</TD
+>3 (Type/Class)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >Database.Sqlite.SqliteFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry" COLSPAN="2"
+>StmtObj</TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>1 (Type/Class)</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtObj"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>2 (Data Constructor)</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AStmtObj"
+>Database.ODBC.OdbcFunctions</A
 ></TD
 ></TR
 ><TR
@@ -449,6 +553,22 @@
 ></TR
 ><TR
 ><TD CLASS="indexentry"
+>setAutoCommitOff</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsetAutoCommitOff"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>setAutoCommitOn</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsetAutoCommitOn"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
 >setBufferByte</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Oracle-OCIFunctions.html#v%3AsetBufferByte"
@@ -473,10 +593,34 @@
 ></TR
 ><TR
 ><TD CLASS="indexentry"
+>setOdbcVer</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsetOdbcVer"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>setTxnIsolation</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsetTxnIsolation"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
 >show_</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Util.html#v%3Ashow_"
 >Database.Util</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sizeOfMaybe</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsizeOfMaybe"
+>Database.ODBC.OdbcFunctions</A
 ></TD
 ></TR
 ><TR
@@ -495,13 +639,21 @@
 ><TD CLASS="indexannot"
 >1 (Function)</TD
 ><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-Enumerator.html#v%3Asql"
+>Database.ODBC.Enumerator</A
+></TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>2 (Function)</TD
+><TD CLASS="indexlinks"
 ><A HREF="Database-Oracle-Enumerator.html#v%3Asql"
 >Database.Oracle.Enumerator</A
 ></TD
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->2 (Function)</TD
+>3 (Function)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-PostgreSQL-Enumerator.html#v%3Asql"
 >Database.PostgreSQL.Enumerator</A
@@ -509,7 +661,7 @@
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->3 (Function)</TD
+>4 (Function)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Sqlite-Enumerator.html#v%3Asql"
 >Database.Sqlite.Enumerator</A
@@ -517,7 +669,7 @@
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->4 (Function)</TD
+>5 (Function)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Stub-Enumerator.html#v%3Asql"
 >Database.Stub.Enumerator</A
@@ -525,18 +677,194 @@
 ></TR
 ><TR
 ><TD CLASS="indexentry"
->sqlRows2Power17</TD
+>sqlAllocHandle</TD
 ><TD CLASS="indexlinks"
-><A HREF="Database-Test-Performance.html#v%3AsqlRows2Power17"
->Database.Test.Performance</A
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlAllocHandle"
+>Database.ODBC.OdbcFunctions</A
 ></TD
 ></TR
 ><TR
 ><TD CLASS="indexentry"
->sqlRows2Power20</TD
+>sqlAutoCommitOff</TD
 ><TD CLASS="indexlinks"
-><A HREF="Database-Test-Performance.html#v%3AsqlRows2Power20"
->Database.Test.Performance</A
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlAutoCommitOff"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sqlAutoCommitOn</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlAutoCommitOn"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sqlBindCol</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlBindCol"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sqlBindParameter</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlBindParameter"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sqlCloseCursor</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlCloseCursor"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sqlDisconnect</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlDisconnect"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sqlDriverConnect</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlDriverConnect"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sqlDriverNoPrompt</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlDriverNoPrompt"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sqlEndTran</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlEndTran"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sqlExecute</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlExecute"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sqlFetch</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlFetch"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sqlFreeHandle</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlFreeHandle"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sqlGetData</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlGetData"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sqlGetDiagRec</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlGetDiagRec"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sqlMoreResults</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlMoreResults"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sqlNullData</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlNullData"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sqlNullTermedString</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlNullTermedString"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sqlPrepare</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlPrepare"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sqlRowCount</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlRowCount"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sqlSetConnectAttr</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlSetConnectAttr"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sqlSetEnvAttr</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlSetEnvAttr"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sqlTransCommit</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlTransCommit"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sqlTransRollback</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlTransRollback"
+>Database.ODBC.OdbcFunctions</A
 ></TD
 ></TR
 ><TR
@@ -547,13 +875,21 @@
 ><TD CLASS="indexannot"
 >1 (Function)</TD
 ><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-Enumerator.html#v%3Asqlbind"
+>Database.ODBC.Enumerator</A
+></TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>2 (Function)</TD
+><TD CLASS="indexlinks"
 ><A HREF="Database-Oracle-Enumerator.html#v%3Asqlbind"
 >Database.Oracle.Enumerator</A
 ></TD
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->2 (Function)</TD
+>3 (Function)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-PostgreSQL-Enumerator.html#v%3Asqlbind"
 >Database.PostgreSQL.Enumerator</A
@@ -561,7 +897,7 @@
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->3 (Function)</TD
+>4 (Function)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Sqlite-Enumerator.html#v%3Asqlbind"
 >Database.Sqlite.Enumerator</A
@@ -652,6 +988,14 @@
 >sqliteColumnBytes</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Sqlite-SqliteFunctions.html#v%3AsqliteColumnBytes"
+>Database.Sqlite.SqliteFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sqliteColumnCount</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-Sqlite-SqliteFunctions.html#v%3AsqliteColumnCount"
 >Database.Sqlite.SqliteFunctions</A
 ></TD
 ></TR
@@ -748,6 +1092,14 @@
 >sqliteFree</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Sqlite-SqliteFunctions.html#v%3AsqliteFree"
+>Database.Sqlite.SqliteFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sqliteLastInsertRowid</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-Sqlite-SqliteFunctions.html#v%3AsqliteLastInsertRowid"
 >Database.Sqlite.SqliteFunctions</A
 ></TD
 ></TR

@@ -4,7 +4,7 @@
 ><HEAD
 ><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8"
 ><TITLE
-> (Index)</TITLE
+>Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC. (Index)</TITLE
 ><LINK HREF="haddock.css" REL="stylesheet" TYPE="text/css"
 ></HEAD
 ><BODY
@@ -17,7 +17,7 @@
 ><IMG SRC="haskell_icon.gif" WIDTH="16" HEIGHT="16" ALT=" "
 ></TD
 ><TD CLASS="title"
-></TD
+>Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
 ><TD CLASS="topbut"
 ><A HREF="index.html"
 >Contents</A
@@ -154,6 +154,26 @@
 ></TD
 ></TR
 ><TR
+><TD CLASS="indexentry" COLSPAN="2"
+>InOutParam</TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>1 (Type/Class)</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3AInOutParam"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>2 (Data Constructor)</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AInOutParam"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
 ><TD CLASS="indexentry"
 >IsolationLevel</TD
 ><TD CLASS="indexlinks"
@@ -161,7 +181,7 @@
 >Database.InternalEnumerator</A
 >, <A HREF="Database-Enumerator.html#t%3AIsolationLevel"
 >Database.Enumerator</A
->, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexentry"
@@ -169,7 +189,7 @@
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Enumerator.html#t%3AIterAct"
 >Database.Enumerator</A
->, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexentry"
@@ -177,7 +197,7 @@
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Enumerator.html#t%3AIterResult"
 >Database.Enumerator</A
->, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexentry"
@@ -185,7 +205,7 @@
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Enumerator.html#v%3AifNull"
 >Database.Enumerator</A
->, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexentry"
@@ -193,7 +213,35 @@
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Enumerator.html#v%3AignoreDBError"
 >Database.Enumerator</A
->, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+></TR
+><TR
+><TD CLASS="indexentry" COLSPAN="2"
+>inquire</TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>1 (Function)</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-Enumerator.html#v%3Ainquire"
+>Database.Enumerator</A
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>2 (Function)</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-InternalEnumerator.html#v%3Ainquire"
+>Database.InternalEnumerator</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>int2Ptr</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3Aint2Ptr"
+>Database.ODBC.OdbcFunctions</A
+></TD
 ></TR
 ><TR
 ><TD CLASS="indexentry"
@@ -217,118 +265,6 @@
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Util.html#v%3Aint64ToUTCTime"
 >Database.Util</A
-></TD
-></TR
-><TR
-><TD CLASS="indexentry"
->iterBindDate</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-Test-Enumerator.html#v%3AiterBindDate"
->Database.Test.Enumerator</A
-></TD
-></TR
-><TR
-><TD CLASS="indexentry"
->iterBindInt</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-Test-Enumerator.html#v%3AiterBindInt"
->Database.Test.Enumerator</A
-></TD
-></TR
-><TR
-><TD CLASS="indexentry"
->iterBindIntDoubleString</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-Test-Enumerator.html#v%3AiterBindIntDoubleString"
->Database.Test.Enumerator</A
-></TD
-></TR
-><TR
-><TD CLASS="indexentry"
->iterBindString</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-Test-Enumerator.html#v%3AiterBindString"
->Database.Test.Enumerator</A
-></TD
-></TR
-><TR
-><TD CLASS="indexentry"
->iterBoundaryDates</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-Test-Enumerator.html#v%3AiterBoundaryDates"
->Database.Test.Enumerator</A
-></TD
-></TR
-><TR
-><TD CLASS="indexentry"
->iterCalDate</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-Test-Enumerator.html#v%3AiterCalDate"
->Database.Test.Enumerator</A
-></TD
-></TR
-><TR
-><TD CLASS="indexentry"
->iterCursor</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-Test-Enumerator.html#v%3AiterCursor"
->Database.Test.Enumerator</A
-></TD
-></TR
-><TR
-><TD CLASS="indexentry"
->iterDate</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-Test-Enumerator.html#v%3AiterDate"
->Database.Test.Enumerator</A
-></TD
-></TR
-><TR
-><TD CLASS="indexentry"
->iterEmptyString</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-Test-Enumerator.html#v%3AiterEmptyString"
->Database.Test.Enumerator</A
-></TD
-></TR
-><TR
-><TD CLASS="indexentry"
->iterNullDate</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-Test-Enumerator.html#v%3AiterNullDate"
->Database.Test.Enumerator</A
-></TD
-></TR
-><TR
-><TD CLASS="indexentry"
->iterNullString</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-Test-Enumerator.html#v%3AiterNullString"
->Database.Test.Enumerator</A
-></TD
-></TR
-><TR
-><TD CLASS="indexentry"
->iterPolymorphicFetch</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-Test-Enumerator.html#v%3AiterPolymorphicFetch"
->Database.Test.Enumerator</A
-></TD
-></TR
-><TR
-><TD CLASS="indexentry"
->iterPolymorphicFetchNull</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-Test-Enumerator.html#v%3AiterPolymorphicFetchNull"
->Database.Test.Enumerator</A
-></TD
-></TR
-><TR
-><TD CLASS="indexentry"
->iterUnhandledNull</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-Test-Enumerator.html#v%3AiterUnhandledNull"
->Database.Test.Enumerator</A
 ></TD
 ></TR
 ></TABLE

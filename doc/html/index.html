@@ -4,7 +4,7 @@
 ><HEAD
 ><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8"
 ><TITLE
-></TITLE
+>Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TITLE
 ><LINK HREF="haddock.css" REL="stylesheet" TYPE="text/css"
 ><SCRIPT SRC="haddock.js" TYPE="text/javascript"
 ></SCRIPT
@@ -19,7 +19,7 @@
 ><IMG SRC="haskell_icon.gif" WIDTH="16" HEIGHT="16" ALT=" "
 ></TD
 ><TD CLASS="title"
-></TD
+>Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
 ><TD CLASS="topbut"
 ><A HREF="index.html"
 >Contents</A
@@ -30,6 +30,33 @@
 ></TD
 ></TR
 ></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="section1"
+>Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
+></TR
+><TR
+><TD CLASS="doc"
+><P
+>Takusen is a DBMS access library. Like HSQL, we support
+arbitrary SQL statements (currently strings, extensible to anything
+that can be converted to a string).
+</P
+><P
+>Takusen's unique selling point is safety and efficiency.
+We statically ensure all acquired database resources - such
+as cursors, connections, and statement handles - are released, exactly
+once, at predictable times. Takusen can avoid loading the whole result
+set in memory, and so can handle queries returning millions of rows in
+constant space. Takusen also supports automatic marshalling and
+unmarshalling of results and query parameters. These benefits come
+from the design of query result processing around a left-fold
+enumerator.
+</P
+><P
+>Currently we fully support ODBC, Oracle, Sqlite, and PostgreSQL.
+</P
 ></TD
 ></TR
 ><TR
@@ -114,7 +141,7 @@
 ><TR
 ><TD STYLE="width: 48em"
 ><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'n:3')" ALT="show/hide"
->Oracle</TD
+>ODBC</TD
 ><TD
 ></TD
 ><TD
@@ -123,6 +150,41 @@
 ><TR
 ><TD STYLE="padding: 0; padding-left: 2em" COLSPAN="3"
 ><TABLE CLASS="vanilla2" CELLSPACING="0" CELLPADDING="0" ID="n:3" STYLE="display:block;"
+><TR
+><TD STYLE="padding-left: 1.25em;width: 46em"
+><A HREF="Database-ODBC-Enumerator.html"
+>Database.ODBC.Enumerator</A
+></TD
+><TD
+></TD
+><TD
+></TD
+></TR
+><TR
+><TD STYLE="padding-left: 1.25em;width: 46em"
+><A HREF="Database-ODBC-OdbcFunctions.html"
+>Database.ODBC.OdbcFunctions</A
+></TD
+><TD
+></TD
+><TD
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD STYLE="width: 48em"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'n:4')" ALT="show/hide"
+>Oracle</TD
+><TD
+></TD
+><TD
+></TD
+></TR
+><TR
+><TD STYLE="padding: 0; padding-left: 2em" COLSPAN="3"
+><TABLE CLASS="vanilla2" CELLSPACING="0" CELLPADDING="0" ID="n:4" STYLE="display:block;"
 ><TR
 ><TD STYLE="padding-left: 1.25em;width: 46em"
 ><A HREF="Database-Oracle-Enumerator.html"
@@ -151,41 +213,6 @@
 ><TD
 ></TD
 ><TD
-></TD
-></TR
-><TR
-><TD STYLE="width: 46em"
-><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'n:4')" ALT="show/hide"
->Test</TD
-><TD
-></TD
-><TD
-></TD
-></TR
-><TR
-><TD STYLE="padding: 0; padding-left: 2em" COLSPAN="3"
-><TABLE CLASS="vanilla2" CELLSPACING="0" CELLPADDING="0" ID="n:4" STYLE="display:block;"
-><TR
-><TD STYLE="padding-left: 1.25em;width: 44em"
-><A HREF="Database-Oracle-Test-Enumerator.html"
->Database.Oracle.Test.Enumerator</A
-></TD
-><TD
-></TD
-><TD
-></TD
-></TR
-><TR
-><TD STYLE="padding-left: 1.25em;width: 44em"
-><A HREF="Database-Oracle-Test-OCIFunctions.html"
->Database.Oracle.Test.OCIFunctions</A
-></TD
-><TD
-></TD
-><TD
-></TD
-></TR
-></TABLE
 ></TD
 ></TR
 ></TABLE
@@ -223,47 +250,12 @@
 ><TD
 ></TD
 ></TR
-><TR
-><TD STYLE="width: 46em"
-><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'n:6')" ALT="show/hide"
->Test</TD
-><TD
-></TD
-><TD
-></TD
-></TR
-><TR
-><TD STYLE="padding: 0; padding-left: 2em" COLSPAN="3"
-><TABLE CLASS="vanilla2" CELLSPACING="0" CELLPADDING="0" ID="n:6" STYLE="display:block;"
-><TR
-><TD STYLE="padding-left: 1.25em;width: 44em"
-><A HREF="Database-PostgreSQL-Test-Enumerator.html"
->Database.PostgreSQL.Test.Enumerator</A
-></TD
-><TD
-></TD
-><TD
-></TD
-></TR
-><TR
-><TD STYLE="padding-left: 1.25em;width: 44em"
-><A HREF="Database-PostgreSQL-Test-PGFunctions.html"
->Database.PostgreSQL.Test.PGFunctions</A
-></TD
-><TD
-></TD
-><TD
-></TD
-></TR
-></TABLE
-></TD
-></TR
 ></TABLE
 ></TD
 ></TR
 ><TR
 ><TD STYLE="width: 48em"
-><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'n:7')" ALT="show/hide"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'n:6')" ALT="show/hide"
 >Sqlite</TD
 ><TD
 ></TD
@@ -272,7 +264,7 @@
 ></TR
 ><TR
 ><TD STYLE="padding: 0; padding-left: 2em" COLSPAN="3"
-><TABLE CLASS="vanilla2" CELLSPACING="0" CELLPADDING="0" ID="n:7" STYLE="display:block;"
+><TABLE CLASS="vanilla2" CELLSPACING="0" CELLPADDING="0" ID="n:6" STYLE="display:block;"
 ><TR
 ><TD STYLE="padding-left: 1.25em;width: 46em"
 ><A HREF="Database-Sqlite-Enumerator.html"
@@ -293,47 +285,12 @@
 ><TD
 ></TD
 ></TR
-><TR
-><TD STYLE="width: 46em"
-><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'n:8')" ALT="show/hide"
->Test</TD
-><TD
-></TD
-><TD
-></TD
-></TR
-><TR
-><TD STYLE="padding: 0; padding-left: 2em" COLSPAN="3"
-><TABLE CLASS="vanilla2" CELLSPACING="0" CELLPADDING="0" ID="n:8" STYLE="display:block;"
-><TR
-><TD STYLE="padding-left: 1.25em;width: 44em"
-><A HREF="Database-Sqlite-Test-Enumerator.html"
->Database.Sqlite.Test.Enumerator</A
-></TD
-><TD
-></TD
-><TD
-></TD
-></TR
-><TR
-><TD STYLE="padding-left: 1.25em;width: 44em"
-><A HREF="Database-Sqlite-Test-SqliteFunctions.html"
->Database.Sqlite.Test.SqliteFunctions</A
-></TD
-><TD
-></TD
-><TD
-></TD
-></TR
-></TABLE
-></TD
-></TR
 ></TABLE
 ></TD
 ></TR
 ><TR
 ><TD STYLE="width: 48em"
-><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'n:9')" ALT="show/hide"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'n:7')" ALT="show/hide"
 >Stub</TD
 ><TD
 ></TD
@@ -342,91 +299,11 @@
 ></TR
 ><TR
 ><TD STYLE="padding: 0; padding-left: 2em" COLSPAN="3"
-><TABLE CLASS="vanilla2" CELLSPACING="0" CELLPADDING="0" ID="n:9" STYLE="display:block;"
+><TABLE CLASS="vanilla2" CELLSPACING="0" CELLPADDING="0" ID="n:7" STYLE="display:block;"
 ><TR
 ><TD STYLE="padding-left: 1.25em;width: 46em"
 ><A HREF="Database-Stub-Enumerator.html"
 >Database.Stub.Enumerator</A
-></TD
-><TD
-></TD
-><TD
-></TD
-></TR
-><TR
-><TD STYLE="width: 46em"
-><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'n:10')" ALT="show/hide"
->Test</TD
-><TD
-></TD
-><TD
-></TD
-></TR
-><TR
-><TD STYLE="padding: 0; padding-left: 2em" COLSPAN="3"
-><TABLE CLASS="vanilla2" CELLSPACING="0" CELLPADDING="0" ID="n:10" STYLE="display:block;"
-><TR
-><TD STYLE="padding-left: 1.25em;width: 44em"
-><A HREF="Database-Stub-Test-Enumerator.html"
->Database.Stub.Test.Enumerator</A
-></TD
-><TD
-></TD
-><TD
-></TD
-></TR
-></TABLE
-></TD
-></TR
-></TABLE
-></TD
-></TR
-><TR
-><TD STYLE="width: 48em"
-><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'n:11')" ALT="show/hide"
->Test</TD
-><TD
-></TD
-><TD
-></TD
-></TR
-><TR
-><TD STYLE="padding: 0; padding-left: 2em" COLSPAN="3"
-><TABLE CLASS="vanilla2" CELLSPACING="0" CELLPADDING="0" ID="n:11" STYLE="display:block;"
-><TR
-><TD STYLE="padding-left: 1.25em;width: 46em"
-><A HREF="Database-Test-Enumerator.html"
->Database.Test.Enumerator</A
-></TD
-><TD
-></TD
-><TD
-></TD
-></TR
-><TR
-><TD STYLE="padding-left: 1.25em;width: 46em"
-><A HREF="Database-Test-MultiConnect.html"
->Database.Test.MultiConnect</A
-></TD
-><TD
-></TD
-><TD
-></TD
-></TR
-><TR
-><TD STYLE="padding-left: 1.25em;width: 46em"
-><A HREF="Database-Test-Performance.html"
->Database.Test.Performance</A
-></TD
-><TD
-></TD
-><TD
-></TD
-></TR
-><TR
-><TD STYLE="padding-left: 1.25em;width: 46em"
-><A HREF="Database-Test-Util.html"
->Database.Test.Util</A
 ></TD
 ><TD
 ></TD
@@ -451,7 +328,7 @@
 ></TR
 ><TR
 ><TD STYLE="width: 50em"
-><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'n:12')" ALT="show/hide"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'n:8')" ALT="show/hide"
 >Foreign</TD
 ><TD
 ></TD
@@ -460,10 +337,10 @@
 ></TR
 ><TR
 ><TD STYLE="padding: 0; padding-left: 2em" COLSPAN="3"
-><TABLE CLASS="vanilla2" CELLSPACING="0" CELLPADDING="0" ID="n:12" STYLE="display:block;"
+><TABLE CLASS="vanilla2" CELLSPACING="0" CELLPADDING="0" ID="n:8" STYLE="display:block;"
 ><TR
 ><TD STYLE="width: 48em"
-><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'n:13')" ALT="show/hide"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'n:9')" ALT="show/hide"
 >C</TD
 ><TD
 ></TD
@@ -472,7 +349,7 @@
 ></TR
 ><TR
 ><TD STYLE="padding: 0; padding-left: 2em" COLSPAN="3"
-><TABLE CLASS="vanilla2" CELLSPACING="0" CELLPADDING="0" ID="n:13" STYLE="display:block;"
+><TABLE CLASS="vanilla2" CELLSPACING="0" CELLPADDING="0" ID="n:9" STYLE="display:block;"
 ><TR
 ><TD STYLE="padding-left: 1.25em;width: 46em"
 ><A HREF="Foreign-C-UTF8.html"
@@ -489,51 +366,6 @@
 ></TABLE
 ></TD
 ></TR
-><TR
-><TD STYLE="padding-left: 1.25em;width: 50em"
-><A HREF="Main.html"
->Main</A
-></TD
-><TD
-></TD
-><TD
-></TD
-></TR
-><TR
-><TD STYLE="width: 50em"
-><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'n:14')" ALT="show/hide"
->Test</TD
-><TD
-></TD
-><TD
-></TD
-></TR
-><TR
-><TD STYLE="padding: 0; padding-left: 2em" COLSPAN="3"
-><TABLE CLASS="vanilla2" CELLSPACING="0" CELLPADDING="0" ID="n:14" STYLE="display:block;"
-><TR
-><TD STYLE="padding-left: 1.25em;width: 48em"
-><A HREF="Test-MiniUnit.html"
->Test.MiniUnit</A
-></TD
-><TD
-></TD
-><TD
-></TD
-></TR
-><TR
-><TD STYLE="padding-left: 1.25em;width: 48em"
-><A HREF="Test-MiniUnitTest.html"
->Test.MiniUnitTest</A
-></TD
-><TD
-></TD
-><TD
-></TD
-></TR
-></TABLE
-></TD
-></TR
 ></TABLE
 ></TD
 ></TR
@@ -545,7 +377,7 @@
 ><TD CLASS="botbar"
 >Produced by <A HREF="http://www.haskell.org/haddock/"
 >Haddock</A
-> version 0.8</TD
+> version 0.7</TD
 ></TR
 ></TABLE
 ></BODY

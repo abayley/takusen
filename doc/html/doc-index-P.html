@@ -4,7 +4,7 @@
 ><HEAD
 ><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8"
 ><TITLE
-> (Index)</TITLE
+>Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC. (Index)</TITLE
 ><LINK HREF="haddock.css" REL="stylesheet" TYPE="text/css"
 ></HEAD
 ><BODY
@@ -17,7 +17,7 @@
 ><IMG SRC="haskell_icon.gif" WIDTH="16" HEIGHT="16" ALT=" "
 ></TD
 ><TD CLASS="title"
-></TD
+>Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
 ><TD CLASS="topbut"
 ><A HREF="index.html"
 >Contents</A
@@ -170,26 +170,6 @@
 ></TD
 ></TR
 ><TR
-><TD CLASS="indexentry" COLSPAN="2"
->PGSqlFunctions</TD
-></TR
-><TR
-><TD CLASS="indexannot"
->1 (Type/Class)</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-Test-Enumerator.html#t%3APGSqlFunctions"
->Database.Test.Enumerator</A
-></TD
-></TR
-><TR
-><TD CLASS="indexannot"
->2 (Data Constructor)</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-Test-Enumerator.html#v%3APGSqlFunctions"
->Database.Test.Enumerator</A
-></TD
-></TR
-><TR
 ><TD CLASS="indexentry"
 >PGType</TD
 ><TD CLASS="indexlinks"
@@ -295,7 +275,7 @@
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Enumerator.html#t%3APreparedStmt"
 >Database.Enumerator</A
->, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexannot"
@@ -303,7 +283,31 @@
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Enumerator.html#v%3APreparedStmt"
 >Database.Enumerator</A
->, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>peekSmallInt</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3ApeekSmallInt"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>peekUInteger</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3ApeekUInteger"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>peekUSmallInt</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3ApeekUSmallInt"
+>Database.ODBC.OdbcFunctions</A
+></TD
 ></TR
 ><TR
 ><TD CLASS="indexentry"
@@ -315,17 +319,25 @@
 ></TR
 ><TR
 ><TD CLASS="indexentry"
->pgDatetimetoCalTime</TD
+>peekUTF8StringLen</TD
 ><TD CLASS="indexlinks"
-><A HREF="Database-Util.html#v%3ApgDatetimetoCalTime"
+><A HREF="Foreign-C-UTF8.html#v%3ApeekUTF8StringLen"
+>Foreign.C.UTF8</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>pgDatetimeToParts</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-Util.html#v%3ApgDatetimeToParts"
 >Database.Util</A
 ></TD
 ></TR
 ><TR
 ><TD CLASS="indexentry"
->pgDatetimetoParts</TD
+>pgDatetimetoCalTime</TD
 ><TD CLASS="indexlinks"
-><A HREF="Database-Util.html#v%3ApgDatetimetoParts"
+><A HREF="Database-Util.html#v%3ApgDatetimetoCalTime"
 >Database.Util</A
 ></TD
 ></TR
@@ -379,6 +391,30 @@
 ></TR
 ><TR
 ><TD CLASS="indexentry"
+>pokeSmallInt</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3ApokeSmallInt"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>pokeUInteger</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3ApokeUInteger"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>pokeUSmallInt</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3ApokeUSmallInt"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
 >positions</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Util.html#v%3Apositions"
@@ -393,13 +429,21 @@
 ><TD CLASS="indexannot"
 >1 (Function)</TD
 ><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-Enumerator.html#v%3Aprefetch"
+>Database.ODBC.Enumerator</A
+></TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>2 (Function)</TD
+><TD CLASS="indexlinks"
 ><A HREF="Database-Oracle-Enumerator.html#v%3Aprefetch"
 >Database.Oracle.Enumerator</A
 ></TD
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->2 (Function)</TD
+>3 (Function)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-PostgreSQL-Enumerator.html#v%3Aprefetch"
 >Database.PostgreSQL.Enumerator</A
@@ -407,7 +451,7 @@
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->3 (Function)</TD
+>4 (Function)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Sqlite-Enumerator.html#v%3Aprefetch"
 >Database.Sqlite.Enumerator</A
@@ -415,7 +459,7 @@
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->4 (Function)</TD
+>5 (Function)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Stub-Enumerator.html#v%3Aprefetch"
 >Database.Stub.Enumerator</A
@@ -445,13 +489,21 @@
 ><TD CLASS="indexannot"
 >1 (Function)</TD
 ><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-Enumerator.html#v%3AprepareCommand"
+>Database.ODBC.Enumerator</A
+></TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>2 (Function)</TD
+><TD CLASS="indexlinks"
 ><A HREF="Database-Oracle-Enumerator.html#v%3AprepareCommand"
 >Database.Oracle.Enumerator</A
 ></TD
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->2 (Function)</TD
+>3 (Function)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-PostgreSQL-Enumerator.html#v%3AprepareCommand"
 >Database.PostgreSQL.Enumerator</A
@@ -459,7 +511,7 @@
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->3 (Function)</TD
+>4 (Function)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Sqlite-Enumerator.html#v%3AprepareCommand"
 >Database.Sqlite.Enumerator</A
@@ -481,13 +533,21 @@
 ><TD CLASS="indexannot"
 >1 (Function)</TD
 ><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-Enumerator.html#v%3AprepareLargeQuery"
+>Database.ODBC.Enumerator</A
+></TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>2 (Function)</TD
+><TD CLASS="indexlinks"
 ><A HREF="Database-Oracle-Enumerator.html#v%3AprepareLargeQuery"
 >Database.Oracle.Enumerator</A
 ></TD
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->2 (Function)</TD
+>3 (Function)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-PostgreSQL-Enumerator.html#v%3AprepareLargeQuery"
 >Database.PostgreSQL.Enumerator</A
@@ -495,7 +555,7 @@
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->3 (Function)</TD
+>4 (Function)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Sqlite-Enumerator.html#v%3AprepareLargeQuery"
 >Database.Sqlite.Enumerator</A
@@ -509,13 +569,21 @@
 ><TD CLASS="indexannot"
 >1 (Function)</TD
 ><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-Enumerator.html#v%3ApreparePrefetch"
+>Database.ODBC.Enumerator</A
+></TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>2 (Function)</TD
+><TD CLASS="indexlinks"
 ><A HREF="Database-Oracle-Enumerator.html#v%3ApreparePrefetch"
 >Database.Oracle.Enumerator</A
 ></TD
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->2 (Function)</TD
+>3 (Function)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-PostgreSQL-Enumerator.html#v%3ApreparePrefetch"
 >Database.PostgreSQL.Enumerator</A
@@ -523,7 +591,7 @@
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->3 (Function)</TD
+>4 (Function)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Sqlite-Enumerator.html#v%3ApreparePrefetch"
 >Database.Sqlite.Enumerator</A
@@ -537,13 +605,21 @@
 ><TD CLASS="indexannot"
 >1 (Function)</TD
 ><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-Enumerator.html#v%3AprepareQuery"
+>Database.ODBC.Enumerator</A
+></TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>2 (Function)</TD
+><TD CLASS="indexlinks"
 ><A HREF="Database-Oracle-Enumerator.html#v%3AprepareQuery"
 >Database.Oracle.Enumerator</A
 ></TD
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->2 (Function)</TD
+>3 (Function)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-PostgreSQL-Enumerator.html#v%3AprepareQuery"
 >Database.PostgreSQL.Enumerator</A
@@ -551,7 +627,7 @@
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->3 (Function)</TD
+>4 (Function)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Sqlite-Enumerator.html#v%3AprepareQuery"
 >Database.Sqlite.Enumerator</A
@@ -565,13 +641,29 @@
 ><TD CLASS="indexannot"
 >1 (Function)</TD
 ><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-Enumerator.html#v%3AprepareStmt"
+>Database.ODBC.Enumerator</A
+></TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>2 (Function)</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AprepareStmt"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>3 (Function)</TD
+><TD CLASS="indexlinks"
 ><A HREF="Database-Oracle-Enumerator.html#v%3AprepareStmt"
 >Database.Oracle.Enumerator</A
 ></TD
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->2 (Function)</TD
+>4 (Function)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-PostgreSQL-Enumerator.html#v%3AprepareStmt"
 >Database.PostgreSQL.Enumerator</A
@@ -579,7 +671,7 @@
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->3 (Function)</TD
+>5 (Function)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Sqlite-Enumerator.html#v%3AprepareStmt"
 >Database.Sqlite.Enumerator</A

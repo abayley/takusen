@@ -19,7 +19,7 @@
 ><IMG SRC="haskell_icon.gif" WIDTH="16" HEIGHT="16" ALT=" "
 ></TD
 ><TD CLASS="title"
-></TD
+>Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
 ><TD CLASS="topbut"
 ><A HREF="index.html"
 >Contents</A
@@ -63,6 +63,16 @@
 ></TABLE
 ></TD
 ></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
 ></TABLE
 ></TD
 ></TR
@@ -115,7 +125,7 @@
 >type</SPAN
 > <A HREF="#t%3ADBHandle"
 >DBHandle</A
-> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandleStruct"
 >DBHandleStruct</A
@@ -145,7 +155,7 @@
 >type</SPAN
 > <A HREF="#t%3AResultSetHandle"
 >ResultSetHandle</A
-> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AStmtStruct"
 >StmtStruct</A
@@ -161,7 +171,7 @@
 >type</SPAN
 > <A HREF="#t%3AOid"
 >Oid</A
-> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACUInt"
+> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACUInt"
 >CUInt</A
 ></TD
 ></TR
@@ -175,7 +185,7 @@
 >type</SPAN
 > <A HREF="#t%3AFormat"
 >Format</A
-> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -201,7 +211,7 @@
 >type</SPAN
 > <A HREF="#t%3AParamLen"
 >ParamLen</A
-> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -217,9 +227,9 @@
 >PGException</A
 >  = <A HREF="#v%3APGException"
 >PGException</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 ></TD
 ></TR
@@ -231,13 +241,13 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AcatchPG"
 >catchPG</A
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > a -&gt; (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGException"
 >PGException</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> a) -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> a) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > a</TD
 ></TR
@@ -249,9 +259,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AthrowPG"
 >throwPG</A
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3AIntegral"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
 >Integral</A
-> a =&gt; a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> a =&gt; a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 > -&gt; any</TD
 ></TR
@@ -275,9 +285,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AcStr"
 >cStr</A
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACStringLen"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACStringLen"
 >CStringLen</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
 ></TD
 ></TR
@@ -289,9 +299,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AcStrLen"
 >cStrLen</A
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACStringLen"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACStringLen"
 >CStringLen</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -303,9 +313,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AfPQconnectdb"
 >fPQconnectdb</A
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
@@ -321,7 +331,7 @@
 >fPQfinish</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > ()</TD
 ></TR
@@ -335,7 +345,7 @@
 >fPQreset</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > ()</TD
 ></TR
@@ -349,7 +359,7 @@
 >fPQdb</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
 ></TD
 ></TR
@@ -363,7 +373,7 @@
 >type</SPAN
 > <A HREF="#t%3AConnStatusType"
 >ConnStatusType</A
-> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -377,7 +387,7 @@
 >fPQstatus</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AConnStatusType"
 >ConnStatusType</A
@@ -393,9 +403,9 @@
 >fPQerrorMessage</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
 ></TD
 ></TR
@@ -409,11 +419,11 @@
 >fPQsetClientEncoding</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
 ></TD
 ></TR
@@ -427,11 +437,11 @@
 >type</SPAN
 > <A HREF="#t%3ANoticeReceiver"
 >NoticeReceiver</A
-> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
 > () -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > ()</TD
 ></TR
@@ -445,11 +455,11 @@
 >type</SPAN
 > <A HREF="#t%3ANoticeProcessor"
 >NoticeProcessor</A
-> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
-> () -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> () -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > ()</TD
 ></TR
@@ -463,9 +473,9 @@
 >mkNoticeReceiver</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeReceiver"
 >NoticeReceiver</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3AFunPtr"
+> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
 >FunPtr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeReceiver"
 >NoticeReceiver</A
@@ -481,9 +491,9 @@
 >mkNoticeProcessor</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeProcessor"
 >NoticeProcessor</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3AFunPtr"
+> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
 >FunPtr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeProcessor"
 >NoticeProcessor</A
@@ -499,15 +509,15 @@
 >fPQsetNoticeReceiver</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3AFunPtr"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
 >FunPtr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeReceiver"
 >NoticeReceiver</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
-> () -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> () -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3AFunPtr"
+> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
 >FunPtr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeReceiver"
 >NoticeReceiver</A
@@ -523,15 +533,15 @@
 >fPQsetNoticeProcessor</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3AFunPtr"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
 >FunPtr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeProcessor"
 >NoticeProcessor</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
-> () -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> () -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3AFunPtr"
+> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
 >FunPtr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeProcessor"
 >NoticeProcessor</A
@@ -547,29 +557,29 @@
 >fPQexecParams</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AVoid"
 >Void</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AParamLen"
 >ParamLen</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AFormat"
 >Format</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
@@ -585,17 +595,17 @@
 >fPQprepare</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
@@ -611,25 +621,25 @@
 >fPQexecPrepared</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AVoid"
 >Void</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AParamLen"
 >ParamLen</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AFormat"
 >Format</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
@@ -645,7 +655,7 @@
 >fPQresultStatus</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AExecStatusType"
 >ExecStatusType</A
@@ -661,7 +671,7 @@
 >type</SPAN
 > <A HREF="#t%3AExecStatusType"
 >ExecStatusType</A
-> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -675,9 +685,9 @@
 >fPQresultErrorMessage</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
 ></TD
 ></TR
@@ -691,7 +701,7 @@
 >fPQclear</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > ()</TD
 ></TR
@@ -705,9 +715,9 @@
 >fPQntuples</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -721,9 +731,9 @@
 >fPQnfields</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -737,11 +747,11 @@
 >fPQfname</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
 ></TD
 ></TR
@@ -755,11 +765,11 @@
 >fPQfformat</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -773,9 +783,9 @@
 >fPQftype</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
@@ -791,15 +801,15 @@
 >fPQgetvalue</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Word.html#t%3AWord8"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
 >Word8</A
 >)</TD
 ></TR
@@ -813,13 +823,13 @@
 >fPQgetisnull</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -833,13 +843,13 @@
 >fPQgetlength</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -853,9 +863,9 @@
 >fPQcmdStatus</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
 ></TD
 ></TR
@@ -869,9 +879,9 @@
 >fPQcmdTuples</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
 ></TD
 ></TR
@@ -885,7 +895,7 @@
 >fPQoidValue</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
@@ -901,15 +911,15 @@
 >fPQputCopyData</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Word.html#t%3AWord8"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
 >Word8</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -923,11 +933,11 @@
 >fPQputCopyEnd</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -941,7 +951,7 @@
 >fPQgetResult</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
@@ -957,7 +967,7 @@
 >type</SPAN
 > <A HREF="#t%3APGVerbosity"
 >PGVerbosity</A
-> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -973,10 +983,238 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGVerbosity"
 >PGVerbosity</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGVerbosity"
 >PGVerbosity</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3ALOAccessType"
+>LOAccessType</A
+> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3AWhenceType"
+>WhenceType</A
+> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Aflo_creat"
+>flo_creat</A
+> :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
+>DBHandle</A
+> -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ALOAccessType"
+>LOAccessType</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+>Oid</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Aflo_import"
+>flo_import</A
+> :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
+>DBHandle</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
+>CString</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+>Oid</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Aflo_export"
+>flo_export</A
+> :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
+>DBHandle</A
+> -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+>Oid</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
+>CString</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Aflo_open"
+>flo_open</A
+> :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
+>DBHandle</A
+> -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+>Oid</A
+> -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ALOAccessType"
+>LOAccessType</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Aflo_write"
+>flo_write</A
+> :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
+>DBHandle</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
+>Word8</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACUInt"
+>CUInt</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Aflo_read"
+>flo_read</A
+> :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
+>DBHandle</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
+>Word8</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACUInt"
+>CUInt</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Aflo_lseek"
+>flo_lseek</A
+> :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
+>DBHandle</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AWhenceType"
+>WhenceType</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Aflo_tell"
+>flo_tell</A
+> :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
+>DBHandle</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Aflo_close"
+>flo_close</A
+> :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
+>DBHandle</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3Aflo_unlink"
+>flo_unlink</A
+> :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
+>DBHandle</A
+> -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+>Oid</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
 ></TD
 ></TR
 ><TR
@@ -989,9 +1227,9 @@
 >getError</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 ></TD
 ></TR
@@ -1003,9 +1241,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AopenDb"
 >openDb</A
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
@@ -1021,7 +1259,7 @@
 >closeDb</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > ()</TD
 ></TR
@@ -1062,11 +1300,11 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3ApgNewValue"
 >pgNewValue</A
-> :: a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> :: a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Word.html#t%3AWord8"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
 >Word8</A
 >)</TD
 ></TR
@@ -1074,11 +1312,11 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3ApgPeek"
 >pgPeek</A
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Word.html#t%3AWord8"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
 >Word8</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > a</TD
 ></TR
@@ -1086,7 +1324,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3ApgSize"
 >pgSize</A
-> :: a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> :: a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
 ></TD
 ></TR
@@ -1126,7 +1364,7 @@
 ><TD CLASS="recfield"
 ><A HREF="#v%3AbindValSize"
 >bindValSize</A
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -1134,11 +1372,11 @@
 ><TD CLASS="recfield"
 ><A HREF="#v%3AbindValPtr"
 >bindValPtr</A
-> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Word.html#t%3AWord8"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
 >Word8</A
 >))</TD
 ></TR
@@ -1153,9 +1391,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AtoCChar"
 >toCChar</A
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AChar"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AChar"
 >Char</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACChar"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACChar"
 >CChar</A
 ></TD
 ></TR
@@ -1167,9 +1405,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AfromCChar"
 >fromCChar</A
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACChar"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACChar"
 >CChar</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AChar"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AChar"
 >Char</A
 ></TD
 ></TR
@@ -1181,9 +1419,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AtoCInt"
 >toCInt</A
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -1201,7 +1439,7 @@
 >ExecStatusType</A
 > -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
@@ -1217,15 +1455,15 @@
 >stmtPrepare</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 > -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
->] -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+>] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 ></TD
 ></TR
@@ -1239,13 +1477,13 @@
 >nqExec</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 >, <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
@@ -1261,15 +1499,15 @@
 >execCommand</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 > -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
 >PGBindVal</A
->] -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+>] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 >, <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
@@ -1285,15 +1523,15 @@
 >execPreparedCommand</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 > -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
 >PGBindVal</A
->] -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+>] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 >, <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
@@ -1309,15 +1547,15 @@
 >stmtExecImm</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 > -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
 >PGBindVal</A
->] -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+>] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
 >)</TD
 ></TR
@@ -1331,13 +1569,13 @@
 >stmtExecImm0</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
 >)</TD
 ></TR
@@ -1351,13 +1589,13 @@
 >stmtExec0</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
 >)</TD
 ></TR
@@ -1371,13 +1609,13 @@
 >stmtExec0t</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
 >)</TD
 ></TR
@@ -1391,15 +1629,15 @@
 >stmtExec</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 > -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
 >PGBindVal</A
->] -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+>] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
 >)</TD
 ></TR
@@ -1413,17 +1651,17 @@
 >execPrepared</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 > -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
 >PGBindVal</A
->] -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+>] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
 >)</TD
 ></TR
@@ -1437,17 +1675,17 @@
 >prepare'n'exec</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 > -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
 >PGBindVal</A
->] -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+>] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
 >)</TD
 ></TR
@@ -1461,7 +1699,7 @@
 >stmtFinalise</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > ()</TD
 ></TR
@@ -1475,15 +1713,15 @@
 >colValPtr</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Word.html#t%3AWord8"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
 >Word8</A
 >)</TD
 ></TR
@@ -1499,11 +1737,11 @@
 >PGType</A
 > a =&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > a</TD
 ></TR
@@ -1517,13 +1755,13 @@
 >colValString</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 ></TD
 ></TR
@@ -1537,13 +1775,13 @@
 >colValInt</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
 ></TD
 ></TR
@@ -1557,13 +1795,13 @@
 >colValInt64</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt64"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
 >Int64</A
 ></TD
 ></TR
@@ -1577,13 +1815,13 @@
 >colValDouble</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3ADouble"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3ADouble"
 >Double</A
 ></TD
 ></TR
@@ -1597,13 +1835,13 @@
 >colValFloat</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3AFloat"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AFloat"
 >Float</A
 ></TD
 ></TR
@@ -1617,13 +1855,15 @@
 >colValUTCTime</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> UTCTime</TD
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
+>UTCTime</A
+></TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1635,13 +1875,13 @@
 >colValCalTime</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-Time.html#t%3ACalendarTime"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/old-time-1.0.0.0/System-Time.html#t%3ACalendarTime"
 >CalendarTime</A
 ></TD
 ></TR
@@ -1655,13 +1895,13 @@
 >colValNull</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Bool.html#t%3ABool"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Bool.html#t%3ABool"
 >Bool</A
 ></TD
 ></TR
@@ -1673,15 +1913,15 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3Asbph"
 >sbph</A
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Bool.html#t%3ABool"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Bool.html#t%3ABool"
 >Bool</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 ></TD
 ></TR
@@ -1693,7 +1933,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AnqCopyIn_buflen"
 >nqCopyIn_buflen</A
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
 ></TD
 ></TR
@@ -1707,11 +1947,11 @@
 >nqCopyIn</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AHandle"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AHandle"
 >Handle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > ()</TD
 ></TR
@@ -1778,7 +2018,7 @@
 ></A
 ><B
 >DBHandle</B
-> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandleStruct"
 >DBHandleStruct</A
@@ -1836,7 +2076,7 @@
 ></A
 ><B
 >ResultSetHandle</B
-> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AStmtStruct"
 >StmtStruct</A
@@ -1854,7 +2094,7 @@
 ></A
 ><B
 >Oid</B
-> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACUInt"
+> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACUInt"
 >CUInt</A
 ></TD
 ></TR
@@ -1870,7 +2110,7 @@
 ></A
 ><B
 >Format</B
-> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -1900,7 +2140,7 @@
 ></A
 ><B
 >ParamLen</B
-> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -1934,9 +2174,9 @@
 ></A
 ><B
 >PGException</B
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 ></TD
 ><TD CLASS="rdoc"
@@ -1956,7 +2196,7 @@
 ><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
 ><TR
 ><TD CLASS="decl"
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Text-Show.html#t%3AShow"
+><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Text-Show.html#t%3AShow"
 >Show</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGException"
 >PGException</A
@@ -1964,7 +2204,7 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Typeable.html#t%3ATypeable"
+><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Typeable.html#t%3ATypeable"
 >Typeable</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGException"
 >PGException</A
@@ -1987,13 +2227,13 @@
 ></A
 ><B
 >catchPG</B
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > a -&gt; (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGException"
 >PGException</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> a) -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> a) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > a</TD
 ></TR
@@ -2007,9 +2247,9 @@
 ></A
 ><B
 >throwPG</B
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3AIntegral"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
 >Integral</A
-> a =&gt; a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> a =&gt; a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 > -&gt; any</TD
 ></TR
@@ -2037,9 +2277,9 @@
 ></A
 ><B
 >cStr</B
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACStringLen"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACStringLen"
 >CStringLen</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
 ></TD
 ></TR
@@ -2053,9 +2293,9 @@
 ></A
 ><B
 >cStrLen</B
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACStringLen"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACStringLen"
 >CStringLen</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -2069,9 +2309,9 @@
 ></A
 ><B
 >fPQconnectdb</B
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
@@ -2089,7 +2329,7 @@
 >fPQfinish</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > ()</TD
 ></TR
@@ -2105,7 +2345,7 @@
 >fPQreset</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > ()</TD
 ></TR
@@ -2121,7 +2361,7 @@
 >fPQdb</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
 ></TD
 ></TR
@@ -2137,7 +2377,7 @@
 ></A
 ><B
 >ConnStatusType</B
-> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -2153,7 +2393,7 @@
 >fPQstatus</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AConnStatusType"
 >ConnStatusType</A
@@ -2171,9 +2411,9 @@
 >fPQerrorMessage</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
 ></TD
 ></TR
@@ -2189,11 +2429,11 @@
 >fPQsetClientEncoding</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
 ></TD
 ></TR
@@ -2209,11 +2449,11 @@
 ></A
 ><B
 >NoticeReceiver</B
-> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
 > () -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > ()</TD
 ></TR
@@ -2229,11 +2469,11 @@
 ></A
 ><B
 >NoticeProcessor</B
-> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
-> () -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> () -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > ()</TD
 ></TR
@@ -2249,9 +2489,9 @@
 >mkNoticeReceiver</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeReceiver"
 >NoticeReceiver</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3AFunPtr"
+> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
 >FunPtr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeReceiver"
 >NoticeReceiver</A
@@ -2269,9 +2509,9 @@
 >mkNoticeProcessor</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeProcessor"
 >NoticeProcessor</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3AFunPtr"
+> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
 >FunPtr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeProcessor"
 >NoticeProcessor</A
@@ -2289,15 +2529,15 @@
 >fPQsetNoticeReceiver</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3AFunPtr"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
 >FunPtr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeReceiver"
 >NoticeReceiver</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
-> () -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> () -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3AFunPtr"
+> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
 >FunPtr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeReceiver"
 >NoticeReceiver</A
@@ -2315,15 +2555,15 @@
 >fPQsetNoticeProcessor</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3AFunPtr"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
 >FunPtr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeProcessor"
 >NoticeProcessor</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
-> () -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> () -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3AFunPtr"
+> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
 >FunPtr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeProcessor"
 >NoticeProcessor</A
@@ -2341,29 +2581,29 @@
 >fPQexecParams</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AVoid"
 >Void</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AParamLen"
 >ParamLen</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AFormat"
 >Format</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
@@ -2381,17 +2621,17 @@
 >fPQprepare</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
@@ -2409,25 +2649,25 @@
 >fPQexecPrepared</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AVoid"
 >Void</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AParamLen"
 >ParamLen</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AFormat"
 >Format</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
@@ -2445,7 +2685,7 @@
 >fPQresultStatus</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AExecStatusType"
 >ExecStatusType</A
@@ -2463,7 +2703,7 @@
 ></A
 ><B
 >ExecStatusType</B
-> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -2479,9 +2719,9 @@
 >fPQresultErrorMessage</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
 ></TD
 ></TR
@@ -2497,7 +2737,7 @@
 >fPQclear</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > ()</TD
 ></TR
@@ -2513,9 +2753,9 @@
 >fPQntuples</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -2531,9 +2771,9 @@
 >fPQnfields</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -2549,11 +2789,11 @@
 >fPQfname</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
 ></TD
 ></TR
@@ -2569,11 +2809,11 @@
 >fPQfformat</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -2589,9 +2829,9 @@
 >fPQftype</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
@@ -2609,15 +2849,15 @@
 >fPQgetvalue</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Word.html#t%3AWord8"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
 >Word8</A
 >)</TD
 ></TR
@@ -2633,13 +2873,13 @@
 >fPQgetisnull</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -2655,13 +2895,13 @@
 >fPQgetlength</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -2677,9 +2917,9 @@
 >fPQcmdStatus</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
 ></TD
 ></TR
@@ -2695,9 +2935,9 @@
 >fPQcmdTuples</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
 ></TD
 ></TR
@@ -2713,7 +2953,7 @@
 >fPQoidValue</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
@@ -2731,15 +2971,15 @@
 >fPQputCopyData</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Word.html#t%3AWord8"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
 >Word8</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -2755,11 +2995,11 @@
 >fPQputCopyEnd</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-String.html#t%3ACString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
 >CString</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -2775,7 +3015,7 @@
 >fPQgetResult</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
@@ -2793,7 +3033,7 @@
 ></A
 ><B
 >PGVerbosity</B
-> = <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -2811,10 +3051,262 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGVerbosity"
 >PGVerbosity</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGVerbosity"
 >PGVerbosity</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3ALOAccessType"
+></A
+><B
+>LOAccessType</B
+> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3AWhenceType"
+></A
+><B
+>WhenceType</B
+> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Aflo_creat"
+></A
+><B
+>flo_creat</B
+> :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
+>DBHandle</A
+> -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ALOAccessType"
+>LOAccessType</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+>Oid</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Aflo_import"
+></A
+><B
+>flo_import</B
+> :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
+>DBHandle</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
+>CString</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+>Oid</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Aflo_export"
+></A
+><B
+>flo_export</B
+> :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
+>DBHandle</A
+> -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+>Oid</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
+>CString</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Aflo_open"
+></A
+><B
+>flo_open</B
+> :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
+>DBHandle</A
+> -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+>Oid</A
+> -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ALOAccessType"
+>LOAccessType</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Aflo_write"
+></A
+><B
+>flo_write</B
+> :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
+>DBHandle</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
+>Word8</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACUInt"
+>CUInt</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Aflo_read"
+></A
+><B
+>flo_read</B
+> :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
+>DBHandle</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
+>Ptr</A
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
+>Word8</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACUInt"
+>CUInt</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Aflo_lseek"
+></A
+><B
+>flo_lseek</B
+> :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
+>DBHandle</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AWhenceType"
+>WhenceType</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Aflo_tell"
+></A
+><B
+>flo_tell</B
+> :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
+>DBHandle</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Aflo_close"
+></A
+><B
+>flo_close</B
+> :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
+>DBHandle</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3Aflo_unlink"
+></A
+><B
+>flo_unlink</B
+> :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
+>DBHandle</A
+> -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+>Oid</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
+>IO</A
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
+>CInt</A
 ></TD
 ></TR
 ><TR
@@ -2829,9 +3321,9 @@
 >getError</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 ></TD
 ></TR
@@ -2845,9 +3337,9 @@
 ></A
 ><B
 >openDb</B
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
@@ -2865,7 +3357,7 @@
 >closeDb</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > ()</TD
 ></TR
@@ -2952,11 +3444,11 @@
 ></A
 ><B
 >pgNewValue</B
-> :: a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> :: a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Word.html#t%3AWord8"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
 >Word8</A
 >)</TD
 ></TR
@@ -2970,11 +3462,11 @@
 ></A
 ><B
 >pgPeek</B
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Word.html#t%3AWord8"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
 >Word8</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > a</TD
 ></TR
@@ -2988,7 +3480,7 @@
 ></A
 ><B
 >pgSize</B
-> :: a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> :: a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
 ></TD
 ></TR
@@ -3012,7 +3504,7 @@
 ><TD CLASS="decl"
 ><A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGType"
 >PGType</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-Time.html#t%3ACalendarTime"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/old-time-1.0.0.0/System-Time.html#t%3ACalendarTime"
 >CalendarTime</A
 ></TD
 ></TR
@@ -3020,7 +3512,7 @@
 ><TD CLASS="decl"
 ><A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGType"
 >PGType</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AChar"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AChar"
 >Char</A
 ></TD
 ></TR
@@ -3028,7 +3520,7 @@
 ><TD CLASS="decl"
 ><A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGType"
 >PGType</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3ADouble"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3ADouble"
 >Double</A
 ></TD
 ></TR
@@ -3036,7 +3528,7 @@
 ><TD CLASS="decl"
 ><A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGType"
 >PGType</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3AFloat"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AFloat"
 >Float</A
 ></TD
 ></TR
@@ -3044,7 +3536,7 @@
 ><TD CLASS="decl"
 ><A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGType"
 >PGType</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
 ></TD
 ></TR
@@ -3052,7 +3544,7 @@
 ><TD CLASS="decl"
 ><A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGType"
 >PGType</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt16"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt16"
 >Int16</A
 ></TD
 ></TR
@@ -3060,7 +3552,7 @@
 ><TD CLASS="decl"
 ><A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGType"
 >PGType</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt32"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt32"
 >Int32</A
 ></TD
 ></TR
@@ -3068,7 +3560,7 @@
 ><TD CLASS="decl"
 ><A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGType"
 >PGType</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt64"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
 >Int64</A
 ></TD
 ></TR
@@ -3076,7 +3568,7 @@
 ><TD CLASS="decl"
 ><A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGType"
 >PGType</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3AInteger"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AInteger"
 >Integer</A
 ></TD
 ></TR
@@ -3084,7 +3576,7 @@
 ><TD CLASS="decl"
 ><A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGType"
 >PGType</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 ></TD
 ></TR
@@ -3092,7 +3584,9 @@
 ><TD CLASS="decl"
 ><A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGType"
 >PGType</A
-> UTCTime</TD
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
+>UTCTime</A
+></TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -3100,7 +3594,7 @@
 >PGType</A
 > a =&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGType"
 >PGType</A
-> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Maybe.html#t%3AMaybe"
+> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
 >Maybe</A
 > a)</TD
 ></TR
@@ -3178,7 +3672,7 @@
 ></A
 ><B
 >bindValSize</B
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ><TD CLASS="rdoc"
@@ -3190,11 +3684,11 @@
 ></A
 ><B
 >bindValPtr</B
-> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Word.html#t%3AWord8"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
 >Word8</A
 >))</TD
 ><TD CLASS="rdoc"
@@ -3219,9 +3713,9 @@
 ></A
 ><B
 >toCChar</B
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AChar"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AChar"
 >Char</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACChar"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACChar"
 >CChar</A
 ></TD
 ></TR
@@ -3235,9 +3729,9 @@
 ></A
 ><B
 >fromCChar</B
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACChar"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACChar"
 >CChar</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AChar"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AChar"
 >Char</A
 ></TD
 ></TR
@@ -3251,9 +3745,9 @@
 ></A
 ><B
 >toCInt</B
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
 ></TD
 ></TR
@@ -3273,7 +3767,7 @@
 >ExecStatusType</A
 > -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
@@ -3291,15 +3785,15 @@
 >stmtPrepare</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 > -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
->] -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+>] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 ></TD
 ></TR
@@ -3315,13 +3809,13 @@
 >nqExec</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 >, <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
@@ -3339,15 +3833,15 @@
 >execCommand</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 > -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
 >PGBindVal</A
->] -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+>] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 >, <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
@@ -3365,15 +3859,15 @@
 >execPreparedCommand</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 > -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
 >PGBindVal</A
->] -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+>] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 >, <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
@@ -3405,15 +3899,15 @@
 >stmtExecImm</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 > -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
 >PGBindVal</A
->] -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+>] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
 >)</TD
 ></TR
@@ -3429,13 +3923,13 @@
 >stmtExecImm0</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
 >)</TD
 ></TR
@@ -3451,13 +3945,13 @@
 >stmtExec0</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
 >)</TD
 ></TR
@@ -3473,13 +3967,13 @@
 >stmtExec0t</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
 >)</TD
 ></TR
@@ -3495,15 +3989,15 @@
 >stmtExec</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 > -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
 >PGBindVal</A
->] -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+>] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
 >)</TD
 ></TR
@@ -3519,17 +4013,17 @@
 >execPrepared</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 > -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
 >PGBindVal</A
->] -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-C-Types.html#t%3ACInt"
+>] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
 >CInt</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
 >)</TD
 ></TR
@@ -3545,17 +4039,17 @@
 >prepare'n'exec</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 > -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
 >PGBindVal</A
->] -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+>] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
 >)</TD
 ></TR
@@ -3571,7 +4065,7 @@
 >stmtFinalise</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > ()</TD
 ></TR
@@ -3587,15 +4081,15 @@
 >colValPtr</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Foreign-Ptr.html#t%3APtr"
+> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
 >Ptr</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Word.html#t%3AWord8"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
 >Word8</A
 >)</TD
 ></TR
@@ -3620,11 +4114,11 @@
 >PGType</A
 > a =&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > a</TD
 ></TR
@@ -3640,13 +4134,13 @@
 >colValString</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 ></TD
 ></TR
@@ -3662,13 +4156,13 @@
 >colValInt</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
 ></TD
 ></TR
@@ -3684,13 +4178,13 @@
 >colValInt64</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt64"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
 >Int64</A
 ></TD
 ></TR
@@ -3706,13 +4200,13 @@
 >colValDouble</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3ADouble"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3ADouble"
 >Double</A
 ></TD
 ></TR
@@ -3728,13 +4222,13 @@
 >colValFloat</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3AFloat"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AFloat"
 >Float</A
 ></TD
 ></TR
@@ -3750,13 +4244,15 @@
 >colValUTCTime</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> UTCTime</TD
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
+>UTCTime</A
+></TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3770,13 +4266,13 @@
 >colValCalTime</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-Time.html#t%3ACalendarTime"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/old-time-1.0.0.0/System-Time.html#t%3ACalendarTime"
 >CalendarTime</A
 ></TD
 ></TR
@@ -3792,13 +4288,13 @@
 >colValNull</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Bool.html#t%3ABool"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Bool.html#t%3ABool"
 >Bool</A
 ></TD
 ></TR
@@ -3812,15 +4308,15 @@
 ></A
 ><B
 >sbph</B
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Bool.html#t%3ABool"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Bool.html#t%3ABool"
 >Bool</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 ></TD
 ></TR
@@ -3834,7 +4330,7 @@
 ></A
 ><B
 >nqCopyIn_buflen</B
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
 ></TD
 ></TR
@@ -3850,11 +4346,11 @@
 >nqCopyIn</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AHandle"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AHandle"
 >Handle</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#t%3AIO"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
 >IO</A
 > ()</TD
 ></TR
@@ -3866,7 +4362,7 @@
 ><TD CLASS="botbar"
 >Produced by <A HREF="http://www.haskell.org/haddock/"
 >Haddock</A
-> version 0.8</TD
+> version 0.7</TD
 ></TR
 ></TABLE
 ></BODY

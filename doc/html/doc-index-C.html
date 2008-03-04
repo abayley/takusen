@@ -4,7 +4,7 @@
 ><HEAD
 ><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8"
 ><TITLE
-> (Index)</TITLE
+>Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC. (Index)</TITLE
 ><LINK HREF="haddock.css" REL="stylesheet" TYPE="text/css"
 ></HEAD
 ><BODY
@@ -17,7 +17,7 @@
 ><IMG SRC="haskell_icon.gif" WIDTH="16" HEIGHT="16" ALT=" "
 ></TD
 ><TD CLASS="title"
-></TD
+>Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
 ><TD CLASS="topbut"
 ><A HREF="index.html"
 >Contents</A
@@ -250,11 +250,43 @@
 ></TD
 ></TR
 ><TR
-><TD CLASS="indexentry"
+><TD CLASS="indexentry" COLSPAN="2"
 >ConnHandle</TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>1 (Type/Class)</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>2 (Type/Class)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
 >Database.Oracle.OCIFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry" COLSPAN="2"
+>ConnObj</TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>1 (Type/Class)</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnObj"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>2 (Data Constructor)</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AConnObj"
+>Database.ODBC.OdbcFunctions</A
 ></TD
 ></TR
 ><TR
@@ -463,7 +495,7 @@
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Enumerator.html#v%3AcatchDB"
 >Database.Enumerator</A
->, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexentry"
@@ -471,7 +503,7 @@
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Enumerator.html#v%3AcatchDBError"
 >Database.Enumerator</A
->, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexentry"
@@ -479,6 +511,14 @@
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Oracle-OCIFunctions.html#v%3AcatchOCI"
 >Database.Oracle.OCIFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>catchOdbc</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AcatchOdbc"
+>Database.ODBC.OdbcFunctions</A
 ></TD
 ></TR
 ><TR
@@ -503,6 +543,30 @@
 ><TD CLASS="indexlinks"
 ><A HREF="Database-PostgreSQL-PGFunctions.html#v%3Acheck%27stmt"
 >Database.PostgreSQL.PGFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>checkColumnRange</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-Sqlite-SqliteFunctions.html#v%3AcheckColumnRange"
+>Database.Sqlite.SqliteFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>checkError</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AcheckError"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>closeCursor</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AcloseCursor"
+>Database.ODBC.OdbcFunctions</A
 ></TD
 ></TR
 ><TR
@@ -533,13 +597,21 @@
 ><TD CLASS="indexannot"
 >1 (Function)</TD
 ><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-Enumerator.html#v%3Acmdbind"
+>Database.ODBC.Enumerator</A
+></TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>2 (Function)</TD
+><TD CLASS="indexlinks"
 ><A HREF="Database-Oracle-Enumerator.html#v%3Acmdbind"
 >Database.Oracle.Enumerator</A
 ></TD
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->2 (Function)</TD
+>3 (Function)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-PostgreSQL-Enumerator.html#v%3Acmdbind"
 >Database.PostgreSQL.Enumerator</A
@@ -547,7 +619,7 @@
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->3 (Function)</TD
+>4 (Function)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Sqlite-Enumerator.html#v%3Acmdbind"
 >Database.Sqlite.Enumerator</A
@@ -699,7 +771,7 @@
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Enumerator.html#v%3Acommit"
 >Database.Enumerator</A
->, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexannot"
@@ -707,6 +779,14 @@
 ><TD CLASS="indexlinks"
 ><A HREF="Database-InternalEnumerator.html#v%3Acommit"
 >Database.InternalEnumerator</A
+></TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>3 (Function)</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3Acommit"
+>Database.ODBC.OdbcFunctions</A
 ></TD
 ></TR
 ><TR
@@ -725,13 +805,29 @@
 ><TD CLASS="indexannot"
 >1 (Function)</TD
 ><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-Enumerator.html#v%3Aconnect"
+>Database.ODBC.Enumerator</A
+></TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>2 (Function)</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3Aconnect"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>3 (Function)</TD
+><TD CLASS="indexlinks"
 ><A HREF="Database-Oracle-Enumerator.html#v%3Aconnect"
 >Database.Oracle.Enumerator</A
 ></TD
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->2 (Function)</TD
+>4 (Function)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-PostgreSQL-Enumerator.html#v%3Aconnect"
 >Database.PostgreSQL.Enumerator</A
@@ -739,7 +835,7 @@
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->3 (Function)</TD
+>5 (Function)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Sqlite-Enumerator.html#v%3Aconnect"
 >Database.Sqlite.Enumerator</A
@@ -747,10 +843,34 @@
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->4 (Function)</TD
+>6 (Function)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Stub-Enumerator.html#v%3Aconnect"
 >Database.Stub.Enumerator</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>createBufferForStorable</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AcreateBufferForStorable"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>createBufferHelper</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AcreateBufferHelper"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>createEmptyBuffer</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AcreateEmptyBuffer"
+>Database.ODBC.OdbcFunctions</A
 ></TD
 ></TR
 ><TR
@@ -769,7 +889,7 @@
 >Database.InternalEnumerator</A
 >, <A HREF="Database-Enumerator.html#v%3AcurrentRowNum"
 >Database.Enumerator</A
->, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexentry"
@@ -777,7 +897,7 @@
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Enumerator.html#v%3AcursorCurrent"
 >Database.Enumerator</A
->, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexentry"
@@ -785,7 +905,7 @@
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Enumerator.html#v%3AcursorIsEOF"
 >Database.Enumerator</A
->, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexentry"
@@ -793,7 +913,7 @@
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Enumerator.html#v%3AcursorNext"
 >Database.Enumerator</A
->, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ></TABLE
 ></TD

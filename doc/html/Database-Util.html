@@ -19,7 +19,7 @@
 ><IMG SRC="haskell_icon.gif" WIDTH="16" HEIGHT="16" ALT=" "
 ></TD
 ><TD CLASS="title"
-></TD
+>Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
 ><TD CLASS="topbut"
 ><A HREF="index.html"
 >Contents</A
@@ -71,6 +71,16 @@
 ></TD
 ></TR
 ><TR
+><TD
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
 ><TD CLASS="section1"
 >Description</TD
 ></TR
@@ -98,7 +108,7 @@
 ><TD CLASS="decl"
 ><SPAN CLASS="keyword"
 >class</SPAN
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Text-Show.html#t%3AShow"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Text-Show.html#t%3AShow"
 >Show</A
 > a =&gt; <A HREF="#t%3AMyShow"
 >MyShow</A
@@ -113,7 +123,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3Ashow_"
 >show_</A
-> :: a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> :: a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 ></TD
 ></TR
@@ -128,7 +138,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3Aprint_"
 >print_</A
-> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl/Control-Monad-Trans.html#t%3AMonadIO"
+> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/mtl-1.1.0.0/Control-Monad-Trans.html#t%3AMonadIO"
 >MonadIO</A
 > m, <A HREF="Database-Util.html#t%3AMyShow"
 >MyShow</A
@@ -142,11 +152,13 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AmkUTCTime"
 >mkUTCTime</A
-> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3AIntegral"
+> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
 >Integral</A
-> a, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3AReal"
+> a, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AReal"
 >Real</A
-> b) =&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; b -&gt; UTCTime</TD
+> b) =&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; b -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
+>UTCTime</A
+></TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -156,9 +168,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AmkCalTime"
 >mkCalTime</A
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3AIntegral"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
 >Integral</A
-> a =&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-Time.html#t%3ACalendarTime"
+> a =&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/old-time-1.0.0.0/System-Time.html#t%3ACalendarTime"
 >CalendarTime</A
 ></TD
 ></TR
@@ -170,19 +182,19 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3Aint64ToDateParts"
 >int64ToDateParts</A
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt64"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
 >Int64</A
-> -&gt; (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt64"
+> -&gt; (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
 >Int64</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt64"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
 >Int64</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt64"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
 >Int64</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt64"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
 >Int64</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt64"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
 >Int64</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt64"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
 >Int64</A
 >)</TD
 ></TR
@@ -194,19 +206,19 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AdatePartsToInt64"
 >datePartsToInt64</A
-> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3AIntegral"
+> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
 >Integral</A
-> a1, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3AIntegral"
+> a1, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
 >Integral</A
-> a2, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3AIntegral"
+> a2, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
 >Integral</A
-> a3, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3AIntegral"
+> a3, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
 >Integral</A
-> a4, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3AIntegral"
+> a4, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
 >Integral</A
-> a5, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3AIntegral"
+> a5, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
 >Integral</A
-> a6) =&gt; (a1, a2, a3, a4, a5, a6) -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt64"
+> a6) =&gt; (a1, a2, a3, a4, a5, a6) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
 >Int64</A
 ></TD
 ></TR
@@ -218,9 +230,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AcalTimeToInt64"
 >calTimeToInt64</A
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-Time.html#t%3ACalendarTime"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/old-time-1.0.0.0/System-Time.html#t%3ACalendarTime"
 >CalendarTime</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt64"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
 >Int64</A
 ></TD
 ></TR
@@ -232,9 +244,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3Aint64ToCalTime"
 >int64ToCalTime</A
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt64"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
 >Int64</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-Time.html#t%3ACalendarTime"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/old-time-1.0.0.0/System-Time.html#t%3ACalendarTime"
 >CalendarTime</A
 ></TD
 ></TR
@@ -246,9 +258,11 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3Aint64ToUTCTime"
 >int64ToUTCTime</A
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt64"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
 >Int64</A
-> -&gt; UTCTime</TD
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
+>UTCTime</A
+></TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -258,13 +272,13 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AwordsBy"
 >wordsBy</A
-> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AChar"
+> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AChar"
 >Char</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Bool.html#t%3ABool"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Bool.html#t%3ABool"
 >Bool</A
->) -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; [<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; [<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 >]</TD
 ></TR
@@ -276,13 +290,13 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AskipNonMatch"
 >skipNonMatch</A
-> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AChar"
+> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AChar"
 >Char</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Bool.html#t%3ABool"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Bool.html#t%3ABool"
 >Bool</A
->) -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; [<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; [<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 >]</TD
 ></TR
@@ -294,9 +308,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3Apositions"
 >positions</A
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Eq.html#t%3AEq"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Eq.html#t%3AEq"
 >Eq</A
-> a =&gt; [a] -&gt; [a] -&gt; [<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> a =&gt; [a] -&gt; [a] -&gt; [<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
 >]</TD
 ></TR
@@ -308,9 +322,11 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3ApgDatetimetoUTCTime"
 >pgDatetimetoUTCTime</A
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; UTCTime</TD
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
+>UTCTime</A
+></TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -320,9 +336,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3ApgDatetimetoCalTime"
 >pgDatetimetoCalTime</A
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-Time.html#t%3ACalendarTime"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/old-time-1.0.0.0/System-Time.html#t%3ACalendarTime"
 >CalendarTime</A
 ></TD
 ></TR
@@ -332,23 +348,23 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="#v%3ApgDatetimetoParts"
->pgDatetimetoParts</A
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+><A HREF="#v%3ApgDatetimeToParts"
+>pgDatetimeToParts</A
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3ADouble"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3ADouble"
 >Double</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
 >)</TD
 ></TR
@@ -358,9 +374,61 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
+><A HREF="#v%3AutcTimeToIsoString"
+>utcTimeToIsoString</A
+> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
+>Integral</A
+> a, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
+>Integral</A
+> b) =&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
+>UTCTime</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+> -&gt; (a -&gt; a) -&gt; (b -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+>) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
 ><A HREF="#v%3AutcTimeToPGDatetime"
 >utcTimeToPGDatetime</A
-> :: UTCTime -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
+>UTCTime</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AutcTimeToIsoDatetime"
+>utcTimeToIsoDatetime</A
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
+>UTCTime</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AutcTimeToOdbcDatetime"
+>utcTimeToOdbcDatetime</A
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
+>UTCTime</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 ></TD
 ></TR
@@ -372,9 +440,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AcalTimeToPGDatetime"
 >calTimeToPGDatetime</A
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-Time.html#t%3ACalendarTime"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/old-time-1.0.0.0/System-Time.html#t%3ACalendarTime"
 >CalendarTime</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 ></TD
 ></TR
@@ -397,7 +465,7 @@
 ><TD CLASS="decl"
 ><SPAN CLASS="keyword"
 >class</SPAN
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Text-Show.html#t%3AShow"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Text-Show.html#t%3AShow"
 >Show</A
 > a =&gt; <A NAME="t%3AMyShow"
 ></A
@@ -427,7 +495,7 @@
 ></A
 ><B
 >show_</B
-> :: a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> :: a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 ></TD
 ></TR
@@ -451,13 +519,13 @@
 ><TD CLASS="decl"
 ><A HREF="Database-Util.html#t%3AMyShow"
 >MyShow</A
-> <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 ></TD
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Text-Show.html#t%3AShow"
+><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Text-Show.html#t%3AShow"
 >Show</A
 > a =&gt; <A HREF="Database-Util.html#t%3AMyShow"
 >MyShow</A
@@ -480,7 +548,7 @@
 ></A
 ><B
 >print_</B
-> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/mtl/Control-Monad-Trans.html#t%3AMonadIO"
+> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/mtl-1.1.0.0/Control-Monad-Trans.html#t%3AMonadIO"
 >MonadIO</A
 > m, <A HREF="Database-Util.html#t%3AMyShow"
 >MyShow</A
@@ -489,7 +557,7 @@
 ><TR
 ><TD CLASS="doc"
 >Like <TT
-><A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-IO.html#v%3Aprint"
+><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#v%3Aprint"
 >print</A
 ></TT
 >, except that Strings are not escaped or quoted.
@@ -505,11 +573,13 @@
 ></A
 ><B
 >mkUTCTime</B
-> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3AIntegral"
+> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
 >Integral</A
-> a, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3AReal"
+> a, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AReal"
 >Real</A
-> b) =&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; b -&gt; UTCTime</TD
+> b) =&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; b -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
+>UTCTime</A
+></TD
 ></TR
 ><TR
 ><TD CLASS="doc"
@@ -527,9 +597,9 @@
 ></A
 ><B
 >mkCalTime</B
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3AIntegral"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
 >Integral</A
-> a =&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-Time.html#t%3ACalendarTime"
+> a =&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/old-time-1.0.0.0/System-Time.html#t%3ACalendarTime"
 >CalendarTime</A
 ></TD
 ></TR
@@ -543,19 +613,19 @@
 ></A
 ><B
 >int64ToDateParts</B
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt64"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
 >Int64</A
-> -&gt; (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt64"
+> -&gt; (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
 >Int64</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt64"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
 >Int64</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt64"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
 >Int64</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt64"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
 >Int64</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt64"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
 >Int64</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt64"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
 >Int64</A
 >)</TD
 ></TR
@@ -569,19 +639,19 @@
 ></A
 ><B
 >datePartsToInt64</B
-> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3AIntegral"
+> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
 >Integral</A
-> a1, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3AIntegral"
+> a1, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
 >Integral</A
-> a2, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3AIntegral"
+> a2, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
 >Integral</A
-> a3, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3AIntegral"
+> a3, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
 >Integral</A
-> a4, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3AIntegral"
+> a4, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
 >Integral</A
-> a5, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3AIntegral"
+> a5, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
 >Integral</A
-> a6) =&gt; (a1, a2, a3, a4, a5, a6) -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt64"
+> a6) =&gt; (a1, a2, a3, a4, a5, a6) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
 >Int64</A
 ></TD
 ></TR
@@ -595,9 +665,9 @@
 ></A
 ><B
 >calTimeToInt64</B
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-Time.html#t%3ACalendarTime"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/old-time-1.0.0.0/System-Time.html#t%3ACalendarTime"
 >CalendarTime</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt64"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
 >Int64</A
 ></TD
 ></TR
@@ -611,9 +681,9 @@
 ></A
 ><B
 >int64ToCalTime</B
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt64"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
 >Int64</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-Time.html#t%3ACalendarTime"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/old-time-1.0.0.0/System-Time.html#t%3ACalendarTime"
 >CalendarTime</A
 ></TD
 ></TR
@@ -627,9 +697,11 @@
 ></A
 ><B
 >int64ToUTCTime</B
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt64"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
 >Int64</A
-> -&gt; UTCTime</TD
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
+>UTCTime</A
+></TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -641,13 +713,13 @@
 ></A
 ><B
 >wordsBy</B
-> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AChar"
+> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AChar"
 >Char</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Bool.html#t%3ABool"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Bool.html#t%3ABool"
 >Bool</A
->) -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; [<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; [<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 >]</TD
 ></TR
@@ -661,13 +733,13 @@
 ></A
 ><B
 >skipNonMatch</B
-> :: (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AChar"
+> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AChar"
 >Char</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Bool.html#t%3ABool"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Bool.html#t%3ABool"
 >Bool</A
->) -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; [<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; [<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 >]</TD
 ></TR
@@ -681,9 +753,9 @@
 ></A
 ><B
 >positions</B
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Eq.html#t%3AEq"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Eq.html#t%3AEq"
 >Eq</A
-> a =&gt; [a] -&gt; [a] -&gt; [<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> a =&gt; [a] -&gt; [a] -&gt; [<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
 >]</TD
 ></TR
@@ -697,9 +769,11 @@
 ></A
 ><B
 >pgDatetimetoUTCTime</B
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; UTCTime</TD
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
+>UTCTime</A
+></TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -711,9 +785,9 @@
 ></A
 ><B
 >pgDatetimetoCalTime</B
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-Time.html#t%3ACalendarTime"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/old-time-1.0.0.0/System-Time.html#t%3ACalendarTime"
 >CalendarTime</A
 ></TD
 ></TR
@@ -723,27 +797,51 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A NAME="v%3ApgDatetimetoParts"
+><A NAME="v%3ApgDatetimeToParts"
 ></A
 ><B
->pgDatetimetoParts</B
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+>pgDatetimeToParts</B
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
-> -&gt; (<A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+> -&gt; (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Prelude.html#t%3ADouble"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3ADouble"
 >Double</A
->, <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Int.html#t%3AInt"
+>, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
 >Int</A
 >)</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AutcTimeToIsoString"
+></A
+><B
+>utcTimeToIsoString</B
+> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
+>Integral</A
+> a, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
+>Integral</A
+> b) =&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
+>UTCTime</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+> -&gt; (a -&gt; a) -&gt; (b -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+>) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+></TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -755,7 +853,41 @@
 ></A
 ><B
 >utcTimeToPGDatetime</B
-> :: UTCTime -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
+>UTCTime</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AutcTimeToIsoDatetime"
+></A
+><B
+>utcTimeToIsoDatetime</B
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
+>UTCTime</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+>String</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AutcTimeToOdbcDatetime"
+></A
+><B
+>utcTimeToOdbcDatetime</B
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
+>UTCTime</A
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 ></TD
 ></TR
@@ -769,9 +901,9 @@
 ></A
 ><B
 >calTimeToPGDatetime</B
-> :: <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-Time.html#t%3ACalendarTime"
+> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/old-time-1.0.0.0/System-Time.html#t%3ACalendarTime"
 >CalendarTime</A
-> -&gt; <A HREF="http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-Char.html#t%3AString"
+> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
 >String</A
 ></TD
 ></TR
@@ -788,7 +920,7 @@
 ><TD CLASS="botbar"
 >Produced by <A HREF="http://www.haskell.org/haddock/"
 >Haddock</A
-> version 0.8</TD
+> version 0.7</TD
 ></TR
 ></TABLE
 ></BODY

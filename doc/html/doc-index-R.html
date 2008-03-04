@@ -4,7 +4,7 @@
 ><HEAD
 ><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8"
 ><TITLE
-> (Index)</TITLE
+>Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC. (Index)</TITLE
 ><LINK HREF="haddock.css" REL="stylesheet" TYPE="text/css"
 ></HEAD
 ><BODY
@@ -17,7 +17,7 @@
 ><IMG SRC="haskell_icon.gif" WIDTH="16" HEIGHT="16" ALT=" "
 ></TD
 ><TD CLASS="title"
-></TD
+>Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
 ><TD CLASS="topbut"
 ><A HREF="index.html"
 >Contents</A
@@ -137,7 +137,7 @@
 >Database.InternalEnumerator</A
 >, <A HREF="Database-Enumerator.html#v%3AReadCommitted"
 >Database.Enumerator</A
->, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexentry"
@@ -147,7 +147,7 @@
 >Database.InternalEnumerator</A
 >, <A HREF="Database-Enumerator.html#v%3AReadUncommitted"
 >Database.Enumerator</A
->, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexentry" COLSPAN="2"
@@ -159,7 +159,7 @@
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Enumerator.html#t%3ARefCursor"
 >Database.Enumerator</A
->, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexannot"
@@ -167,7 +167,7 @@
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Enumerator.html#v%3ARefCursor"
 >Database.Enumerator</A
->, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexentry"
@@ -177,7 +177,7 @@
 >Database.InternalEnumerator</A
 >, <A HREF="Database-Enumerator.html#v%3ARepeatableRead"
 >Database.Enumerator</A
->, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexentry"
@@ -197,18 +197,10 @@
 ></TR
 ><TR
 ><TD CLASS="indexentry"
->RunTests</TD
+>readUtcTimeFromMemory</TD
 ><TD CLASS="indexlinks"
-><A HREF="Database-Test-Performance.html#v%3ARunTests"
->Database.Test.Performance</A
-></TD
-></TR
-><TR
-><TD CLASS="indexentry"
->reportResults</TD
-><TD CLASS="indexlinks"
-><A HREF="Test-MiniUnit.html#v%3AreportResults"
->Test.MiniUnit</A
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AreadUtcTimeFromMemory"
+>Database.ODBC.OdbcFunctions</A
 ></TD
 ></TR
 ><TR
@@ -217,7 +209,15 @@
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Enumerator.html#v%3AreportRethrow"
 >Database.Enumerator</A
->, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>reportRethrowMsg</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-Enumerator.html#v%3AreportRethrowMsg"
+>Database.Enumerator</A
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexentry"
@@ -225,7 +225,7 @@
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Enumerator.html#v%3Aresult"
 >Database.Enumerator</A
->, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexentry"
@@ -233,7 +233,7 @@
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Enumerator.html#v%3Aresult%27"
 >Database.Enumerator</A
->, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexentry"
@@ -253,7 +253,7 @@
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Enumerator.html#v%3Arollback"
 >Database.Enumerator</A
->, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexannot"
@@ -261,6 +261,14 @@
 ><TD CLASS="indexlinks"
 ><A HREF="Database-InternalEnumerator.html#v%3Arollback"
 >Database.InternalEnumerator</A
+></TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>3 (Function)</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3Arollback"
+>Database.ODBC.OdbcFunctions</A
 ></TD
 ></TR
 ><TR
@@ -273,102 +281,10 @@
 ></TR
 ><TR
 ><TD CLASS="indexentry"
->rowCounter</TD
+>rowCount</TD
 ><TD CLASS="indexlinks"
-><A HREF="Database-Test-Performance.html#v%3ArowCounter"
->Database.Test.Performance</A
-></TD
-></TR
-><TR
-><TD CLASS="indexentry"
->runSingleTest</TD
-><TD CLASS="indexlinks"
-><A HREF="Test-MiniUnit.html#v%3ArunSingleTest"
->Test.MiniUnit</A
-></TD
-></TR
-><TR
-><TD CLASS="indexentry" COLSPAN="2"
->runTest</TD
-></TR
-><TR
-><TD CLASS="indexannot"
->1 (Function)</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-Oracle-Test-Enumerator.html#v%3ArunTest"
->Database.Oracle.Test.Enumerator</A
-></TD
-></TR
-><TR
-><TD CLASS="indexannot"
->2 (Function)</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-Oracle-Test-OCIFunctions.html#v%3ArunTest"
->Database.Oracle.Test.OCIFunctions</A
-></TD
-></TR
-><TR
-><TD CLASS="indexannot"
->3 (Function)</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-PostgreSQL-Test-Enumerator.html#v%3ArunTest"
->Database.PostgreSQL.Test.Enumerator</A
-></TD
-></TR
-><TR
-><TD CLASS="indexannot"
->4 (Function)</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-PostgreSQL-Test-PGFunctions.html#v%3ArunTest"
->Database.PostgreSQL.Test.PGFunctions</A
-></TD
-></TR
-><TR
-><TD CLASS="indexannot"
->5 (Function)</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-Sqlite-Test-Enumerator.html#v%3ArunTest"
->Database.Sqlite.Test.Enumerator</A
-></TD
-></TR
-><TR
-><TD CLASS="indexannot"
->6 (Function)</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-Sqlite-Test-SqliteFunctions.html#v%3ArunTest"
->Database.Sqlite.Test.SqliteFunctions</A
-></TD
-></TR
-><TR
-><TD CLASS="indexannot"
->7 (Function)</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-Stub-Test-Enumerator.html#v%3ArunTest"
->Database.Stub.Test.Enumerator</A
-></TD
-></TR
-><TR
-><TD CLASS="indexannot"
->8 (Function)</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-Test-MultiConnect.html#v%3ArunTest"
->Database.Test.MultiConnect</A
-></TD
-></TR
-><TR
-><TD CLASS="indexannot"
->9 (Function)</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-Test-Util.html#v%3ArunTest"
->Database.Test.Util</A
-></TD
-></TR
-><TR
-><TD CLASS="indexentry"
->runTestTT</TD
-><TD CLASS="indexlinks"
-><A HREF="Test-MiniUnit.html#v%3ArunTestTT"
->Test.MiniUnit</A
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3ArowCount"
+>Database.ODBC.OdbcFunctions</A
 ></TD
 ></TR
 ></TABLE
