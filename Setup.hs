@@ -188,8 +188,9 @@ configOdbc verbose = do
   return ( Just emptyBuildInfo { extraLibs = ["odbc32"] })
 #else
 configOdbc verbose = do
-  message ("Using odbc: <on *nix => assume lib already in PATH>")
-  return ( Just emptyBuildInfo { extraLibs = ["odbc"] })
+  --message ("Using odbc: <on *nix => assume lib already in PATH>")
+  --return ( Just emptyBuildInfo { extraLibs = ["odbc"] })
+  return ( Just emptyBuildInfo )
 #endif
 
 --configPG :: Int -> IO (Maybe BuildInfo)
