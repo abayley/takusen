@@ -757,6 +757,8 @@ This distinction will be handled by having a set of
 instances for OdbcBindBuffer that are of the form (Maybe a),
 where a is one of the normal database types e.g. Int, Double,
 String, UTCTime.
+
+FIXME :
 The instances for OdbcBindParam will include the (Maybe a) set,
 and also (OutParam (Maybe a)), and (InOutParam (Maybe a)),
 to indicate Out and In/Out paramaters.
