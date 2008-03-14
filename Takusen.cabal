@@ -10,7 +10,7 @@ Homepage:       http://darcs.haskell.org/takusen
 Package-url:    http://darcs.haskell.org/takusen
 Category:       Database
 Build-Depends:  base, mtl, time, old-time
-Build-type:     Simple
+Build-type:     Custom
 Synopsis:       Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.
 Description:   
     Takusen is a DBMS access library. Like HSQL, we support
@@ -30,7 +30,6 @@ Description:
     Currently we fully support ODBC, Oracle, Sqlite, and PostgreSQL.
 Exposed-modules:
     Database.Enumerator
-    , Database.InternalEnumerator
     , Database.Util
     , Database.ODBC.Enumerator
     , Database.ODBC.OdbcFunctions
@@ -45,6 +44,7 @@ Exposed-modules:
     , Control.Exception.MonadIO
     , Foreign.C.UTF8
 Other-modules:
+    Database.InternalEnumerator
     -- We don't expose the Test modules; the only reason to do so would be so Haddock
     -- can use them (to stop the warnings "could not find link destination for:"),
     -- and for that they'd have to be in Exposed-modules.
