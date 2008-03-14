@@ -20,6 +20,7 @@ Only the programmer for a new back-end needs to consult this file.
 >       ISession(..), ConnectA(..)
 >     , Statement(..), Command(..), EnvInquiry(..)
 >     , PreparationA(..), IPrepared(..)
+>     , PreparedStmt(..)
 >     , BindA(..), DBBind(..)
 >     , IsolationLevel(..)
 >     , Position
@@ -215,6 +216,7 @@ Will work for any type, as you pass the fetch action in the fetcher arg.
 ------------------------------------------------------------------------
 Prepared commands and statements
 
+> newtype PreparedStmt mark stmt = PreparedStmt stmt
 
 | This type is not visible to the end user (cf. ConnectA). It forms a private
 `communication channel' between Database.Enumerator and a back end.
@@ -241,6 +243,7 @@ suitable to be passed to 'bindRun'.
 >   -- (so many result-sets are created+destroyed), and then destroy it,
 >   -- so it has a lifecycle independent of Queries.
 >   destroyStmt :: sess -> stmt -> IO ()
+
 
 | The binding object (bo) below is very abstract, on purpose.
 It may be |IO a|, it may be String, it may be a function, etc.
