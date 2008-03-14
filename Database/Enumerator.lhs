@@ -79,6 +79,7 @@ New style extension declarations.
 >
 >     -- * Sessions and Transactions
 >       DBM  -- The data constructor is not exported
+>     , IE.ISession, IE.ConnectA
 >     , withSession, withContinuedSession
 >     , commit, rollback, beginTransaction
 >     , withTransaction
@@ -86,25 +87,32 @@ New style extension declarations.
 >     , execDDL, execDML, inquire
 >
 >     -- * Exceptions and handlers
->     , DBException(..)
+>     , IE.DBException(..)
 >     , formatDBException, basicDBExceptionReporter
 >     , reportRethrow, reportRethrowMsg
 >     , catchDB, catchDBError, ignoreDBError, IE.throwDB
+>     , IE.ColNum, IE.RowNum
+>     , IE.SqlState, IE.SqlStateClass, IE.SqlStateSubClass
 >
 >     -- * Preparing and Binding
->     , PreparedStmt(..)  -- data constructor not exported
+>     , IE.PreparedStmt  -- data constructor not exported
 >     , withPreparedStatement
->     , withBoundStatement, IE.bindP
+>     , withBoundStatement
+>     , IE.Statement, IE.Command, IE.EnvInquiry
+>     , IE.PreparationA, IE.IPrepared
+>     , IE.BindA, IE.DBBind, IE.bindP
 >
 >     -- * Iteratees and Cursors
->     , doQuery
+>     , IE.IQuery, doQuery, IE.DBType
 >     , IterResult, IterAct
 >     , IE.currentRowNum, NextResultSet(..), RefCursor(..)
 >     , cursorIsEOF, cursorCurrent, cursorNext
 >     , withCursor
+>     , IE.Position
 >
 >     -- * Utilities
 >     , ifNull, result, result'
+
 >   ) where
 
 > import Prelude hiding (catch)
@@ -119,7 +127,6 @@ New style extension declarations.
 > import Control.Monad.Reader
 > import Control.Exception.MonadIO
 > import qualified Database.InternalEnumerator as IE
-> import Database.InternalEnumerator (DBException(..))
 
 
 -----------------------------------------------------------
@@ -138,7 +145,7 @@ quite unwieldy.
 | Catch 'Database.InteralEnumerator.DBException's thrown in the 'DBM'
 monad.
 
-> catchDB :: CaughtMonadIO m => m a -> (DBException -> m a) -> m a
+> catchDB :: CaughtMonadIO m => m a -> (IE.DBException -> m a) -> m a
 > catchDB action handler = gcatch action $ \e ->
 >   maybe (throw e) handler (dynExceptions e >>= fromDynamic)
 
@@ -146,43 +153,43 @@ monad.
 |This simple handler reports the error to @stdout@ and swallows it
 i.e. it doesn't propagate.
 
-> basicDBExceptionReporter :: CaughtMonadIO m => DBException -> m ()
+> basicDBExceptionReporter :: CaughtMonadIO m => IE.DBException -> m ()
 > basicDBExceptionReporter e = liftIO (putStrLn (formatDBException e))
 
 | This handler reports the error and propagates it
 (usually to force the program to halt).
 
-> reportRethrow :: CaughtMonadIO m => DBException -> m a
+> reportRethrow :: CaughtMonadIO m => IE.DBException -> m a
 > --reportRethrow e = basicDBExceptionReporter e >> IE.throwDB e
 > reportRethrow e = reportRethrowMsg "" e
 
 | Same as reportRethrow, but you can prefix some text to the error
 (perhaps to indicate which part of your program raised it).
 
-> reportRethrowMsg :: CaughtMonadIO m => String -> DBException -> m a
+> reportRethrowMsg :: CaughtMonadIO m => String -> IE.DBException -> m a
 > reportRethrowMsg m e = liftIO (putStr m) >> basicDBExceptionReporter e >> IE.throwDB e
 
 | A show for 'Database.InteralEnumerator.DBException's.
 
-> formatDBException :: DBException -> String
-> formatDBException (DBError (ssc, sssc) e m) =
+> formatDBException :: IE.DBException -> String
+> formatDBException (IE.DBError (ssc, sssc) e m) =
 >   ssc ++ sssc ++ " " ++ (show e) ++ ": " ++ m
-> formatDBException (DBFatal (ssc, sssc) e m) =
+> formatDBException (IE.DBFatal (ssc, sssc) e m) =
 >   ssc ++ sssc ++ " " ++ (show e) ++ ": " ++ m
-> formatDBException (DBUnexpectedNull r c) =
+> formatDBException (IE.DBUnexpectedNull r c) =
 >   "Unexpected null in row " ++ (show r) ++ ", column " ++ (show c) ++ "."
-> formatDBException (DBNoData) = "Fetch: no more data."
+> formatDBException (IE.DBNoData) = "Fetch: no more data."
 
 
 |If you want to trap a specific error number, use this.
 It passes anything else up.
 
 > catchDBError :: (CaughtMonadIO m) =>
->   Int -> m a -> (DBException -> m a) -> m a
+>   Int -> m a -> (IE.DBException -> m a) -> m a
 > catchDBError n action handler = catchDB action
 >   (\dberror ->
 >     case dberror of
->       DBError ss e m | e == n -> handler dberror
+>       IE.DBError ss e m | e == n -> handler dberror
 >       _ | otherwise -> IE.throwDB dberror
 >   )
 
@@ -330,15 +337,14 @@ An example of this is 'Database.Sqlite.Enumerator.LastInsertRowid'.
 -- ** Statements; Prepared statements
 --------------------------------------------------------------------
 
-> newtype PreparedStmt mark stmt = PreparedStmt stmt
-
 > executePreparation :: IE.IPrepared stmt sess bstmt bo =>
->        IE.PreparationA sess stmt -> DBM mark sess (PreparedStmt mark stmt)
+>        IE.PreparationA sess stmt -> DBM mark sess (IE.PreparedStmt mark stmt)
 > executePreparation (IE.PreparationA action) =
->     DBM( ask >>= \sess -> lift $ action sess >>= return . PreparedStmt)
+>     DBM( ask >>= \sess -> lift $ action sess >>= return . IE.PreparedStmt)
 
-> data NextResultSet mark stmt = NextResultSet (PreparedStmt mark stmt)
+> data NextResultSet mark stmt = NextResultSet (IE.PreparedStmt mark stmt)
 > data RefCursor a = RefCursor a
+
 
 
 The exception handling in withPreparedStatement looks awkward,
@@ -365,7 +371,7 @@ in Typeable) so the bound statement can't leak either.
 >  => IE.PreparationA sess stmt
 >  -- ^ preparation action to create prepared statement;
 >  --   this action is usually created by @prepareQuery\/Command@
->  -> (PreparedStmt mark stmt -> DBM mark sess a)
+>  -> (IE.PreparedStmt mark stmt -> DBM mark sess a)
 >  -- ^ DBM action that takes a prepared statement
 >  -> DBM mark sess a
 > withPreparedStatement pa action = do
@@ -380,8 +386,8 @@ in Typeable) so the bound statement can't leak either.
 Not exported.
 
 > destroyStmt :: (IE.ISession sess, IE.IPrepared stmt sess bstmt bo)
->   => PreparedStmt mark stmt -> DBM mark sess ()
-> destroyStmt (PreparedStmt stmt) = DBM( ask >>= \s -> lift $ IE.destroyStmt s stmt )
+>   => IE.PreparedStmt mark stmt -> DBM mark sess ()
+> destroyStmt (IE.PreparedStmt stmt) = DBM( ask >>= \s -> lift $ IE.destroyStmt s stmt)
 
 
 
@@ -402,14 +408,14 @@ in Typeable) so the bound statement can't leak either.
 
 > withBoundStatement ::
 >   (Typeable a, IE.IPrepared stmt s bstmt bo)
->   => PreparedStmt mark stmt
+>   => IE.PreparedStmt mark stmt
 >   -- ^ prepared statement created by withPreparedStatement
 >   -> [IE.BindA s stmt bo]
 >   -- ^ bind values
 >   -> (bstmt -> DBM mark s a)
 >   -- ^ action to run over bound statement
 >   -> DBM mark s a
-> withBoundStatement (PreparedStmt stmt) ba f =
+> withBoundStatement (IE.PreparedStmt stmt) ba f =
 >   DBM ( ask >>= \s -> 
 >     lift $ IE.bindRun s stmt ba (\b -> runReaderT (unDBM (f b)) s))
 
@@ -583,7 +589,7 @@ the mark.
 >     -> DBM mark s (DBCursor mark (DBM mark s) a)
 > cursorNext (DBCursor ref) = do
 >   (_, maybeF) <- liftIO $ readIORef ref
->   maybe (IE.throwDB DBNoData) ($ True) maybeF
+>   maybe (IE.throwDB IE.DBNoData) ($ True) maybeF
 
 
 Returns the cursor. The return value is usually ignored.
