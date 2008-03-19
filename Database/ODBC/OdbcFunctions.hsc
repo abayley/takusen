@@ -266,8 +266,10 @@ data OdbcException = OdbcException Int String String [OdbcException]
   deriving (Typeable)
 
 instance Show OdbcException where
-  show (OdbcException i st s _) = "OdbcException "
-    ++ (show i) ++ " " ++ st ++ " " ++ s
+  show (OdbcException i st s more) = "OdbcException "
+    ++ (show i) ++ " " ++ st ++ " " ++ s -- ++ (concat (map showOdbcExMsg more))
+
+-- showOdbcExMsg (OdbcException i st s more) = s
 
 catchOdbc :: IO a -> (OdbcException -> IO a) -> IO a
 catchOdbc = catchDyn
@@ -442,7 +444,12 @@ setTxnIsolation conn level = do
 
 
 ---------------------------------------------------------------------
--- Get column values with SQLGetData
+-- Get column values with SQLGetData.
+-- These functions will probably not be used much,
+-- but we'll keep them in because the ODBC API has them
+-- (i.e. for completeness).
+-- The OdbcBindBuffer class has a getData function which uses these,
+-- if you'd rather.
 
 getMaybeFromBuffer :: Storable a => Ptr SqlLen -> Ptr a -> (Ptr a -> SqlLen -> IO b) -> IO (Maybe b)
 getMaybeFromBuffer szptr bptr action = do
@@ -478,7 +485,7 @@ getDataCStringLen stmt pos = do
   let bufSize' = 1 + if bufSize < 0 then 0 else bufSize
   -- Use size information to allocate perfectly-sized buffer.
   allocaBytes (fromIntegral bufSize') $ \bptr -> do
-  rc <- sqlGetData stmt (fromIntegral pos) sqlDTypeString (castPtr bptr) 100000 szptr
+  rc <- sqlGetData stmt (fromIntegral pos) sqlDTypeString (castPtr bptr) bufSize' szptr
   checkError rc sqlHTypeStmt (castPtr stmt)
   len <- peek szptr
   if len < 0 then return Nothing
@@ -543,12 +550,20 @@ readUtcTimeFromMemory buffer = do
 
 bindColumnBuffer :: StmtHandle -> Int -> SqlDataType -> SqlLen -> IO BindBuffer
 bindColumnBuffer stmt pos dtype size = do
-  buffer <- createEmptyBuffer (fromIntegral size)
-  withForeignPtr (bindBufPtr buffer) $ \bptr -> do
-  withForeignPtr (bindBufSzPtr buffer) $ \szptr -> do
-  rc <- sqlBindCol stmt (fromIntegral pos) dtype bptr size szptr
+  alloca $ \colPtr -> do
+  rc <- sqlNumResultCols stmt colPtr
   checkError rc sqlHTypeStmt (castPtr stmt)
-  return buffer
+  nc <- peek colPtr
+  if (fromIntegral nc) < pos || pos < 1
+    then throwOdbc (OdbcException (-1) "01000"
+      ("Attempted fetch from invalid column number " ++ show pos) [])
+    else do
+      buffer <- createEmptyBuffer (fromIntegral size)
+      withForeignPtr (bindBufPtr buffer) $ \bptr -> do
+      withForeignPtr (bindBufSzPtr buffer) $ \szptr -> do
+      rc <- sqlBindCol stmt (fromIntegral pos) dtype bptr size szptr
+      checkError rc sqlHTypeStmt (castPtr stmt)
+      return buffer
 
 createEmptyBuffer :: SqlLen -> IO BindBuffer
 createEmptyBuffer size = do
@@ -629,7 +644,6 @@ bindParam stmt pos direction ctype sqltype precision scale buffer =
   rc <- sqlBindParameter stmt (fromIntegral pos) direction ctype sqltype precision scale bptr size szptr
   checkError rc sqlHTypeStmt (castPtr stmt)
 
--- sqlParamInput
 bindNull :: StmtHandle -> Int -> SqlParamDirection -> SqlCDataType -> SqlDataType -> IO BindBuffer
 bindNull stmt pos direction ctype dtype = do
   let val :: Maybe Int; val = Nothing
@@ -695,15 +709,18 @@ writeUTCTimeToMemory buffer utc = do
 -- So I'll leave the code here, in case anyone is desperate
 -- to marshal via TIMESTAMP_STRUCT, rather than strings.
 
-makeUtcTimeBuffer :: UTCTime -> IO BindBuffer
-makeUtcTimeBuffer utc = do
+xmakeUtcTimeBuffer :: UTCTime -> IO BindBuffer
+xmakeUtcTimeBuffer utc = do
   mem <- mallocBytes #{size TIMESTAMP_STRUCT}
   writeUTCTimeToMemory (castPtr mem) utc
   wrapSizedBuffer mem #{size TIMESTAMP_STRUCT}
 
+-- FIXME why don't we use createBufferHelper here?
+-- Is it because we want to give the size of the value,
+-- instead of the total buffer size?
 makeUtcTimeStringBuffer :: UTCTime -> IO BindBuffer
 makeUtcTimeStringBuffer utc = do
-  mem <- mallocBytes 40
+  mem <- mallocBytes 50
   let s = utcTimeToOdbcDatetime utc
   withCStringLen s $ \(cstr, clen) -> do
     copyBytes mem cstr (fromIntegral clen)
@@ -753,12 +770,15 @@ Separate out the type different types of binding: parameter and column.
 Both types use the same BindBuffer, but bind parameters
 can send and receive values from the buffer, whereas
 column binds only receive values.
-This distinction will be handled by having a set of
-instances for OdbcBindBuffer that are of the form (Maybe a),
+
+So we have class OdbcBindBuffer for result set column binds
+(data coming out only), and class OdbcBindParam for bind
+patrameters that can be both input and output.
+
+We'll have instances for OdbcBindBuffer that are of the form (Maybe a),
 where a is one of the normal database types e.g. Int, Double,
 String, UTCTime.
 
-FIXME :
 The instances for OdbcBindParam will include the (Maybe a) set,
 and also (OutParam (Maybe a)), and (InOutParam (Maybe a)),
 to indicate Out and In/Out paramaters.
@@ -797,7 +817,8 @@ instance OdbcBindBuffer (Maybe String) where
   getData stmt pos = getDataUTF8String stmt pos
 
 instance OdbcBindBuffer (Maybe UTCTime) where
-  bindColBuffer stmt pos size val = bindColumnBuffer stmt pos sqlDTypeTimestamp #{size TIMESTAMP_STRUCT}
+  --bindColBuffer stmt pos size val = bindColumnBuffer stmt pos sqlDTypeTimestamp #{size TIMESTAMP_STRUCT}
+  bindColBuffer stmt pos size val = bindColumnBuffer stmt pos sqlDTypeTimestamp 50
   getFromBuffer buffer = getUtcTimeFromBuffer buffer
   getData stmt pos = getDataUtcTime stmt pos
 
@@ -809,23 +830,58 @@ class OdbcBindParam a where
     -> a  -- ^ value to write to buffer
     -> IO BindBuffer  -- ^ returns a 'BindBuffer' object
 
+bindParamStorable stmt pos val dir ctype dtype precn scale = do
+  buffer <- createBufferForStorable val
+  bindParam stmt pos dir ctype dtype precn scale buffer
+  return buffer
+
 instance OdbcBindParam (Maybe Int) where
-  bindParamBuffer stmt pos val = do
-    buffer <- createBufferForStorable val
-    bindParam stmt pos sqlParamInput sqlCTypeInt sqlDTypeInt 30 0 buffer
-    return buffer
+  bindParamBuffer stmt pos val =
+    bindParamStorable stmt pos val sqlParamInput sqlCTypeInt sqlDTypeInt 30 0
+
+instance OdbcBindParam (OutParam (Maybe Int)) where
+  bindParamBuffer stmt pos (OutParam val) =
+    bindParamStorable stmt pos val sqlParamOutput sqlCTypeInt sqlDTypeInt 30 0
+
+instance OdbcBindParam (InOutParam (Maybe Int)) where
+  bindParamBuffer stmt pos (InOutParam val) =
+    bindParamStorable stmt pos val sqlParamInputOutput sqlCTypeInt sqlDTypeInt 30 0
 
 instance OdbcBindParam (Maybe Double) where
-  bindParamBuffer stmt pos val = do
-    buffer <- createBufferForStorable val
-    bindParam stmt pos sqlParamInput sqlCTypeDouble sqlDTypeDouble 50 50 buffer
-    return buffer
+  bindParamBuffer stmt pos val =
+    bindParamStorable stmt pos val sqlParamInput sqlCTypeDouble sqlDTypeDouble 50 50
+
+instance OdbcBindParam (OutParam (Maybe Double)) where
+  bindParamBuffer stmt pos (OutParam val) =
+    bindParamStorable stmt pos val sqlParamOutput sqlCTypeDouble sqlDTypeDouble 50 50
+
+instance OdbcBindParam (InOutParam (Maybe Double)) where
+  bindParamBuffer stmt pos (InOutParam val) =
+    bindParamStorable stmt pos val sqlParamInputOutput sqlCTypeDouble sqlDTypeDouble 50 50
 
 instance OdbcBindParam (Maybe String) where
-  bindParamBuffer stmt pos val = bindParamUTF8String stmt pos sqlParamInput val
+  bindParamBuffer stmt pos val =
+    bindParamUTF8String stmt pos sqlParamInput val
+
+instance OdbcBindParam (OutParam (Maybe String)) where
+  bindParamBuffer stmt pos (OutParam val) =
+    bindParamUTF8String stmt pos sqlParamOutput val
+
+instance OdbcBindParam (InOutParam (Maybe String)) where
+  bindParamBuffer stmt pos (InOutParam val) =
+    bindParamUTF8String stmt pos sqlParamInputOutput val
 
 instance OdbcBindParam (Maybe UTCTime) where
-  bindParamBuffer stmt pos val = bindParamUtcTime stmt pos sqlParamInput val
+  bindParamBuffer stmt pos val =
+    bindParamUtcTime stmt pos sqlParamInput val
+
+instance OdbcBindParam (OutParam (Maybe UTCTime)) where
+  bindParamBuffer stmt pos (OutParam val) =
+    bindParamUtcTime stmt pos sqlParamOutput val
+
+instance OdbcBindParam (InOutParam (Maybe UTCTime)) where
+  bindParamBuffer stmt pos (InOutParam val) =
+    bindParamUtcTime stmt pos sqlParamInputOutput val
 
 
 ---------------------------------------------------------------------
@@ -888,26 +944,43 @@ foreign import #{CALLCONV} unsafe "sql.h SQLSetConnectAttr" sqlSetConnectAttr ::
 foreign import #{CALLCONV} unsafe "sql.h SQLPrepare" sqlPrepare ::
   StmtHandle -> MyCString -> SqlInteger -> IO SqlReturn
 
+-- SQLRETURN SQL_API SQLBindParameter(SQLHSTMT,SQLUSMALLINT,SQLSMALLINT,SQLSMALLINT,SQLSMALLINT,SQLULEN,SQLSMALLINT,SQLPOINTER,SQLLEN,SQLLEN*);
+foreign import #{CALLCONV} unsafe "sql.h SQLBindParameter" sqlBindParameter ::
+  StmtHandle
+  -> SqlUSmallInt  -- ^ position, 1-indexed
+  -> SqlParamDirection  -- ^ direction: IN, OUT
+  -> SqlCDataType  -- ^ C data type: char, int, long, float, etc
+  -> SqlDataType  -- ^ SQL data type: string, int, long, date, etc
+  -> SqlULen  -- ^ col size (precision)
+  -> SqlSmallInt  -- ^ decimal digits (scale)
+  -> Ptr Buffer  -- ^ input+output buffer
+  -> SqlLen  -- ^ buffer size
+  -> Ptr SqlLen -- ^ input+output data size, or -1 (SQL_NULL_DATA) for null
+  -> IO SqlReturn
+
 -- SQLRETURN SQL_API SQLExecute(SQLHSTMT);
 foreign import #{CALLCONV} unsafe "sql.h SQLExecute" sqlExecute ::
   StmtHandle -> IO SqlReturn
 
--- SQLRETURN SQL_API SQLCloseCursor(SQLHSTMT); 
-foreign import #{CALLCONV} unsafe "sql.h SQLCloseCursor" sqlCloseCursor ::
-  StmtHandle -> IO SqlReturn
+-- SQLRETURN SQL_API SQLNumResultCols(SQLHSTMT,SQLSMALLINT*);
+foreign import #{CALLCONV} unsafe "sql.h SQLNumResultCols" sqlNumResultCols ::
+  StmtHandle -> Ptr SqlSmallInt -> IO SqlReturn
 
 -- SQLRETURN SQL_API SQLRowCount(SQLHSTMT,SQLLEN*);
 foreign import #{CALLCONV} unsafe "sql.h SQLRowCount" sqlRowCount ::
   StmtHandle -> Ptr SqlLen -> IO SqlReturn
 
--- SQLRETURN SQL_API SQLGetData(SQLHSTMT,SQLUSMALLINT,SQLSMALLINT,SQLPOINTER,SQLLEN,SQLLEN*);
-foreign import #{CALLCONV} unsafe "sql.h SQLGetData" sqlGetData ::
+-- SQLRETURN SQL_API SQLDescribeCol(SQLHSTMT,SQLUSMALLINT,SQLCHAR*,SQLSMALLINT,SQLSMALLINT*,SQLSMALLINT*,SQLULEN*,SQLSMALLINT*,SQLSMALLINT*);
+foreign import #{CALLCONV} unsafe "sql.h SQLDescribeCol" sqlDescribeCol ::
   StmtHandle
-  -> SqlUSmallInt  -- ^ column position, 1-indexed
-  -> SqlDataType  -- ^ SQL data type: string, int, long, date, etc
-  -> Ptr Buffer  -- ^ output buffer
-  -> SqlLen  -- ^ output buffer size
-  -> Ptr SqlLen -- ^ output data size, or -1 (SQL_NULL_DATA) for null
+  -> SqlUSmallInt  -- ^ position, 1-indexed
+  -> MyCString  -- ^ buffer for column name
+  -> SqlSmallInt  -- ^ size of column name buffer
+  -> Ptr SqlSmallInt  -- ^ size of column name output string
+  -> Ptr SqlDataType  -- ^ SQL data type: string, int, long, date, etc
+  -> Ptr SqlULen  -- ^ col size (precision)
+  -> Ptr SqlSmallInt  -- ^ decimal digits (scale)
+  -> Ptr SqlSmallInt  -- ^ nullable: SQL_NO_NULLS, SQL_NULLABLE, or SQL_NULLABLE_UNKNOWN
   -> IO SqlReturn
 
 -- SQLRETURN SQL_API SQLBindCol(SQLHSTMT,SQLUSMALLINT,SQLSMALLINT,SQLPOINTER,SQLLEN,SQLLEN*);
@@ -924,24 +997,25 @@ foreign import #{CALLCONV} unsafe "sql.h SQLBindCol" sqlBindCol ::
 foreign import #{CALLCONV} unsafe "sql.h SQLFetch" sqlFetch ::
   StmtHandle -> IO SqlReturn
 
--- SQLRETURN SQL_API SQLBindParameter(SQLHSTMT,SQLUSMALLINT,SQLSMALLINT,SQLSMALLINT,SQLSMALLINT,SQLULEN,SQLSMALLINT,SQLPOINTER,SQLLEN,SQLLEN*);
-foreign import #{CALLCONV} unsafe "sql.h SQLBindParameter" sqlBindParameter ::
+-- SQLRETURN SQL_API SQLGetData(SQLHSTMT,SQLUSMALLINT,SQLSMALLINT,SQLPOINTER,SQLLEN,SQLLEN*);
+foreign import #{CALLCONV} unsafe "sql.h SQLGetData" sqlGetData ::
   StmtHandle
-  -> SqlUSmallInt  -- ^ position, 1-indexed
-  -> SqlParamDirection  -- ^ direction: IN, OUT
-  -> SqlCDataType  -- ^ C data type: char, int, long, float, etc
+  -> SqlUSmallInt  -- ^ column position, 1-indexed
   -> SqlDataType  -- ^ SQL data type: string, int, long, date, etc
-  -> SqlULen  -- ^ col size (precision)
-  -> SqlSmallInt  -- ^ decimal digits (scale)
-  -> Ptr Buffer  -- ^ input+output buffer
-  -> SqlLen  -- ^ buffer size
-  -> Ptr SqlLen -- ^ input+output data size, or -1 (SQL_NULL_DATA) for null
+  -> Ptr Buffer  -- ^ output buffer
+  -> SqlLen  -- ^ output buffer size
+  -> Ptr SqlLen -- ^ output data size, or -1 (SQL_NULL_DATA) for null
   -> IO SqlReturn
+
+-- SQLRETURN SQL_API SQLCloseCursor(SQLHSTMT); 
+foreign import #{CALLCONV} unsafe "sql.h SQLCloseCursor" sqlCloseCursor ::
+  StmtHandle -> IO SqlReturn
 
 -- SQLRETURN SQL_API SQLMoreResults(SQLHSTMT);
 foreign import #{CALLCONV} unsafe "sql.h SQLMoreResults" sqlMoreResults ::
   StmtHandle -> IO SqlReturn
 
+-- There's no beginTrans - transactions are started implicitly.
 -- SQLRETURN SQL_API SQLEndTran(SQLSMALLINT,SQLHANDLE,SQLSMALLINT);
 foreign import #{CALLCONV} unsafe "sql.h SQLEndTran" sqlEndTran ::
   SqlSmallInt -> Handle -> SqlSmallInt -> IO SqlReturn
