@@ -142,6 +142,9 @@ Portability :  non-portable
 
 > exceptionRollback _ = actionExceptionRollback sqlInsertTest4 sqlExceptionRollback
 
+> iterateeMatchesResultSet _ = actionIterateeMatchesResultSet
+>   (prefetch 0 sqlIterateeMatchesResultSet [bindP (1::Int), bindP (2.2::Double), bindP "row 1", bindP (3::Int)])
+
 
 > testList :: DBLiteralValue a => [a -> DBM mark Session ()]
 > testList =
@@ -152,4 +155,5 @@ Portability :  non-portable
 >   , selectBindDate, selectBindBoundaryDates, selectRebindStmt
 >   , boundStmtDML, boundStmtDML2
 >   , polymorphicFetchTest, polymorphicFetchTestNull, exceptionRollback
+>   , iterateeMatchesResultSet
 >   ]
