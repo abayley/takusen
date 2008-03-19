@@ -1,3 +1,4 @@
+
 > {-# OPTIONS -ffi -fglasgow-exts #-}
 
 |
@@ -76,6 +77,9 @@ whatever that means.
 
 > foreign import ccall "sqlite.h sqlite3_exec" sqliteExec
 >   :: DBHandle -> UTF8CString -> SqliteCallback a -> Ptr a -> Ptr CString -> IO CInt
+
+> foreign import ccall "sqlite.h sqlite3_column_count" sqliteColumnCount
+>   :: StmtHandle -> IO CInt
 
 > foreign import ccall "sqlite.h sqlite3_step" sqliteStep
 >   :: StmtHandle -> IO CInt
@@ -250,27 +254,38 @@ as a user convenience.
 >   rc <- sqliteReset stmt
 >   testForError db rc ()
 
+> checkColumnRange :: StmtHandle -> Int -> IO ()
+> checkColumnRange stmt col = do
+>   nc <- sqliteColumnCount stmt
+>   if (fromIntegral nc < col) || col < 1
+>     then throwSqlite (SqliteException (-1) ("Attempted fetch from invalid column number " ++ show col))
+>     else return ()
+
 
 |Column numbers are zero-indexed, so subtract one
 from given index (we present a one-indexed interface).
 
 > colValInt :: StmtHandle -> Int -> IO Int
 > colValInt stmt colnum = do
+>   checkColumnRange stmt colnum
 >   cint <- sqliteColumnInt stmt (fromIntegral (colnum - 1))
 >   return (fromIntegral cint)
 
 > colValInt64 :: StmtHandle -> Int -> IO Int64
 > colValInt64 stmt colnum = do
+>   checkColumnRange stmt colnum
 >   cllong <- sqliteColumnInt64 stmt (fromIntegral (colnum - 1))
 >   return (fromIntegral cllong)
 
 > colValDouble :: StmtHandle -> Int -> IO Double
 > colValDouble stmt colnum = do
+>   checkColumnRange stmt colnum
 >   cdbl <- sqliteColumnDouble stmt (fromIntegral (colnum - 1))
 >   return (realToFrac cdbl)
 
 > colValString :: StmtHandle -> Int -> IO (Maybe String)
 > colValString stmt colnum = do
+>   checkColumnRange stmt colnum
 >   cstrptr <- sqliteColumnText stmt (fromIntegral (colnum - 1))
 >   if cstrptr == nullPtr
 >     then return Nothing
@@ -280,6 +295,7 @@ from given index (we present a one-indexed interface).
 
 > colValBlob :: StmtHandle -> Int -> IO (ForeignPtr Blob)
 > colValBlob stmt colnum = do
+>   checkColumnRange stmt colnum
 >   let ccolnum = fromIntegral (colnum - 1)
 >   bytes <- sqliteColumnBytes stmt ccolnum
 >   src <- sqliteColumnBlob stmt ccolnum
