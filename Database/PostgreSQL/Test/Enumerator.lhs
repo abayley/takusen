@@ -228,6 +228,13 @@ which we can't yet marshal.
 >   ("select count(*)::int4 from " ++ testTable)
 
 
+Ensure we get an exception if the result-set columns
+don't match the output buffers (at present we only
+check that there aren't too many buffers
+i.e. not enough columns).
+
+> iterateeMatchesResultSet _ = actionIterateeMatchesResultSet
+>   (prefetch 0 sqlIterateeMatchesResultSet [bindP (1::Int), bindP (2.2::Double), bindP "row 1", bindP (3::Int)])
 
 > selectUTF8Text _ = do
 >   let iter (s::String) (_::String) = result s
@@ -343,5 +350,5 @@ which we can't yet marshal.
 >   , boundStmtDML, boundStmtDML2
 >   , polymorphicFetchTest, polymorphicFetchTestNull, exceptionRollback
 >   , selectMultiResultSet, selectNestedMultiResultSet
->   , generateErrorMessageTest, selectUTF8Text
+>   , generateErrorMessageTest, selectUTF8Text, iterateeMatchesResultSet
 >   ]
