@@ -96,6 +96,18 @@ Portability :  non-portable
 >   executeStmt stmt
 >   freeStmt stmt
 
+
+> testIsolationLevel conn = do
+>   -- For PostgreSQL this fails with:
+>   -- 206 HY009 Illegal parameter value for SQL_TXN_ISOLATION
+>   --setTxnIsolation conn sqlTxnReadUncommitted
+>   setTxnIsolation conn sqlTxnReadCommitted  -- This is OK
+>   -- For PostgreSQL this fails with:
+>   -- 206 HY009 Illegal parameter value for SQL_TXN_ISOLATION
+>   --setTxnIsolation conn sqlTxnRepeatableRead
+>   setTxnIsolation conn sqlTxnSerializable  -- This is OK
+
+
 > testFetchString conn = do
 >   stmt <- allocStmt conn
 >   let string1 = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
@@ -162,7 +174,7 @@ Portability :  non-portable
 >   executeStmt stmt
 >   --buffer <- bindColBuffer stmt 1 sqlDTypeDouble 16
 >   more <- fetch stmt
->   --s <- getDoubleFromBuffer buffer
+>   --s <- getFromBuffer buffer
 >   s <- getData stmt 1
 >   let expect :: Double; expect = 123.456789
 >   assertEqual "testFetchDouble" (Just expect) s
@@ -175,15 +187,24 @@ Portability :  non-portable
 >   flip finally (freeStmt stmt) ( do
 >     -- There is no common SQL standard for datetime literal text.
 >     -- Well, there is (timestamp), but MS SQL Server doesn't support it. Pah.
->     prepareStmt stmt "select cast ('1916-10-01 02:25:21' as timestamp) from tdual"
->     --prepareStmt stmt "select cast ('1916-10-01 02:25:21' as datetime) from tdual"
+>     -- And Oracle seems to also require a sane NLS setting e.g.
+>     --   alter session set NLS_TIMESTAMP_FORMAT = 'yyyy-mm-dd hh24:mi:ss'
+>     --prepareStmt stmt "alter session set NLS_TIMESTAMP_FORMAT = 'yyyy-mm-dd hh24:mi:ss'"
+>     --executeStmt stmt
+>     --
+>     prepareStmt stmt "select cast ('1916-10-01 02:25:21' as timestamp), cast ('2005-10-01 00:00:00' as timestamp) from tdual"
+>     --prepareStmt stmt "select cast ('1916-10-01 02:25:21' as datetime), cast ('2005-10-01 00:00:00' as datetime) from tdual"
+>     --prepareStmt stmt "select cast ('1916-10-01 02:25:21' as timestamp) from tdual"
 >     executeStmt stmt
->     let expect :: UTCTime; expect = mkUTCTime 1916 10  1  2 25 21
->     buffer <- bindColBuffer stmt 1 0 (Just expect)
+>     let expect1 = mkUTCTime 1916 10  1  2 25 21
+>     let expect2 = mkUTCTime 2005 10  1  0  0  0
+>     buffer1 <- bindColBuffer stmt 1 0 (Just expect1)
+>     buffer2 <- bindColBuffer stmt 2 0 (Just expect2)
 >     more <- fetch stmt
->     t <- getUtcTimeFromBuffer buffer
->     --t <- getDataUtcTime stmt 1
->     assertEqual "testFetchDatetime" (Just expect) t
+>     t1 <- getFromBuffer buffer1
+>     t2 <- getFromBuffer buffer2
+>     assertEqual "testFetchDatetime1" (Just expect1) t1
+>     assertEqual "testFetchDatetime2" (Just expect2) t2
 >     more <- fetch stmt
 >     assertBool "testFetchDatetime: EOD" (not more)
 >     )
@@ -206,42 +227,29 @@ Portability :  non-portable
 > testBindString conn = do
 >   stmt <- allocStmt conn
 >   prepareStmt stmt "select ? from tdual"
+>   let expect = "abcdefghijklmnopqrstuvwxyz"
+>   bindParamBuffer stmt 1 (Just expect)
+>   executeStmt stmt
+>   buffer <- bindColBuffer stmt 1 1000 (Just expect)
+>   more <- fetch stmt
+>   s <- getUTF8StringFromBuffer buffer
+>   assertEqual "testBindString" (Just expect) s
+>   more <- fetch stmt
+>   assertBool "testBindString: EOD" (not more)
+>   freeStmt stmt
+
+> testBindStringUTF8 conn = do
+>   stmt <- allocStmt conn
+>   prepareStmt stmt "select ? from tdual"
 >   let expect = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
 >   bindParamBuffer stmt 1 (Just expect)
 >   executeStmt stmt
 >   buffer <- bindColBuffer stmt 1 1000 (Just expect)
 >   more <- fetch stmt
 >   s <- getUTF8StringFromBuffer buffer
->   assertEqual "testBindString (PostgreSQL fails this one)" (Just expect) s
+>   assertEqual "testBindStringUTF8 (PostgreSQL fails this one)" (Just expect) s
 >   more <- fetch stmt
->   assertBool "testBindString: EOD" (not more)
->   freeStmt stmt
-
-> printBufferContents buffer = do
->   withForeignPtr (bindBufPtr buffer) $ \bptr -> do
->   withForeignPtr (bindBufSzPtr buffer) $ \szptr -> do
->   sz <- peek szptr
->   putStrLn ("printBufferContents: sz = " ++ show sz)
->   l <- peekArray (fromIntegral sz) (castPtr bptr)
->   let toHex :: Word8 -> String; toHex i = showHex i ""
->   let h :: [String]; h = map toHex l
->   putStrLn (concat (intersperse " " h))
-
-> testUTF8 conn = do
->   stmt <- allocStmt conn
->   prepareStmt stmt "drop table t_utf8"
->   ignoreError (executeStmt stmt)
->   prepareStmt stmt "create table t_utf8(s varchar(50))"
->   executeStmt stmt
->   let expect = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
->   prepareStmt stmt ("insert into t_utf8 values ( '" ++ expect ++ "' )")
->   executeStmt stmt
->   prepareStmt stmt "select s from t_utf8"
->   executeStmt stmt
->   buffer <- bindColBuffer stmt 1 100 (Just expect)
->   more <- fetch stmt
->   s <- getUTF8StringFromBuffer buffer
->   assertEqual "testUTF8" (Just expect) s
+>   assertBool "testBindStringUTF8: EOD" (not more)
 >   freeStmt stmt
 
 > testBindUTCTime conn = do
@@ -260,24 +268,59 @@ Portability :  non-portable
 >     )
 
 
+There seems to be a bug with the PostgreSQL ODBC driver,
+where, if there is more than one datetime column in the output,
+the first column gets the current date (time 00:00:00).
+
 > testBindUTCTimeBoundary conn = do
 >   stmt <- allocStmt conn
->   prepareStmt stmt "select ?, ? from tdual"
+>   prepareStmt stmt "select ?, ?, ?, ? from tdual"
 >   -- 1753 seems to be about the earliest year MS SQL Server supports.
->   let expect1 :: UTCTime; expect1 = mkUTCTime 1753 1 1 0 0 0
+>   --let expect1 = mkUTCTime 1753 1 1 0 0 0
+>   --let expect1 = mkUTCTime 2007 3 11 0 0 0
+>   let expect1 = mkUTCTime 2000 10  1  2 25 21
+>   --let expect2 = mkUTCTime 2100 10  1  2 25 21
+>   let expect2 = "hello2"
+>   let expect3 = "hello3"
+>   let expect4 = 444444 :: Int
 >   let input1 = expect1
->   let expect2 :: UTCTime; expect2 = mkUTCTime 9999 10  1  2 25 21
 >   let input2 = expect2
->   bindParamBuffer stmt 1 (Just input1)
->   bindParamBuffer stmt 2 (Just input2)
+>   let input3 = expect3
+>   let input4 = expect4
+>   putStrLn "testBindUTCTimeBoundary: data going in:"
+>   inbuf1 <- bindParamBuffer stmt 1 (Just input1)
+>   inbuf2 <- bindParamBuffer stmt 2 (Just input2)
+>   inbuf3 <- bindParamBuffer stmt 3 (Just input3)
+>   inbuf4 <- bindParamBuffer stmt 4 (Just input4)
+>   printBufferContents inbuf1
+>   printBufferContents inbuf2
+>   printBufferContents inbuf3
+>   printBufferContents inbuf4
+>   putStrLn "------------------------"
 >   executeStmt stmt
->   buffer1 <- bindColBuffer stmt 1 32 (Just expect1)
->   buffer2 <- bindColBuffer stmt 2 32 (Just expect1)
+>   buffer1 <- bindColBuffer stmt 1 0 (Just expect1)
+>   buffer2 <- bindColBuffer stmt 2 0 (Just expect2)
+>   buffer3 <- bindColBuffer stmt 3 0 (Just expect3)
+>   buffer4 <- bindColBuffer stmt 4 0 (Just expect4)
 >   more <- fetch stmt
->   t1 <- getUtcTimeFromBuffer buffer1
->   t2 <- getUtcTimeFromBuffer buffer2
+>   putStrLn "testBindUTCTimeBoundary: data coming out:"
+>   printBufferContents buffer1
+>   printBufferContents buffer2
+>   printBufferContents buffer3
+>   printBufferContents buffer4
+>   putStrLn "testBindUTCTimeBoundary: get1"
+>   t1 <- getFromBuffer buffer1
+>   putStrLn "testBindUTCTimeBoundary: get2"
+>   t2 <- getFromBuffer buffer2
+>   putStrLn "testBindUTCTimeBoundary: get3"
+>   t3 <- getFromBuffer buffer3
+>   putStrLn "testBindUTCTimeBoundary: get4"
+>   t4 <- getFromBuffer buffer4
+>   let x = t1 == Just expect1
 >   assertEqual "testBindUTCTimeBoundary1" (Just expect1) t1
->   assertEqual "testBindUTCTimeBoundary2" (Just expect2) t2
+>   assertEqual "testBindUTCTimeBoundary2 (PostgreSQL fails this one)" (Just expect2) t2
+>   assertEqual "testBindUTCTimeBoundary3" (Just expect3) t3
+>   assertEqual "testBindUTCTimeBoundary4" (Just expect4) t4
 >   more <- fetch stmt
 >   assertBool "testBindUTCTimeBoundary: EOD" (not more)
 >   freeStmt stmt
@@ -309,15 +352,37 @@ Portability :  non-portable
 >   freeStmt stmt
 
 
-> testIsolationLevel conn = do
->   -- For PostgreSQL this fails with:
->   -- 206 HY009 Illegal parameter value for SQL_TXN_ISOLATION
->   --setTxnIsolation conn sqlTxnReadUncommitted
->   setTxnIsolation conn sqlTxnReadCommitted  -- This is OK
->   -- For PostgreSQL this fails with:
->   -- 206 HY009 Illegal parameter value for SQL_TXN_ISOLATION
->   --setTxnIsolation conn sqlTxnRepeatableRead
->   setTxnIsolation conn sqlTxnSerializable  -- This is OK
+> testUTF8 conn = do
+>   stmt <- allocStmt conn
+>   prepareStmt stmt "drop table t_utf8"
+>   ignoreError (executeStmt stmt)
+>   prepareStmt stmt "create table t_utf8(s varchar(50))"
+>   executeStmt stmt
+>   let expect = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
+>   prepareStmt stmt ("insert into t_utf8 values ( '" ++ expect ++ "' )")
+>   executeStmt stmt
+>   prepareStmt stmt "select s from t_utf8"
+>   executeStmt stmt
+>   buffer <- bindColBuffer stmt 1 100 (Just expect)
+>   more <- fetch stmt
+>   s <- getUTF8StringFromBuffer buffer
+>   assertEqual "testUTF8" (Just expect) s
+>   freeStmt stmt
+
+
+> printBufferContents buffer = do
+>   withForeignPtr (bindBufPtr buffer) $ \bptr -> do
+>   withForeignPtr (bindBufSzPtr buffer) $ \szptr -> do
+>   sz <- peek szptr
+>   putStrLn ("printBufferContents: sz = " ++ show sz)
+>   l <- peekArray (fromIntegral sz) (castPtr bptr)
+>   let
+>     toHex :: Word8 -> String;
+>     toHex i = (if i < 16 then "0" else "") ++ showHex i ""
+>   --let h :: [String]; h = map toHex l
+>   putStrLn (concat (intersperse " " (map toHex l)))
+>   let toChar :: Word8 -> String; toChar i = if i > 31 && i < 127 then [chr (fromIntegral i)] else " "
+>   putStrLn (concat (intersperse "  " (map toChar l)))
 
 
 > testlist =
@@ -331,6 +396,7 @@ Portability :  non-portable
 >   testFetchDatetime :
 >   testBindInt :
 >   testBindString :
+>   testBindStringUTF8 :
 >   testBindUTCTime :
 >   testBindUTCTimeBoundary :
 >   testUTF8 :
