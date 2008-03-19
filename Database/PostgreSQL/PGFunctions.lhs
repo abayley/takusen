@@ -641,10 +641,14 @@ So are the row numbers.
 
 > colValPtr :: ResultSetHandle -> Int -> Int -> IO (Ptr Word8)
 > colValPtr rs row col = do
->   n <- fPQntuples rs
->   if (fromIntegral n) < row || row < 1
+>   nr <- fPQntuples rs
+>   nc <- fPQnfields rs
+>   if (fromIntegral nr) < row || row < 1
 >     then throwPG (-1) ("Attempted fetch from invalid row number " ++ show row)
->     else fPQgetvalue rs (toCInt (row-1)) (toCInt (col-1)) >>= return . castPtr
+>     else
+>       if (fromIntegral nc) < col || col < 1
+>       then throwPG (-1) ("Attempted fetch from invalid column number " ++ show col)
+>       else fPQgetvalue rs (toCInt (row-1)) (toCInt (col-1)) >>= return . castPtr
 
 > colVal :: PGType a => ResultSetHandle -> Int -> Int -> IO a
 > colVal rs row col = colValPtr rs row col >>= pgPeek
