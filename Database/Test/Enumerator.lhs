@@ -457,3 +457,14 @@ values as Strings i.e. we create our own datatype for the test.
 >     ) (\e -> return () )
 >   count <- doQuery selectStmt iterExceptionRollback []
 >   assertEqual sqlExceptionRollback [3] count
+
+> sqlIterateeMatchesResultSet = "select ?,?,? from tdual"
+> --iterMatchesResultSet :: (Monad m) => Int -> Double -> String -> IterAct m [(Int, Double, String)]
+> --iterMatchesResultSet i d s acc = result $ (i, d, s):acc
+> iterMatchesResultSet :: (Monad m) => Int -> Double -> String -> String -> IterAct m [(Int, Double, String, String)]
+> iterMatchesResultSet i d s s2 acc = result $ (i, d, s, s2):acc
+> actionIterateeMatchesResultSet stmt = do
+>   catchDB ( do
+>       actual <- doQuery stmt iterMatchesResultSet []
+>       assertFailure "actionIterateeMatchesResultSet"
+>     ) (\e -> return () )
