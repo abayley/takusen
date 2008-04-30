@@ -45,7 +45,7 @@ Only the programmer for a new back-end needs to consult this file.
 >   | RepeatableRead
 >   | Serialisable
 >   | Serializable  -- ^ for alternative spellers
->   deriving Show
+>   deriving (Show, Eq, Ord, Enum)
 
 
 | A wrapper around the action to open the database. That wrapper is not
