@@ -150,11 +150,10 @@ void fetch(SQLHSTMT stmt)
 }
 
 
-SQLHDBC createConn(char *connstr)
+void createConn(SQLHENV *penv, SQLHDBC *pconn, char* connstr)
 {
   SQLHENV env;
   SQLHDBC conn;
-  SQLHSTMT stmt;
   printf("allocEnv\n");
   env = allocEnv();
   printf("setOdbcVer\n");
@@ -162,7 +161,18 @@ SQLHDBC createConn(char *connstr)
   printf("allocConn\n");
   conn = allocConn(env);
   printf("odbc_connect\n");
-  odbc_connect(conn, "DSN=postgres");
+  odbc_connect(conn, connstr);
+  *penv = env;
+  *pconn = conn;
+}
+
+
+SQLHDBC runTest(char *connstr)
+{
+  SQLHENV env;
+  SQLHDBC conn;
+  SQLHSTMT stmt;
+  createConn(&env, &conn, connstr);
   printf("allocStmt\n");
   stmt = allocStmt(conn);
   printf("prepareStmt\n");
@@ -192,7 +202,18 @@ SQLHDBC createConn(char *connstr)
   bindColInt(stmt, 3, &col3Buf);
 
   fetch(stmt);
-  printf("col1: %d\n", col1Buf, col1Sz);
+  
+  TIMESTAMP_STRUCT* ts;
+  ts = (TIMESTAMP_STRUCT*) col1Buf;
+  printf("col1 size: %d\n", col1Sz);
+  printf("col1 year: %d\n", ts->year);
+  printf("col1 month: %d\n", ts->month);
+  printf("col1 day: %d\n", ts->day);
+  printf("col1 hour: %d\n", ts->hour);
+  printf("col1 minute: %d\n", ts->minute);
+  printf("col1 second: %d\n", ts->second);
+  printf("col1 fraction: %d\n", ts->fraction);
+  //printf("col1: %1x\n", col1Buf, col1Sz);
   printf("col2: %s %d\n", col2Buf, col2Sz);
   printf("col3: %d %d\n", col3Buf, col3Sz);
 
@@ -206,7 +227,8 @@ SQLHDBC createConn(char *connstr)
   freeEnv(env);
 }
 
+
 int main(int argc, char** argv)
 {
-  createConn("DSN=postgres");
+  runTest("DSN=postgres");
 }
