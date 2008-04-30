@@ -252,16 +252,16 @@ with Oracle and PostgreSQL.
 >   destroyStmt sess pstmt = freeStmt (stmtHandle pstmt)
 
 > instance DBBind (Maybe String) Session PreparedStmtObj BindObj where
->   bindP val = makeBindAction val DBAPI.bindParamBuffer
+>   bindP val = makeBindAction val DBAPI.bindParamBuffer 0
 
 > instance DBBind (Maybe Int) Session PreparedStmtObj BindObj where
->   bindP val = makeBindAction val DBAPI.bindParamBuffer
+>   bindP val = makeBindAction val DBAPI.bindParamBuffer 0
 
 > instance DBBind (Maybe Double) Session PreparedStmtObj BindObj where
->   bindP val = makeBindAction val DBAPI.bindParamBuffer
+>   bindP val = makeBindAction val DBAPI.bindParamBuffer 0
 
 > instance DBBind (Maybe UTCTime) Session PreparedStmtObj BindObj where
->   bindP val = makeBindAction val DBAPI.bindParamBuffer
+>   bindP val = makeBindAction val DBAPI.bindParamBuffer 0
 
 > instance DBBind (Maybe a) Session PreparedStmtObj BindObj
 >     => DBBind a Session PreparedStmtObj BindObj where
@@ -273,8 +273,8 @@ The default instance, uses generic Show
 >   bindP (Just x) = bindP (Just (show x))
 >   bindP Nothing = bindP (Nothing `asTypeOf` Just "")
 
-> makeBindAction val binder = BindA (\ses st pos -> do
->   convertEx (binder (stmtHandle st) pos val >> return ()))
+> makeBindAction val binder size = BindA (\ses st pos -> do
+>   convertEx (binder (stmtHandle st) pos val size >> return ()))
 
 --------------------------------------------------------------------
 -- ** Queries
