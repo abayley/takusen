@@ -194,7 +194,6 @@ Portability :  non-portable
 >     --
 >     prepareStmt stmt "select cast ('1916-10-01 02:25:21' as timestamp), cast ('2005-10-01 00:00:00' as timestamp) from tdual"
 >     --prepareStmt stmt "select cast ('1916-10-01 02:25:21' as datetime), cast ('2005-10-01 00:00:00' as datetime) from tdual"
->     --prepareStmt stmt "select cast ('1916-10-01 02:25:21' as timestamp) from tdual"
 >     executeStmt stmt
 >     let expect1 = mkUTCTime 1916 10  1  2 25 21
 >     let expect2 = mkUTCTime 2005 10  1  0  0  0
@@ -213,7 +212,7 @@ Portability :  non-portable
 > testBindInt conn = do
 >   stmt <- allocStmt conn
 >   prepareStmt stmt "select ? from tdual"
->   bindParamBuffer stmt 1 (Just (101::Int))
+>   bindParamBuffer stmt 1 (Just (101::Int)) 0
 >   executeStmt stmt
 >   buffer <- bindColBuffer stmt 1 0 (Just (0::Int))
 >   more <- fetch stmt
@@ -228,7 +227,7 @@ Portability :  non-portable
 >   stmt <- allocStmt conn
 >   prepareStmt stmt "select ? from tdual"
 >   let expect = "abcdefghijklmnopqrstuvwxyz"
->   bindParamBuffer stmt 1 (Just expect)
+>   bindParamBuffer stmt 1 (Just expect) 0
 >   executeStmt stmt
 >   buffer <- bindColBuffer stmt 1 1000 (Just expect)
 >   more <- fetch stmt
@@ -242,7 +241,7 @@ Portability :  non-portable
 >   stmt <- allocStmt conn
 >   prepareStmt stmt "select ? from tdual"
 >   let expect = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
->   bindParamBuffer stmt 1 (Just expect)
+>   bindParamBuffer stmt 1 (Just expect) 0
 >   executeStmt stmt
 >   buffer <- bindColBuffer stmt 1 1000 (Just expect)
 >   more <- fetch stmt
@@ -256,8 +255,8 @@ Portability :  non-portable
 >   stmt <- allocStmt conn
 >   flip finally (freeStmt stmt) ( do
 >     prepareStmt stmt "select ? from tdual"
->     let expect :: UTCTime; expect = mkUTCTime 1916 10  1  2 25 21
->     bindbuf <- bindParamBuffer stmt 1 (Just expect)
+>     let expect :: UTCTime; expect = mkUTCTime 1971 10  1  2 25 21
+>     bindbuf <- bindParamBuffer stmt 1 (Just expect) 0
 >     executeStmt stmt
 >     buffer <- bindColBuffer stmt 1 undefined (Just expect)
 >     more <- fetch stmt
@@ -268,57 +267,36 @@ Portability :  non-portable
 >     )
 
 
-There seems to be a bug with the PostgreSQL ODBC driver,
-where, if there is more than one datetime column in the output,
-the first column gets the current date (time 00:00:00).
-
 > testBindUTCTimeBoundary conn = do
 >   stmt <- allocStmt conn
 >   prepareStmt stmt "select ?, ?, ?, ? from tdual"
 >   -- 1753 seems to be about the earliest year MS SQL Server supports.
->   --let expect1 = mkUTCTime 1753 1 1 0 0 0
->   --let expect1 = mkUTCTime 2007 3 11 0 0 0
->   let expect1 = mkUTCTime 2000 10  1  2 25 21
->   --let expect2 = mkUTCTime 2100 10  1  2 25 21
->   let expect2 = "hello2"
+>   let expect1 = mkUTCTime 1753 1 1 0 0 0
+>   let expect2 = mkUTCTime 9999 10  1  2 25 21
+>   --let expect1 = mkUTCTime 1971 1 1 0 0 0
+>   --let expect2 = mkUTCTime 2030 10  1  2 25 21
 >   let expect3 = "hello3"
 >   let expect4 = 444444 :: Int
 >   let input1 = expect1
 >   let input2 = expect2
 >   let input3 = expect3
 >   let input4 = expect4
->   putStrLn "testBindUTCTimeBoundary: data going in:"
->   inbuf1 <- bindParamBuffer stmt 1 (Just input1)
->   inbuf2 <- bindParamBuffer stmt 2 (Just input2)
->   inbuf3 <- bindParamBuffer stmt 3 (Just input3)
->   inbuf4 <- bindParamBuffer stmt 4 (Just input4)
->   printBufferContents inbuf1
->   printBufferContents inbuf2
->   printBufferContents inbuf3
->   printBufferContents inbuf4
->   putStrLn "------------------------"
+>   inbuf1 <- bindParamBuffer stmt 1 (Just input1) 0
+>   inbuf2 <- bindParamBuffer stmt 2 (Just input2) 0
+>   inbuf3 <- bindParamBuffer stmt 3 (Just input3) 0
+>   inbuf4 <- bindParamBuffer stmt 4 (Just input4) 0
 >   executeStmt stmt
->   buffer1 <- bindColBuffer stmt 1 0 (Just expect1)
->   buffer2 <- bindColBuffer stmt 2 0 (Just expect2)
->   buffer3 <- bindColBuffer stmt 3 0 (Just expect3)
->   buffer4 <- bindColBuffer stmt 4 0 (Just expect4)
+>   buffer1 <- bindColBuffer stmt 1 100 (Just expect1)
+>   buffer2 <- bindColBuffer stmt 2 100 (Just expect2)
+>   buffer3 <- bindColBuffer stmt 3 100 (Just expect3)
+>   buffer4 <- bindColBuffer stmt 4 100 (Just expect4)
 >   more <- fetch stmt
->   putStrLn "testBindUTCTimeBoundary: data coming out:"
->   printBufferContents buffer1
->   printBufferContents buffer2
->   printBufferContents buffer3
->   printBufferContents buffer4
->   putStrLn "testBindUTCTimeBoundary: get1"
 >   t1 <- getFromBuffer buffer1
->   putStrLn "testBindUTCTimeBoundary: get2"
 >   t2 <- getFromBuffer buffer2
->   putStrLn "testBindUTCTimeBoundary: get3"
 >   t3 <- getFromBuffer buffer3
->   putStrLn "testBindUTCTimeBoundary: get4"
 >   t4 <- getFromBuffer buffer4
->   let x = t1 == Just expect1
 >   assertEqual "testBindUTCTimeBoundary1" (Just expect1) t1
->   assertEqual "testBindUTCTimeBoundary2 (PostgreSQL fails this one)" (Just expect2) t2
+>   assertEqual "testBindUTCTimeBoundary2" (Just expect2) t2
 >   assertEqual "testBindUTCTimeBoundary3" (Just expect3) t3
 >   assertEqual "testBindUTCTimeBoundary4" (Just expect4) t4
 >   more <- fetch stmt
@@ -330,7 +308,7 @@ the first column gets the current date (time 00:00:00).
 >   prepareStmt stmt "select ? from tdual"
 >   --
 >   let expect = "abc"
->   bindParamBuffer stmt 1 (Just expect)
+>   bindParamBuffer stmt 1 (Just expect) 0
 >   executeStmt stmt
 >   buffer <- bindColBuffer stmt 1 100 (Just "")
 >   more <- fetch stmt
@@ -340,7 +318,7 @@ the first column gets the current date (time 00:00:00).
 >   closeCursor stmt
 >   --
 >   let expect = "xyz"
->   bindParamBuffer stmt 1 (Just expect)
+>   bindParamBuffer stmt 1 (Just expect) 0
 >   executeStmt stmt
 >   buffer <- bindColBuffer stmt 1 100 (Just "")
 >   more <- fetch stmt
