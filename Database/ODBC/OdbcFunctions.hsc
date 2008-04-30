@@ -609,23 +609,26 @@ getUtcTimeFromBuffer bindbuffer = do
 
 createBufferForStorable :: Storable a => Maybe a -> IO BindBuffer
 createBufferForStorable Nothing =
-  let zero :: Int; zero = 0; in createBufferHelper zero (-1)
-createBufferForStorable (Just val) = createBufferHelper val (fromIntegral (sizeOf val))
+  let zero :: Int; zero = 0; in createBufferHelper zero (fromIntegral (sizeOf zero)) (sizeOf zero)
+createBufferForStorable (Just val) = createBufferHelper val (fromIntegral (sizeOf val)) (sizeOf val)
 
-createBufferHelper :: Storable a => a -> SqlLen -> IO BindBuffer
-createBufferHelper val size = do
+createBufferHelper :: Storable a => a -> SqlLen -> Int -> IO BindBuffer
+createBufferHelper val valsize bufsize = do
+  -- alloc space for size parameter
   szfptr <- mallocForeignPtr
-  withForeignPtr szfptr (\szptr -> poke szptr size)
+  withForeignPtr szfptr (\szptr -> poke szptr valsize)
+  -- alloc buffer for storable value
   bfptr <- mallocForeignPtr
   withForeignPtr bfptr (\bptr -> poke bptr val)
-  return (BindBuffer (castForeignPtr bfptr) szfptr (fromIntegral size))
+  return (BindBuffer (castForeignPtr bfptr) szfptr (fromIntegral bufsize))
 
-wrapSizedBuffer :: Ptr a -> SqlLen -> IO BindBuffer
-wrapSizedBuffer valptr size = do
+wrapSizedBuffer :: Ptr a -> SqlLen -> Int -> IO BindBuffer
+wrapSizedBuffer valptr valsize bufsize = do
   szfptr <- mallocForeignPtr
-  withForeignPtr szfptr (\szptr -> poke szptr size)
+  withForeignPtr szfptr (\szptr -> poke szptr valsize)
   bfptr <- newForeignPtr finalizerFree valptr
-  return (BindBuffer (castForeignPtr bfptr) szfptr (fromIntegral size))
+  let size2 = if valsize > (fromIntegral bufsize) then valsize else (fromIntegral bufsize)
+  return (BindBuffer (castForeignPtr bfptr) szfptr size2)
 
 bindParam ::
   StmtHandle
@@ -639,9 +642,9 @@ bindParam ::
   -> IO ()
 bindParam stmt pos direction ctype sqltype precision scale buffer =
   withForeignPtr (bindBufPtr buffer) $ \bptr -> do
-  withForeignPtr (bindBufSzPtr buffer) $ \szptr -> do
-  size <- peek szptr
-  rc <- sqlBindParameter stmt (fromIntegral pos) direction ctype sqltype precision scale bptr size szptr
+  withForeignPtr (bindBufSzPtr buffer) $ \valszptr -> do
+  let bufsize = bindBufSize buffer
+  rc <- sqlBindParameter stmt (fromIntegral pos) direction ctype sqltype precision scale bptr bufsize valszptr
   checkError rc sqlHTypeStmt (castPtr stmt)
 
 bindNull :: StmtHandle -> Int -> SqlParamDirection -> SqlCDataType -> SqlDataType -> IO BindBuffer
@@ -651,31 +654,40 @@ bindNull stmt pos direction ctype dtype = do
   bindParam stmt pos direction ctype dtype 0 0 buffer
   return buffer
 
-bindParamCStringLen :: StmtHandle -> Int -> SqlParamDirection -> Maybe CStringLen -> IO BindBuffer
-bindParamCStringLen stmt pos direction Nothing =
-  bindNull stmt pos direction sqlCTypeString sqlDTypeString
-bindParamCStringLen stmt pos direction (Just (cstr, clen)) = do
-  buffer <- wrapSizedBuffer cstr (fromIntegral clen)
+bindParamCStringLen :: StmtHandle -> Int -> SqlParamDirection -> Maybe CStringLen -> Int -> IO BindBuffer
+bindParamCStringLen stmt pos direction Nothing bufsize = do
+  let bufsz = if 1 > bufsize then 8 else (fromIntegral bufsize)
+  ptr <- mallocBytes bufsz
+  buffer <- wrapSizedBuffer ptr (-1) bufsz
+  bindParam stmt pos direction sqlCTypeString sqlDTypeString 0 0 buffer
+  return buffer
+bindParamCStringLen stmt pos direction (Just (cstr, clen)) bufsize = do
+  let bufsz = 1 + if clen > bufsize then (fromIntegral clen) else (fromIntegral bufsize)
+  mem <- mallocBytes bufsz
+  copyBytes mem cstr (fromIntegral clen)
+  pokeByteOff mem (fromIntegral clen) (0 :: Word8)
+  buffer <- wrapSizedBuffer mem (fromIntegral clen) bufsz
   bindParam stmt pos direction sqlCTypeString sqlDTypeString (fromIntegral clen) 0 buffer
   return buffer
 
-bindEncodedString :: StmtHandle -> Int -> SqlParamDirection -> Maybe String -> (String -> ((Ptr a, Int) -> IO BindBuffer) -> IO BindBuffer) -> IO BindBuffer
-bindEncodedString stmt pos direction Nothing withEncoder =
-  bindNull stmt pos direction sqlCTypeString sqlDTypeString
-bindEncodedString stmt pos direction (Just s) withEncoder =
-  withEncoder s (\(cs, cl) -> bindParamCStringLen stmt pos direction (Just (castPtr cs, cl)))
+bindEncodedString :: StmtHandle -> Int -> SqlParamDirection -> Maybe String -> (String -> ((Ptr a, Int) -> IO BindBuffer) -> IO BindBuffer) -> Int -> IO BindBuffer
+bindEncodedString stmt pos direction Nothing withEncoder bufsz =
+  --bindNull stmt pos direction sqlCTypeString sqlDTypeString
+  bindParamCStringLen stmt pos direction Nothing bufsz
+bindEncodedString stmt pos direction (Just s) withEncoder bufsz =
+  withEncoder s (\(cs, cl) -> bindParamCStringLen stmt pos direction (Just (castPtr cs, cl)) bufsz)
 
-bindParamUTF8String :: StmtHandle -> Int -> SqlParamDirection -> Maybe String -> IO BindBuffer
-bindParamUTF8String stmt pos direction val =
-  bindEncodedString stmt pos direction val withUTF8StringLen
+bindParamUTF8String :: StmtHandle -> Int -> SqlParamDirection -> Maybe String -> Int -> IO BindBuffer
+bindParamUTF8String stmt pos direction val sz =
+  bindEncodedString stmt pos direction val withUTF8StringLen sz
 
-bindParamCAString :: StmtHandle -> Int -> SqlParamDirection -> Maybe String -> IO BindBuffer
-bindParamCAString stmt pos direction val =
-  bindEncodedString stmt pos direction val withCAStringLen
+bindParamCAString :: StmtHandle -> Int -> SqlParamDirection -> Maybe String -> Int -> IO BindBuffer
+bindParamCAString stmt pos direction val sz =
+  bindEncodedString stmt pos direction val withCAStringLen sz
 
-bindParamCWString :: StmtHandle -> Int -> SqlParamDirection -> Maybe String -> IO BindBuffer
-bindParamCWString stmt pos direction val =
-  bindEncodedString stmt pos direction val withCWStringLen
+bindParamCWString :: StmtHandle -> Int -> SqlParamDirection -> Maybe String -> Int -> IO BindBuffer
+bindParamCWString stmt pos direction val sz =
+  bindEncodedString stmt pos direction val withCWStringLen sz
 
 pokeSmallInt :: Ptr a -> Int -> SqlSmallInt -> IO ()
 pokeSmallInt buffer offset val = pokeByteOff buffer offset val
@@ -713,19 +725,16 @@ xmakeUtcTimeBuffer :: UTCTime -> IO BindBuffer
 xmakeUtcTimeBuffer utc = do
   mem <- mallocBytes #{size TIMESTAMP_STRUCT}
   writeUTCTimeToMemory (castPtr mem) utc
-  wrapSizedBuffer mem #{size TIMESTAMP_STRUCT}
+  wrapSizedBuffer mem #{size TIMESTAMP_STRUCT} (-1)
 
--- FIXME why don't we use createBufferHelper here?
--- Is it because we want to give the size of the value,
--- instead of the total buffer size?
 makeUtcTimeStringBuffer :: UTCTime -> IO BindBuffer
 makeUtcTimeStringBuffer utc = do
-  mem <- mallocBytes 50
+  mem <- mallocBytes 32
   let s = utcTimeToOdbcDatetime utc
   withCStringLen s $ \(cstr, clen) -> do
     copyBytes mem cstr (fromIntegral clen)
     pokeByteOff mem (fromIntegral clen) (0 :: Word8)
-    wrapSizedBuffer mem (fromIntegral clen)
+    wrapSizedBuffer mem (fromIntegral clen) 32
 
 bindParamUtcTime :: StmtHandle -> Int -> SqlParamDirection -> Maybe UTCTime -> IO BindBuffer
 bindParamUtcTime stmt pos direction Nothing = do
@@ -828,6 +837,9 @@ class OdbcBindParam a where
     :: StmtHandle  -- ^ stmt handle
     -> Int  -- ^ parameter position (1-indexed)
     -> a  -- ^ value to write to buffer
+    -> Int -- ^ size of buffer (for output);
+           -- use 0 if input only (will be sized to exactly hold input only)
+           -- or size is fixed by type (e.g. Int, Double)
     -> IO BindBuffer  -- ^ returns a 'BindBuffer' object
 
 bindParamStorable stmt pos val dir ctype dtype precn scale = do
@@ -836,51 +848,51 @@ bindParamStorable stmt pos val dir ctype dtype precn scale = do
   return buffer
 
 instance OdbcBindParam (Maybe Int) where
-  bindParamBuffer stmt pos val =
+  bindParamBuffer stmt pos val _ =
     bindParamStorable stmt pos val sqlParamInput sqlCTypeInt sqlDTypeInt 30 0
 
 instance OdbcBindParam (OutParam (Maybe Int)) where
-  bindParamBuffer stmt pos (OutParam val) =
+  bindParamBuffer stmt pos (OutParam val) _ =
     bindParamStorable stmt pos val sqlParamOutput sqlCTypeInt sqlDTypeInt 30 0
 
 instance OdbcBindParam (InOutParam (Maybe Int)) where
-  bindParamBuffer stmt pos (InOutParam val) =
+  bindParamBuffer stmt pos (InOutParam val) _ =
     bindParamStorable stmt pos val sqlParamInputOutput sqlCTypeInt sqlDTypeInt 30 0
 
 instance OdbcBindParam (Maybe Double) where
-  bindParamBuffer stmt pos val =
+  bindParamBuffer stmt pos val _ =
     bindParamStorable stmt pos val sqlParamInput sqlCTypeDouble sqlDTypeDouble 50 50
 
 instance OdbcBindParam (OutParam (Maybe Double)) where
-  bindParamBuffer stmt pos (OutParam val) =
+  bindParamBuffer stmt pos (OutParam val) _ =
     bindParamStorable stmt pos val sqlParamOutput sqlCTypeDouble sqlDTypeDouble 50 50
 
 instance OdbcBindParam (InOutParam (Maybe Double)) where
-  bindParamBuffer stmt pos (InOutParam val) =
+  bindParamBuffer stmt pos (InOutParam val) _ =
     bindParamStorable stmt pos val sqlParamInputOutput sqlCTypeDouble sqlDTypeDouble 50 50
 
 instance OdbcBindParam (Maybe String) where
-  bindParamBuffer stmt pos val =
-    bindParamUTF8String stmt pos sqlParamInput val
+  bindParamBuffer stmt pos val sz =
+    bindParamUTF8String stmt pos sqlParamInput val sz
 
 instance OdbcBindParam (OutParam (Maybe String)) where
-  bindParamBuffer stmt pos (OutParam val) =
-    bindParamUTF8String stmt pos sqlParamOutput val
+  bindParamBuffer stmt pos (OutParam val) sz =
+    bindParamUTF8String stmt pos sqlParamOutput val sz
 
 instance OdbcBindParam (InOutParam (Maybe String)) where
-  bindParamBuffer stmt pos (InOutParam val) =
-    bindParamUTF8String stmt pos sqlParamInputOutput val
+  bindParamBuffer stmt pos (InOutParam val) sz =
+    bindParamUTF8String stmt pos sqlParamInputOutput val sz
 
 instance OdbcBindParam (Maybe UTCTime) where
-  bindParamBuffer stmt pos val =
+  bindParamBuffer stmt pos val _ =
     bindParamUtcTime stmt pos sqlParamInput val
 
 instance OdbcBindParam (OutParam (Maybe UTCTime)) where
-  bindParamBuffer stmt pos (OutParam val) =
+  bindParamBuffer stmt pos (OutParam val) _ =
     bindParamUtcTime stmt pos sqlParamOutput val
 
 instance OdbcBindParam (InOutParam (Maybe UTCTime)) where
-  bindParamBuffer stmt pos (InOutParam val) =
+  bindParamBuffer stmt pos (InOutParam val) _ =
     bindParamUtcTime stmt pos sqlParamInputOutput val
 
 
