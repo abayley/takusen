@@ -13,6 +13,7 @@ Portability :  non-portable
 
 > import Database.ODBC.OdbcFunctions
 > import Control.Exception (finally)
+> import Control.Monad (liftM)
 > import Data.Char
 > import Data.List
 > import Data.Time
@@ -347,6 +348,13 @@ Portability :  non-portable
 >   assertEqual "testUTF8" (Just expect) s
 >   freeStmt stmt
 
+> testDbmsName conn = do
+>   (liftM ("dbms-name: " ++) (getInfoDbmsName conn)) >>= putStrLn
+>   (liftM ("dbms-ver: " ++) (getInfoDbmsVer conn)) >>= putStrLn
+>   (liftM ("db-name: " ++) (getInfoDatabaseName conn)) >>= putStrLn
+>   (liftM ("driver-name: " ++) (getInfoDriverName conn)) >>= putStrLn
+>   (liftM ("driver-ver: " ++) (getInfoDriverVer conn)) >>= putStrLn
+
 
 > printBufferContents buffer = do
 >   withForeignPtr (bindBufPtr buffer) $ \bptr -> do
@@ -379,6 +387,7 @@ Portability :  non-portable
 >   testBindUTCTimeBoundary :
 >   testUTF8 :
 >   testRebind :
+>   --testDbmsName :
 >   []
 
 > mkTestlist conn testlist = map (\testcase -> printIgnoreError (testcase conn)) testlist
