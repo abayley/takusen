@@ -56,6 +56,15 @@ data Buffer = Buffer
 type BufferFPtr = ForeignPtr Buffer
 type SizeFPtr = ForeignPtr SqlLen
 
+type MyCString = CString
+type MyCStringLen = CStringLen
+myPeekCStringLen p = peekUTF8StringLen p
+myWithCString s = withUTF8String s
+myWithCStringLen s = withUTF8StringLen s
+--myPeekCStringLen p = peekCStringLen p
+--myWithCString s = withCString s
+--myWithCStringLen s = withCStringLen s
+
 data BindBuffer = BindBuffer
   { bindBufPtr :: BufferFPtr
   , bindBufSzPtr :: SizeFPtr
@@ -73,6 +82,7 @@ type SqlHandleType = SqlSmallInt
 type SqlDataType = SqlSmallInt
 type SqlCDataType = SqlSmallInt
 type SqlParamDirection = SqlSmallInt
+type SqlInfoType = SqlUSmallInt
 
 -- Return codes from API calls
 
@@ -246,6 +256,7 @@ sqlAutoCommitOff = #{const SQL_AUTOCOMMIT_OFF}
 #define SQL_C_UTINYINT (SQL_TINYINT+SQL_UNSIGNED_OFFSET)
 -}
 
+-- Bind Parameter directions
 (
   sqlParamInput :
   sqlParamInputOutput :
@@ -261,6 +272,42 @@ sqlAutoCommitOff = #{const SQL_AUTOCOMMIT_OFF}
   #{const SQL_PARAM_TYPE_UNKNOWN} :
   [] ) :: [SqlParamDirection]
 
+
+-- Information Types, for SQLGetInfo
+
+(
+  -- Driver info
+  sqlInfoDriverHdbc :
+  sqlInfoDriverHdesc :
+  sqlInfoDriverHenv :
+  sqlInfoDriverHlib :
+  sqlInfoDriverHstmt :
+  sqlInfoDriverName :
+  sqlInfoDriverOdbcVer :
+  sqlInfoDriverVer :
+  sqlOdbcVer :
+  -- DBMS product info
+  sqlInfoDatabaseName :
+  sqlInfoDbmsName :
+  sqlInfoDbmsVer :
+  [] ) =
+  (
+  #{const SQL_DRIVER_HDBC} :
+  #{const SQL_DRIVER_HDESC} :
+  #{const SQL_DRIVER_HENV} :
+  #{const SQL_DRIVER_HLIB} :
+  #{const SQL_DRIVER_HSTMT} :
+  #{const SQL_DRIVER_NAME} :
+  #{const SQL_DRIVER_ODBC_VER} :
+  #{const SQL_DRIVER_VER} :
+  #{const SQL_ODBC_VER} :
+  #{const SQL_DATABASE_NAME} :
+  #{const SQL_DBMS_NAME} :
+  #{const SQL_DBMS_VER} :
+  [] ) :: [SqlInfoType]
+
+
+---------------------------------------------------------------------
 
 data OdbcException = OdbcException Int String String [OdbcException]
   deriving (Typeable)
@@ -279,15 +326,6 @@ throwOdbc = throwDyn
 
 -- define SQL_SUCCEEDED(rc) (((rc)&(~1))==0)
 sqlSucceeded rc = rc == sqlRcSuccess || rc == sqlRcSuccessWithInfo
-
-type MyCString = CString
-type MyCStringLen = CStringLen
-myPeekCStringLen p = peekUTF8StringLen p
-myWithCString s = withUTF8String s
-myWithCStringLen s = withUTF8StringLen s
---myPeekCStringLen p = peekCStringLen p
---myWithCString s = withCString s
---myWithCStringLen s = withCStringLen s
 
 getDiagRec :: SqlReturn -> SqlHandleType -> Handle -> SqlSmallInt -> IO [OdbcException]
 getDiagRec retcode htype handle row =
@@ -441,6 +479,32 @@ setTxnIsolation :: ConnHandle -> SqlInteger -> IO ()
 setTxnIsolation conn level = do
   rc <- sqlSetConnectAttr conn sqlAttrTxnIsolation (int2Ptr level) 0
   checkError rc sqlHTypeConn (castPtr conn)
+
+getInfoString :: ConnHandle -> SqlInfoType -> IO String
+getInfoString conn infotype = do
+  let bufsize = 10000
+  alloca $ \outsizeptr -> do
+  allocaBytes bufsize $ \buffer -> do
+  rc <- sqlGetInfo conn infotype buffer (fromIntegral bufsize) outsizeptr
+  checkError rc sqlHTypeConn (castPtr conn)
+  outsize <- peek outsizeptr
+  myPeekCStringLen (castPtr buffer, fromIntegral outsize)
+
+getInfoDbmsName :: ConnHandle -> IO String
+getInfoDbmsName conn = getInfoString conn sqlInfoDbmsName
+
+getInfoDbmsVer :: ConnHandle -> IO String
+getInfoDbmsVer conn = getInfoString conn sqlInfoDbmsVer
+
+getInfoDatabaseName :: ConnHandle -> IO String
+getInfoDatabaseName conn = getInfoString conn sqlInfoDatabaseName
+
+getInfoDriverName :: ConnHandle -> IO String
+getInfoDriverName conn = getInfoString conn sqlInfoDriverName
+
+getInfoDriverVer :: ConnHandle -> IO String
+getInfoDriverVer conn = getInfoString conn sqlInfoDriverVer
+
 
 
 ---------------------------------------------------------------------
@@ -1031,3 +1095,22 @@ foreign import #{CALLCONV} unsafe "sql.h SQLMoreResults" sqlMoreResults ::
 -- SQLRETURN SQL_API SQLEndTran(SQLSMALLINT,SQLHANDLE,SQLSMALLINT);
 foreign import #{CALLCONV} unsafe "sql.h SQLEndTran" sqlEndTran ::
   SqlSmallInt -> Handle -> SqlSmallInt -> IO SqlReturn
+
+-- SQLRETURN SQL_API SQLGetInfo(SQLHDBC,SQLUSMALLINT,SQLPOINTER,SQLSMALLINT,SQLSMALLINT*);
+foreign import #{CALLCONV} unsafe "sql.h SQLGetInfo" sqlGetInfo ::
+  ConnHandle
+  -> SqlInfoType  -- ^ information type
+  -> Ptr Buffer  -- ^ output buffer
+  -> SqlSmallInt  -- ^ output buffer size
+  -> Ptr SqlSmallInt -- ^ output data size, or -1 (SQL_NULL_DATA) for null
+  -> IO SqlReturn
+
+-- SQLRETURN SQL_API SQLNativeSql(SQLHDBC,SQLCHAR*,SQLINTEGER,SQLCHAR*,SQLINTEGER,SQLINTEGER*);
+foreign import #{CALLCONV} unsafe "sql.h SQLNativeSql" sqlNativeSql ::
+  ConnHandle
+  -> MyCString  -- ^ sql text in
+  -> SqlInteger  -- ^ size of sql text
+  -> MyCString  -- ^ buffer for output text
+  -> SqlInteger  -- ^ size of output buffer
+  -> Ptr SqlInteger  -- ^ size of text in output buffer
+  -> IO SqlReturn
