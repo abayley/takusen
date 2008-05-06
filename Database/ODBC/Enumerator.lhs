@@ -19,6 +19,7 @@ ODBC implementation of Database.Enumerator.
 >   , prepareStmt, preparePrefetch
 >   , prepareQuery, prepareLargeQuery, prepareCommand
 >   , sql, sqlbind, prefetch, cmdbind
+>   , Out(..)
 >   , module Database.Enumerator
 >   )
 > where
@@ -242,6 +243,7 @@ with Oracle and PostgreSQL.
 
 > newtype BoundStmt = BoundStmt { boundStmt :: PreparedStmtObj }
 > type BindObj = Int -> IO ()
+> newtype Out a = Out a
 
 > instance IPrepared PreparedStmtObj Session BoundStmt BindObj where
 >   bindRun sess pstmt bas action = do
@@ -254,24 +256,49 @@ with Oracle and PostgreSQL.
 > instance DBBind (Maybe String) Session PreparedStmtObj BindObj where
 >   bindP val = makeBindAction val DBAPI.bindParamBuffer 0
 
+> instance DBBind (Out (Maybe String)) Session PreparedStmtObj BindObj where
+>   bindP (Out val) = makeBindAction (DBAPI.InOutParam val) DBAPI.bindParamBuffer 16000
+
+
 > instance DBBind (Maybe Int) Session PreparedStmtObj BindObj where
 >   bindP val = makeBindAction val DBAPI.bindParamBuffer 0
+
+> instance DBBind (Out (Maybe Int)) Session PreparedStmtObj BindObj where
+>   bindP (Out val) = makeBindAction (DBAPI.InOutParam val) DBAPI.bindParamBuffer 0
+
 
 > instance DBBind (Maybe Double) Session PreparedStmtObj BindObj where
 >   bindP val = makeBindAction val DBAPI.bindParamBuffer 0
 
+> instance DBBind (Out (Maybe Double)) Session PreparedStmtObj BindObj where
+>   bindP (Out val) = makeBindAction (DBAPI.InOutParam val) DBAPI.bindParamBuffer 0
+
+
 > instance DBBind (Maybe UTCTime) Session PreparedStmtObj BindObj where
 >   bindP val = makeBindAction val DBAPI.bindParamBuffer 0
+
+> instance DBBind (Out (Maybe UTCTime)) Session PreparedStmtObj BindObj where
+>   bindP (Out val) = makeBindAction (DBAPI.InOutParam val) DBAPI.bindParamBuffer 0
+
 
 > instance DBBind (Maybe a) Session PreparedStmtObj BindObj
 >     => DBBind a Session PreparedStmtObj BindObj where
 >   bindP x = bindP (Just x)
+
+> instance DBBind (Out (Maybe a)) Session PreparedStmtObj BindObj
+>     => DBBind (Out a) Session PreparedStmtObj BindObj where
+>   bindP (Out x) = bindP (Out (Just x))
+
 
 The default instance, uses generic Show
 
 > instance (Show a) => DBBind (Maybe a) Session PreparedStmtObj BindObj where
 >   bindP (Just x) = bindP (Just (show x))
 >   bindP Nothing = bindP (Nothing `asTypeOf` Just "")
+
+> instance (Show a) => DBBind (Out (Maybe a)) Session PreparedStmtObj BindObj where
+>   bindP (Out (Just x)) = bindP (Out (Just (show x)))
+>   bindP (Out Nothing) = bindP (Out (Nothing `asTypeOf` Just ""))
 
 > makeBindAction val binder size = BindA (\ses st pos -> do
 >   convertEx (binder (stmtHandle st) pos val size >> return ()))
