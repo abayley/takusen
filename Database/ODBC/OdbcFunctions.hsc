@@ -505,6 +505,17 @@ getInfoDriverName conn = getInfoString conn sqlInfoDriverName
 getInfoDriverVer :: ConnHandle -> IO String
 getInfoDriverVer conn = getInfoString conn sqlInfoDriverVer
 
+getNativeSql :: ConnHandle -> String -> IO String
+getNativeSql conn sqltext = do
+  let bufsize = 100000
+  alloca $ \outsizeptr -> do
+  allocaBytes bufsize $ \buffer -> do
+  myWithCStringLen sqltext $ \(cstr,clen) -> do
+  rc <- sqlNativeSql conn cstr (fromIntegral clen) buffer (fromIntegral bufsize) outsizeptr
+  checkError rc sqlHTypeConn (castPtr conn)
+  outsize <- peek outsizeptr
+  myPeekCStringLen (castPtr buffer, fromIntegral outsize)
+  
 
 
 ---------------------------------------------------------------------
