@@ -377,19 +377,19 @@ allocConn env = allocHdl (castPtr env) sqlHTypeConn
 allocStmt :: ConnHandle -> IO StmtHandle
 allocStmt conn = allocHdl (castPtr conn) sqlHTypeStmt
 
-freeHelper :: SqlHandleType -> Handle -> IO ()
-freeHelper htype h = do
+freeHandle :: SqlHandleType -> Handle -> IO ()
+freeHandle htype h = do
   rc <- sqlFreeHandle htype h
   checkError rc htype h
 
 freeEnv :: EnvHandle -> IO ()
-freeEnv env = freeHelper sqlHTypeEnv (castPtr env)
+freeEnv env = freeHandle sqlHTypeEnv (castPtr env)
 
 freeConn :: ConnHandle -> IO ()
-freeConn conn = freeHelper sqlHTypeConn (castPtr conn)
+freeConn conn = freeHandle sqlHTypeConn (castPtr conn)
 
 freeStmt :: StmtHandle -> IO ()
-freeStmt stmt = freeHelper sqlHTypeStmt (castPtr stmt)
+freeStmt stmt = freeHandle sqlHTypeStmt (castPtr stmt)
 
 int2Ptr :: SqlInteger -> Ptr ()
 int2Ptr i = plusPtr nullPtr (fromIntegral i)
