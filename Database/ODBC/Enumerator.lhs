@@ -143,11 +143,13 @@ Session objects are created by 'connect'.
 
 > instance Command String Session where
 >   executeCommand sess str = do
->     stmt <- stmtPrepare (connHandle sess) str
->     stmtExecute stmt
->     n <- rowCount stmt
->     freeStmt stmt
->     return (fromIntegral n)
+>     bracket
+>       (stmtPrepare (connHandle sess) str)
+>       (freeStmt)
+>       ( \stmt -> do
+>         stmtExecute stmt
+>         liftM fromIntegral (rowCount stmt)
+>       )
 
 > instance Command BoundStmt Session where
 >   executeCommand sess (BoundStmt pstmt) =
@@ -156,13 +158,14 @@ Session objects are created by 'connect'.
 > instance Command StmtBind Session where
 >   executeCommand sess (StmtBind sqltext bas) = do
 >     let (PreparationA action) = prepareStmt' sqltext FreeManually
->     pstmt <- action sess
->     sequence_ (zipWith (\i (BindA ba) -> ba sess pstmt i) [1..] bas)
->     let stmt = stmtHandle pstmt
->     stmtExecute stmt
->     n <- rowCount stmt
->     freeStmt stmt
->     return n
+>     bracket
+>       (action sess)
+>       (freeStmt . stmtHandle)
+>       (\pstmt -> do
+>         sequence_ (zipWith (\i (BindA ba) -> ba sess pstmt i) [1..] bas)
+>         stmtExecute (stmtHandle pstmt)
+>         rowCount (stmtHandle pstmt)
+>       )
 
 Note: the PostgreSQL ODBC driver only supports ReadCommitted
 and Serializable. It throws an error on other values.
@@ -384,7 +387,6 @@ The default instance, uses generic Show
 >   }
 
 > allocBuffer q pos size val = do
->   --putStrLn ("allocBuffer: pos " ++ show pos ++ ", size " ++ show size)
 >   bindbuffer <- convertEx (DBAPI.bindColBuffer (stmtHandle (queryStmt q)) pos size val)
 >   return (ColumnBuffer pos bindbuffer)
 
