@@ -326,7 +326,7 @@ If there is a problem, an exception will be raised.
 > execDML = executeCommand
 
 | Allows arbitrary actions to be run the DBM monad.
-the back-end developer must supply instances of EnvInquiry,
+The back-end developer must supply instances of EnvInquiry,
 which is hidden away in "Database.InternalEnumerator".
 An example of this is 'Database.Sqlite.Enumerator.LastInsertRowid'.
 
@@ -504,7 +504,13 @@ An auxiliary function, not seen by the user.
 > doQueryMaker stmt iteratee = do
 >     sess <- ask
 >     query <- liftIO $ IE.makeQuery sess stmt
->     buffers <- allocBuffers query iteratee 1
+>     -- if buffer allocation raises an exception
+>     -- (which it might) then we need to clean up the query object.
+>     buffers <- gcatch (allocBuffers query iteratee 1)
+>       (\e -> do
+>         liftIO (IE.destroyQuery query)
+>         liftIO (throw e)
+>       )
 >     let
 >       finaliser =
 >            liftIO (mapM_ (IE.freeBuffer query) buffers)
