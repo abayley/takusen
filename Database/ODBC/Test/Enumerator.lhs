@@ -50,13 +50,17 @@ Portability :  non-portable
 > runPerformanceTests :: DBM mark Session ()
 > runPerformanceTests = do
 >   makeFixture execDrop execDDL_
->   beginTransaction RepeatableRead
+>   beginTransaction ReadCommitted
 >   runTestTT "ODBC performance tests" (map (flip catchDB reportRethrow)
->     [ timedSelect (prefetch 1000 sqlRows2Power20 []) 35 (2^20)
->     , timedSelect (prefetch 1 sqlRows2Power17 []) 4 (2^17)
+>     -- The PostgreSQL ODBC driver has genetric query optimisation disabled
+>     -- by default. This makes it really struggle with the query we use
+>     -- for performance testing - the memory used by the server process
+>     -- goes through the roof.
+>     [ timedSelect (prefetch 1 sqlRows2Power17 []) 4 (2^17)
 >     , timedSelect (prefetch 1000 sqlRows2Power17 []) 4 (2^17)
 >     , timedCursor (prefetch 1 sqlRows2Power17 []) 4 (2^17)
 >     , timedCursor (prefetch 1000 sqlRows2Power17 []) 4 (2^17)
+>     , timedSelect (prefetch 1000 sqlRows2Power20 []) 35 (2^20)
 >     ]
 >     )
 >   commit
