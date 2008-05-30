@@ -190,7 +190,10 @@ I guess that's a result of PostgreSQL's transactional DDL feature.
 
 > destroyFixture execDDL_ = flip catchDB reportRethrow $ do
 >   execDDL_ sqlDropDual
+>   -- This is odd, but seems to keep the Oracle ODBC driver happy.
+>   -- Not sure why we need to do DDL in a transaction...
 >   execDDL_ sqlDropTest
+>   commit
 
 > selectTest query iter expect = do
 >   actual <- doQuery query iter []
