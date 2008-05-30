@@ -13,7 +13,7 @@ Portability :  non-portable
 
 > import Database.ODBC.OdbcFunctions
 > import Control.Exception (finally)
-> import Control.Monad (liftM)
+> import Control.Monad (liftM, when)
 > import Data.Char
 > import Data.List
 > import Data.Time
@@ -109,6 +109,8 @@ Portability :  non-portable
 >   setTxnIsolation conn sqlTxnSerializable  -- This is OK
 
 
+Uses getData, rather than a buffer.
+
 > testFetchString conn = do
 >   stmt <- allocStmt conn
 >   let string1 = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
@@ -185,16 +187,27 @@ Portability :  non-portable
 
 > testFetchDatetime conn = do
 >   stmt <- allocStmt conn
+>   dbmsname <- liftM (map toLower) (getInfoDbmsName conn)
 >   flip finally (freeStmt stmt) ( do
 >     -- There is no common SQL standard for datetime literal text.
 >     -- Well, there is (timestamp), but MS SQL Server doesn't support it. Pah.
 >     -- And Oracle seems to also require a sane NLS setting e.g.
 >     --   alter session set NLS_TIMESTAMP_FORMAT = 'yyyy-mm-dd hh24:mi:ss'
->     --prepareStmt stmt "alter session set NLS_TIMESTAMP_FORMAT = 'yyyy-mm-dd hh24:mi:ss'"
->     --executeStmt stmt
+>     when (dbmsname == "oracle") ( do
+>         prepareStmt stmt "alter session set NLS_TIMESTAMP_FORMAT = 'yyyy-mm-dd hh24:mi:ss'"
+>         executeStmt stmt
+>       )
 >     --
->     prepareStmt stmt "select cast ('1916-10-01 02:25:21' as timestamp), cast ('2005-10-01 00:00:00' as timestamp) from tdual"
->     --prepareStmt stmt "select cast ('1916-10-01 02:25:21' as datetime), cast ('2005-10-01 00:00:00' as datetime) from tdual"
+>     -- PostgreSQL doesn't appear to support the {fn ...} escape sequences;
+>     -- the text seems to be passed through unchanged (according to SQLNativeSql, anyway).
+>     -- THe MS SQL Server ODBC driver's SQLNativeSql also returns the text unchanged,
+>     -- but it doesn't seem to cause any grief on the server.
+>     --getNativeSql conn "select {fn CONVERT('1916-10-01 02:25:21', SQL_TIMESTAMP)}, {fn CONVERT('2005-10-01 00:00:00', SQL_TIMESTAMP)} from tdual" >>= putStrLn
+>     case dbmsname of
+>       "postgresql" -> 
+>         prepareStmt stmt "select cast ('1916-10-01 02:25:21' as timestamp), cast ('2005-10-01 00:00:00' as timestamp) from tdual"
+>       otherwise ->
+>         prepareStmt stmt "select {fn CONVERT('1916-10-01 02:25:21', SQL_TIMESTAMP)}, {fn CONVERT('2005-10-01 00:00:00', SQL_TIMESTAMP)} from tdual"
 >     executeStmt stmt
 >     let expect1 = mkUTCTime 1916 10  1  2 25 21
 >     let expect2 = mkUTCTime 2005 10  1  0  0  0
@@ -270,36 +283,22 @@ Portability :  non-portable
 
 > testBindUTCTimeBoundary conn = do
 >   stmt <- allocStmt conn
->   prepareStmt stmt "select ?, ?, ?, ? from tdual"
+>   prepareStmt stmt "select ?, ? from tdual"
 >   -- 1753 seems to be about the earliest year MS SQL Server supports.
 >   let expect1 = mkUTCTime 1753 1 1 0 0 0
 >   let expect2 = mkUTCTime 9999 10  1  2 25 21
->   --let expect1 = mkUTCTime 1971 1 1 0 0 0
->   --let expect2 = mkUTCTime 2030 10  1  2 25 21
->   let expect3 = "hello3"
->   let expect4 = 444444 :: Int
 >   let input1 = expect1
 >   let input2 = expect2
->   let input3 = expect3
->   let input4 = expect4
 >   inbuf1 <- bindParamBuffer stmt 1 (Just input1) 0
 >   inbuf2 <- bindParamBuffer stmt 2 (Just input2) 0
->   inbuf3 <- bindParamBuffer stmt 3 (Just input3) 0
->   inbuf4 <- bindParamBuffer stmt 4 (Just input4) 0
 >   executeStmt stmt
 >   buffer1 <- bindColBuffer stmt 1 100 (Just expect1)
 >   buffer2 <- bindColBuffer stmt 2 100 (Just expect2)
->   buffer3 <- bindColBuffer stmt 3 100 (Just expect3)
->   buffer4 <- bindColBuffer stmt 4 100 (Just expect4)
 >   more <- fetch stmt
 >   t1 <- getFromBuffer buffer1
 >   t2 <- getFromBuffer buffer2
->   t3 <- getFromBuffer buffer3
->   t4 <- getFromBuffer buffer4
 >   assertEqual "testBindUTCTimeBoundary1" (Just expect1) t1
 >   assertEqual "testBindUTCTimeBoundary2" (Just expect2) t2
->   assertEqual "testBindUTCTimeBoundary3" (Just expect3) t3
->   assertEqual "testBindUTCTimeBoundary4" (Just expect4) t4
 >   more <- fetch stmt
 >   assertBool "testBindUTCTimeBoundary: EOD" (not more)
 >   freeStmt stmt
