@@ -37,6 +37,7 @@ ODBC implementation of Database.Enumerator.
 > import qualified Database.ODBC.OdbcFunctions as DBAPI
 > import Control.Monad.Trans
 > import Control.Monad.Reader
+> import Data.Char (toLower)
 > import Data.Dynamic
 > import Data.IORef
 > import Data.Int
@@ -102,8 +103,9 @@ because they never throw exceptions.
 >   DBAPI.setOdbcVer env
 >   conn <- DBAPI.allocConn env
 >   connstr <- DBAPI.connect conn connstr
+>   dbms <- DBAPI.getInfoDbmsName conn
 >   DBAPI.setAutoCommitOff conn
->   return (env, conn)
+>   return (env, conn { DBAPI.connDbms = map toLower dbms } )
 
 > disconnectDb conn = convertEx (DBAPI.disconnect conn)
 
