@@ -8,6 +8,7 @@ Stability   :  experimental
 Portability :  non-portable
 
 
+-- FIXME  add tests for moreResults
 
 > module Database.ODBC.Test.OdbcFunctions where
 
@@ -68,7 +69,8 @@ Portability :  non-portable
 >   setOdbcVer env
 >   conn <- allocConn env
 >   connstr <- connect conn connstr
->   return (env, conn)
+>   dbms <- getInfoDbmsName conn
+>   return (env, conn { connDbms = map toLower dbms } )
 
 > closeConn (env, conn) = do
 >   disconnect conn
