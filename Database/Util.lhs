@@ -237,11 +237,8 @@ Parses ISO format datetimes, and also the variation that PostgreSQL uses.
 > utcTimeToIsoDatetime :: UTCTime -> String
 > utcTimeToIsoDatetime utc = utcTimeToIsoString utc "T" id (const "Z") 
 
-We have to drop the last 6 chars (nnn+nn) from the ISO datetime,
-because MS SQL Server can only cope with "yyyy-mm-dd hh:mi:ss.fff".
-
 > utcTimeToOdbcDatetime :: UTCTime -> String
-> utcTimeToOdbcDatetime utc = take 23 (utcTimeToIsoString utc " " id (const "") )
+> utcTimeToOdbcDatetime utc = utcTimeToIsoString utc " " id (const "")
 
 
 | Assumes CalendarTime is also UTC i.e. ignores ctTZ component.
