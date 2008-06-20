@@ -8,7 +8,7 @@ import Distribution.Package (Dependency(..))
 --import Distribution.Version(Dependency(..))
 import Distribution.Simple.Setup ( ConfigFlags(..) )
 import Distribution.Simple
-  ( defaultMainWithHooks, simpleUserHooks, UserHooks(..), Args )
+  ( defaultMainWithHooks, autoconfUserHooks, UserHooks(..), Args )
 import Distribution.Simple.Program (findProgramOnPath, simpleProgram, Program(..))
 import Distribution.Simple.LocalBuildInfo (LocalBuildInfo)
 import Distribution.Simple.Utils (warn, info, rawSystemStdout)
@@ -52,7 +52,7 @@ Oracle  : -I"C:\Program Files\Oracle\OraHome817\oci\include" -loci -L"C:\Program
 Oracle  : -I"%ORACLE_HOME%\oci\include" -loci -L"%ORACLE_HOME%\bin"
 -}
 
-main = defaultMainWithHooks simpleUserHooks
+main = defaultMainWithHooks autoconfUserHooks
   { preConf=preConf, postConf=postConf
   , hookedPrograms = [pgConfigProgram, odbcConfigProgram, sqlite3Program, sqlplusProgram]
   }
