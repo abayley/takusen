@@ -1,23 +1,26 @@
 Installing
 ----------
-Prerequisites: GHC >= 6.6, Cabal >= 1.1.6, filepath
+Prerequisites: GHC >= 6.6, Cabal >= 1.4, filepath
 
-(it's possible to use Takusen with GHC-6.4 and Cabal-1.1.4;
-see notes in separate section below)
+(It's possible to use Takusen with GHC-6.4; see notes in separate section
+below.)
 
 To run or build Setup.hs you will need filepath installed.
 This is only needed by Setup.hs, and is not required by Takusen itself.
 
 Ensure that the database libraries for any particular database you plan
-to use are in your path e.g. ensure that %ORA_HOME%\bin is in your path.
-If the library is not in your path, then it won't be detected in the
-configure step, and Takusen won't be able to use it.
-You can fix this by adding it to your path and going through the
-configure/build/install cycle again.
+to use are in your path e.g. ensure that %ORACLE_HOME%\bin is in your path.
+If the library is not in your path, then the buildtools won't be found,
+and the configure will fail.
+
+The installation uses Cabal configurations. Each of the backends is
+enabled by a flag, and the flags are all False by default. If you want
+to enable a particular backend, you must enable its flag with -f
+e.g. Setup configure -fodbc -foracle -fpostgres -fsqlite
 
 Typical build, after unzipping the distribution archive (Takusen-?.?.gz):
   $ ghc --make Setup
-  $ Setup configure
+  $ Setup configure -fodbc -foracle -fpostgres -fsqlite
   $ Setup build
   $ Setup install
 
@@ -26,9 +29,16 @@ Typical build, using darcs to get latest code:
   $ cd takusen
   $ darcs get http://darcs.haskell.org/takusen
   $ ghc --make Setup
-  $ Setup configure
+  $ Setup configure -fodbc -foracle -fpostgres -fsqlite
   $ Setup build
   $ Setup install
+
+It may be that you also need to specify library or include dirs in the
+setup configure step. For example, the Oracle Instant Client on Linux
+puts header files in a different location from normal i.e. not under
+$ORACLE_HOME. In that case you will have to use --extra-include-dirs=...,
+and possibly --extra-lib-dirs=..., in the configure step.
+
   
 
 
@@ -67,11 +77,15 @@ Just as with ensuring that your path is correctly set when building Takusen,
 you must also ensure it is correctly set when building your programs.
 If it is not correct, then you are likely to see linker errors.
 
-Note that the Cabal build script detects which back-ends are installed by
-looking for certain executables in your path. The script modifies the
-package description in the build stage so that it only builds libraries
-for the back-ends it detects. If you install a new back-end, you will
-need to re-run the installation process in order for Takusen to use it.
+The Cabal build script (Setup.hs) looks for various executables
+on your path, in order to configure, or validate the configuration.
+For example:
+ - the Oracle configuration checks that sqlplus is available before continuing
+ - The PostgreSQL configuration uses the pg_config program to get the library
+   and include directory locations.
+
+If you install a new back-end, you will need to re-run the installation
+process to be able to use it.
 
 
 
@@ -112,10 +126,7 @@ If you can control your Oracle client installation then either
 
 GHC-6.4 and Takusen
 -------------------
-It is possible to use Takusen with GHC-6.4. We have tested with Cabal-1.1.4,
-so you aren't required to upgrade to 1.1.6 (but it won't hurt, either).
-If you use Cabal-1.1.4, then you should use the Setup-114.hs script.
-If you use Cabal-1.1.6, then you should use the normal Setup.hs script.
+It is possible to use Takusen with GHC-6.4.
 
 You will need to install Data.Time, which is quite a chore on Windows
 because of the dependencies. You will also need MSYS installed in order
