@@ -5,34 +5,31 @@ import Distribution.PackageDescription
   , emptyHookedBuildInfo, writeHookedBuildInfo, emptyBuildInfo
   )
 import Distribution.Package (Dependency(..))
---import Distribution.Version(Dependency(..))
 import Distribution.Simple.Setup ( ConfigFlags(..) )
 import Distribution.Simple
   ( defaultMainWithHooks, autoconfUserHooks, UserHooks(..), Args )
 import Distribution.Simple.Program (findProgramOnPath, simpleProgram, Program(..))
 import Distribution.Simple.LocalBuildInfo (LocalBuildInfo)
 import Distribution.Simple.Utils (warn, info, rawSystemStdout)
+import Distribution.Verbosity (Verbosity)
 
 import qualified System.Info (os)
 import System.Directory (canonicalizePath, removeFile)
-import System.FilePath (splitFileName, combine)
+import System.Environment (getEnv)
+import System.FilePath (combine, FilePath)
 import System.IO.Error (try)
 import Data.Maybe (fromJust)
-import Data.Monoid
+import Data.Monoid (mconcat)
 
 {-
 One install script to rule them all, and in the darkness build them...
-
-Some of the code in this script is adapted from the various
-HSQL Setup scripts, so some credit for it should go to Krasimir Angelov.
-Not sure exactly what that means for our license;
-does he have to appear in our license.txt?
-(His code is also BSD3 licensed.)
 
 See this page for useful notes on tagging and releasing:
   http://www.haskell.org/haskellwiki/How_to_write_a_Haskell_program
 
 To-dos for Takusen:
+ - Out bind parameters for ODBC
+ - better result-set <-> iteratee validation. Check column types?
  - use hsc2hs to create #define constants from header files,
    rather than hard-code them.
  - Blob support (and clob?).
@@ -42,14 +39,6 @@ To-dos for Takusen:
  - Unwritten tests:
    * incorrect fold function (doesn't match result-set)
 
-
-GHC compiler/linker options:
-
-ODBC    : <none on Windows, because the .dll is in c:\windows\system32, and the headers are in ghc's include/mingw>
-Postgres: -I"C:\Program Files\PostgreSQL\8.1\include" -lpq -L"C:\Program Files\PostgreSQL\8.1\bin"
-Sqlite  : -I"C:\Program Files\sqlite" -lsqlite3 -L"C:\Program Files\sqlite"
-Oracle  : -I"C:\Program Files\Oracle\OraHome817\oci\include" -loci -L"C:\Program Files\Oracle\OraHome817\bin"
-Oracle  : -I"%ORACLE_HOME%\oci\include" -loci -L"%ORACLE_HOME%\bin"
 -}
 
 main = defaultMainWithHooks autoconfUserHooks
@@ -74,30 +63,6 @@ main = defaultMainWithHooks autoconfUserHooks
       writeHookedBuildInfo "Takusen.buildinfo" (bi, [])
 
 
-makeConfig path libDir includeDir = do
-  libDirs <- canonicalizePath (combine path libDir)
-  includeDirs <- canonicalizePath (combine path includeDir)
-  return
-    (Just emptyBuildInfo
-      { extraLibDirs = [libDirs], includeDirs = [includeDirs] })
-
-isElem program buildtools =
-  or (map match buildtools)
-  where match (Dependency tool _) = (programName program) == tool
-
-createConfigByFindingExe verbose buildtools desc program relativeFolder libDir includeDir = do
-  if not (program `isElem` buildtools)
-    then return Nothing
-    else do
-      mb_location <- programFindLocation program verbose
-      case mb_location of
-        Nothing -> warn verbose ("No " ++ desc ++ " library found") >> return Nothing
-        Just location -> do
-          path <- relativeFolder location
-          info verbose ("Using " ++ desc ++ ": " ++ path)
-          makeConfig path libDir includeDir
-
-
 -- ODBCConf.exe - MDAC install actions - command line?
 odbcConfigProgram = simpleProgram "odbcconf" 
 -- ODBC Admin console - GUI program
@@ -107,22 +72,83 @@ pgConfigProgram   = simpleProgram "pg_config"
 sqlite3Program    = simpleProgram "sqlite3"
 
 
+isWindows = System.Info.os == "mingw32" || System.Info.os == "windows"
 
-sameFolder path = return (fst (splitFileName path))
-parentFolder path = canonicalizePath (fst (splitFileName path) ++ "/..")
+makeConfig path libDir includeDir = do
+  libDirs <- canonicalizePath (combine path libDir)
+  includeDirs <- canonicalizePath (combine path includeDir)
+  return
+    (Just emptyBuildInfo
+      { extraLibDirs = [libDirs], includeDirs = [includeDirs] })
 
-configSqlite3 verbose buildtools =
-   createConfigByFindingExe verbose buildtools "Sqlite" sqlite3Program sameFolder "" ""
+maybeGetEnv :: String -> IO (Maybe String)
+maybeGetEnv env = do
+  catch ( getEnv env >>= return . Just ) ( const (return Nothing) )
 
-configOracle verbose buildtools = 
-  createConfigByFindingExe verbose buildtools "Oracle" sqlplusProgram parentFolder "bin" "oci/include"
+-- Check that the program is in the buildtools.
+-- If it is, then run the action (which should return Maybe BuildInfo).
+-- If not, return Nothing.
+guardProg :: Program -> [Dependency] -> IO (Maybe BuildInfo) -> IO (Maybe BuildInfo)
+guardProg prog tools action = do
+  if prog `isElem` tools then action else return Nothing
+  where
+    isElem program buildtools = or (map (match program) buildtools)
+    match program (Dependency tool _) = (programName program) == tool
+
+-- Run the first action to give a Maybe FilePath.
+-- If this is Nothing then emit a warning about library not found.
+-- Otherwise, run the second action over the FilePath.
+guardPath :: (IO (Maybe FilePath)) -> String -> Verbosity -> (FilePath -> IO (Maybe BuildInfo)) -> IO (Maybe BuildInfo)
+guardPath pathAction libName verbose resAction = do
+  mb <- pathAction
+  case mb of
+    Nothing -> warn verbose ("No " ++libName++ " library found") >> return Nothing
+    Just path -> info verbose ("Using " ++libName++ ": " ++ path) >> resAction path
+
+-- From the Oracle 10g manual:
+--
+-- Appendix D - Getting Started with OCI for Windows:
+--   Compiling OCI Applications for Windows:
+-- http://download.oracle.com/docs/cd/B19306_01/appdev.102/b14250/ociadwin.htm#i634569
+-- Header files are in: ORACLE_BASE\ORACLE_HOME\oci\include
+-- DLLs are in: ORACLE_BASE\ORACLE_HOME\bin
+--
+-- For Unix:
+-- Appendix B - OCI Demonstration Programs:
+-- http://download.oracle.com/docs/cd/B19306_01/appdev.102/b14250/ociabdem.htm#i459676
+-- Header files are in: $ORACLE_HOME/rdbms/public
+-- Header files are in: $ORACLE_HOME/lib
+
+configOracle verbose buildtools = do
+  guardProg sqlplusProgram buildtools $ do
+  guardPath (maybeGetEnv "ORACLE_HOME") "Oracle" verbose $ \path -> do
+  let (libDir, incDir) =
+          if isWindows then ("bin", "oci/include") else ("lib", "rdbms/public")
+  makeConfig path libDir incDir
+
+
+configSqlite3 verbose buildtools = do
+  guardProg sqlite3Program buildtools $ do
+  guardPath (programFindLocation sqlite3Program verbose) "Sqlite3" verbose $ \path -> do
+  makeConfig path "" ""
+
+
+configPG verbose buildtools = do
+  guardProg sqlplusProgram buildtools $ do
+  guardPath (programFindLocation pgConfigProgram verbose) "PostgreSQL" verbose $ \pq_config_path -> do
+  lib_dirs <- rawSystemStdout verbose pq_config_path ["--libdir"]
+  inc_dirs <- rawSystemStdout verbose pq_config_path ["--includedir"]
+  inc_dirs_server <- rawSystemStdout verbose pq_config_path ["--includedir-server"]
+  return ( Just emptyBuildInfo
+    { extraLibDirs = words lib_dirs
+    , includeDirs = words inc_dirs ++ words inc_dirs_server
+    })
+
 
 -- On Windows the ODBC stuff is in c:\windows\system32, which is always in the PATH.
 -- So I think we only need to pass -lodbc32.
 -- The include files are already in the ghc/include/mingw folder.
 -- FIXME: I don't know how this should look for unixODBC.
-
-isWindows = System.Info.os == "mingw32" || System.Info.os == "windows"
 
 configOdbc verbose buildtools | isWindows = do
   info verbose "Using ODBC: <on Windows => lib already in PATH>"
@@ -130,23 +156,3 @@ configOdbc verbose buildtools | isWindows = do
 configOdbc verbose buildtools = do
   --info verbose "Using odbc: <on *nix => assume lib already in PATH>"
   return Nothing
-
-configPG verbose buildtools = do
-  if not (pgConfigProgram `isElem` buildtools)
-    then return Nothing
-    else do
-      mb_location <- programFindLocation pgConfigProgram verbose
-      case mb_location of
-        Nothing -> warn verbose ("No PostgreSQL library found") >> return Nothing
-        Just pq_config_path -> do
-          info verbose ("Using pq: " ++ pq_config_path)
-          res <- rawSystemStdout verbose pq_config_path ["--libdir"]
-          let lib_dirs = words res
-          res <- rawSystemStdout verbose pq_config_path ["--includedir"]
-          let inc_dirs = words res
-          res <- rawSystemStdout verbose pq_config_path ["--includedir-server"]
-          let inc_dirs_server = words res
-          return ( Just emptyBuildInfo
-            { extraLibDirs = lib_dirs
-            , includeDirs = inc_dirs ++ inc_dirs_server
-            })
