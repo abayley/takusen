@@ -13,7 +13,7 @@ Build-type:     Custom
 Cabal-Version:  >= 1.4
 Synopsis:       Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.
 Description:   
-    Takusen is a DBMS access library. Like HSQL, we support
+    Takusen is a DBMS access library. Like HSQL and HDBC, we support
     arbitrary SQL statements (currently strings, extensible to anything
     that can be converted to a string).
     .
@@ -75,7 +75,10 @@ Library
       , Database.Oracle.OCIConstants
       , Database.Oracle.OCIFunctions
     Build-Tools: sqlplus
-    Extra-Libraries: oci
+    If os(windows)
+      Extra-Libraries: oci
+    Else
+      Extra-Libraries: clntsh
 
   If flag(postgres)
     Exposed-modules:
