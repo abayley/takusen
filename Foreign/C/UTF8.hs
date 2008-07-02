@@ -21,6 +21,10 @@
 -- well, you have the original String, so...
 
 
+-- This module has been reasonablt optimised. You can check GHC's
+-- simplifier output (for unboxing, mainly) with this:
+--   ghc -O2 -c UTF8.hs -ddump-simpl > simpl.txt
+
 module Foreign.C.UTF8
   ( peekUTF8String, peekUTF8StringLen
   , newUTF8String, withUTF8String, withUTF8StringLen
@@ -232,8 +236,7 @@ fromUTF8 (x:xs)
       | otherwise = remaining (n-1) ((shiftL x 6) .|. (bAND b 0x3F)) xs
 
 {-
-We should be able to write a version of fromUTF8Ptr which starts at
-the end of the array and works backwards.
+This version of fromUTF8Ptr starts at the end of the array and works backwards.
 This will allow us to create the result String with constant space
 usage. Contrast this with creating the String by processing the array
 from start to end: in this case we would probably use an accumulating
@@ -256,7 +259,7 @@ fromUTF8Ptr0 p = do
 -- bytes=1.
 fromUTF8Ptr :: Int -> Ptr Word8 -> String -> IO String
 fromUTF8Ptr bytes p acc
-  | () `seq` bytes `seq` p `seq` acc `seq` False = undefined
+  | bytes `seq` p `seq` acc `seq` False = undefined
   | bytes < 0 = do
   if null acc then return acc
     else  -- BOM = chr 65279 ( EF BB BF )
@@ -276,7 +279,7 @@ fromUTF8Ptr bytes p acc
 
 readUTF8Char :: Int -> Int -> Ptr Word8 -> IO Char
 readUTF8Char x offset p
-  | () `seq` x `seq` offset `seq` p `seq` False = undefined
+  | x `seq` offset `seq` p `seq` False = undefined
   | otherwise =
   case () of
     _ | x == 0 -> err x
@@ -309,72 +312,3 @@ readUTF8Char x offset p
      | otherwise -> err x
   where
     err x = error ("readUTF8Char: illegal UTF-8 character " ++ show x)
-
-
----------------------------------------------------------------------
--- Unboxed versions - GHC only?
-
-{-
-
--# OPTIONS_GHC -fglasgow-exts #-
-import GHC.Ptr (Ptr(..))
-
-fromUTF8PtrUnboxed :: Int -> Ptr Word8 -> String -> IO String
-fromUTF8PtrUnboxed (I# bytes) (Ptr addr) acc = fromUTF8Ptr# bytes addr acc
-
-
-fromUTF8Ptr# :: Int# -> Addr# -> String -> IO String
-fromUTF8Ptr# offset ptrbase acc
-  | offset <# 0# = return acc
-  | otherwise = do
-  case () of
-    _ | x ==# 0# ->
-          error ("fromUTF8Ptr#: zero byte in string at position " ++ show (I# x))
-      | x <=# 0x7F# -> fromUTF8Ptr# (offset -# 1#) ptrbase ((C# (chr# x)):acc)
-      | x <=# 0xBF# && offset ==# 0# ->
-          error "fromUTF8Ptr#: surrogate at start of string"
-      | x <=# 0xBF# -> fromUTF8Ptr# (offset -# 1#) ptrbase acc
-      | otherwise -> do
-          c <- readUTF8Char# x offset ptrbase
-          fromUTF8Ptr# (offset -# 1#) ptrbase (c:acc)
-  where
-    x = word2Int# (indexWord8OffAddr# ptrbase offset)
-
-
-readUTF8Char# :: Int# -> Int# -> Addr# -> IO Char
-readUTF8Char# x offset p = do
-  case () of
-    _ | x ==# 0# -> err x
-      | x <=# 0x7F# -> return (C# (chr# x))
-      | x <=# 0xBF# -> err x
-      | x <=# 0xDF# -> do
-          let x1 = word2Int# (indexWord8OffAddr# p (offset +# 1#))
-          return
-            (C# (chr# (
-              (uncheckedIShiftL# (x -# 0xC0#) 6#)
-              +# (x1 -# 0x80#)
-            )))
-      | x <=# 0xEF# -> do
-          let x1 = word2Int# (indexWord8OffAddr# p (offset +# 1#))
-          let x2 = word2Int# (indexWord8OffAddr# p (offset +# 2#))
-          return
-            (C# (chr# (
-              (uncheckedIShiftL# (x -# 0xE0#) 12#)
-              +# (uncheckedIShiftL# (x1 -# 0x80#) 6#)
-              +# (x2 -# 0x80#)
-            )))
-      | x <=# 0xF7# -> do
-          let x1 = word2Int# (indexWord8OffAddr# p (offset +# 1#))
-          let x2 = word2Int# (indexWord8OffAddr# p (offset +# 2#))
-          let x3 = word2Int# (indexWord8OffAddr# p (offset +# 3#))
-          return
-            (C# (chr# (
-              (uncheckedIShiftL# (x -# 0xF0#) 18#)
-              +# (uncheckedIShiftL# (x1 -# 0x80#) 12#)
-              +# (uncheckedIShiftL# (x2 -# 0x80#) 6#)
-              +# (x3 -# 0x80#)
-            )))
-      | otherwise -> err x
-  where
-    err x = error ("readUTF8Char: illegal UTF-8 character " ++ show (I# x))
--}
