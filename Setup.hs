@@ -126,12 +126,12 @@ configOracle verbose buildtools = do
           if isWindows then ("bin", "oci/include") else ("lib", "rdbms/public")
   makeConfig path libDir incDir
 
-
 configSqlite3 verbose buildtools = do
   guardProg sqlite3Program buildtools $ do
-  guardPath (programFindLocation sqlite3Program verbose) "Sqlite3" verbose $ \path -> do
-  makeConfig path "" ""
-
+    if isWindows
+      then guardPath (programFindLocation sqlite3Program verbose) "Sqlite3" verbose $ \path -> do
+        makeConfig path "" ""
+      else return (Just emptyBuildInfo)
 
 configPG verbose buildtools = do
   guardProg sqlplusProgram buildtools $ do
