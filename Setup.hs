@@ -28,7 +28,9 @@ See this page for useful notes on tagging and releasing:
   http://www.haskell.org/haskellwiki/How_to_write_a_Haskell_program
 
 To-dos for Takusen:
+ - Oracle resource leak: Ref Cursors (StmtHandles) not freed
  - Out bind parameters for ODBC
+ - Multiple result-sets from ODBC procedure call
  - better result-set <-> iteratee validation. Check column types?
  - use hsc2hs to create #define constants from header files,
    rather than hard-code them.
@@ -131,7 +133,7 @@ configSqlite3 verbose buildtools = do
     if isWindows
       then guardPath (programFindLocation sqlite3Program verbose) "Sqlite3" verbose $ \path -> do
         makeConfig path "" ""
-      else return (Just emptyBuildInfo)
+      else return Nothing
 
 configPG verbose buildtools = do
   guardProg sqlplusProgram buildtools $ do
