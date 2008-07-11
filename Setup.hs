@@ -16,7 +16,7 @@ import Distribution.Verbosity (Verbosity)
 import qualified System.Info (os)
 import System.Directory (canonicalizePath, removeFile)
 import System.Environment (getEnv)
-import System.FilePath (combine, FilePath)
+import System.FilePath (combine, dropFileName, FilePath)
 import System.IO.Error (try)
 import Data.Maybe (fromJust)
 import Data.Monoid (mconcat)
@@ -132,7 +132,7 @@ configSqlite3 verbose buildtools = do
   guardProg sqlite3Program buildtools $ do
     if isWindows
       then guardPath (programFindLocation sqlite3Program verbose) "Sqlite3" verbose $ \path -> do
-        makeConfig path "" ""
+        makeConfig (dropFileName path) "" ""
       else return Nothing
 
 configPG verbose buildtools = do
