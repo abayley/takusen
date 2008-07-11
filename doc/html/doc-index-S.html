@@ -4,7 +4,7 @@
 ><HEAD
 ><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8"
 ><TITLE
->Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC. (Index)</TITLE
+>Takusen-0.8.2: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC. (Index)</TITLE
 ><LINK HREF="haddock.css" REL="stylesheet" TYPE="text/css"
 ></HEAD
 ><BODY
@@ -17,7 +17,7 @@
 ><IMG SRC="haskell_icon.gif" WIDTH="16" HEIGHT="16" ALT=" "
 ></TD
 ><TD CLASS="title"
->Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
+>Takusen-0.8.2: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
 ><TD CLASS="topbut"
 ><A HREF="index.html"
 >Contents</A
@@ -133,9 +133,7 @@
 ><TD CLASS="indexentry"
 >Serialisable</TD
 ><TD CLASS="indexlinks"
-><A HREF="Database-InternalEnumerator.html#v%3ASerialisable"
->Database.InternalEnumerator</A
->, <A HREF="Database-Enumerator.html#v%3ASerialisable"
+><A HREF="Database-Enumerator.html#v%3ASerialisable"
 >Database.Enumerator</A
 >, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
@@ -143,9 +141,7 @@
 ><TD CLASS="indexentry"
 >Serializable</TD
 ><TD CLASS="indexlinks"
-><A HREF="Database-InternalEnumerator.html#v%3ASerializable"
->Database.InternalEnumerator</A
->, <A HREF="Database-Enumerator.html#v%3ASerializable"
+><A HREF="Database-Enumerator.html#v%3ASerializable"
 >Database.Enumerator</A
 >, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
@@ -283,6 +279,14 @@
 ></TR
 ><TR
 ><TD CLASS="indexentry"
+>SqlInfoType</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInfoType"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
 >SqlInteger</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInteger"
@@ -325,25 +329,25 @@
 ><TD CLASS="indexentry"
 >SqlState</TD
 ><TD CLASS="indexlinks"
-><A HREF="Database-InternalEnumerator.html#t%3ASqlState"
->Database.InternalEnumerator</A
-></TD
+><A HREF="Database-Enumerator.html#t%3ASqlState"
+>Database.Enumerator</A
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexentry"
 >SqlStateClass</TD
 ><TD CLASS="indexlinks"
-><A HREF="Database-InternalEnumerator.html#t%3ASqlStateClass"
->Database.InternalEnumerator</A
-></TD
+><A HREF="Database-Enumerator.html#t%3ASqlStateClass"
+>Database.Enumerator</A
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexentry"
 >SqlStateSubClass</TD
 ><TD CLASS="indexlinks"
-><A HREF="Database-InternalEnumerator.html#t%3ASqlStateSubClass"
->Database.InternalEnumerator</A
-></TD
+><A HREF="Database-Enumerator.html#t%3ASqlStateSubClass"
+>Database.Enumerator</A
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexentry"
@@ -401,9 +405,9 @@
 ><TD CLASS="indexentry"
 >Statement</TD
 ><TD CLASS="indexlinks"
-><A HREF="Database-InternalEnumerator.html#t%3AStatement"
->Database.InternalEnumerator</A
-></TD
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Database.Enumerator</A
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexentry" COLSPAN="2"
@@ -419,7 +423,15 @@
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->2 (Type/Class)</TD
+>2 (Data Constructor)</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AStmtHandle"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>3 (Type/Class)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
 >Database.Oracle.OCIFunctions</A
@@ -429,10 +441,18 @@
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->3 (Type/Class)</TD
+>4 (Type/Class)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >Database.Sqlite.SqliteFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>StmtHdl</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHdl"
+>Database.ODBC.OdbcFunctions</A
 ></TD
 ></TR
 ><TR
@@ -725,6 +745,14 @@
 ></TR
 ><TR
 ><TD CLASS="indexentry"
+>sqlDescribeCol</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlDescribeCol"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
 >sqlDisconnect</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlDisconnect"
@@ -797,9 +825,25 @@
 ></TR
 ><TR
 ><TD CLASS="indexentry"
+>sqlGetInfo</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlGetInfo"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
 >sqlMoreResults</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlMoreResults"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sqlNativeSql</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlNativeSql"
 >Database.ODBC.OdbcFunctions</A
 ></TD
 ></TR
@@ -816,6 +860,14 @@
 >sqlNullTermedString</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlNullTermedString"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>sqlNumResultCols</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AsqlNumResultCols"
 >Database.ODBC.OdbcFunctions</A
 ></TD
 ></TR
@@ -1160,6 +1212,14 @@
 ></TD
 ></TR
 ><TR
+><TD CLASS="indexentry"
+>stmtDbms</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AstmtDbms"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
 ><TD CLASS="indexentry" COLSPAN="2"
 >stmtExec</TD
 ></TR
@@ -1257,6 +1317,14 @@
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Sqlite-SqliteFunctions.html#v%3AstmtFinalise"
 >Database.Sqlite.SqliteFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>stmtHdl</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AstmtHdl"
+>Database.ODBC.OdbcFunctions</A
 ></TD
 ></TR
 ><TR

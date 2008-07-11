@@ -19,7 +19,7 @@
 ><IMG SRC="haskell_icon.gif" WIDTH="16" HEIGHT="16" ALT=" "
 ></TD
 ><TD CLASS="title"
->Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
+>Takusen-0.8.2: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
 ><TD CLASS="topbut"
 ><A HREF="index.html"
 >Contents</A
@@ -124,9 +124,7 @@
 >type</SPAN
 > <A HREF="#t%3AHandle"
 >Handle</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3AHandleObj"
+> = Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3AHandleObj"
 >HandleObj</A
 ></TD
 ></TR
@@ -154,9 +152,7 @@
 >type</SPAN
 > <A HREF="#t%3AEnvHandle"
 >EnvHandle</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3AEnvObj"
+> = Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3AEnvObj"
 >EnvObj</A
 ></TD
 ></TR
@@ -182,13 +178,41 @@
 ><TD CLASS="decl"
 ><SPAN CLASS="keyword"
 >type</SPAN
-> <A HREF="#t%3AConnHandle"
->ConnHandle</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnObj"
+> <A HREF="#t%3AConnHdl"
+>ConnHdl</A
+> = Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnObj"
 >ConnObj</A
 ></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3AConnHandle"
+>ConnHandle</A
+>  = <A HREF="#v%3AConnHandle"
+>ConnHandle</A
+> {<TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="recfield"
+><A HREF="#v%3AconnHdl"
+>connHdl</A
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHdl"
+>ConnHdl</A
+></TD
+></TR
+><TR
+><TD CLASS="recfield"
+><A HREF="#v%3AconnDbms"
+>connDbms</A
+> :: String</TD
+></TR
+></TABLE
+>}</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -212,13 +236,41 @@
 ><TD CLASS="decl"
 ><SPAN CLASS="keyword"
 >type</SPAN
-> <A HREF="#t%3AStmtHandle"
->StmtHandle</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtObj"
+> <A HREF="#t%3AStmtHdl"
+>StmtHdl</A
+> = Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtObj"
 >StmtObj</A
 ></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3AStmtHandle"
+>StmtHandle</A
+>  = <A HREF="#v%3AStmtHandle"
+>StmtHandle</A
+> {<TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="recfield"
+><A HREF="#v%3AstmtHdl"
+>stmtHdl</A
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHdl"
+>StmtHdl</A
+></TD
+></TR
+><TR
+><TD CLASS="recfield"
+><A HREF="#v%3AstmtDbms"
+>stmtDbms</A
+> :: String</TD
+></TR
+></TABLE
+>}</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -230,9 +282,7 @@
 >type</SPAN
 > <A HREF="#t%3AWindowHandle"
 >WindowHandle</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> ()</TD
+> = Ptr ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -258,9 +308,7 @@
 >type</SPAN
 > <A HREF="#t%3ABufferFPtr"
 >BufferFPtr</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-ForeignPtr.html#t%3AForeignPtr"
->ForeignPtr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABuffer"
+> = ForeignPtr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABuffer"
 >Buffer</A
 ></TD
 ></TR
@@ -274,11 +322,33 @@
 >type</SPAN
 > <A HREF="#t%3ASizeFPtr"
 >SizeFPtr</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-ForeignPtr.html#t%3AForeignPtr"
->ForeignPtr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
+> = ForeignPtr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
 >SqlLen</A
 ></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3AMyCString"
+>MyCString</A
+> = CString</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3AMyCStringLen"
+>MyCStringLen</A
+> = CStringLen</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -330,9 +400,7 @@
 >type</SPAN
 > <A HREF="#t%3ASqlInteger"
 >SqlInteger</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt32"
->Int32</A
-></TD
+> = Int32</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -344,9 +412,7 @@
 >type</SPAN
 > <A HREF="#t%3ASqlUInteger"
 >SqlUInteger</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord32"
->Word32</A
-></TD
+> = Word32</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -358,9 +424,7 @@
 >type</SPAN
 > <A HREF="#t%3ASqlSmallInt"
 >SqlSmallInt</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt16"
->Int16</A
-></TD
+> = Int16</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -372,9 +436,7 @@
 >type</SPAN
 > <A HREF="#t%3ASqlUSmallInt"
 >SqlUSmallInt</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord16"
->Word16</A
-></TD
+> = Word16</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -386,9 +448,7 @@
 >type</SPAN
 > <A HREF="#t%3ASqlLen"
 >SqlLen</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt32"
->Int32</A
-></TD
+> = Int32</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -400,9 +460,7 @@
 >type</SPAN
 > <A HREF="#t%3ASqlULen"
 >SqlULen</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord32"
->Word32</A
-></TD
+> = Word32</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -472,6 +530,20 @@
 >SqlParamDirection</A
 > = <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
 >SqlSmallInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3ASqlInfoType"
+>SqlInfoType</A
+> = <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUSmallInt"
+>SqlUSmallInt</A
 ></TD
 ></TR
 ><TR
@@ -570,13 +642,7 @@
 >OdbcException</A
 >  = <A HREF="#v%3AOdbcException"
 >OdbcException</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> [<A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcException"
+> Int String String [<A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcException"
 >OdbcException</A
 >]</TD
 ></TR
@@ -588,15 +654,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AcatchOdbc"
 >catchOdbc</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a -&gt; (<A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcException"
+> :: IO a -&gt; (<A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcException"
 >OdbcException</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> -&gt; IO a) -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -616,34 +676,6 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><SPAN CLASS="keyword"
->type</SPAN
-> <A HREF="#t%3AMyCString"
->MyCString</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-></TD
-></TR
-><TR
-><TD CLASS="s8"
-></TD
-></TR
-><TR
-><TD CLASS="decl"
-><SPAN CLASS="keyword"
->type</SPAN
-> <A HREF="#t%3AMyCStringLen"
->MyCStringLen</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACStringLen"
->CStringLen</A
-></TD
-></TR
-><TR
-><TD CLASS="s8"
-></TD
-></TR
-><TR
-><TD CLASS="decl"
 ><A HREF="#v%3AgetDiagRec"
 >getDiagRec</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
@@ -654,9 +686,7 @@
 >Handle</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
 >SqlSmallInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> [<A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcException"
+> -&gt; IO [<A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcException"
 >OdbcException</A
 >]</TD
 ></TR
@@ -674,9 +704,7 @@
 >SqlHandleType</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AHandle"
 >Handle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -686,15 +714,11 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AallocHdl"
 >allocHdl</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Storable.html#t%3AStorable"
->Storable</A
-> a =&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AHandle"
+> :: Storable a =&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AHandle"
 >Handle</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlHandleType"
 >SqlHandleType</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -704,9 +728,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AallocEnv"
 >allocEnv</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3AEnvHandle"
+> :: IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3AEnvHandle"
 >EnvHandle</A
 ></TD
 ></TR
@@ -720,9 +742,7 @@
 >allocConn</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AEnvHandle"
 >EnvHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
 >ConnHandle</A
 ></TD
 ></TR
@@ -736,9 +756,7 @@
 >allocStmt</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
 >ConnHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
 ></TD
 ></TR
@@ -748,15 +766,13 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="#v%3AfreeHelper"
->freeHelper</A
+><A HREF="#v%3AfreeHandle"
+>freeHandle</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlHandleType"
 >SqlHandleType</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AHandle"
 >Handle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -768,9 +784,7 @@
 >freeEnv</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AEnvHandle"
 >EnvHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -782,9 +796,7 @@
 >freeConn</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
 >ConnHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -796,9 +808,7 @@
 >freeStmt</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -810,9 +820,7 @@
 >int2Ptr</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInteger"
 >SqlInteger</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> ()</TD
+> -&gt; Ptr ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -824,9 +832,7 @@
 >setOdbcVer</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AEnvHandle"
 >EnvHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -838,13 +844,7 @@
 >connect</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
 >ConnHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> -&gt; String -&gt; IO String</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -856,9 +856,7 @@
 >disconnect</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
 >ConnHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -870,11 +868,7 @@
 >prepareStmt</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; String -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -886,9 +880,7 @@
 >executeStmt</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -900,9 +892,7 @@
 >closeCursor</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -914,11 +904,7 @@
 >rowCount</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> -&gt; IO Int</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -930,11 +916,7 @@
 >fetch</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Bool.html#t%3ABool"
->Bool</A
-></TD
+> -&gt; IO Bool</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -946,11 +928,7 @@
 >moreResults</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Bool.html#t%3ABool"
->Bool</A
-></TD
+> -&gt; IO Bool</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -962,9 +940,7 @@
 >commit</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
 >ConnHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -976,9 +952,7 @@
 >rollback</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
 >ConnHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -990,9 +964,7 @@
 >setAutoCommitOn</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
 >ConnHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1004,9 +976,7 @@
 >setAutoCommitOff</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
 >ConnHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1020,9 +990,93 @@
 >ConnHandle</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInteger"
 >SqlInteger</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AgetInfoString"
+>getInfoString</A
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInfoType"
+>SqlInfoType</A
+> -&gt; IO String</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AgetInfoDbmsName"
+>getInfoDbmsName</A
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; IO String</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AgetInfoDbmsVer"
+>getInfoDbmsVer</A
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; IO String</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AgetInfoDatabaseName"
+>getInfoDatabaseName</A
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; IO String</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AgetInfoDriverName"
+>getInfoDriverName</A
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; IO String</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AgetInfoDriverVer"
+>getInfoDriverVer</A
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; IO String</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AgetNativeSql"
+>getNativeSql</A
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; String -&gt; IO String</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1032,25 +1086,11 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AgetMaybeFromBuffer"
 >getMaybeFromBuffer</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Storable.html#t%3AStorable"
->Storable</A
-> a =&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
+> :: Storable a =&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
 >SqlLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a -&gt; (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
+> -&gt; Ptr a -&gt; (Ptr a -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
 >SqlLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> b) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> b)</TD
+> -&gt; IO b) -&gt; IO (Maybe b)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1060,21 +1100,11 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AgetDataStorable"
 >getDataStorable</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Storable.html#t%3AStorable"
->Storable</A
-> a =&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
+> :: Storable a =&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlDataType"
+> -&gt; Int -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlDataType"
 >SqlDataType</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; (a -&gt; b) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> b)</TD
+> -&gt; Int -&gt; (a -&gt; b) -&gt; IO (Maybe b)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1086,15 +1116,7 @@
 >getDataUtcTime</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
->)</TD
+> -&gt; Int -&gt; IO (Maybe UTCTime)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1106,15 +1128,7 @@
 >getDataCStringLen</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACStringLen"
->CStringLen</A
->)</TD
+> -&gt; Int -&gt; IO (Maybe CStringLen)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1126,15 +1140,7 @@
 >getDataUTF8String</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->)</TD
+> -&gt; Int -&gt; IO (Maybe String)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1146,15 +1152,7 @@
 >getDataCString</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->)</TD
+> -&gt; Int -&gt; IO (Maybe String)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1164,13 +1162,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3ApeekSmallInt"
 >peekSmallInt</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
+> :: Ptr a -&gt; Int -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
 >SqlSmallInt</A
 ></TD
 ></TR
@@ -1182,13 +1174,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3ApeekUSmallInt"
 >peekUSmallInt</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUSmallInt"
+> :: Ptr a -&gt; Int -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUSmallInt"
 >SqlUSmallInt</A
 ></TD
 ></TR
@@ -1200,13 +1186,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3ApeekUInteger"
 >peekUInteger</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUInteger"
+> :: Ptr a -&gt; Int -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUInteger"
 >SqlUInteger</A
 ></TD
 ></TR
@@ -1218,15 +1198,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AreadUtcTimeFromMemory"
 >readUtcTimeFromMemory</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-></TD
+> :: Ptr Word8 -&gt; IO UTCTime</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1238,15 +1210,11 @@
 >bindColumnBuffer</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlDataType"
+> -&gt; Int -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlDataType"
 >SqlDataType</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
 >SqlLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -1260,9 +1228,7 @@
 >createEmptyBuffer</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
 >SqlLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -1276,19 +1242,11 @@
 >testForNull</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
-> -&gt; (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABuffer"
+> -&gt; (Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABuffer"
 >Buffer</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
 >SqlLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> a)</TD
+> -&gt; IO a) -&gt; IO (Maybe a)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1298,15 +1256,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AgetStorableFromBuffer"
 >getStorableFromBuffer</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Storable.html#t%3AStorable"
->Storable</A
-> a =&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> :: Storable a =&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> a)</TD
+> -&gt; IO (Maybe a)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1318,13 +1270,7 @@
 >getCAStringFromBuffer</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->)</TD
+> -&gt; IO (Maybe String)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1336,13 +1282,7 @@
 >getCWStringFromBuffer</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->)</TD
+> -&gt; IO (Maybe String)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1354,13 +1294,7 @@
 >getUTF8StringFromBuffer</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->)</TD
+> -&gt; IO (Maybe String)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1372,13 +1306,7 @@
 >getUtcTimeFromBuffer</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
->)</TD
+> -&gt; IO (Maybe UTCTime)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1388,13 +1316,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AcreateBufferForStorable"
 >createBufferForStorable</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Storable.html#t%3AStorable"
->Storable</A
-> a =&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> :: Storable a =&gt; Maybe a -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -1406,13 +1328,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AcreateBufferHelper"
 >createBufferHelper</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Storable.html#t%3AStorable"
->Storable</A
-> a =&gt; a -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
+> :: Storable a =&gt; a -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
 >SqlLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> -&gt; Int -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -1424,13 +1342,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AwrapSizedBuffer"
 >wrapSizedBuffer</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
+> :: Ptr a -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
 >SqlLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> -&gt; Int -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -1444,9 +1358,7 @@
 >bindParam</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
+> -&gt; Int -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
 >SqlParamDirection</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlCDataType"
 >SqlCDataType</A
@@ -1458,9 +1370,7 @@
 >SqlSmallInt</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1472,17 +1382,13 @@
 >bindNull</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
+> -&gt; Int -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
 >SqlParamDirection</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlCDataType"
 >SqlCDataType</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlDataType"
 >SqlDataType</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -1496,17 +1402,9 @@
 >bindParamCStringLen</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
+> -&gt; Int -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
 >SqlParamDirection</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACStringLen"
->CStringLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> -&gt; Maybe CStringLen -&gt; Int -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -1520,31 +1418,13 @@
 >bindEncodedString</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
+> -&gt; Int -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
 >SqlParamDirection</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; ((<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> -&gt; Maybe String -&gt; (String -&gt; ((Ptr a, Int) -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
->) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+>) -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
->) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+>) -&gt; Int -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -1558,17 +1438,9 @@
 >bindParamUTF8String</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
+> -&gt; Int -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
 >SqlParamDirection</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> -&gt; Maybe String -&gt; Int -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -1582,17 +1454,9 @@
 >bindParamCAString</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
+> -&gt; Int -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
 >SqlParamDirection</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> -&gt; Maybe String -&gt; Int -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -1606,17 +1470,9 @@
 >bindParamCWString</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
+> -&gt; Int -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
 >SqlParamDirection</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> -&gt; Maybe String -&gt; Int -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -1628,15 +1484,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3ApokeSmallInt"
 >pokeSmallInt</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
+> :: Ptr a -&gt; Int -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
 >SqlSmallInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1646,15 +1496,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3ApokeUSmallInt"
 >pokeUSmallInt</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUSmallInt"
+> :: Ptr a -&gt; Int -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUSmallInt"
 >SqlUSmallInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1664,15 +1508,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3ApokeUInteger"
 >pokeUInteger</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUInteger"
+> :: Ptr a -&gt; Int -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUInteger"
 >SqlUInteger</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1682,15 +1520,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AwriteUTCTimeToMemory"
 >writeUTCTimeToMemory</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> :: Ptr Word8 -&gt; UTCTime -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1700,11 +1530,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AmakeUtcTimeBuffer"
 >makeUtcTimeBuffer</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> :: UTCTime -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -1716,11 +1542,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AmakeUtcTimeStringBuffer"
 >makeUtcTimeStringBuffer</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> :: UTCTime -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -1734,17 +1556,9 @@
 >bindParamUtcTime</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
+> -&gt; Int -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
 >SqlParamDirection</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> -&gt; Maybe UTCTime -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -1758,13 +1572,7 @@
 >sizeOfMaybe</A
 > :: <SPAN CLASS="keyword"
 >forall</SPAN
-> a . <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Storable.html#t%3AStorable"
->Storable</A
-> a =&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> a . Storable a =&gt; Maybe a -&gt; Int</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1817,13 +1625,7 @@
 >bindColBuffer</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> -&gt; Int -&gt; Int -&gt; a -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -1833,9 +1635,7 @@
 >getFromBuffer</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -1843,11 +1643,7 @@
 >getData</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> -&gt; Int -&gt; IO a</TD
 ></TR
 ></TABLE
 ></TD
@@ -1875,11 +1671,7 @@
 >bindParamBuffer</A
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> -&gt; Int -&gt; a -&gt; Int -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -1898,13 +1690,9 @@
 >SqlHandleType</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AHandle"
 >Handle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3AHandle"
+> -&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3AHandle"
 >Handle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
 >SqlReturn</A
 ></TD
 ></TR
@@ -1920,9 +1708,7 @@
 >SqlSmallInt</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AHandle"
 >Handle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
 >SqlReturn</A
 ></TD
 ></TR
@@ -1942,21 +1728,15 @@
 >SqlSmallInt</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AMyCString"
 >MyCString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInteger"
+> -&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInteger"
 >SqlInteger</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AMyCString"
 >MyCString</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
 >SqlSmallInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
+> -&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
 >SqlSmallInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
 >SqlReturn</A
 ></TD
 ></TR
@@ -1968,8 +1748,8 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AsqlDriverConnect"
 >sqlDriverConnect</A
-> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
->ConnHandle</A
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHdl"
+>ConnHdl</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AWindowHandle"
 >WindowHandle</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AMyCString"
@@ -1980,15 +1760,11 @@
 >MyCString</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
 >SqlSmallInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
+> -&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
 >SqlSmallInt</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUSmallInt"
 >SqlUSmallInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
 >SqlReturn</A
 ></TD
 ></TR
@@ -2000,11 +1776,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AsqlDisconnect"
 >sqlDisconnect</A
-> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
->ConnHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHdl"
+>ConnHdl</A
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
 >SqlReturn</A
 ></TD
 ></TR
@@ -2020,13 +1794,9 @@
 >EnvHandle</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInteger"
 >SqlInteger</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> () -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInteger"
+> -&gt; Ptr () -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInteger"
 >SqlInteger</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
 >SqlReturn</A
 ></TD
 ></TR
@@ -2038,17 +1808,13 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AsqlSetConnectAttr"
 >sqlSetConnectAttr</A
-> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
->ConnHandle</A
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHdl"
+>ConnHdl</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInteger"
 >SqlInteger</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> () -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInteger"
+> -&gt; Ptr () -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInteger"
 >SqlInteger</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
 >SqlReturn</A
 ></TD
 ></TR
@@ -2060,143 +1826,13 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AsqlPrepare"
 >sqlPrepare</A
-> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
->StmtHandle</A
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHdl"
+>StmtHdl</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AMyCString"
 >MyCString</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInteger"
 >SqlInteger</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
->SqlReturn</A
-></TD
-></TR
-><TR
-><TD CLASS="s8"
-></TD
-></TR
-><TR
-><TD CLASS="decl"
-><A HREF="#v%3AsqlExecute"
->sqlExecute</A
-> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
->StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
->SqlReturn</A
-></TD
-></TR
-><TR
-><TD CLASS="s8"
-></TD
-></TR
-><TR
-><TD CLASS="decl"
-><A HREF="#v%3AsqlCloseCursor"
->sqlCloseCursor</A
-> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
->StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
->SqlReturn</A
-></TD
-></TR
-><TR
-><TD CLASS="s8"
-></TD
-></TR
-><TR
-><TD CLASS="decl"
-><A HREF="#v%3AsqlRowCount"
->sqlRowCount</A
-> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
->StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
->SqlLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
->SqlReturn</A
-></TD
-></TR
-><TR
-><TD CLASS="s8"
-></TD
-></TR
-><TR
-><TD CLASS="decl"
-><A HREF="#v%3AsqlGetData"
->sqlGetData</A
-> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
->StmtHandle</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUSmallInt"
->SqlUSmallInt</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlDataType"
->SqlDataType</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABuffer"
->Buffer</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
->SqlLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
->SqlLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
->SqlReturn</A
-></TD
-></TR
-><TR
-><TD CLASS="s8"
-></TD
-></TR
-><TR
-><TD CLASS="decl"
-><A HREF="#v%3AsqlBindCol"
->sqlBindCol</A
-> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
->StmtHandle</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUSmallInt"
->SqlUSmallInt</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlDataType"
->SqlDataType</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABuffer"
->Buffer</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
->SqlLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
->SqlLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
->SqlReturn</A
-></TD
-></TR
-><TR
-><TD CLASS="s8"
-></TD
-></TR
-><TR
-><TD CLASS="decl"
-><A HREF="#v%3AsqlFetch"
->sqlFetch</A
-> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
->StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
 >SqlReturn</A
 ></TD
 ></TR
@@ -2208,8 +1844,8 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AsqlBindParameter"
 >sqlBindParameter</A
-> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
->StmtHandle</A
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHdl"
+>StmtHdl</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUSmallInt"
 >SqlUSmallInt</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
@@ -2222,19 +1858,165 @@
 >SqlULen</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
 >SqlSmallInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABuffer"
+> -&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABuffer"
 >Buffer</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
 >SqlLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
+> -&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
 >SqlLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+>SqlReturn</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AsqlExecute"
+>sqlExecute</A
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHdl"
+>StmtHdl</A
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+>SqlReturn</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AsqlNumResultCols"
+>sqlNumResultCols</A
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHdl"
+>StmtHdl</A
+> -&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
+>SqlSmallInt</A
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+>SqlReturn</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AsqlRowCount"
+>sqlRowCount</A
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHdl"
+>StmtHdl</A
+> -&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
+>SqlLen</A
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+>SqlReturn</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AsqlDescribeCol"
+>sqlDescribeCol</A
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHdl"
+>StmtHdl</A
+> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUSmallInt"
+>SqlUSmallInt</A
+> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AMyCString"
+>MyCString</A
+> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
+>SqlSmallInt</A
+> -&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
+>SqlSmallInt</A
+> -&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlDataType"
+>SqlDataType</A
+> -&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlULen"
+>SqlULen</A
+> -&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
+>SqlSmallInt</A
+> -&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
+>SqlSmallInt</A
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+>SqlReturn</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AsqlBindCol"
+>sqlBindCol</A
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHdl"
+>StmtHdl</A
+> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUSmallInt"
+>SqlUSmallInt</A
+> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlDataType"
+>SqlDataType</A
+> -&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABuffer"
+>Buffer</A
+> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
+>SqlLen</A
+> -&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
+>SqlLen</A
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+>SqlReturn</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AsqlFetch"
+>sqlFetch</A
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHdl"
+>StmtHdl</A
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+>SqlReturn</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AsqlGetData"
+>sqlGetData</A
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHdl"
+>StmtHdl</A
+> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUSmallInt"
+>SqlUSmallInt</A
+> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlDataType"
+>SqlDataType</A
+> -&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABuffer"
+>Buffer</A
+> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
+>SqlLen</A
+> -&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
+>SqlLen</A
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+>SqlReturn</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AsqlCloseCursor"
+>sqlCloseCursor</A
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHdl"
+>StmtHdl</A
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
 >SqlReturn</A
 ></TD
 ></TR
@@ -2246,11 +2028,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AsqlMoreResults"
 >sqlMoreResults</A
-> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
->StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHdl"
+>StmtHdl</A
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
 >SqlReturn</A
 ></TD
 ></TR
@@ -2268,9 +2048,53 @@
 >Handle</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
 >SqlSmallInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+>SqlReturn</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AsqlGetInfo"
+>sqlGetInfo</A
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHdl"
+>ConnHdl</A
+> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInfoType"
+>SqlInfoType</A
+> -&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABuffer"
+>Buffer</A
+> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
+>SqlSmallInt</A
+> -&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
+>SqlSmallInt</A
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+>SqlReturn</A
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AsqlNativeSql"
+>sqlNativeSql</A
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHdl"
+>ConnHdl</A
+> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AMyCString"
+>MyCString</A
+> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInteger"
+>SqlInteger</A
+> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AMyCString"
+>MyCString</A
+> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInteger"
+>SqlInteger</A
+> -&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInteger"
+>SqlInteger</A
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
 >SqlReturn</A
 ></TD
 ></TR
@@ -2337,9 +2161,7 @@
 ></A
 ><B
 >Handle</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3AHandleObj"
+> = Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3AHandleObj"
 >HandleObj</A
 ></TD
 ></TR
@@ -2395,9 +2217,7 @@
 ></A
 ><B
 >EnvHandle</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3AEnvObj"
+> = Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3AEnvObj"
 >EnvObj</A
 ></TD
 ></TR
@@ -2449,14 +2269,80 @@
 ><TD CLASS="decl"
 ><SPAN CLASS="keyword"
 >type</SPAN
+> <A NAME="t%3AConnHdl"
+></A
+><B
+>ConnHdl</B
+> = Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnObj"
+>ConnObj</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
 > <A NAME="t%3AConnHandle"
 ></A
 ><B
 >ConnHandle</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnObj"
->ConnObj</A
+> </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="5" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3AConnHandle"
+></A
+><B
+>ConnHandle</B
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="body" COLSPAN="2"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3AconnHdl"
+></A
+><B
+>connHdl</B
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHdl"
+>ConnHdl</A
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+><A NAME="v%3AconnDbms"
+></A
+><B
+>connDbms</B
+> :: String</TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
 ></TD
 ></TR
 ><TR
@@ -2507,14 +2393,80 @@
 ><TD CLASS="decl"
 ><SPAN CLASS="keyword"
 >type</SPAN
+> <A NAME="t%3AStmtHdl"
+></A
+><B
+>StmtHdl</B
+> = Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtObj"
+>StmtObj</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
 > <A NAME="t%3AStmtHandle"
 ></A
 ><B
 >StmtHandle</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtObj"
->StmtObj</A
+> </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="5" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3AStmtHandle"
+></A
+><B
+>StmtHandle</B
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="body" COLSPAN="2"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3AstmtHdl"
+></A
+><B
+>stmtHdl</B
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHdl"
+>StmtHdl</A
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+><A NAME="v%3AstmtDbms"
+></A
+><B
+>stmtDbms</B
+> :: String</TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
+></TD
+></TR
+></TABLE
 ></TD
 ></TR
 ><TR
@@ -2529,9 +2481,7 @@
 ></A
 ><B
 >WindowHandle</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> ()</TD
+> = Ptr ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2585,9 +2535,7 @@
 ></A
 ><B
 >BufferFPtr</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-ForeignPtr.html#t%3AForeignPtr"
->ForeignPtr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABuffer"
+> = ForeignPtr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABuffer"
 >Buffer</A
 ></TD
 ></TR
@@ -2603,11 +2551,37 @@
 ></A
 ><B
 >SizeFPtr</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-ForeignPtr.html#t%3AForeignPtr"
->ForeignPtr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
+> = ForeignPtr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
 >SqlLen</A
 ></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3AMyCString"
+></A
+><B
+>MyCString</B
+> = CString</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3AMyCStringLen"
+></A
+><B
+>MyCStringLen</B
+> = CStringLen</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2703,9 +2677,7 @@
 ></A
 ><B
 >SqlInteger</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt32"
->Int32</A
-></TD
+> = Int32</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2719,9 +2691,7 @@
 ></A
 ><B
 >SqlUInteger</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord32"
->Word32</A
-></TD
+> = Word32</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2735,9 +2705,7 @@
 ></A
 ><B
 >SqlSmallInt</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt16"
->Int16</A
-></TD
+> = Int16</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2751,9 +2719,7 @@
 ></A
 ><B
 >SqlUSmallInt</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord16"
->Word16</A
-></TD
+> = Word16</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2767,9 +2733,7 @@
 ></A
 ><B
 >SqlLen</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt32"
->Int32</A
-></TD
+> = Int32</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2783,9 +2747,7 @@
 ></A
 ><B
 >SqlULen</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord32"
->Word32</A
-></TD
+> = Word32</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2865,6 +2827,22 @@
 >SqlParamDirection</B
 > = <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
 >SqlSmallInt</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3ASqlInfoType"
+></A
+><B
+>SqlInfoType</B
+> = <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUSmallInt"
+>SqlUSmallInt</A
 ></TD
 ></TR
 ><TR
@@ -2995,13 +2973,7 @@
 ></A
 ><B
 >OdbcException</B
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> [<A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcException"
+> Int String String [<A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcException"
 >OdbcException</A
 >]</TD
 ><TD CLASS="rdoc"
@@ -3021,17 +2993,13 @@
 ><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
 ><TR
 ><TD CLASS="decl"
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Text-Show.html#t%3AShow"
->Show</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcException"
+>Show <A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcException"
 >OdbcException</A
 ></TD
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Typeable.html#t%3ATypeable"
->Typeable</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcException"
+>Typeable <A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcException"
 >OdbcException</A
 ></TD
 ></TR
@@ -3052,15 +3020,9 @@
 ></A
 ><B
 >catchOdbc</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a -&gt; (<A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcException"
+> :: IO a -&gt; (<A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcException"
 >OdbcException</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> -&gt; IO a) -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3082,38 +3044,6 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><SPAN CLASS="keyword"
->type</SPAN
-> <A NAME="t%3AMyCString"
-></A
-><B
->MyCString</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-></TD
-></TR
-><TR
-><TD CLASS="s15"
-></TD
-></TR
-><TR
-><TD CLASS="decl"
-><SPAN CLASS="keyword"
->type</SPAN
-> <A NAME="t%3AMyCStringLen"
-></A
-><B
->MyCStringLen</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACStringLen"
->CStringLen</A
-></TD
-></TR
-><TR
-><TD CLASS="s15"
-></TD
-></TR
-><TR
-><TD CLASS="decl"
 ><A NAME="v%3AgetDiagRec"
 ></A
 ><B
@@ -3126,9 +3056,7 @@
 >Handle</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
 >SqlSmallInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> [<A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcException"
+> -&gt; IO [<A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcException"
 >OdbcException</A
 >]</TD
 ></TR
@@ -3148,9 +3076,7 @@
 >SqlHandleType</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AHandle"
 >Handle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3162,15 +3088,11 @@
 ></A
 ><B
 >allocHdl</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Storable.html#t%3AStorable"
->Storable</A
-> a =&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AHandle"
+> :: Storable a =&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AHandle"
 >Handle</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlHandleType"
 >SqlHandleType</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3182,9 +3104,7 @@
 ></A
 ><B
 >allocEnv</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3AEnvHandle"
+> :: IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3AEnvHandle"
 >EnvHandle</A
 ></TD
 ></TR
@@ -3200,9 +3120,7 @@
 >allocConn</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AEnvHandle"
 >EnvHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
 >ConnHandle</A
 ></TD
 ></TR
@@ -3218,9 +3136,7 @@
 >allocStmt</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
 >ConnHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
 ></TD
 ></TR
@@ -3230,17 +3146,15 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A NAME="v%3AfreeHelper"
+><A NAME="v%3AfreeHandle"
 ></A
 ><B
->freeHelper</B
+>freeHandle</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlHandleType"
 >SqlHandleType</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AHandle"
 >Handle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3254,9 +3168,7 @@
 >freeEnv</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AEnvHandle"
 >EnvHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3270,9 +3182,7 @@
 >freeConn</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
 >ConnHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3286,9 +3196,7 @@
 >freeStmt</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3302,9 +3210,7 @@
 >int2Ptr</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInteger"
 >SqlInteger</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> ()</TD
+> -&gt; Ptr ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3318,9 +3224,7 @@
 >setOdbcVer</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AEnvHandle"
 >EnvHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3334,13 +3238,7 @@
 >connect</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
 >ConnHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> -&gt; String -&gt; IO String</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3354,9 +3252,7 @@
 >disconnect</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
 >ConnHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3370,11 +3266,7 @@
 >prepareStmt</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; String -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3388,9 +3280,7 @@
 >executeStmt</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3404,9 +3294,7 @@
 >closeCursor</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3420,11 +3308,7 @@
 >rowCount</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> -&gt; IO Int</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3438,23 +3322,11 @@
 >fetch</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Bool.html#t%3ABool"
->Bool</A
-></TD
+> -&gt; IO Bool</TD
 ></TR
 ><TR
 ><TD CLASS="doc"
->Return <TT
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Bool.html#v%3ATrue"
->True</A
-></TT
-> if there are more rows, <TT
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Bool.html#v%3AFalse"
->False</A
-></TT
-> if end-of-data.
+>Return True if there are more rows, False if end-of-data.
 </TD
 ></TR
 ><TR
@@ -3469,11 +3341,18 @@
 >moreResults</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Bool.html#t%3ABool"
->Bool</A
-></TD
+> -&gt; IO Bool</TD
+></TR
+><TR
+><TD CLASS="doc"
+>Return True if there is another result-set to process.
+ Presumably the <TT
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+></TT
+> is modified to reference the
+ new result-set.
+</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3487,9 +3366,7 @@
 >commit</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
 >ConnHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3503,9 +3380,7 @@
 >rollback</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
 >ConnHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3519,9 +3394,7 @@
 >setAutoCommitOn</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
 >ConnHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3535,9 +3408,7 @@
 >setAutoCommitOff</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
 >ConnHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3553,9 +3424,107 @@
 >ConnHandle</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInteger"
 >SqlInteger</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AgetInfoString"
+></A
+><B
+>getInfoString</B
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInfoType"
+>SqlInfoType</A
+> -&gt; IO String</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AgetInfoDbmsName"
+></A
+><B
+>getInfoDbmsName</B
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; IO String</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AgetInfoDbmsVer"
+></A
+><B
+>getInfoDbmsVer</B
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; IO String</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AgetInfoDatabaseName"
+></A
+><B
+>getInfoDatabaseName</B
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; IO String</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AgetInfoDriverName"
+></A
+><B
+>getInfoDriverName</B
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; IO String</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AgetInfoDriverVer"
+></A
+><B
+>getInfoDriverVer</B
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; IO String</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AgetNativeSql"
+></A
+><B
+>getNativeSql</B
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
+>ConnHandle</A
+> -&gt; String -&gt; IO String</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3567,25 +3536,11 @@
 ></A
 ><B
 >getMaybeFromBuffer</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Storable.html#t%3AStorable"
->Storable</A
-> a =&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
+> :: Storable a =&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
 >SqlLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a -&gt; (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
+> -&gt; Ptr a -&gt; (Ptr a -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
 >SqlLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> b) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> b)</TD
+> -&gt; IO b) -&gt; IO (Maybe b)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3597,21 +3552,11 @@
 ></A
 ><B
 >getDataStorable</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Storable.html#t%3AStorable"
->Storable</A
-> a =&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
+> :: Storable a =&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlDataType"
+> -&gt; Int -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlDataType"
 >SqlDataType</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; (a -&gt; b) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> b)</TD
+> -&gt; Int -&gt; (a -&gt; b) -&gt; IO (Maybe b)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3625,15 +3570,7 @@
 >getDataUtcTime</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
->)</TD
+> -&gt; Int -&gt; IO (Maybe UTCTime)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3647,15 +3584,7 @@
 >getDataCStringLen</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACStringLen"
->CStringLen</A
->)</TD
+> -&gt; Int -&gt; IO (Maybe CStringLen)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3669,15 +3598,7 @@
 >getDataUTF8String</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->)</TD
+> -&gt; Int -&gt; IO (Maybe String)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3691,15 +3612,7 @@
 >getDataCString</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->)</TD
+> -&gt; Int -&gt; IO (Maybe String)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3711,13 +3624,7 @@
 ></A
 ><B
 >peekSmallInt</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
+> :: Ptr a -&gt; Int -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
 >SqlSmallInt</A
 ></TD
 ></TR
@@ -3731,13 +3638,7 @@
 ></A
 ><B
 >peekUSmallInt</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUSmallInt"
+> :: Ptr a -&gt; Int -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUSmallInt"
 >SqlUSmallInt</A
 ></TD
 ></TR
@@ -3751,13 +3652,7 @@
 ></A
 ><B
 >peekUInteger</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUInteger"
+> :: Ptr a -&gt; Int -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUInteger"
 >SqlUInteger</A
 ></TD
 ></TR
@@ -3771,15 +3666,7 @@
 ></A
 ><B
 >readUtcTimeFromMemory</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-></TD
+> :: Ptr Word8 -&gt; IO UTCTime</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3793,15 +3680,11 @@
 >bindColumnBuffer</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlDataType"
+> -&gt; Int -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlDataType"
 >SqlDataType</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
 >SqlLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -3817,9 +3700,7 @@
 >createEmptyBuffer</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
 >SqlLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -3835,19 +3716,11 @@
 >testForNull</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
-> -&gt; (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABuffer"
+> -&gt; (Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABuffer"
 >Buffer</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
 >SqlLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> a)</TD
+> -&gt; IO a) -&gt; IO (Maybe a)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3859,15 +3732,9 @@
 ></A
 ><B
 >getStorableFromBuffer</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Storable.html#t%3AStorable"
->Storable</A
-> a =&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> :: Storable a =&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> a)</TD
+> -&gt; IO (Maybe a)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3881,13 +3748,7 @@
 >getCAStringFromBuffer</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->)</TD
+> -&gt; IO (Maybe String)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3901,13 +3762,7 @@
 >getCWStringFromBuffer</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->)</TD
+> -&gt; IO (Maybe String)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3921,13 +3776,7 @@
 >getUTF8StringFromBuffer</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->)</TD
+> -&gt; IO (Maybe String)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3941,13 +3790,7 @@
 >getUtcTimeFromBuffer</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
->)</TD
+> -&gt; IO (Maybe UTCTime)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3959,13 +3802,7 @@
 ></A
 ><B
 >createBufferForStorable</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Storable.html#t%3AStorable"
->Storable</A
-> a =&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> :: Storable a =&gt; Maybe a -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -3979,13 +3816,9 @@
 ></A
 ><B
 >createBufferHelper</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Storable.html#t%3AStorable"
->Storable</A
-> a =&gt; a -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
+> :: Storable a =&gt; a -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
 >SqlLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> -&gt; Int -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -3999,13 +3832,9 @@
 ></A
 ><B
 >wrapSizedBuffer</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
+> :: Ptr a -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
 >SqlLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> -&gt; Int -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -4021,9 +3850,7 @@
 >bindParam</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
+> -&gt; Int -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
 >SqlParamDirection</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlCDataType"
 >SqlCDataType</A
@@ -4035,9 +3862,7 @@
 >SqlSmallInt</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -4051,17 +3876,13 @@
 >bindNull</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
+> -&gt; Int -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
 >SqlParamDirection</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlCDataType"
 >SqlCDataType</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlDataType"
 >SqlDataType</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -4077,17 +3898,9 @@
 >bindParamCStringLen</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
+> -&gt; Int -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
 >SqlParamDirection</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACStringLen"
->CStringLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> -&gt; Maybe CStringLen -&gt; Int -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -4103,31 +3916,13 @@
 >bindEncodedString</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
+> -&gt; Int -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
 >SqlParamDirection</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; ((<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> -&gt; Maybe String -&gt; (String -&gt; ((Ptr a, Int) -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
->) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+>) -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
->) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+>) -&gt; Int -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -4143,17 +3938,9 @@
 >bindParamUTF8String</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
+> -&gt; Int -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
 >SqlParamDirection</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> -&gt; Maybe String -&gt; Int -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -4169,17 +3956,9 @@
 >bindParamCAString</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
+> -&gt; Int -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
 >SqlParamDirection</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> -&gt; Maybe String -&gt; Int -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -4195,17 +3974,9 @@
 >bindParamCWString</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
+> -&gt; Int -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
 >SqlParamDirection</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> -&gt; Maybe String -&gt; Int -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -4219,15 +3990,9 @@
 ></A
 ><B
 >pokeSmallInt</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
+> :: Ptr a -&gt; Int -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
 >SqlSmallInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -4239,15 +4004,9 @@
 ></A
 ><B
 >pokeUSmallInt</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUSmallInt"
+> :: Ptr a -&gt; Int -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUSmallInt"
 >SqlUSmallInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -4259,15 +4018,9 @@
 ></A
 ><B
 >pokeUInteger</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUInteger"
+> :: Ptr a -&gt; Int -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUInteger"
 >SqlUInteger</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -4279,15 +4032,7 @@
 ></A
 ><B
 >writeUTCTimeToMemory</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> :: Ptr Word8 -&gt; UTCTime -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -4299,11 +4044,7 @@
 ></A
 ><B
 >makeUtcTimeBuffer</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> :: UTCTime -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -4317,11 +4058,7 @@
 ></A
 ><B
 >makeUtcTimeStringBuffer</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> :: UTCTime -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -4337,17 +4074,9 @@
 >bindParamUtcTime</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
+> -&gt; Int -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlParamDirection"
 >SqlParamDirection</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+> -&gt; Maybe UTCTime -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ></TR
@@ -4363,13 +4092,7 @@
 >sizeOfMaybe</B
 > :: <SPAN CLASS="keyword"
 >forall</SPAN
-> a . <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Storable.html#t%3AStorable"
->Storable</A
-> a =&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> a . Storable a =&gt; Maybe a -&gt; Int</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -4406,6 +4129,51 @@
 ></TD
 ></TR
 ></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:OutParam')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:OutParam" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcBindParam"
+>OdbcBindParam</A
+> (<A HREF="Database-ODBC-OdbcFunctions.html#t%3AOutParam"
+>OutParam</A
+> (Maybe Double))</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcBindParam"
+>OdbcBindParam</A
+> (<A HREF="Database-ODBC-OdbcFunctions.html#t%3AOutParam"
+>OutParam</A
+> (Maybe Int))</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcBindParam"
+>OdbcBindParam</A
+> (<A HREF="Database-ODBC-OdbcFunctions.html#t%3AOutParam"
+>OutParam</A
+> (Maybe String))</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcBindParam"
+>OdbcBindParam</A
+> (<A HREF="Database-ODBC-OdbcFunctions.html#t%3AOutParam"
+>OutParam</A
+> (Maybe UTCTime))</TD
+></TR
+></TABLE
+></DIV
 ></TD
 ></TR
 ></TABLE
@@ -4446,6 +4214,51 @@
 ></TD
 ></TR
 ></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:InOutParam')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:InOutParam" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcBindParam"
+>OdbcBindParam</A
+> (<A HREF="Database-ODBC-OdbcFunctions.html#t%3AInOutParam"
+>InOutParam</A
+> (Maybe Double))</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcBindParam"
+>OdbcBindParam</A
+> (<A HREF="Database-ODBC-OdbcFunctions.html#t%3AInOutParam"
+>InOutParam</A
+> (Maybe Int))</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcBindParam"
+>OdbcBindParam</A
+> (<A HREF="Database-ODBC-OdbcFunctions.html#t%3AInOutParam"
+>InOutParam</A
+> (Maybe String))</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcBindParam"
+>OdbcBindParam</A
+> (<A HREF="Database-ODBC-OdbcFunctions.html#t%3AInOutParam"
+>InOutParam</A
+> (Maybe UTCTime))</TD
+></TR
+></TABLE
+></DIV
 ></TD
 ></TR
 ></TABLE
@@ -4503,18 +4316,14 @@
 ></TR
 ><TR
 ><TD CLASS="arg"
->-&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+>-&gt; Int</TD
 ><TD CLASS="rdoc"
 >column position (1-indexed)
 </TD
 ></TR
 ><TR
 ><TD CLASS="arg"
->-&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+>-&gt; Int</TD
 ><TD CLASS="rdoc"
 >size of result buffer (ignored when it can be inferred from type of a)
 </TD
@@ -4528,9 +4337,7 @@
 ></TR
 ><TR
 ><TD CLASS="arg"
->-&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+>-&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ><TD CLASS="rdoc"
@@ -4556,9 +4363,7 @@
 >getFromBuffer</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -4572,11 +4377,7 @@
 >getData</B
 > :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> -&gt; Int -&gt; IO a</TD
 ></TR
 ></TABLE
 ></TD
@@ -4598,41 +4399,25 @@
 ><TD CLASS="decl"
 ><A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcBindBuffer"
 >OdbcBindBuffer</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3ADouble"
->Double</A
->)</TD
+> (Maybe Double)</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
 ><A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcBindBuffer"
 >OdbcBindBuffer</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->)</TD
+> (Maybe Int)</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
 ><A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcBindBuffer"
 >OdbcBindBuffer</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->)</TD
+> (Maybe String)</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
 ><A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcBindBuffer"
 >OdbcBindBuffer</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
->)</TD
+> (Maybe UTCTime)</TD
 ></TR
 ></TABLE
 ></DIV
@@ -4693,9 +4478,7 @@
 ></TR
 ><TR
 ><TD CLASS="arg"
->-&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+>-&gt; Int</TD
 ><TD CLASS="rdoc"
 >parameter position (1-indexed)
 </TD
@@ -4709,9 +4492,16 @@
 ></TR
 ><TR
 ><TD CLASS="arg"
->-&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
+>-&gt; Int</TD
+><TD CLASS="rdoc"
+>size of buffer, for output.
+ Value is ignored if input only (buffer will be sized to exactly hold input only)
+ or size is fixed by type (e.g. Int, Double)
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABindBuffer"
 >BindBuffer</A
 ></TD
 ><TD CLASS="rdoc"
@@ -4745,41 +4535,89 @@
 ><TD CLASS="decl"
 ><A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcBindParam"
 >OdbcBindParam</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3ADouble"
->Double</A
->)</TD
+> (<A HREF="Database-ODBC-OdbcFunctions.html#t%3AInOutParam"
+>InOutParam</A
+> (Maybe Double))</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
 ><A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcBindParam"
 >OdbcBindParam</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->)</TD
+> (<A HREF="Database-ODBC-OdbcFunctions.html#t%3AInOutParam"
+>InOutParam</A
+> (Maybe Int))</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
 ><A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcBindParam"
 >OdbcBindParam</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->)</TD
+> (<A HREF="Database-ODBC-OdbcFunctions.html#t%3AInOutParam"
+>InOutParam</A
+> (Maybe String))</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
 ><A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcBindParam"
 >OdbcBindParam</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
->)</TD
+> (<A HREF="Database-ODBC-OdbcFunctions.html#t%3AInOutParam"
+>InOutParam</A
+> (Maybe UTCTime))</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcBindParam"
+>OdbcBindParam</A
+> (Maybe Double)</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcBindParam"
+>OdbcBindParam</A
+> (Maybe Int)</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcBindParam"
+>OdbcBindParam</A
+> (Maybe String)</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcBindParam"
+>OdbcBindParam</A
+> (Maybe UTCTime)</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcBindParam"
+>OdbcBindParam</A
+> (<A HREF="Database-ODBC-OdbcFunctions.html#t%3AOutParam"
+>OutParam</A
+> (Maybe Double))</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcBindParam"
+>OdbcBindParam</A
+> (<A HREF="Database-ODBC-OdbcFunctions.html#t%3AOutParam"
+>OutParam</A
+> (Maybe Int))</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcBindParam"
+>OdbcBindParam</A
+> (<A HREF="Database-ODBC-OdbcFunctions.html#t%3AOutParam"
+>OutParam</A
+> (Maybe String))</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3AOdbcBindParam"
+>OdbcBindParam</A
+> (<A HREF="Database-ODBC-OdbcFunctions.html#t%3AOutParam"
+>OutParam</A
+> (Maybe UTCTime))</TD
 ></TR
 ></TABLE
 ></DIV
@@ -4802,13 +4640,9 @@
 >SqlHandleType</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AHandle"
 >Handle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3AHandle"
+> -&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3AHandle"
 >Handle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
 >SqlReturn</A
 ></TD
 ></TR
@@ -4826,9 +4660,7 @@
 >SqlSmallInt</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AHandle"
 >Handle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
 >SqlReturn</A
 ></TD
 ></TR
@@ -4885,9 +4717,7 @@
 ></TR
 ><TR
 ><TD CLASS="arg"
->-&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInteger"
+>-&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInteger"
 >SqlInteger</A
 ></TD
 ><TD CLASS="rdoc"
@@ -4914,9 +4744,7 @@
 ></TR
 ><TR
 ><TD CLASS="arg"
->-&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
+>-&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
 >SqlSmallInt</A
 ></TD
 ><TD CLASS="rdoc"
@@ -4925,9 +4753,7 @@
 ></TR
 ><TR
 ><TD CLASS="arg"
->-&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+>-&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
 >SqlReturn</A
 ></TD
 ><TD CLASS="rdoc"
@@ -4953,8 +4779,8 @@
 ><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
 ><TR
 ><TD CLASS="arg"
->:: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
->ConnHandle</A
+>:: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHdl"
+>ConnHdl</A
 ></TD
 ><TD CLASS="rdoc"
 ></TD
@@ -5006,9 +4832,7 @@
 ></TR
 ><TR
 ><TD CLASS="arg"
->-&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
+>-&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
 >SqlSmallInt</A
 ></TD
 ><TD CLASS="rdoc"
@@ -5026,9 +4850,7 @@
 ></TR
 ><TR
 ><TD CLASS="arg"
->-&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+>-&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
 >SqlReturn</A
 ></TD
 ><TD CLASS="rdoc"
@@ -5047,11 +4869,9 @@
 ></A
 ><B
 >sqlDisconnect</B
-> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
->ConnHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHdl"
+>ConnHdl</A
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
 >SqlReturn</A
 ></TD
 ></TR
@@ -5090,9 +4910,7 @@
 ></TR
 ><TR
 ><TD CLASS="arg"
->-&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> ()</TD
+>-&gt; Ptr ()</TD
 ><TD CLASS="rdoc"
 >value (cast to void*)
 </TD
@@ -5108,9 +4926,7 @@
 ></TR
 ><TR
 ><TD CLASS="arg"
->-&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+>-&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
 >SqlReturn</A
 ></TD
 ><TD CLASS="rdoc"
@@ -5136,8 +4952,8 @@
 ><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
 ><TR
 ><TD CLASS="arg"
->:: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHandle"
->ConnHandle</A
+>:: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHdl"
+>ConnHdl</A
 ></TD
 ><TD CLASS="rdoc"
 >Connection Handle
@@ -5154,9 +4970,7 @@
 ></TR
 ><TR
 ><TD CLASS="arg"
->-&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> ()</TD
+>-&gt; Ptr ()</TD
 ><TD CLASS="rdoc"
 >value (cast to void*)
 </TD
@@ -5172,9 +4986,7 @@
 ></TR
 ><TR
 ><TD CLASS="arg"
->-&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+>-&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
 >SqlReturn</A
 ></TD
 ><TD CLASS="rdoc"
@@ -5193,261 +5005,13 @@
 ></A
 ><B
 >sqlPrepare</B
-> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
->StmtHandle</A
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHdl"
+>StmtHdl</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AMyCString"
 >MyCString</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInteger"
 >SqlInteger</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
->SqlReturn</A
-></TD
-></TR
-><TR
-><TD CLASS="s15"
-></TD
-></TR
-><TR
-><TD CLASS="decl"
-><A NAME="v%3AsqlExecute"
-></A
-><B
->sqlExecute</B
-> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
->StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
->SqlReturn</A
-></TD
-></TR
-><TR
-><TD CLASS="s15"
-></TD
-></TR
-><TR
-><TD CLASS="decl"
-><A NAME="v%3AsqlCloseCursor"
-></A
-><B
->sqlCloseCursor</B
-> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
->StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
->SqlReturn</A
-></TD
-></TR
-><TR
-><TD CLASS="s15"
-></TD
-></TR
-><TR
-><TD CLASS="decl"
-><A NAME="v%3AsqlRowCount"
-></A
-><B
->sqlRowCount</B
-> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
->StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
->SqlLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
->SqlReturn</A
-></TD
-></TR
-><TR
-><TD CLASS="s15"
-></TD
-></TR
-><TR
-><TD CLASS="decl"
-><A NAME="v%3AsqlGetData"
-></A
-><B
->sqlGetData</B
-></TD
-></TR
-><TR
-><TD CLASS="body"
-><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
-><TR
-><TD CLASS="arg"
->:: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
->StmtHandle</A
-></TD
-><TD CLASS="rdoc"
-></TD
-></TR
-><TR
-><TD CLASS="arg"
->-&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUSmallInt"
->SqlUSmallInt</A
-></TD
-><TD CLASS="rdoc"
->column position, 1-indexed
-</TD
-></TR
-><TR
-><TD CLASS="arg"
->-&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlDataType"
->SqlDataType</A
-></TD
-><TD CLASS="rdoc"
->SQL data type: string, int, long, date, etc
-</TD
-></TR
-><TR
-><TD CLASS="arg"
->-&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABuffer"
->Buffer</A
-></TD
-><TD CLASS="rdoc"
->output buffer
-</TD
-></TR
-><TR
-><TD CLASS="arg"
->-&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
->SqlLen</A
-></TD
-><TD CLASS="rdoc"
->output buffer size
-</TD
-></TR
-><TR
-><TD CLASS="arg"
->-&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
->SqlLen</A
-></TD
-><TD CLASS="rdoc"
->output data size, or -1 (SQL_NULL_DATA) for null
-</TD
-></TR
-><TR
-><TD CLASS="arg"
->-&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
->SqlReturn</A
-></TD
-><TD CLASS="rdoc"
-></TD
-></TR
-></TABLE
-></TD
-></TR
-><TR
-><TD CLASS="s15"
-></TD
-></TR
-><TR
-><TD CLASS="decl"
-><A NAME="v%3AsqlBindCol"
-></A
-><B
->sqlBindCol</B
-></TD
-></TR
-><TR
-><TD CLASS="body"
-><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
-><TR
-><TD CLASS="arg"
->:: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
->StmtHandle</A
-></TD
-><TD CLASS="rdoc"
-></TD
-></TR
-><TR
-><TD CLASS="arg"
->-&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUSmallInt"
->SqlUSmallInt</A
-></TD
-><TD CLASS="rdoc"
->column position, 1-indexed
-</TD
-></TR
-><TR
-><TD CLASS="arg"
->-&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlDataType"
->SqlDataType</A
-></TD
-><TD CLASS="rdoc"
->SQL data type: string, int, long, date, etc
-</TD
-></TR
-><TR
-><TD CLASS="arg"
->-&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABuffer"
->Buffer</A
-></TD
-><TD CLASS="rdoc"
->output buffer
-</TD
-></TR
-><TR
-><TD CLASS="arg"
->-&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
->SqlLen</A
-></TD
-><TD CLASS="rdoc"
->output buffer size
-</TD
-></TR
-><TR
-><TD CLASS="arg"
->-&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
->SqlLen</A
-></TD
-><TD CLASS="rdoc"
->output data size, or -1 (SQL_NULL_DATA) for null
-</TD
-></TR
-><TR
-><TD CLASS="arg"
->-&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
->SqlReturn</A
-></TD
-><TD CLASS="rdoc"
-></TD
-></TR
-></TABLE
-></TD
-></TR
-><TR
-><TD CLASS="s15"
-></TD
-></TR
-><TR
-><TD CLASS="decl"
-><A NAME="v%3AsqlFetch"
-></A
-><B
->sqlFetch</B
-> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
->StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
 >SqlReturn</A
 ></TD
 ></TR
@@ -5468,8 +5032,8 @@
 ><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
 ><TR
 ><TD CLASS="arg"
->:: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
->StmtHandle</A
+>:: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHdl"
+>StmtHdl</A
 ></TD
 ><TD CLASS="rdoc"
 ></TD
@@ -5530,9 +5094,7 @@
 ></TR
 ><TR
 ><TD CLASS="arg"
->-&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABuffer"
+>-&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABuffer"
 >Buffer</A
 ></TD
 ><TD CLASS="rdoc"
@@ -5550,9 +5112,7 @@
 ></TR
 ><TR
 ><TD CLASS="arg"
->-&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
+>-&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
 >SqlLen</A
 ></TD
 ><TD CLASS="rdoc"
@@ -5561,9 +5121,7 @@
 ></TR
 ><TR
 ><TD CLASS="arg"
->-&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+>-&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
 >SqlReturn</A
 ></TD
 ><TD CLASS="rdoc"
@@ -5578,15 +5136,361 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
+><A NAME="v%3AsqlExecute"
+></A
+><B
+>sqlExecute</B
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHdl"
+>StmtHdl</A
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+>SqlReturn</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AsqlNumResultCols"
+></A
+><B
+>sqlNumResultCols</B
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHdl"
+>StmtHdl</A
+> -&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
+>SqlSmallInt</A
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+>SqlReturn</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AsqlRowCount"
+></A
+><B
+>sqlRowCount</B
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHdl"
+>StmtHdl</A
+> -&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
+>SqlLen</A
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+>SqlReturn</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AsqlDescribeCol"
+></A
+><B
+>sqlDescribeCol</B
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+>:: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHdl"
+>StmtHdl</A
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUSmallInt"
+>SqlUSmallInt</A
+></TD
+><TD CLASS="rdoc"
+>position, 1-indexed
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AMyCString"
+>MyCString</A
+></TD
+><TD CLASS="rdoc"
+>buffer for column name
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
+>SqlSmallInt</A
+></TD
+><TD CLASS="rdoc"
+>size of column name buffer
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
+>SqlSmallInt</A
+></TD
+><TD CLASS="rdoc"
+>size of column name output string
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlDataType"
+>SqlDataType</A
+></TD
+><TD CLASS="rdoc"
+>SQL data type: string, int, long, date, etc
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlULen"
+>SqlULen</A
+></TD
+><TD CLASS="rdoc"
+>col size (precision)
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
+>SqlSmallInt</A
+></TD
+><TD CLASS="rdoc"
+>decimal digits (scale)
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
+>SqlSmallInt</A
+></TD
+><TD CLASS="rdoc"
+>nullable: SQL_NO_NULLS, SQL_NULLABLE, or SQL_NULLABLE_UNKNOWN
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+>SqlReturn</A
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AsqlBindCol"
+></A
+><B
+>sqlBindCol</B
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+>:: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHdl"
+>StmtHdl</A
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUSmallInt"
+>SqlUSmallInt</A
+></TD
+><TD CLASS="rdoc"
+>column position, 1-indexed
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlDataType"
+>SqlDataType</A
+></TD
+><TD CLASS="rdoc"
+>SQL data type: string, int, long, date, etc
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABuffer"
+>Buffer</A
+></TD
+><TD CLASS="rdoc"
+>output buffer
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
+>SqlLen</A
+></TD
+><TD CLASS="rdoc"
+>output buffer size
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
+>SqlLen</A
+></TD
+><TD CLASS="rdoc"
+>output data size, or -1 (SQL_NULL_DATA) for null
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+>SqlReturn</A
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AsqlFetch"
+></A
+><B
+>sqlFetch</B
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHdl"
+>StmtHdl</A
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+>SqlReturn</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AsqlGetData"
+></A
+><B
+>sqlGetData</B
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+>:: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHdl"
+>StmtHdl</A
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlUSmallInt"
+>SqlUSmallInt</A
+></TD
+><TD CLASS="rdoc"
+>column position, 1-indexed
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlDataType"
+>SqlDataType</A
+></TD
+><TD CLASS="rdoc"
+>SQL data type: string, int, long, date, etc
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABuffer"
+>Buffer</A
+></TD
+><TD CLASS="rdoc"
+>output buffer
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
+>SqlLen</A
+></TD
+><TD CLASS="rdoc"
+>output buffer size
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlLen"
+>SqlLen</A
+></TD
+><TD CLASS="rdoc"
+>output data size, or -1 (SQL_NULL_DATA) for null
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+>SqlReturn</A
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AsqlCloseCursor"
+></A
+><B
+>sqlCloseCursor</B
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHdl"
+>StmtHdl</A
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+>SqlReturn</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
 ><A NAME="v%3AsqlMoreResults"
 ></A
 ><B
 >sqlMoreResults</B
-> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHandle"
->StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+> :: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AStmtHdl"
+>StmtHdl</A
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
 >SqlReturn</A
 ></TD
 ></TR
@@ -5606,10 +5510,157 @@
 >Handle</A
 > -&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
 >SqlSmallInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+> -&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
 >SqlReturn</A
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AsqlGetInfo"
+></A
+><B
+>sqlGetInfo</B
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+>:: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHdl"
+>ConnHdl</A
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInfoType"
+>SqlInfoType</A
+></TD
+><TD CLASS="rdoc"
+>information type
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ABuffer"
+>Buffer</A
+></TD
+><TD CLASS="rdoc"
+>output buffer
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
+>SqlSmallInt</A
+></TD
+><TD CLASS="rdoc"
+>output buffer size
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlSmallInt"
+>SqlSmallInt</A
+></TD
+><TD CLASS="rdoc"
+>output data size, or -1 (SQL_NULL_DATA) for null
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+>SqlReturn</A
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AsqlNativeSql"
+></A
+><B
+>sqlNativeSql</B
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+>:: <A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHdl"
+>ConnHdl</A
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AMyCString"
+>MyCString</A
+></TD
+><TD CLASS="rdoc"
+>sql text in
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInteger"
+>SqlInteger</A
+></TD
+><TD CLASS="rdoc"
+>size of sql text
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3AMyCString"
+>MyCString</A
+></TD
+><TD CLASS="rdoc"
+>buffer for output text
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInteger"
+>SqlInteger</A
+></TD
+><TD CLASS="rdoc"
+>size of output buffer
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; Ptr <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlInteger"
+>SqlInteger</A
+></TD
+><TD CLASS="rdoc"
+>size of text in output buffer
+</TD
+></TR
+><TR
+><TD CLASS="arg"
+>-&gt; IO <A HREF="Database-ODBC-OdbcFunctions.html#t%3ASqlReturn"
+>SqlReturn</A
+></TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
 ></TD
 ></TR
 ><TR

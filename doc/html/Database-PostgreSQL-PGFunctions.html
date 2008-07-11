@@ -19,7 +19,7 @@
 ><IMG SRC="haskell_icon.gif" WIDTH="16" HEIGHT="16" ALT=" "
 ></TD
 ><TD CLASS="title"
->Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
+>Takusen-0.8.2: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
 ><TD CLASS="topbut"
 ><A HREF="index.html"
 >Contents</A
@@ -125,9 +125,7 @@
 >type</SPAN
 > <A HREF="#t%3ADBHandle"
 >DBHandle</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandleStruct"
+> = Ptr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandleStruct"
 >DBHandleStruct</A
 ></TD
 ></TR
@@ -155,9 +153,7 @@
 >type</SPAN
 > <A HREF="#t%3AResultSetHandle"
 >ResultSetHandle</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AStmtStruct"
+> = Ptr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AStmtStruct"
 >StmtStruct</A
 ></TD
 ></TR
@@ -171,9 +167,7 @@
 >type</SPAN
 > <A HREF="#t%3AOid"
 >Oid</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACUInt"
->CUInt</A
-></TD
+> = CUInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -185,9 +179,7 @@
 >type</SPAN
 > <A HREF="#t%3AFormat"
 >Format</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> = CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -211,9 +203,7 @@
 >type</SPAN
 > <A HREF="#t%3AParamLen"
 >ParamLen</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> = CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -227,11 +217,7 @@
 >PGException</A
 >  = <A HREF="#v%3APGException"
 >PGException</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> Int String</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -241,15 +227,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AcatchPG"
 >catchPG</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a -&gt; (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGException"
+> :: IO a -&gt; (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGException"
 >PGException</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> -&gt; IO a) -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -259,11 +239,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AthrowPG"
 >throwPG</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
->Integral</A
-> a =&gt; a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; any</TD
+> :: Integral a =&gt; a -&gt; String -&gt; any</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -285,11 +261,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AcStr"
 >cStr</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACStringLen"
->CStringLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-></TD
+> :: CStringLen -&gt; CString</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -299,11 +271,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AcStrLen"
 >cStrLen</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACStringLen"
->CStringLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> :: CStringLen -&gt; CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -313,11 +281,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AfPQconnectdb"
 >fPQconnectdb</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
+> :: CString -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
 ></TD
 ></TR
@@ -331,9 +295,7 @@
 >fPQfinish</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -345,9 +307,7 @@
 >fPQreset</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -359,9 +319,7 @@
 >fPQdb</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-></TD
+> -&gt; CString</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -373,9 +331,7 @@
 >type</SPAN
 > <A HREF="#t%3AConnStatusType"
 >ConnStatusType</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> = CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -387,9 +343,7 @@
 >fPQstatus</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AConnStatusType"
+> -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AConnStatusType"
 >ConnStatusType</A
 ></TD
 ></TR
@@ -403,11 +357,7 @@
 >fPQerrorMessage</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-></TD
+> -&gt; IO CString</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -419,13 +369,7 @@
 >fPQsetClientEncoding</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-></TD
+> -&gt; CString -&gt; IO CString</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -437,13 +381,9 @@
 >type</SPAN
 > <A HREF="#t%3ANoticeReceiver"
 >NoticeReceiver</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> () -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
+> = Ptr () -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -455,13 +395,7 @@
 >type</SPAN
 > <A HREF="#t%3ANoticeProcessor"
 >NoticeProcessor</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> () -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> = Ptr () -&gt; CString -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -473,11 +407,7 @@
 >mkNoticeReceiver</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeReceiver"
 >NoticeReceiver</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
->FunPtr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeReceiver"
+> -&gt; IO (FunPtr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeReceiver"
 >NoticeReceiver</A
 >)</TD
 ></TR
@@ -491,11 +421,7 @@
 >mkNoticeProcessor</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeProcessor"
 >NoticeProcessor</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
->FunPtr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeProcessor"
+> -&gt; IO (FunPtr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeProcessor"
 >NoticeProcessor</A
 >)</TD
 ></TR
@@ -509,17 +435,9 @@
 >fPQsetNoticeReceiver</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
->FunPtr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeReceiver"
+> -&gt; FunPtr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeReceiver"
 >NoticeReceiver</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> () -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
->FunPtr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeReceiver"
+> -&gt; Ptr () -&gt; IO (FunPtr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeReceiver"
 >NoticeReceiver</A
 >)</TD
 ></TR
@@ -533,17 +451,9 @@
 >fPQsetNoticeProcessor</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
->FunPtr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeProcessor"
+> -&gt; FunPtr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeProcessor"
 >NoticeProcessor</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> () -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
->FunPtr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeProcessor"
+> -&gt; Ptr () -&gt; IO (FunPtr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeProcessor"
 >NoticeProcessor</A
 >)</TD
 ></TR
@@ -557,31 +467,15 @@
 >fPQexecParams</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+> -&gt; CString -&gt; CInt -&gt; Ptr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AVoid"
+> -&gt; Ptr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AVoid"
 >Void</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AParamLen"
+> -&gt; Ptr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AParamLen"
 >ParamLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AFormat"
+> -&gt; Ptr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AFormat"
 >Format</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
+> -&gt; CInt -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
 ></TD
 ></TR
@@ -595,19 +489,9 @@
 >fPQprepare</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+> -&gt; CString -&gt; CString -&gt; CInt -&gt; Ptr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
+> -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
 ></TD
 ></TR
@@ -621,27 +505,13 @@
 >fPQexecPrepared</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AVoid"
+> -&gt; CString -&gt; CInt -&gt; Ptr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AVoid"
 >Void</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AParamLen"
+> -&gt; Ptr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AParamLen"
 >ParamLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AFormat"
+> -&gt; Ptr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AFormat"
 >Format</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
+> -&gt; CInt -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
 ></TD
 ></TR
@@ -655,9 +525,7 @@
 >fPQresultStatus</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AExecStatusType"
+> -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AExecStatusType"
 >ExecStatusType</A
 ></TD
 ></TR
@@ -671,9 +539,7 @@
 >type</SPAN
 > <A HREF="#t%3AExecStatusType"
 >ExecStatusType</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> = CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -685,11 +551,7 @@
 >fPQresultErrorMessage</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-></TD
+> -&gt; IO CString</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -701,9 +563,7 @@
 >fPQclear</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -715,11 +575,7 @@
 >fPQntuples</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -731,11 +587,7 @@
 >fPQnfields</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -747,13 +599,7 @@
 >fPQfname</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-></TD
+> -&gt; CInt -&gt; IO CString</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -765,13 +611,7 @@
 >fPQfformat</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CInt -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -783,11 +623,7 @@
 >fPQftype</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+> -&gt; CInt -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
 ></TD
 ></TR
@@ -801,17 +637,7 @@
 >fPQgetvalue</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
->)</TD
+> -&gt; CInt -&gt; CInt -&gt; IO (Ptr Word8)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -823,15 +649,7 @@
 >fPQgetisnull</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CInt -&gt; CInt -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -843,15 +661,7 @@
 >fPQgetlength</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CInt -&gt; CInt -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -863,11 +673,7 @@
 >fPQcmdStatus</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-></TD
+> -&gt; IO CString</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -879,11 +685,7 @@
 >fPQcmdTuples</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-></TD
+> -&gt; IO CString</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -895,9 +697,7 @@
 >fPQoidValue</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+> -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
 ></TD
 ></TR
@@ -911,17 +711,7 @@
 >fPQputCopyData</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; Ptr Word8 -&gt; CInt -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -933,13 +723,7 @@
 >fPQputCopyEnd</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CString -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -951,9 +735,7 @@
 >fPQgetResult</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
+> -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
 ></TD
 ></TR
@@ -967,9 +749,7 @@
 >type</SPAN
 > <A HREF="#t%3APGVerbosity"
 >PGVerbosity</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> = CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -983,9 +763,7 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGVerbosity"
 >PGVerbosity</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGVerbosity"
+> -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGVerbosity"
 >PGVerbosity</A
 ></TD
 ></TR
@@ -999,9 +777,7 @@
 >type</SPAN
 > <A HREF="#t%3ALOAccessType"
 >LOAccessType</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> = CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1013,9 +789,7 @@
 >type</SPAN
 > <A HREF="#t%3AWhenceType"
 >WhenceType</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> = CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1029,9 +803,7 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ALOAccessType"
 >LOAccessType</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+> -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
 ></TD
 ></TR
@@ -1045,11 +817,7 @@
 >flo_import</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+> -&gt; CString -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
 ></TD
 ></TR
@@ -1065,13 +833,7 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CString -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1087,11 +849,7 @@
 >Oid</A
 > -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ALOAccessType"
 >LOAccessType</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1103,19 +861,7 @@
 >flo_write</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACUInt"
->CUInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CInt -&gt; Ptr Word8 -&gt; CUInt -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1127,19 +873,7 @@
 >flo_read</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACUInt"
->CUInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CInt -&gt; Ptr Word8 -&gt; CUInt -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1151,17 +885,9 @@
 >flo_lseek</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AWhenceType"
+> -&gt; CInt -&gt; CInt -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AWhenceType"
 >WhenceType</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1173,13 +899,7 @@
 >flo_tell</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CInt -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1191,13 +911,7 @@
 >flo_close</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CInt -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1211,11 +925,7 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1227,11 +937,7 @@
 >getError</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> -&gt; IO String</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1241,11 +947,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AopenDb"
 >openDb</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
+> :: String -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
 ></TD
 ></TR
@@ -1259,9 +961,7 @@
 >closeDb</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1300,33 +1000,19 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3ApgNewValue"
 >pgNewValue</A
-> :: a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
->)</TD
+> :: a -&gt; IO (Ptr Word8)</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
 ><A HREF="#v%3ApgPeek"
 >pgPeek</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> :: Ptr Word8 -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
 ><A HREF="#v%3ApgSize"
 >pgSize</A
-> :: a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> :: a -&gt; Int</TD
 ></TR
 ></TABLE
 ></TD
@@ -1364,21 +1050,13 @@
 ><TD CLASS="recfield"
 ><A HREF="#v%3AbindValSize"
 >bindValSize</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> :: CInt</TD
 ></TR
 ><TR
 ><TD CLASS="recfield"
 ><A HREF="#v%3AbindValPtr"
 >bindValPtr</A
-> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
->))</TD
+> :: (IO (Ptr Word8))</TD
 ></TR
 ></TABLE
 >}</TD
@@ -1391,11 +1069,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AtoCChar"
 >toCChar</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AChar"
->Char</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACChar"
->CChar</A
-></TD
+> :: Char -&gt; CChar</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1405,11 +1079,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AfromCChar"
 >fromCChar</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACChar"
->CChar</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AChar"
->Char</A
-></TD
+> :: CChar -&gt; Char</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1419,11 +1089,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AtoCInt"
 >toCInt</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> :: Int -&gt; CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1439,9 +1105,7 @@
 >ExecStatusType</A
 > -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
+> -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
 ></TD
 ></TR
@@ -1455,17 +1119,9 @@
 >stmtPrepare</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+> -&gt; String -&gt; String -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
->] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+>] -&gt; IO String</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1477,15 +1133,7 @@
 >nqExec</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->, <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+> -&gt; String -&gt; IO (String, String, <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
 >)</TD
 ></TR
@@ -1499,17 +1147,9 @@
 >execCommand</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
+> -&gt; String -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
 >PGBindVal</A
->] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->, <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+>] -&gt; IO (String, String, <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
 >)</TD
 ></TR
@@ -1523,17 +1163,9 @@
 >execPreparedCommand</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
+> -&gt; String -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
 >PGBindVal</A
->] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->, <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+>] -&gt; IO (String, String, <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
 >)</TD
 ></TR
@@ -1547,17 +1179,11 @@
 >stmtExecImm</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
+> -&gt; String -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
 >PGBindVal</A
->] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
+>] -&gt; IO (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->)</TD
+>, Int)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1569,15 +1195,9 @@
 >stmtExecImm0</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
+> -&gt; String -&gt; IO (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->)</TD
+>, Int)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1589,15 +1209,9 @@
 >stmtExec0</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
+> -&gt; String -&gt; IO (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->)</TD
+>, Int)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1609,15 +1223,9 @@
 >stmtExec0t</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
+> -&gt; String -&gt; IO (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->)</TD
+>, Int)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1629,17 +1237,11 @@
 >stmtExec</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
+> -&gt; String -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
 >PGBindVal</A
->] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
+>] -&gt; IO (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->)</TD
+>, Int)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1651,19 +1253,11 @@
 >execPrepared</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
+> -&gt; String -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
 >PGBindVal</A
->] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
+>] -&gt; CInt -&gt; IO (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->)</TD
+>, Int)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1675,19 +1269,11 @@
 >prepare'n'exec</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
+> -&gt; String -&gt; String -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
 >PGBindVal</A
->] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
+>] -&gt; IO (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->)</TD
+>, Int)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1699,9 +1285,7 @@
 >stmtFinalise</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1713,17 +1297,7 @@
 >colValPtr</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
->)</TD
+> -&gt; Int -&gt; Int -&gt; IO (Ptr Word8)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1737,13 +1311,7 @@
 >PGType</A
 > a =&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> -&gt; Int -&gt; Int -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1755,15 +1323,7 @@
 >colValString</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> -&gt; Int -&gt; Int -&gt; IO String</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1775,15 +1335,7 @@
 >colValInt</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> -&gt; Int -&gt; Int -&gt; IO Int</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1795,15 +1347,7 @@
 >colValInt64</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
-></TD
+> -&gt; Int -&gt; Int -&gt; IO Int64</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1815,15 +1359,7 @@
 >colValDouble</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3ADouble"
->Double</A
-></TD
+> -&gt; Int -&gt; Int -&gt; IO Double</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1835,15 +1371,7 @@
 >colValFloat</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AFloat"
->Float</A
-></TD
+> -&gt; Int -&gt; Int -&gt; IO Float</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1855,15 +1383,7 @@
 >colValUTCTime</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-></TD
+> -&gt; Int -&gt; Int -&gt; IO UTCTime</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1875,15 +1395,7 @@
 >colValCalTime</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/old-time-1.0.0.0/System-Time.html#t%3ACalendarTime"
->CalendarTime</A
-></TD
+> -&gt; Int -&gt; Int -&gt; IO CalendarTime</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1895,15 +1407,7 @@
 >colValNull</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Bool.html#t%3ABool"
->Bool</A
-></TD
+> -&gt; Int -&gt; Int -&gt; IO Bool</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1913,17 +1417,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3Asbph"
 >sbph</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Bool.html#t%3ABool"
->Bool</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> :: String -&gt; Int -&gt; Bool -&gt; String -&gt; String</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1933,9 +1427,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AnqCopyIn_buflen"
 >nqCopyIn_buflen</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> :: Int</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1947,13 +1439,7 @@
 >nqCopyIn</A
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AHandle"
->Handle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; String -&gt; Handle -&gt; IO ()</TD
 ></TR
 ></TABLE
 ></TD
@@ -2018,9 +1504,7 @@
 ></A
 ><B
 >DBHandle</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandleStruct"
+> = Ptr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandleStruct"
 >DBHandleStruct</A
 ></TD
 ></TR
@@ -2076,9 +1560,7 @@
 ></A
 ><B
 >ResultSetHandle</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AStmtStruct"
+> = Ptr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AStmtStruct"
 >StmtStruct</A
 ></TD
 ></TR
@@ -2094,9 +1576,7 @@
 ></A
 ><B
 >Oid</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACUInt"
->CUInt</A
-></TD
+> = CUInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2110,9 +1590,7 @@
 ></A
 ><B
 >Format</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> = CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2140,9 +1618,7 @@
 ></A
 ><B
 >ParamLen</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> = CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2174,11 +1650,7 @@
 ></A
 ><B
 >PGException</B
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> Int String</TD
 ><TD CLASS="rdoc"
 ></TD
 ></TR
@@ -2196,17 +1668,13 @@
 ><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
 ><TR
 ><TD CLASS="decl"
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Text-Show.html#t%3AShow"
->Show</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGException"
+>Show <A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGException"
 >PGException</A
 ></TD
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Typeable.html#t%3ATypeable"
->Typeable</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGException"
+>Typeable <A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGException"
 >PGException</A
 ></TD
 ></TR
@@ -2227,15 +1695,9 @@
 ></A
 ><B
 >catchPG</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a -&gt; (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGException"
+> :: IO a -&gt; (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGException"
 >PGException</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> -&gt; IO a) -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2247,11 +1709,7 @@
 ></A
 ><B
 >throwPG</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
->Integral</A
-> a =&gt; a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; any</TD
+> :: Integral a =&gt; a -&gt; String -&gt; any</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2277,11 +1735,7 @@
 ></A
 ><B
 >cStr</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACStringLen"
->CStringLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-></TD
+> :: CStringLen -&gt; CString</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2293,11 +1747,7 @@
 ></A
 ><B
 >cStrLen</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACStringLen"
->CStringLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> :: CStringLen -&gt; CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2309,11 +1759,7 @@
 ></A
 ><B
 >fPQconnectdb</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
+> :: CString -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
 ></TD
 ></TR
@@ -2329,9 +1775,7 @@
 >fPQfinish</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2345,9 +1789,7 @@
 >fPQreset</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2361,9 +1803,7 @@
 >fPQdb</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-></TD
+> -&gt; CString</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2377,9 +1817,7 @@
 ></A
 ><B
 >ConnStatusType</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> = CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2393,9 +1831,7 @@
 >fPQstatus</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AConnStatusType"
+> -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AConnStatusType"
 >ConnStatusType</A
 ></TD
 ></TR
@@ -2411,11 +1847,7 @@
 >fPQerrorMessage</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-></TD
+> -&gt; IO CString</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2429,13 +1861,7 @@
 >fPQsetClientEncoding</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-></TD
+> -&gt; CString -&gt; IO CString</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2449,13 +1875,9 @@
 ></A
 ><B
 >NoticeReceiver</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> () -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
+> = Ptr () -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2469,13 +1891,7 @@
 ></A
 ><B
 >NoticeProcessor</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> () -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> = Ptr () -&gt; CString -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2489,11 +1905,7 @@
 >mkNoticeReceiver</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeReceiver"
 >NoticeReceiver</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
->FunPtr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeReceiver"
+> -&gt; IO (FunPtr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeReceiver"
 >NoticeReceiver</A
 >)</TD
 ></TR
@@ -2509,11 +1921,7 @@
 >mkNoticeProcessor</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeProcessor"
 >NoticeProcessor</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
->FunPtr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeProcessor"
+> -&gt; IO (FunPtr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeProcessor"
 >NoticeProcessor</A
 >)</TD
 ></TR
@@ -2529,17 +1937,9 @@
 >fPQsetNoticeReceiver</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
->FunPtr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeReceiver"
+> -&gt; FunPtr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeReceiver"
 >NoticeReceiver</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> () -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
->FunPtr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeReceiver"
+> -&gt; Ptr () -&gt; IO (FunPtr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeReceiver"
 >NoticeReceiver</A
 >)</TD
 ></TR
@@ -2555,17 +1955,9 @@
 >fPQsetNoticeProcessor</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
->FunPtr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeProcessor"
+> -&gt; FunPtr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeProcessor"
 >NoticeProcessor</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> () -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
->FunPtr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeProcessor"
+> -&gt; Ptr () -&gt; IO (FunPtr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ANoticeProcessor"
 >NoticeProcessor</A
 >)</TD
 ></TR
@@ -2581,31 +1973,15 @@
 >fPQexecParams</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+> -&gt; CString -&gt; CInt -&gt; Ptr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AVoid"
+> -&gt; Ptr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AVoid"
 >Void</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AParamLen"
+> -&gt; Ptr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AParamLen"
 >ParamLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AFormat"
+> -&gt; Ptr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AFormat"
 >Format</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
+> -&gt; CInt -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
 ></TD
 ></TR
@@ -2621,19 +1997,9 @@
 >fPQprepare</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+> -&gt; CString -&gt; CString -&gt; CInt -&gt; Ptr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
+> -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
 ></TD
 ></TR
@@ -2649,27 +2015,13 @@
 >fPQexecPrepared</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AVoid"
+> -&gt; CString -&gt; CInt -&gt; Ptr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AVoid"
 >Void</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AParamLen"
+> -&gt; Ptr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AParamLen"
 >ParamLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AFormat"
+> -&gt; Ptr <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AFormat"
 >Format</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
+> -&gt; CInt -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
 ></TD
 ></TR
@@ -2685,9 +2037,7 @@
 >fPQresultStatus</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AExecStatusType"
+> -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AExecStatusType"
 >ExecStatusType</A
 ></TD
 ></TR
@@ -2703,9 +2053,7 @@
 ></A
 ><B
 >ExecStatusType</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> = CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2719,11 +2067,7 @@
 >fPQresultErrorMessage</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-></TD
+> -&gt; IO CString</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2737,9 +2081,7 @@
 >fPQclear</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2753,11 +2095,7 @@
 >fPQntuples</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2771,11 +2109,7 @@
 >fPQnfields</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2789,13 +2123,7 @@
 >fPQfname</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-></TD
+> -&gt; CInt -&gt; IO CString</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2809,13 +2137,7 @@
 >fPQfformat</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CInt -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2829,11 +2151,7 @@
 >fPQftype</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+> -&gt; CInt -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
 ></TD
 ></TR
@@ -2849,17 +2167,7 @@
 >fPQgetvalue</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
->)</TD
+> -&gt; CInt -&gt; CInt -&gt; IO (Ptr Word8)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2873,15 +2181,7 @@
 >fPQgetisnull</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CInt -&gt; CInt -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2895,15 +2195,7 @@
 >fPQgetlength</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CInt -&gt; CInt -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2917,11 +2209,7 @@
 >fPQcmdStatus</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-></TD
+> -&gt; IO CString</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2935,11 +2223,7 @@
 >fPQcmdTuples</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-></TD
+> -&gt; IO CString</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2953,9 +2237,7 @@
 >fPQoidValue</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+> -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
 ></TD
 ></TR
@@ -2971,17 +2253,7 @@
 >fPQputCopyData</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; Ptr Word8 -&gt; CInt -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2995,13 +2267,7 @@
 >fPQputCopyEnd</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CString -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3015,9 +2281,7 @@
 >fPQgetResult</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
+> -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
 ></TD
 ></TR
@@ -3033,9 +2297,7 @@
 ></A
 ><B
 >PGVerbosity</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> = CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3051,9 +2313,7 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGVerbosity"
 >PGVerbosity</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGVerbosity"
+> -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGVerbosity"
 >PGVerbosity</A
 ></TD
 ></TR
@@ -3069,9 +2329,7 @@
 ></A
 ><B
 >LOAccessType</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> = CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3085,9 +2343,7 @@
 ></A
 ><B
 >WhenceType</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> = CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3103,9 +2359,7 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ALOAccessType"
 >LOAccessType</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+> -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
 ></TD
 ></TR
@@ -3121,11 +2375,7 @@
 >flo_import</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+> -&gt; CString -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
 ></TD
 ></TR
@@ -3143,13 +2393,7 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CString -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3167,11 +2411,7 @@
 >Oid</A
 > -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ALOAccessType"
 >LOAccessType</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3185,19 +2425,7 @@
 >flo_write</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACUInt"
->CUInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CInt -&gt; Ptr Word8 -&gt; CUInt -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3211,19 +2439,7 @@
 >flo_read</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACUInt"
->CUInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CInt -&gt; Ptr Word8 -&gt; CUInt -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3237,17 +2453,9 @@
 >flo_lseek</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AWhenceType"
+> -&gt; CInt -&gt; CInt -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AWhenceType"
 >WhenceType</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3261,13 +2469,7 @@
 >flo_tell</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CInt -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3281,13 +2483,7 @@
 >flo_close</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CInt -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3303,11 +2499,7 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3321,11 +2513,7 @@
 >getError</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> -&gt; IO String</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3337,11 +2525,7 @@
 ></A
 ><B
 >openDb</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
+> :: String -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
 ></TD
 ></TR
@@ -3357,9 +2541,7 @@
 >closeDb</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3444,13 +2626,7 @@
 ></A
 ><B
 >pgNewValue</B
-> :: a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
->)</TD
+> :: a -&gt; IO (Ptr Word8)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -3462,13 +2638,7 @@
 ></A
 ><B
 >pgPeek</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> :: Ptr Word8 -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -3480,9 +2650,7 @@
 ></A
 ><B
 >pgSize</B
-> :: a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> :: a -&gt; Int</TD
 ></TR
 ></TABLE
 ></TD
@@ -3504,89 +2672,67 @@
 ><TD CLASS="decl"
 ><A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGType"
 >PGType</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/old-time-1.0.0.0/System-Time.html#t%3ACalendarTime"
->CalendarTime</A
-></TD
+> CalendarTime</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
 ><A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGType"
 >PGType</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AChar"
->Char</A
-></TD
+> Char</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
 ><A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGType"
 >PGType</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3ADouble"
->Double</A
-></TD
+> Double</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
 ><A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGType"
 >PGType</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AFloat"
->Float</A
-></TD
+> Float</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
 ><A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGType"
 >PGType</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> Int</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
 ><A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGType"
 >PGType</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt16"
->Int16</A
-></TD
+> Int16</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
 ><A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGType"
 >PGType</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt32"
->Int32</A
-></TD
+> Int32</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
 ><A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGType"
 >PGType</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
-></TD
+> Int64</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
 ><A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGType"
 >PGType</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AInteger"
->Integer</A
-></TD
+> Integer</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
 ><A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGType"
 >PGType</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> String</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
 ><A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGType"
 >PGType</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-></TD
+> UTCTime</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
@@ -3594,9 +2740,7 @@
 >PGType</A
 > a =&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGType"
 >PGType</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> a)</TD
+> (Maybe a)</TD
 ></TR
 ></TABLE
 ></DIV
@@ -3672,9 +2816,7 @@
 ></A
 ><B
 >bindValSize</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> :: CInt</TD
 ><TD CLASS="rdoc"
 ></TD
 ></TR
@@ -3684,13 +2826,7 @@
 ></A
 ><B
 >bindValPtr</B
-> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
->))</TD
+> :: (IO (Ptr Word8))</TD
 ><TD CLASS="rdoc"
 ></TD
 ></TR
@@ -3713,11 +2849,7 @@
 ></A
 ><B
 >toCChar</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AChar"
->Char</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACChar"
->CChar</A
-></TD
+> :: Char -&gt; CChar</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3729,11 +2861,7 @@
 ></A
 ><B
 >fromCChar</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACChar"
->CChar</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AChar"
->Char</A
-></TD
+> :: CChar -&gt; Char</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3745,11 +2873,7 @@
 ></A
 ><B
 >toCInt</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> :: Int -&gt; CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3767,9 +2891,7 @@
 >ExecStatusType</A
 > -&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
+> -&gt; IO <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
 ></TD
 ></TR
@@ -3785,17 +2907,9 @@
 >stmtPrepare</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+> -&gt; String -&gt; String -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
->] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+>] -&gt; IO String</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3809,15 +2923,7 @@
 >nqExec</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->, <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+> -&gt; String -&gt; IO (String, String, <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
 >)</TD
 ></TR
@@ -3833,17 +2939,9 @@
 >execCommand</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
+> -&gt; String -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
 >PGBindVal</A
->] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->, <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+>] -&gt; IO (String, String, <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
 >)</TD
 ></TR
@@ -3859,17 +2957,9 @@
 >execPreparedCommand</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
+> -&gt; String -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
 >PGBindVal</A
->] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->, <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
+>] -&gt; IO (String, String, <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AOid"
 >Oid</A
 >)</TD
 ></TR
@@ -3899,17 +2989,11 @@
 >stmtExecImm</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
+> -&gt; String -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
 >PGBindVal</A
->] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
+>] -&gt; IO (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->)</TD
+>, Int)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3923,15 +3007,9 @@
 >stmtExecImm0</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
+> -&gt; String -&gt; IO (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->)</TD
+>, Int)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3945,15 +3023,9 @@
 >stmtExec0</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
+> -&gt; String -&gt; IO (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->)</TD
+>, Int)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3967,15 +3039,9 @@
 >stmtExec0t</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
+> -&gt; String -&gt; IO (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->)</TD
+>, Int)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3989,17 +3055,11 @@
 >stmtExec</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
+> -&gt; String -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
 >PGBindVal</A
->] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
+>] -&gt; IO (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->)</TD
+>, Int)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -4013,19 +3073,11 @@
 >execPrepared</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
+> -&gt; String -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
 >PGBindVal</A
->] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
+>] -&gt; CInt -&gt; IO (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->)</TD
+>, Int)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -4039,19 +3091,11 @@
 >prepare'n'exec</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
+> -&gt; String -&gt; String -&gt; [<A HREF="Database-PostgreSQL-PGFunctions.html#t%3APGBindVal"
 >PGBindVal</A
->] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
+>] -&gt; IO (<A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->)</TD
+>, Int)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -4065,9 +3109,7 @@
 >stmtFinalise</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -4081,17 +3123,7 @@
 >colValPtr</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
->)</TD
+> -&gt; Int -&gt; Int -&gt; IO (Ptr Word8)</TD
 ></TR
 ><TR
 ><TD CLASS="doc"
@@ -4114,13 +3146,7 @@
 >PGType</A
 > a =&gt; <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> -&gt; Int -&gt; Int -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -4134,15 +3160,7 @@
 >colValString</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> -&gt; Int -&gt; Int -&gt; IO String</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -4156,15 +3174,7 @@
 >colValInt</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> -&gt; Int -&gt; Int -&gt; IO Int</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -4178,15 +3188,7 @@
 >colValInt64</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
-></TD
+> -&gt; Int -&gt; Int -&gt; IO Int64</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -4200,15 +3202,7 @@
 >colValDouble</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3ADouble"
->Double</A
-></TD
+> -&gt; Int -&gt; Int -&gt; IO Double</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -4222,15 +3216,7 @@
 >colValFloat</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AFloat"
->Float</A
-></TD
+> -&gt; Int -&gt; Int -&gt; IO Float</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -4244,15 +3230,7 @@
 >colValUTCTime</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-></TD
+> -&gt; Int -&gt; Int -&gt; IO UTCTime</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -4266,15 +3244,7 @@
 >colValCalTime</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/old-time-1.0.0.0/System-Time.html#t%3ACalendarTime"
->CalendarTime</A
-></TD
+> -&gt; Int -&gt; Int -&gt; IO CalendarTime</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -4288,15 +3258,7 @@
 >colValNull</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3AResultSetHandle"
 >ResultSetHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Bool.html#t%3ABool"
->Bool</A
-></TD
+> -&gt; Int -&gt; Int -&gt; IO Bool</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -4308,17 +3270,7 @@
 ></A
 ><B
 >sbph</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Bool.html#t%3ABool"
->Bool</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> :: String -&gt; Int -&gt; Bool -&gt; String -&gt; String</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -4330,9 +3282,7 @@
 ></A
 ><B
 >nqCopyIn_buflen</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> :: Int</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -4346,13 +3296,7 @@
 >nqCopyIn</B
 > :: <A HREF="Database-PostgreSQL-PGFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AHandle"
->Handle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; String -&gt; Handle -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"

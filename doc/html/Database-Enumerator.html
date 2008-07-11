@@ -19,7 +19,7 @@
 ><IMG SRC="haskell_icon.gif" WIDTH="16" HEIGHT="16" ALT=" "
 ></TD
 ><TD CLASS="title"
->Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
+>Takusen-0.8.2: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
 ><TD CLASS="topbut"
 ><A HREF="index.html"
 >Contents</A
@@ -241,21 +241,41 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="#t%3AISession"
+>ISession</A
+> sess </TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3AConnectA"
+>ConnectA</A
+> sess</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
 ><A HREF="#v%3AwithSession"
 >withSession</A
-> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Typeable.html#t%3ATypeable"
->Typeable</A
-> a, <A HREF="Database-InternalEnumerator.html#t%3AISession"
+> :: (Typeable a, <A HREF="Database-Enumerator.html#t%3AISession"
 >ISession</A
-> sess) =&gt; <A HREF="Database-InternalEnumerator.html#t%3AConnectA"
+> sess) =&gt; <A HREF="Database-Enumerator.html#t%3AConnectA"
 >ConnectA</A
 > sess -&gt; (<SPAN CLASS="keyword"
 >forall</SPAN
 > mark . <A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
-> mark sess a) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> mark sess a) -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -265,19 +285,15 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AwithContinuedSession"
 >withContinuedSession</A
-> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Typeable.html#t%3ATypeable"
->Typeable</A
-> a, <A HREF="Database-InternalEnumerator.html#t%3AISession"
+> :: (Typeable a, <A HREF="Database-Enumerator.html#t%3AISession"
 >ISession</A
-> sess) =&gt; <A HREF="Database-InternalEnumerator.html#t%3AConnectA"
+> sess) =&gt; <A HREF="Database-Enumerator.html#t%3AConnectA"
 >ConnectA</A
 > sess -&gt; (<SPAN CLASS="keyword"
 >forall</SPAN
 > mark . <A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
-> mark sess a) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (a, <A HREF="Database-InternalEnumerator.html#t%3AConnectA"
+> mark sess a) -&gt; IO (a, <A HREF="Database-Enumerator.html#t%3AConnectA"
 >ConnectA</A
 > sess)</TD
 ></TR
@@ -289,7 +305,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3Acommit"
 >commit</A
-> :: <A HREF="Database-InternalEnumerator.html#t%3AISession"
+> :: <A HREF="Database-Enumerator.html#t%3AISession"
 >ISession</A
 > s =&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
@@ -303,7 +319,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3Arollback"
 >rollback</A
-> :: <A HREF="Database-InternalEnumerator.html#t%3AISession"
+> :: <A HREF="Database-Enumerator.html#t%3AISession"
 >ISession</A
 > s =&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
@@ -317,13 +333,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AbeginTransaction"
 >beginTransaction</A
-> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/mtl-1.1.0.0/Control-Monad-Reader-Class.html#t%3AMonadReader"
->MonadReader</A
-> s (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/mtl-1.1.0.0/Control-Monad-Reader.html#t%3AReaderT"
->ReaderT</A
-> s <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
->), <A HREF="Database-InternalEnumerator.html#t%3AISession"
+> :: (MonadReader s (ReaderT s IO), <A HREF="Database-Enumerator.html#t%3AISession"
 >ISession</A
 > s) =&gt; <A HREF="Database-Enumerator.html#t%3AIsolationLevel"
 >IsolationLevel</A
@@ -339,7 +349,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AwithTransaction"
 >withTransaction</A
-> :: <A HREF="Database-InternalEnumerator.html#t%3AISession"
+> :: <A HREF="Database-Enumerator.html#t%3AISession"
 >ISession</A
 > s =&gt; <A HREF="Database-Enumerator.html#t%3AIsolationLevel"
 >IsolationLevel</A
@@ -411,7 +421,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AexecDDL"
 >execDDL</A
-> :: <A HREF="Database-InternalEnumerator.html#t%3ACommand"
+> :: <A HREF="Database-Enumerator.html#t%3ACommand"
 >Command</A
 > stmt s =&gt; stmt -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
@@ -425,13 +435,11 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AexecDML"
 >execDML</A
-> :: <A HREF="Database-InternalEnumerator.html#t%3ACommand"
+> :: <A HREF="Database-Enumerator.html#t%3ACommand"
 >Command</A
 > stmt s =&gt; stmt -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
-> mark s <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> mark s Int</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -441,7 +449,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3Ainquire"
 >inquire</A
-> :: <A HREF="Database-InternalEnumerator.html#t%3AEnvInquiry"
+> :: <A HREF="Database-Enumerator.html#t%3AEnvInquiry"
 >EnvInquiry</A
 > key s result =&gt; key -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
@@ -469,33 +477,25 @@
 ><TD CLASS="decl"
 >= <A HREF="#v%3ADBError"
 >DBError</A
-> <A HREF="Database-InternalEnumerator.html#t%3ASqlState"
+> <A HREF="Database-Enumerator.html#t%3ASqlState"
 >SqlState</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> Int String</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
 >| <A HREF="#v%3ADBFatal"
 >DBFatal</A
-> <A HREF="Database-InternalEnumerator.html#t%3ASqlState"
+> <A HREF="Database-Enumerator.html#t%3ASqlState"
 >SqlState</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> Int String</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
 >| <A HREF="#v%3ADBUnexpectedNull"
 >DBUnexpectedNull</A
-> <A HREF="Database-InternalEnumerator.html#t%3ARowNum"
+> <A HREF="Database-Enumerator.html#t%3ARowNum"
 >RowNum</A
-> <A HREF="Database-InternalEnumerator.html#t%3AColNum"
+> <A HREF="Database-Enumerator.html#t%3AColNum"
 >ColNum</A
 ></TD
 ></TR
@@ -521,9 +521,7 @@
 >formatDBException</A
 > :: <A HREF="Database-Enumerator.html#t%3ADBException"
 >DBException</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> -&gt; String</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -563,9 +561,7 @@
 >reportRethrowMsg</A
 > :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
 >CaughtMonadIO</A
-> m =&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="Database-Enumerator.html#t%3ADBException"
+> m =&gt; String -&gt; <A HREF="Database-Enumerator.html#t%3ADBException"
 >DBException</A
 > -&gt; m a</TD
 ></TR
@@ -593,9 +589,7 @@
 >catchDBError</A
 > :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
 >CaughtMonadIO</A
-> m =&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; m a -&gt; (<A HREF="Database-Enumerator.html#t%3ADBException"
+> m =&gt; Int -&gt; m a -&gt; (<A HREF="Database-Enumerator.html#t%3ADBException"
 >DBException</A
 > -&gt; m a) -&gt; m a</TD
 ></TR
@@ -609,9 +603,7 @@
 >ignoreDBError</A
 > :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
 >CaughtMonadIO</A
-> m =&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; m a -&gt; m a</TD
+> m =&gt; Int -&gt; m a -&gt; m a</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -632,12 +624,74 @@
 ><TR
 ><TD CLASS="decl"
 ><SPAN CLASS="keyword"
->newtype</SPAN
+>type</SPAN
+> <A HREF="#t%3AColNum"
+>ColNum</A
+> = Int</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3ARowNum"
+>RowNum</A
+> = Int</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3ASqlState"
+>SqlState</A
+> = (<A HREF="Database-Enumerator.html#t%3ASqlStateClass"
+>SqlStateClass</A
+>, <A HREF="Database-Enumerator.html#t%3ASqlStateSubClass"
+>SqlStateSubClass</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3ASqlStateClass"
+>SqlStateClass</A
+> = String</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3ASqlStateSubClass"
+>SqlStateSubClass</A
+> = String</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
 > <A HREF="#t%3APreparedStmt"
 >PreparedStmt</A
-> mark stmt = <A HREF="#v%3APreparedStmt"
->PreparedStmt</A
-> stmt</TD
+> mark stmt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -647,11 +701,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AwithPreparedStatement"
 >withPreparedStatement</A
-> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Typeable.html#t%3ATypeable"
->Typeable</A
-> a, <A HREF="Database-InternalEnumerator.html#t%3AIPrepared"
+> :: (Typeable a, <A HREF="Database-Enumerator.html#t%3AIPrepared"
 >IPrepared</A
-> stmt sess bstmt bo) =&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+> stmt sess bstmt bo) =&gt; <A HREF="Database-Enumerator.html#t%3APreparationA"
 >PreparationA</A
 > sess stmt -&gt; (<A HREF="Database-Enumerator.html#t%3APreparedStmt"
 >PreparedStmt</A
@@ -669,13 +721,11 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AwithBoundStatement"
 >withBoundStatement</A
-> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Typeable.html#t%3ATypeable"
->Typeable</A
-> a, <A HREF="Database-InternalEnumerator.html#t%3AIPrepared"
+> :: (Typeable a, <A HREF="Database-Enumerator.html#t%3AIPrepared"
 >IPrepared</A
 > stmt s bstmt bo) =&gt; <A HREF="Database-Enumerator.html#t%3APreparedStmt"
 >PreparedStmt</A
-> mark stmt -&gt; [<A HREF="Database-InternalEnumerator.html#t%3ABindA"
+> mark stmt -&gt; [<A HREF="Database-Enumerator.html#t%3ABindA"
 >BindA</A
 > s stmt bo] -&gt; (bstmt -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
@@ -689,11 +739,77 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="#v%3AbindP"
->bindP</A
-> :: <A HREF="Database-InternalEnumerator.html#t%3ADBBind"
->DBBind</A
-> a sess stmt bo =&gt; a -&gt; <A HREF="Database-InternalEnumerator.html#t%3ABindA"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="Database-Enumerator.html#t%3AISession"
+>ISession</A
+> sess =&gt; <A HREF="#t%3AStatement"
+>Statement</A
+> stmt sess q | stmt sess -&gt; q</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="Database-Enumerator.html#t%3AISession"
+>ISession</A
+> sess =&gt; <A HREF="#t%3ACommand"
+>Command</A
+> stmt sess </TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="Database-Enumerator.html#t%3AISession"
+>ISession</A
+> sess =&gt; <A HREF="#t%3AEnvInquiry"
+>EnvInquiry</A
+> inquirykey sess result | inquirykey sess -&gt; result</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3APreparationA"
+>PreparationA</A
+> sess stmt</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="Database-Enumerator.html#t%3AISession"
+>ISession</A
+> sess =&gt; <A HREF="#t%3AIPrepared"
+>IPrepared</A
+> stmt sess bound_stmt bo | stmt -&gt; bound_stmt, stmt -&gt; bo</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A HREF="#t%3ABindA"
 >BindA</A
 > sess stmt bo</TD
 ></TR
@@ -703,13 +819,85 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="Database-Enumerator.html#t%3AISession"
+>ISession</A
+> sess =&gt; <A HREF="#t%3ADBBind"
+>DBBind</A
+> a sess stmt bo | stmt -&gt; bo <SPAN CLASS="keyword"
+>where</SPAN
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AbindP"
+>bindP</A
+> :: a -&gt; <A HREF="Database-Enumerator.html#t%3ABindA"
+>BindA</A
+> sess stmt bo</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AbindP"
+>bindP</A
+> :: <A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> a sess stmt bo =&gt; a -&gt; <A HREF="Database-Enumerator.html#t%3ABindA"
+>BindA</A
+> sess stmt bo</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="Database-Enumerator.html#t%3AISession"
+>ISession</A
+> sess =&gt; <A HREF="#t%3AIQuery"
+>IQuery</A
+> q sess b | q -&gt; sess, q -&gt; b <SPAN CLASS="keyword"
+>where</SPAN
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="#v%3AcurrentRowNum"
+>currentRowNum</A
+> :: q -&gt; IO Int</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
 ><A HREF="#v%3AdoQuery"
 >doQuery</A
-> :: (<A HREF="Database-InternalEnumerator.html#t%3AStatement"
+> :: (<A HREF="Database-Enumerator.html#t%3AStatement"
 >Statement</A
 > stmt sess q, QueryIteratee (<A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
-> mark sess) q i seed b, <A HREF="Database-InternalEnumerator.html#t%3AIQuery"
+> mark sess) q i seed b, <A HREF="Database-Enumerator.html#t%3AIQuery"
 >IQuery</A
 > q sess b) =&gt; stmt -&gt; i -&gt; seed -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
@@ -722,12 +910,22 @@
 ><TR
 ><TD CLASS="decl"
 ><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="#t%3ADBType"
+>DBType</A
+> a q b | q -&gt; b</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
 >type</SPAN
 > <A HREF="#t%3AIterResult"
 >IterResult</A
-> seedType = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Either.html#t%3AEither"
->Either</A
-> seedType seedType</TD
+> seedType = Either seedType seedType</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -751,13 +949,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AcurrentRowNum"
 >currentRowNum</A
-> :: <A HREF="Database-InternalEnumerator.html#t%3AIQuery"
+> :: <A HREF="Database-Enumerator.html#t%3AIQuery"
 >IQuery</A
-> q sess b =&gt; q -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> q sess b =&gt; q -&gt; IO Int</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -801,9 +995,7 @@
 >DBM</A
 > mark s) a -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
-> mark s <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Bool.html#t%3ABool"
->Bool</A
-></TD
+> mark s Bool</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -843,13 +1035,11 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AwithCursor"
 >withCursor</A
-> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Typeable.html#t%3ATypeable"
->Typeable</A
-> a, <A HREF="Database-InternalEnumerator.html#t%3AStatement"
+> :: (Typeable a, <A HREF="Database-Enumerator.html#t%3AStatement"
 >Statement</A
 > stmt sess q, QueryIteratee (<A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
-> mark sess) q i seed b, <A HREF="Database-InternalEnumerator.html#t%3AIQuery"
+> mark sess) q i seed b, <A HREF="Database-Enumerator.html#t%3AIQuery"
 >IQuery</A
 > q sess b) =&gt; stmt -&gt; i -&gt; seed -&gt; (DBCursor mark (<A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
@@ -865,11 +1055,21 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A HREF="#t%3APosition"
+>Position</A
+> = Int</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
 ><A HREF="#v%3AifNull"
 >ifNull</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> a -&gt; a -&gt; a</TD
+> :: Maybe a -&gt; a -&gt; a</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -879,9 +1079,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3Aresult"
 >result</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Control-Monad.html#t%3AMonad"
->Monad</A
-> m =&gt; <A HREF="Database-Enumerator.html#t%3AIterAct"
+> :: Monad m =&gt; <A HREF="Database-Enumerator.html#t%3AIterAct"
 >IterAct</A
 > m a</TD
 ></TR
@@ -893,9 +1091,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3Aresult%27"
 >result'</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Control-Monad.html#t%3AMonad"
->Monad</A
-> m =&gt; <A HREF="Database-Enumerator.html#t%3AIterAct"
+> :: Monad m =&gt; <A HREF="Database-Enumerator.html#t%3AIterAct"
 >IterAct</A
 > m a</TD
 ></TR
@@ -940,7 +1136,7 @@
  -- non-query actions.
  otherActions session = do
    execDDL (sql &quot;create table blah&quot;)
-   execDML (sql &quot;insert into blah ...&quot;)
+   execDML (cmdbind &quot;insert into blah (...) values (?, ?, ?, ...)&quot; [bindP &quot;v1&quot;, bindP (1::Int), ...])
    commit
    -- Use withTransaction to delimit a transaction.
    -- It will commit at the end, or rollback if an error occurs.
@@ -1039,7 +1235,7 @@
 ></TT
 > must be an instance of  
  <TT
-><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+><A HREF="Database-Enumerator.html#t%3AStatement"
 >Statement</A
 ></TT
 >.
@@ -1064,7 +1260,7 @@
 </LI
 ></UL
 ><PRE
->      sqlbind &quot;select ...&quot; [bindP ..., bindP ...]
+>      sqlbind &quot;select ?, ... where col = ? and ...&quot; [bindP ..., bindP ...]
 </PRE
 ><UL
 ><LI
@@ -1072,7 +1268,7 @@
 </LI
 ></UL
 ><PRE
->      prefetch 100 &quot;select ...&quot; [bindP ..., bindP ...]
+>      prefetch 100 &quot;select ?, ... where col = ? and ...&quot; [bindP ..., bindP ...]
 </PRE
 ><UL
 ><LI
@@ -1080,7 +1276,7 @@
 </LI
 ></UL
 ><PRE
->      cmdbind &quot;insert into ...&quot; [bindP ..., bindP ...]
+>      cmdbind &quot;insert into ... values (?, ?, ...)&quot; [bindP ..., bindP ...]
 </PRE
 ><UL
 ><LI
@@ -1090,7 +1286,7 @@
 </LI
 ></UL
 ><PRE
->      let stmt = prepareQuery (sql &quot;select ...&quot;)
+>      let stmt = prepareQuery (sql &quot;select ? ...&quot;)
       withPreparedStatement stmt $ \pstmt -&gt;
         withBoundStatement pstmt [bindP ..., bindP ...] $ \bstmt -&gt; do
           result &lt;- doQuery bstmt iter seed
@@ -1149,12 +1345,12 @@
 ><P
 >The iteratee function returns the next value of the accumulator,
  wrapped in an <TT
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Either.html#t%3AEither"
+><A HREF="Data-Either.html#t%3AEither"
 >Either</A
 ></TT
 >.
  If the <TT
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Either.html#t%3AEither"
+><A HREF="Data-Either.html#t%3AEither"
 >Either</A
 ></TT
 > value is <TT
@@ -1183,31 +1379,31 @@
 >The types of values that can be used as arguments to the iteratee function
  are back-end specific; they must be instances of the class
  <TT
-><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+><A HREF="Database-Enumerator.html#t%3ADBType"
 >DBType</A
 ></TT
 >.
  Most backends directly support the usual lowest-common-denominator set
  supported by most DBMS's: <TT
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
+><A HREF="Data-Int.html#t%3AInt"
 >Int</A
 ></TT
 >, <TT
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+><A HREF="Data-Char.html#t%3AString"
 >String</A
 ></TT
 >,
  <TT
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3ADouble"
+><A HREF="Prelude.html#t%3ADouble"
 >Double</A
 ></TT
 >, <TT
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
+><A HREF="Data-Time.html#t%3AUTCTime"
 >UTCTime</A
 ></TT
 >.
  (<TT
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
+><A HREF="Data-Int.html#t%3AInt64"
 >Int64</A
 ></TT
 > is often, but not always, supported.)
@@ -1216,27 +1412,27 @@
 >By directly support we mean there is type-specific marshalling code
  implemented.
  Indirect support for <TT
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Text-Read.html#t%3ARead"
+><A HREF="Text-Read.html#t%3ARead"
 >Read</A
 ></TT
 >- and <TT
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Text-Show.html#t%3AShow"
+><A HREF="Text-Show.html#t%3AShow"
 >Show</A
 ></TT
 >-able types
  is supported by marshalling to and from <TT
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+><A HREF="Data-Char.html#t%3AString"
 >String</A
 ></TT
 >s.
  This is done automatically by the back-end;
  there is no need for user-code to perform the marshalling,
  as long as instances of <TT
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Text-Read.html#t%3ARead"
+><A HREF="Text-Read.html#t%3ARead"
 >Read</A
 ></TT
 > and <TT
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Text-Show.html#t%3AShow"
+><A HREF="Text-Show.html#t%3AShow"
 >Show</A
 ></TT
 > are defined.
@@ -1248,7 +1444,7 @@
 ></TT
 > monad,
  so if you want to do IO in it you must use <TT
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/mtl-1.1.0.0/Control-Monad-Trans.html#v%3AliftIO"
+><A HREF="Control-Monad-Trans.html#v%3AliftIO"
 >liftIO</A
 ></TT
 >
@@ -1307,8 +1503,8 @@
 </P
 ><PRE
 > iter :: Monad m =&gt;
-      String -&gt; Double -&gt; CalendarTime -&gt; [(String, Double, CalendarTime)]
-   -&gt; m (Either [(String, Double, CalendarTime)] [(String, Double, CalendarTime)] )
+      String -&gt; Double -&gt; UTCTime -&gt; [(String, Double, UTCTime)]
+   -&gt; m (Either [(String, Double, UTCTime)] [(String, Double, UTCTime)] )
 </PRE
 ><P
 >reduces to (by using <TT
@@ -1323,7 +1519,7 @@
 </P
 ><PRE
 > iter :: Monad m =&gt;
-      String -&gt; Double -&gt; CalendarTime -&gt; IterAct m [(String, Double, CalendarTime)]
+      String -&gt; Double -&gt; UTCTime -&gt; IterAct m [(String, Double, UTCTime)]
 </PRE
 ></TD
 ></TR
@@ -1581,7 +1777,7 @@
 ></TT
 >
  is an instance of the <TT
-><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+><A HREF="Database-Enumerator.html#t%3AStatement"
 >Statement</A
 ></TT
 > class,
@@ -1762,18 +1958,17 @@
 </PRE
 ><P
 >You may have noticed that for <TT
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
+><A HREF="Data-Int.html#t%3AInt"
 >Int</A
 ></TT
 > and <TT
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3ADouble"
+><A HREF="Prelude.html#t%3ADouble"
 >Double</A
 ></TT
 > literal
  bind values, we have to tell the compiler the type of the literal.
- I assume this is due to interaction (which I don't fully understand and therefore
- cannot explain in any detail) with the numeric literal defaulting mechanism.
- For non-numeric literals the compiler can determine the correct types to use.
+ This is due to interaction with the numeric literal defaulting mechanism.
+ For non-numeric literals the compiler can (usually) determine the correct types to use.
 </P
 ><P
 >If you omit type information for numeric literals, from GHC the error
@@ -1882,7 +2077,7 @@
 >RefCursor</A
 ></TT
 > <TT
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
+><A HREF="Data-Char.html#t%3AString"
 >String</A
 ></TT
 >
@@ -2014,7 +2209,7 @@
 ></TT
 > to process it's result-set;
  here we use <TT
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Control-Monad.html#v%3AmapM_"
+><A HREF="Control-Monad.html#v%3AmapM_"
 >mapM_</A
 ></TT
 > to apply an IO action to the list returned by
@@ -2055,7 +2250,7 @@
  where the entire result-set is processed to give a
  list of RefCursor values, and then we run a list of actions
  over this list with <TT
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Control-Monad.html#v%3AmapM_"
+><A HREF="Control-Monad.html#v%3AmapM_"
 >mapM_</A
 ></TT
 >.
@@ -2129,7 +2324,7 @@
 ><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3AISession"
+><A HREF="Database-Enumerator.html#t%3AISession"
 >ISession</A
 > si =&gt; <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
 >CaughtMonadIO</A
@@ -2139,43 +2334,218 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
->(<A HREF="Database-InternalEnumerator.html#t%3AISession"
+>(<A HREF="Database-Enumerator.html#t%3AISession"
 >ISession</A
-> sess, ??? a sess) =&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Control-Monad.html#t%3AFunctor"
->Functor</A
-> (<A HREF="Database-Enumerator.html#t%3ADBM"
+> sess, ??? a sess) =&gt; Functor (<A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
 > mark sess a)</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
->(<A HREF="Database-InternalEnumerator.html#t%3AISession"
+>(<A HREF="Database-Enumerator.html#t%3AISession"
 >ISession</A
-> sess, ??? a sess) =&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Control-Monad.html#t%3AMonad"
->Monad</A
-> (<A HREF="Database-Enumerator.html#t%3ADBM"
+> sess, ??? a sess) =&gt; Monad (<A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
 > mark sess a)</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
->(<A HREF="Database-InternalEnumerator.html#t%3AISession"
+>(<A HREF="Database-Enumerator.html#t%3AISession"
 >ISession</A
-> sess, ??? a sess) =&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Control-Monad-Fix.html#t%3AMonadFix"
->MonadFix</A
-> (<A HREF="Database-Enumerator.html#t%3ADBM"
+> sess, ??? a sess) =&gt; MonadFix (<A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
 > mark sess a)</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
->(<A HREF="Database-InternalEnumerator.html#t%3AISession"
+>(<A HREF="Database-Enumerator.html#t%3AISession"
 >ISession</A
-> sess, ??? a sess) =&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/mtl-1.1.0.0/Control-Monad-Trans.html#t%3AMonadIO"
->MonadIO</A
-> (<A HREF="Database-Enumerator.html#t%3ADBM"
+> sess, ??? a sess) =&gt; MonadIO (<A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
 > mark sess a)</TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A NAME="t%3AISession"
+></A
+><B
+>ISession</B
+> sess </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="ndoc"
+><P
+>The <TT
+><A HREF="Database-Enumerator.html#t%3AISession"
+>ISession</A
+></TT
+> class describes a database session to a particular
+ DBMS.  Oracle has its own Session object, SQLite has its own
+ session object (which maintains the connection handle to the database
+ engine and other related stuff). Session objects for different databases
+ normally have different types -- yet they all belong to the class ISession
+ so we can do generic operations like <TT
+>commit</TT
+>, <TT
+>execDDL</TT
+>, etc. 
+ in a database-independent manner.
+</P
+><P
+>Session objects per se are created by database connection/login functions.
+</P
+><P
+>The class <TT
+><A HREF="Database-Enumerator.html#t%3AISession"
+>ISession</A
+></TT
+> is thus an interface between low-level (and
+ database-specific) code and the Enumerator, database-independent
+ code.
+ The <TT
+><A HREF="Database-Enumerator.html#t%3AISession"
+>ISession</A
+></TT
+> class is NOT visible to the end user -- neither the class,
+ nor any of its methods.
+</P
+><P
+>The <TT
+><A HREF="Database-Enumerator.html#t%3AISession"
+>ISession</A
+></TT
+> class describes the mapping from connection object to
+ the session object. The connection object is created by the end user
+ (and this is how the end user tells which particular back end he wants).
+ The session object is not accessible by the end user in any way.
+ Even the type of the session object should be hidden!
+</P
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:ISession')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:ISession" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AISession"
+>ISession</A
+> <A HREF="Database-Stub-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AISession"
+>ISession</A
+> <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AISession"
+>ISession</A
+> <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AISession"
+>ISession</A
+> <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AISession"
+>ISession</A
+> <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A NAME="t%3AConnectA"
+></A
+><B
+>ConnectA</B
+> sess</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="ndoc"
+>A wrapper around the action to open the database. That wrapper is not
+ exported to the end user. The only reason for the wrapper is to
+ guarantee that the only thing to do with the result of
+ <TT
+><A HREF="Database-Enumerator-Sqlite.html#v%3Aconnect"
+>connect</A
+></TT
+> function is to pass it out
+ directly to <TT
+><A HREF="Database-Enumerator.html#v%3AwithSession"
+>withSession</A
+></TT
+>.
+</TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:ConnectA')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:ConnectA" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+>??? sess =&gt; Typeable (<A HREF="Database-Enumerator.html#t%3AConnectA"
+>ConnectA</A
+> sess)</TD
 ></TR
 ></TABLE
 ></DIV
@@ -2194,19 +2564,15 @@
 ></A
 ><B
 >withSession</B
-> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Typeable.html#t%3ATypeable"
->Typeable</A
-> a, <A HREF="Database-InternalEnumerator.html#t%3AISession"
+> :: (Typeable a, <A HREF="Database-Enumerator.html#t%3AISession"
 >ISession</A
-> sess) =&gt; <A HREF="Database-InternalEnumerator.html#t%3AConnectA"
+> sess) =&gt; <A HREF="Database-Enumerator.html#t%3AConnectA"
 >ConnectA</A
 > sess -&gt; (<SPAN CLASS="keyword"
 >forall</SPAN
 > mark . <A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
-> mark sess a) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> mark sess a) -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="doc"
@@ -2224,19 +2590,15 @@
 ></A
 ><B
 >withContinuedSession</B
-> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Typeable.html#t%3ATypeable"
->Typeable</A
-> a, <A HREF="Database-InternalEnumerator.html#t%3AISession"
+> :: (Typeable a, <A HREF="Database-Enumerator.html#t%3AISession"
 >ISession</A
-> sess) =&gt; <A HREF="Database-InternalEnumerator.html#t%3AConnectA"
+> sess) =&gt; <A HREF="Database-Enumerator.html#t%3AConnectA"
 >ConnectA</A
 > sess -&gt; (<SPAN CLASS="keyword"
 >forall</SPAN
 > mark . <A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
-> mark sess a) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (a, <A HREF="Database-InternalEnumerator.html#t%3AConnectA"
+> mark sess a) -&gt; IO (a, <A HREF="Database-Enumerator.html#t%3AConnectA"
 >ConnectA</A
 > sess)</TD
 ></TR
@@ -2315,7 +2677,7 @@
 ></A
 ><B
 >commit</B
-> :: <A HREF="Database-InternalEnumerator.html#t%3AISession"
+> :: <A HREF="Database-Enumerator.html#t%3AISession"
 >ISession</A
 > s =&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
@@ -2331,7 +2693,7 @@
 ></A
 ><B
 >rollback</B
-> :: <A HREF="Database-InternalEnumerator.html#t%3AISession"
+> :: <A HREF="Database-Enumerator.html#t%3AISession"
 >ISession</A
 > s =&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
@@ -2347,13 +2709,7 @@
 ></A
 ><B
 >beginTransaction</B
-> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/mtl-1.1.0.0/Control-Monad-Reader-Class.html#t%3AMonadReader"
->MonadReader</A
-> s (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/mtl-1.1.0.0/Control-Monad-Reader.html#t%3AReaderT"
->ReaderT</A
-> s <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
->), <A HREF="Database-InternalEnumerator.html#t%3AISession"
+> :: (MonadReader s (ReaderT s IO), <A HREF="Database-Enumerator.html#t%3AISession"
 >ISession</A
 > s) =&gt; <A HREF="Database-Enumerator.html#t%3AIsolationLevel"
 >IsolationLevel</A
@@ -2371,7 +2727,7 @@
 ></A
 ><B
 >withTransaction</B
-> :: <A HREF="Database-InternalEnumerator.html#t%3AISession"
+> :: <A HREF="Database-Enumerator.html#t%3AISession"
 >ISession</A
 > s =&gt; <A HREF="Database-Enumerator.html#t%3AIsolationLevel"
 >IsolationLevel</A
@@ -2476,9 +2832,25 @@
 ><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
 ><TR
 ><TD CLASS="decl"
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Text-Show.html#t%3AShow"
->Show</A
-> <A HREF="Database-Enumerator.html#t%3AIsolationLevel"
+>Enum <A HREF="Database-Enumerator.html#t%3AIsolationLevel"
+>IsolationLevel</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+>Eq <A HREF="Database-Enumerator.html#t%3AIsolationLevel"
+>IsolationLevel</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+>Ord <A HREF="Database-Enumerator.html#t%3AIsolationLevel"
+>IsolationLevel</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+>Show <A HREF="Database-Enumerator.html#t%3AIsolationLevel"
 >IsolationLevel</A
 ></TD
 ></TR
@@ -2499,7 +2871,7 @@
 ></A
 ><B
 >execDDL</B
-> :: <A HREF="Database-InternalEnumerator.html#t%3ACommand"
+> :: <A HREF="Database-Enumerator.html#t%3ACommand"
 >Command</A
 > stmt s =&gt; stmt -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
@@ -2521,13 +2893,11 @@
 ></A
 ><B
 >execDML</B
-> :: <A HREF="Database-InternalEnumerator.html#t%3ACommand"
+> :: <A HREF="Database-Enumerator.html#t%3ACommand"
 >Command</A
 > stmt s =&gt; stmt -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
-> mark s <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> mark s Int</TD
 ></TR
 ><TR
 ><TD CLASS="doc"
@@ -2544,7 +2914,7 @@
 ></A
 ><B
 >inquire</B
-> :: <A HREF="Database-InternalEnumerator.html#t%3AEnvInquiry"
+> :: <A HREF="Database-Enumerator.html#t%3AEnvInquiry"
 >EnvInquiry</A
 > key s result =&gt; key -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
@@ -2553,7 +2923,7 @@
 ><TR
 ><TD CLASS="doc"
 >Allows arbitrary actions to be run the DBM monad.
- the back-end developer must supply instances of EnvInquiry,
+ The back-end developer must supply instances of EnvInquiry,
  which is hidden away in <A HREF="Database-InternalEnumerator.html"
 >Database.InternalEnumerator</A
 >.
@@ -2605,13 +2975,9 @@
 ></A
 ><B
 >DBError</B
-> <A HREF="Database-InternalEnumerator.html#t%3ASqlState"
+> <A HREF="Database-Enumerator.html#t%3ASqlState"
 >SqlState</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> Int String</TD
 ><TD CLASS="rdoc"
 >DBMS error message.
 </TD
@@ -2622,13 +2988,9 @@
 ></A
 ><B
 >DBFatal</B
-> <A HREF="Database-InternalEnumerator.html#t%3ASqlState"
+> <A HREF="Database-Enumerator.html#t%3ASqlState"
 >SqlState</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> Int String</TD
 ><TD CLASS="rdoc"
 ></TD
 ></TR
@@ -2638,9 +3000,9 @@
 ></A
 ><B
 >DBUnexpectedNull</B
-> <A HREF="Database-InternalEnumerator.html#t%3ARowNum"
+> <A HREF="Database-Enumerator.html#t%3ARowNum"
 >RowNum</A
-> <A HREF="Database-InternalEnumerator.html#t%3AColNum"
+> <A HREF="Database-Enumerator.html#t%3AColNum"
 >ColNum</A
 ></TD
 ><TD CLASS="rdoc"
@@ -2674,17 +3036,13 @@
 ><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
 ><TR
 ><TD CLASS="decl"
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Text-Show.html#t%3AShow"
->Show</A
-> <A HREF="Database-Enumerator.html#t%3ADBException"
+>Show <A HREF="Database-Enumerator.html#t%3ADBException"
 >DBException</A
 ></TD
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Typeable.html#t%3ATypeable"
->Typeable</A
-> <A HREF="Database-Enumerator.html#t%3ADBException"
+>Typeable <A HREF="Database-Enumerator.html#t%3ADBException"
 >DBException</A
 ></TD
 ></TR
@@ -2707,9 +3065,7 @@
 >formatDBException</B
 > :: <A HREF="Database-Enumerator.html#t%3ADBException"
 >DBException</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> -&gt; String</TD
 ></TR
 ><TR
 ><TD CLASS="doc"
@@ -2778,9 +3134,7 @@
 >reportRethrowMsg</B
 > :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
 >CaughtMonadIO</A
-> m =&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="Database-Enumerator.html#t%3ADBException"
+> m =&gt; String -&gt; <A HREF="Database-Enumerator.html#t%3ADBException"
 >DBException</A
 > -&gt; m a</TD
 ></TR
@@ -2832,9 +3186,7 @@
 >catchDBError</B
 > :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
 >CaughtMonadIO</A
-> m =&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; m a -&gt; (<A HREF="Database-Enumerator.html#t%3ADBException"
+> m =&gt; Int -&gt; m a -&gt; (<A HREF="Database-Enumerator.html#t%3ADBException"
 >DBException</A
 > -&gt; m a) -&gt; m a</TD
 ></TR
@@ -2856,9 +3208,7 @@
 >ignoreDBError</B
 > :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
 >CaughtMonadIO</A
-> m =&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; m a -&gt; m a</TD
+> m =&gt; Int -&gt; m a -&gt; m a</TD
 ></TR
 ><TR
 ><TD CLASS="doc"
@@ -2887,11 +3237,85 @@
 ><TR
 ><TD CLASS="doc"
 >Throw a DBException. It's just a type-specific <TT
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Control-Exception.html#v%3AthrowDyn"
+><A HREF="Control-Exception.html#v%3AthrowDyn"
 >throwDyn</A
 ></TT
 >.
 </TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3AColNum"
+></A
+><B
+>ColNum</B
+> = Int</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3ARowNum"
+></A
+><B
+>RowNum</B
+> = Int</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3ASqlState"
+></A
+><B
+>SqlState</B
+> = (<A HREF="Database-Enumerator.html#t%3ASqlStateClass"
+>SqlStateClass</A
+>, <A HREF="Database-Enumerator.html#t%3ASqlStateSubClass"
+>SqlStateSubClass</A
+>)</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3ASqlStateClass"
+></A
+><B
+>SqlStateClass</B
+> = String</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3ASqlStateSubClass"
+></A
+><B
+>SqlStateSubClass</B
+> = String</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2911,7 +3335,7 @@
 ><TR
 ><TD CLASS="decl"
 ><SPAN CLASS="keyword"
->newtype</SPAN
+>data</SPAN
 > <A NAME="t%3APreparedStmt"
 ></A
 ><B
@@ -2921,26 +3345,6 @@
 ><TR
 ><TD CLASS="body"
 ><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
-><TR
-><TD CLASS="section4"
->Constructors</TD
-></TR
-><TR
-><TD CLASS="body"
-><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
-><TR
-><TD CLASS="arg"
-><A NAME="v%3APreparedStmt"
-></A
-><B
->PreparedStmt</B
-> stmt</TD
-><TD CLASS="rdoc"
-></TD
-></TR
-></TABLE
-></TD
-></TR
 ></TABLE
 ></TD
 ></TR
@@ -2961,9 +3365,7 @@
 ><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
 ><TR
 ><TD CLASS="arg"
->:: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Typeable.html#t%3ATypeable"
->Typeable</A
-> a, <A HREF="Database-InternalEnumerator.html#t%3AIPrepared"
+>:: (Typeable a, <A HREF="Database-Enumerator.html#t%3AIPrepared"
 >IPrepared</A
 > stmt sess bstmt bo)</TD
 ><TD CLASS="rdoc"
@@ -2971,7 +3373,7 @@
 ></TR
 ><TR
 ><TD CLASS="arg"
->=&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+>=&gt; <A HREF="Database-Enumerator.html#t%3APreparationA"
 >PreparationA</A
 > sess stmt</TD
 ><TD CLASS="rdoc"
@@ -3034,9 +3436,7 @@
 ><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
 ><TR
 ><TD CLASS="arg"
->:: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Typeable.html#t%3ATypeable"
->Typeable</A
-> a, <A HREF="Database-InternalEnumerator.html#t%3AIPrepared"
+>:: (Typeable a, <A HREF="Database-Enumerator.html#t%3AIPrepared"
 >IPrepared</A
 > stmt s bstmt bo)</TD
 ><TD CLASS="rdoc"
@@ -3053,7 +3453,7 @@
 ></TR
 ><TR
 ><TD CLASS="arg"
->-&gt; [<A HREF="Database-InternalEnumerator.html#t%3ABindA"
+>-&gt; [<A HREF="Database-Enumerator.html#t%3ABindA"
 >BindA</A
 > s stmt bo]</TD
 ><TD CLASS="rdoc"
@@ -3086,7 +3486,7 @@
  has usually been executed.
  A bound statement would normally be an instance of
  <TT
-><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+><A HREF="Database-Enumerator.html#t%3AStatement"
 >Statement</A
 ></TT
 >, so it can be passed to
@@ -3097,7 +3497,7 @@
 >
  in order to process the result-set, and also an instance of
  <TT
-><A HREF="Database-InternalEnumerator.html#t%3ACommand"
+><A HREF="Database-Enumerator.html#t%3ACommand"
 >Command</A
 ></TT
 >, so that we can write
@@ -3119,13 +3519,1138 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="Database-Enumerator.html#t%3AISession"
+>ISession</A
+> sess =&gt; <A NAME="t%3AStatement"
+></A
+><B
+>Statement</B
+> stmt sess q | stmt sess -&gt; q</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="ndoc"
+><TT
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Statement</A
+></TT
+> defines the API for query objects i.e.
+ which types can be queries.
+</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:Statement')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:Statement" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Statement</A
+> BoundStmt <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Statement</A
+> BoundStmt <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Statement</A
+> BoundStmt <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Statement</A
+> BoundStmt <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Statement</A
+> PreparedStmtObj <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Statement</A
+> PreparedStmtObj <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Statement</A
+> PreparedStmtObj <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Statement</A
+> QueryString <A HREF="Database-Stub-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Statement</A
+> QueryString <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Statement</A
+> QueryString <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Statement</A
+> QueryString <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Statement</A
+> QueryString <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Statement</A
+> QueryStringTuned <A HREF="Database-Stub-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Statement</A
+> QueryStringTuned <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Statement</A
+> QueryStringTuned <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Statement</A
+> StmtBind <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Statement</A
+> StmtBind <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Statement</A
+> String <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Statement</A
+> String <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Statement</A
+> String <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Statement</A
+> String <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Statement</A
+> (<A HREF="Database-Enumerator.html#t%3ARefCursor"
+>RefCursor</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+>) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Statement</A
+> (<A HREF="Database-Enumerator.html#t%3ARefCursor"
+>RefCursor</A
+> String) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Statement</A
+> (<A HREF="Database-Enumerator.html#t%3ANextResultSet"
+>NextResultSet</A
+> mark PreparedStmtObj) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AStatement"
+>Statement</A
+> (<A HREF="Database-Enumerator.html#t%3ANextResultSet"
+>NextResultSet</A
+> mark PreparedStmtObj) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> Query</TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="Database-Enumerator.html#t%3AISession"
+>ISession</A
+> sess =&gt; <A NAME="t%3ACommand"
+></A
+><B
+>Command</B
+> stmt sess </TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="ndoc"
+><TT
+><A HREF="Database-Enumerator.html#t%3ACommand"
+>Command</A
+></TT
+> is not a query: command deletes or updates rows, creates/drops
+ tables, or changes database state.
+ <TT
+><A HREF="Database-InternalEnumerator.html#v%3AexecuteCommand"
+>executeCommand</A
+></TT
+> returns the number of affected rows (or 0 if DDL i.e. not DML).
+</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:Command')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:Command" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ACommand"
+>Command</A
+> BoundStmt <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ACommand"
+>Command</A
+> BoundStmt <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ACommand"
+>Command</A
+> BoundStmt <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ACommand"
+>Command</A
+> BoundStmt <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ACommand"
+>Command</A
+> CommandBind <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ACommand"
+>Command</A
+> CommandBind <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ACommand"
+>Command</A
+> QueryString <A HREF="Database-Stub-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ACommand"
+>Command</A
+> QueryString <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ACommand"
+>Command</A
+> QueryString <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ACommand"
+>Command</A
+> QueryString <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ACommand"
+>Command</A
+> QueryString <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ACommand"
+>Command</A
+> QueryStringTuned <A HREF="Database-Stub-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ACommand"
+>Command</A
+> StmtBind <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ACommand"
+>Command</A
+> StmtBind <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ACommand"
+>Command</A
+> String <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ACommand"
+>Command</A
+> String <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ACommand"
+>Command</A
+> String <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ACommand"
+>Command</A
+> String <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+></TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="Database-Enumerator.html#t%3AISession"
+>ISession</A
+> sess =&gt; <A NAME="t%3AEnvInquiry"
+></A
+><B
+>EnvInquiry</B
+> inquirykey sess result | inquirykey sess -&gt; result</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:EnvInquiry')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:EnvInquiry" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AEnvInquiry"
+>EnvInquiry</A
+> <A HREF="Database-Sqlite-Enumerator.html#t%3ALastInsertRowid"
+>LastInsertRowid</A
+> <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> Int64</TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A NAME="t%3APreparationA"
+></A
+><B
+>PreparationA</B
+> sess stmt</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="ndoc"
+><P
+>This type is not visible to the end user (cf. ConnectA). It forms a private
+ `communication channel' between Database.Enumerator and a back end.
+</P
+><P
+>Why don't we make a user-visible class with a <TT
+>prepare</TT
+> method?
+ Because it means to standardize the preparation method signature
+ across all databases. Some databases need more parameters, some
+ fewer. There may be several statement preparation functions within one
+ database.  So, instead of standardizing the signature of the
+ preparation function, we standardize on the _result_ of that
+ function. To be more precise, we standardize on the properties of the
+ result: whatever it is, the eventual prepared statement should be
+ suitable to be passed to <TT
+><A HREF="Database-InternalEnumerator.html#v%3AbindRun"
+>bindRun</A
+></TT
+>.
+</P
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="Database-Enumerator.html#t%3AISession"
+>ISession</A
+> sess =&gt; <A NAME="t%3AIPrepared"
+></A
+><B
+>IPrepared</B
+> stmt sess bound_stmt bo | stmt -&gt; bound_stmt, stmt -&gt; bo</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:IPrepared')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:IPrepared" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AIPrepared"
+>IPrepared</A
+> PreparedStmtObj <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> BoundStmt BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AIPrepared"
+>IPrepared</A
+> PreparedStmtObj <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> BoundStmt BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AIPrepared"
+>IPrepared</A
+> PreparedStmtObj <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> BoundStmt BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AIPrepared"
+>IPrepared</A
+> PreparedStmtObj <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> BoundStmt BindObj</TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>data</SPAN
+> <A NAME="t%3ABindA"
+></A
+><B
+>BindA</B
+> sess stmt bo</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="ndoc"
+>The binding object (bo) below is very abstract, on purpose.
+ It may be |IO a|, it may be String, it may be a function, etc.
+ The binding object can hold the result of marshalling,
+ or bo can hold the current counter, etc.
+ Different databases do things very differently:
+ compare PostgreSQL and the Stub (which models Oracle).
+</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="Database-Enumerator.html#t%3AISession"
+>ISession</A
+> sess =&gt; <A NAME="t%3ADBBind"
+></A
+><B
+>DBBind</B
+> a sess stmt bo | stmt -&gt; bo <SPAN CLASS="keyword"
+>where</SPAN
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="ndoc"
+>The class DBBind is not used by the end-user.
+ It is used to tie up low-level database access and the enumerator.
+ A database-specific library must provide a set of instances for DBBind.
+ The latter are the dual of DBType.
+</TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+>Methods</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
 ><A NAME="v%3AbindP"
 ></A
 ><B
 >bindP</B
-> :: <A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+> :: a -&gt; <A HREF="Database-Enumerator.html#t%3ABindA"
+>BindA</A
+> sess stmt bo</TD
+></TR
+><TR
+><TD CLASS="doc"
+>This is really just a wrapper that lets us write lists of
+ heterogenous bind values e.g. <TT
+>[bindP &quot;string&quot;, bindP (0::Int), ...]</TT
+>
+</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:DBBind')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:DBBind" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
 >DBBind</A
-> a sess stmt bo =&gt; a -&gt; <A HREF="Database-InternalEnumerator.html#t%3ABindA"
+> (Maybe a) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj =&gt; <A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> a <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe a) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj =&gt; <A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> a <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe a) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj =&gt; <A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> a <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe a) <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj =&gt; <A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> a <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe CalendarTime) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe CalendarTime) <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe Double) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe Double) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe Double) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe Double) <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe Float) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe Int) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe Int) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe Int) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe Int) <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe Int64) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe Int64) <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe String) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe String) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe String) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe String) <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe UTCTime) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe UTCTime) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe UTCTime) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe UTCTime) <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+>Show a =&gt; <A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe a) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+>Show a =&gt; <A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe a) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+>Show a =&gt; <A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe a) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+>Show a =&gt; <A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (Maybe a) <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-ODBC-Enumerator.html#t%3AOut"
+>Out</A
+> (Maybe Double)) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-Oracle-Enumerator.html#t%3AOut"
+>Out</A
+> (Maybe Double)) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-ODBC-Enumerator.html#t%3AOut"
+>Out</A
+> (Maybe Int)) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-Oracle-Enumerator.html#t%3AOut"
+>Out</A
+> (Maybe Int)) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-Oracle-Enumerator.html#t%3AOut"
+>Out</A
+> (Maybe <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+>)) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-ODBC-Enumerator.html#t%3AOut"
+>Out</A
+> (Maybe String)) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-Oracle-Enumerator.html#t%3AOut"
+>Out</A
+> (Maybe String)) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-ODBC-Enumerator.html#t%3AOut"
+>Out</A
+> (Maybe UTCTime)) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-Oracle-Enumerator.html#t%3AOut"
+>Out</A
+> (Maybe UTCTime)) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+>Show a =&gt; <A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-ODBC-Enumerator.html#t%3AOut"
+>Out</A
+> (Maybe a)) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+>Show a =&gt; <A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-Oracle-Enumerator.html#t%3AOut"
+>Out</A
+> (Maybe a)) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-ODBC-Enumerator.html#t%3AOut"
+>Out</A
+> (Maybe a)) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj =&gt; <A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-ODBC-Enumerator.html#t%3AOut"
+>Out</A
+> a) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-Oracle-Enumerator.html#t%3AOut"
+>Out</A
+> (Maybe a)) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj =&gt; <A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-Oracle-Enumerator.html#t%3AOut"
+>Out</A
+> a) <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AbindP"
+></A
+><B
+>bindP</B
+> :: <A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> a sess stmt bo =&gt; a -&gt; <A HREF="Database-Enumerator.html#t%3ABindA"
 >BindA</A
 > sess stmt bo</TD
 ></TR
@@ -3154,6 +4679,131 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>class</SPAN
+> <A HREF="Database-Enumerator.html#t%3AISession"
+>ISession</A
+> sess =&gt; <A NAME="t%3AIQuery"
+></A
+><B
+>IQuery</B
+> q sess b | q -&gt; sess, q -&gt; b <SPAN CLASS="keyword"
+>where</SPAN
+></TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="ndoc"
+><P
+>The class IQuery describes the class of query objects. Each
+ database (that is, each Session object) has its own Query object. 
+ We may assume that a Query object includes (at least, conceptually)
+ a (pointer to) a Session object, so a Query object determines the
+ Session object.
+ A back-end provides an instance (or instances) of IQuery.
+ The end user never seens the IQuery class (let alone its methods).
+</P
+><P
+>Can a session have several types of query objects?
+ Let's assume that it can: but a statement plus the session uniquely
+ determine the query,
+</P
+><P
+>Note that we explicitly use IO monad because we will have to explicitly
+ do FFI.
+</P
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+>Methods</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A NAME="v%3AcurrentRowNum"
+></A
+><B
+>currentRowNum</B
+> :: q -&gt; IO Int</TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:IQuery')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:IQuery" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AIQuery"
+>IQuery</A
+> Query <A HREF="Database-Stub-Enumerator.html#t%3ASession"
+>Session</A
+> ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AIQuery"
+>IQuery</A
+> Query <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AIQuery"
+>IQuery</A
+> Query <A HREF="Database-Oracle-Enumerator.html#t%3ASession"
+>Session</A
+> ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AIQuery"
+>IQuery</A
+> Query <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+>Session</A
+> ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3AIQuery"
+>IQuery</A
+> Query <A HREF="Database-Sqlite-Enumerator.html#t%3ASession"
+>Session</A
+> ColumnBuffer</TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
 ><A NAME="v%3AdoQuery"
 ></A
 ><B
@@ -3165,11 +4815,11 @@
 ><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
 ><TR
 ><TD CLASS="arg"
->:: (<A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>:: (<A HREF="Database-Enumerator.html#t%3AStatement"
 >Statement</A
 > stmt sess q, QueryIteratee (<A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
-> mark sess) q i seed b, <A HREF="Database-InternalEnumerator.html#t%3AIQuery"
+> mark sess) q i seed b, <A HREF="Database-Enumerator.html#t%3AIQuery"
 >IQuery</A
 > q sess b)</TD
 ><TD CLASS="rdoc"
@@ -3219,14 +4869,319 @@
 ><TR
 ><TD CLASS="decl"
 ><SPAN CLASS="keyword"
+>class</SPAN
+> <A NAME="t%3ADBType"
+></A
+><B
+>DBType</B
+> a q b | q -&gt; b</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="ndoc"
+><P
+>A 'buffer' means a column buffer: a data structure that points to a
+ block of memory allocated for the values of one particular
+ column. Since a query normally fetches a row of several columns, we
+ typically deal with a list of column buffers. Although the column data
+ are typed (e.g., Integer, CalendarDate, etc), column buffers hide that
+ type. Think of the column buffer as Dynamics. The class DBType below
+ describes marshalling functions, to fetch a typed value out of the
+ 'untyped' columnBuffer.
+</P
+><P
+>Different DBMS's (that is, different session objects) have, in
+ general, columnBuffers of different types: the type of Column Buffer
+ is specific to a database.
+ So, ISession (m) uniquely determines the buffer type (b)??
+ Or, actually, a query uniquely determines the buffer.
+</P
+><P
+>The class DBType is not used by the end-user.
+ It is used to tie up low-level database access and the enumerator.
+ A database-specific library must provide a set of instances for DBType.
+</P
+></TD
+></TR
+><TR
+><TD CLASS="s8"
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:DBType')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:DBType" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe a) Query ColumnBuffer =&gt; <A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> a Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe a) Query ColumnBuffer =&gt; <A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> a Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe a) Query ColumnBuffer =&gt; <A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> a Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe a) Query ColumnBuffer =&gt; <A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> a Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe a) Query ColumnBuffer =&gt; <A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> a Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe CalendarTime) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe CalendarTime) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe CalendarTime) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe CalendarTime) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe Double) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe Double) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe Double) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe Double) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe Double) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe Float) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe Int) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe Int) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe Int) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe Int) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe Int) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe Int64) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe Int64) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe String) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe String) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe String) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe String) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe String) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe UTCTime) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe UTCTime) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe UTCTime) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe UTCTime) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+>(Show a, Read a) =&gt; <A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe a) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+>(Show a, Read a) =&gt; <A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe a) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+>(Show a, Read a) =&gt; <A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe a) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+>(Show a, Read a) =&gt; <A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe a) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+>(Show a, Read a) =&gt; <A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (Maybe a) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="Database-Enumerator.html#t%3ARefCursor"
+>RefCursor</A
+> <A HREF="Database-Oracle-OCIFunctions.html#t%3AStmtHandle"
+>StmtHandle</A
+>) Query ColumnBuffer</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBType"
+>DBType</A
+> (<A HREF="Database-Enumerator.html#t%3ARefCursor"
+>RefCursor</A
+> String) Query ColumnBuffer</TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
 >type</SPAN
 > <A NAME="t%3AIterResult"
 ></A
 ><B
 >IterResult</B
-> seedType = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Either.html#t%3AEither"
->Either</A
-> seedType seedType</TD
+> seedType = Either seedType seedType</TD
 ></TR
 ><TR
 ><TD CLASS="doc"
@@ -3269,13 +5224,9 @@
 ></A
 ><B
 >currentRowNum</B
-> :: <A HREF="Database-InternalEnumerator.html#t%3AIQuery"
+> :: <A HREF="Database-Enumerator.html#t%3AIQuery"
 >IQuery</A
-> q sess b =&gt; q -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> q sess b =&gt; q -&gt; IO Int</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -3327,7 +5278,7 @@
 ><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+><A HREF="Database-Enumerator.html#t%3AStatement"
 >Statement</A
 > (<A HREF="Database-Enumerator.html#t%3ANextResultSet"
 >NextResultSet</A
@@ -3337,7 +5288,7 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+><A HREF="Database-Enumerator.html#t%3AStatement"
 >Statement</A
 > (<A HREF="Database-Enumerator.html#t%3ANextResultSet"
 >NextResultSet</A
@@ -3400,7 +5351,7 @@
 ><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+><A HREF="Database-Enumerator.html#t%3ADBType"
 >DBType</A
 > (<A HREF="Database-Enumerator.html#t%3ARefCursor"
 >RefCursor</A
@@ -3410,17 +5361,15 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3ADBType"
+><A HREF="Database-Enumerator.html#t%3ADBType"
 >DBType</A
 > (<A HREF="Database-Enumerator.html#t%3ARefCursor"
 >RefCursor</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->) Query ColumnBuffer</TD
+> String) Query ColumnBuffer</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+><A HREF="Database-Enumerator.html#t%3AStatement"
 >Statement</A
 > (<A HREF="Database-Enumerator.html#t%3ARefCursor"
 >RefCursor</A
@@ -3432,13 +5381,11 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+><A HREF="Database-Enumerator.html#t%3AStatement"
 >Statement</A
 > (<A HREF="Database-Enumerator.html#t%3ARefCursor"
 >RefCursor</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
+> String) <A HREF="Database-PostgreSQL-Enumerator.html#t%3ASession"
 >Session</A
 > Query</TD
 ></TR
@@ -3463,9 +5410,7 @@
 >DBM</A
 > mark s) a -&gt; <A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
-> mark s <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Bool.html#t%3ABool"
->Bool</A
-></TD
+> mark s Bool</TD
 ></TR
 ><TR
 ><TD CLASS="doc"
@@ -3476,11 +5421,7 @@
 >cursorNext</A
 ></TT
 > when there are no more rows,
- a <TT
-><A HREF="Database-Enumerator.html#v%3ADBNoData"
->DBNoData</A
-></TT
-> exception is thrown.
+ a DBNoData exception is thrown.
  Cursors are automatically closed and freed when:
 </P
 ><UL
@@ -3574,13 +5515,11 @@
 ><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
 ><TR
 ><TD CLASS="arg"
->:: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Typeable.html#t%3ATypeable"
->Typeable</A
-> a, <A HREF="Database-InternalEnumerator.html#t%3AStatement"
+>:: (Typeable a, <A HREF="Database-Enumerator.html#t%3AStatement"
 >Statement</A
 > stmt sess q, QueryIteratee (<A HREF="Database-Enumerator.html#t%3ADBM"
 >DBM</A
-> mark sess) q i seed b, <A HREF="Database-InternalEnumerator.html#t%3AIQuery"
+> mark sess) q i seed b, <A HREF="Database-Enumerator.html#t%3AIQuery"
 >IQuery</A
 > q sess b)</TD
 ><TD CLASS="rdoc"
@@ -3642,6 +5581,20 @@
 ></TD
 ></TR
 ><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>type</SPAN
+> <A NAME="t%3APosition"
+></A
+><B
+>Position</B
+> = Int</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
 ><TD CLASS="section1"
 ><A NAME="11"
 >Utilities
@@ -3665,9 +5618,7 @@
 ><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
 ><TR
 ><TD CLASS="arg"
->:: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> a</TD
+>:: Maybe a</TD
 ><TD CLASS="rdoc"
 >nullable value
 </TD
@@ -3677,7 +5628,7 @@
 >-&gt; a</TD
 ><TD CLASS="rdoc"
 >value to substitute if first parameter is null i.e. <TT
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#v%3ANothing"
+><A HREF="Data-Maybe.html#t%3ANothing"
 >Nothing</A
 ></TT
 >
@@ -3707,9 +5658,7 @@
 ></A
 ><B
 >result</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Control-Monad.html#t%3AMonad"
->Monad</A
-> m =&gt; <A HREF="Database-Enumerator.html#t%3AIterAct"
+> :: Monad m =&gt; <A HREF="Database-Enumerator.html#t%3AIterAct"
 >IterAct</A
 > m a</TD
 ></TR
@@ -3735,9 +5684,7 @@
 ></A
 ><B
 >result'</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Control-Monad.html#t%3AMonad"
->Monad</A
-> m =&gt; <A HREF="Database-Enumerator.html#t%3AIterAct"
+> :: Monad m =&gt; <A HREF="Database-Enumerator.html#t%3AIterAct"
 >IterAct</A
 > m a</TD
 ></TR

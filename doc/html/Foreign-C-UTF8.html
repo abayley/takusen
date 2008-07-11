@@ -19,7 +19,7 @@
 ><IMG SRC="haskell_icon.gif" WIDTH="16" HEIGHT="16" ALT=" "
 ></TD
 ><TD CLASS="title"
->Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
+>Takusen-0.8.2: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
 ><TD CLASS="topbut"
 ><A HREF="index.html"
 >Contents</A
@@ -119,13 +119,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3ApeekUTF8String"
 >peekUTF8String</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> :: CString -&gt; IO String</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -135,13 +129,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3ApeekUTF8StringLen"
 >peekUTF8StringLen</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACStringLen"
->CStringLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> :: CStringLen -&gt; IO String</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -151,13 +139,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AnewUTF8String"
 >newUTF8String</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-></TD
+> :: String -&gt; IO CString</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -167,15 +149,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AwithUTF8String"
 >withUTF8String</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> :: String -&gt; (CString -&gt; IO a) -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -185,15 +159,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AwithUTF8StringLen"
 >withUTF8StringLen</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACStringLen"
->CStringLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> :: String -&gt; (CStringLen -&gt; IO a) -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -203,11 +169,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AtoUTF8String"
 >toUTF8String</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> :: String -&gt; String</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -217,11 +179,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AfromUTF8String"
 >fromUTF8String</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> :: String -&gt; String</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -231,11 +189,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AlengthUTF8"
 >lengthUTF8</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> :: String -&gt; Int</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -245,11 +199,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AfromUTF8"
 >fromUTF8</A
-> :: [<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
->] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> :: [Word8] -&gt; String</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -259,11 +209,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AtoUTF8"
 >toUTF8</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; [<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
->]</TD
+> :: String -&gt; [Word8]</TD
 ></TR
 ></TABLE
 ></TD
@@ -286,13 +232,7 @@
 ></A
 ><B
 >peekUTF8String</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> :: CString -&gt; IO String</TD
 ></TR
 ><TR
 ><TD CLASS="doc"
@@ -309,13 +249,7 @@
 ></A
 ><B
 >peekUTF8StringLen</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACStringLen"
->CStringLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> :: CStringLen -&gt; IO String</TD
 ></TR
 ><TR
 ><TD CLASS="doc"
@@ -336,13 +270,7 @@
 ></A
 ><B
 >newUTF8String</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-></TD
+> :: String -&gt; IO CString</TD
 ></TR
 ><TR
 ><TD CLASS="doc"
@@ -359,15 +287,7 @@
 ></A
 ><B
 >withUTF8String</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> :: String -&gt; (CString -&gt; IO a) -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="doc"
@@ -384,15 +304,7 @@
 ></A
 ><B
 >withUTF8StringLen</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACStringLen"
->CStringLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> :: String -&gt; (CStringLen -&gt; IO a) -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="doc"
@@ -410,11 +322,7 @@
 ></A
 ><B
 >toUTF8String</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> :: String -&gt; String</TD
 ></TR
 ><TR
 ><TD CLASS="doc"
@@ -434,11 +342,7 @@
 ></A
 ><B
 >fromUTF8String</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> :: String -&gt; String</TD
 ></TR
 ><TR
 ><TD CLASS="doc"
@@ -459,11 +363,7 @@
 ></A
 ><B
 >lengthUTF8</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> :: String -&gt; Int</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -475,11 +375,7 @@
 ></A
 ><B
 >fromUTF8</B
-> :: [<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
->] -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> :: [Word8] -&gt; String</TD
 ></TR
 ><TR
 ><TD CLASS="doc"
@@ -496,11 +392,7 @@
 ></A
 ><B
 >toUTF8</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; [<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
->]</TD
+> :: String -&gt; [Word8]</TD
 ></TR
 ><TR
 ><TD CLASS="doc"

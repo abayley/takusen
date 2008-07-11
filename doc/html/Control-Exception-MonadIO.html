@@ -19,7 +19,7 @@
 ><IMG SRC="haskell_icon.gif" WIDTH="16" HEIGHT="16" ALT=" "
 ></TD
 ><TD CLASS="title"
->Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
+>Takusen-0.8.2: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
 ><TD CLASS="topbut"
 ><A HREF="index.html"
 >Contents</A
@@ -78,9 +78,7 @@
 ><TD CLASS="decl"
 ><SPAN CLASS="keyword"
 >class</SPAN
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/mtl-1.1.0.0/Control-Monad-Trans.html#t%3AMonadIO"
->MonadIO</A
-> m =&gt; <A NAME="t%3ACaughtMonadIO"
+> MonadIO m =&gt; <A NAME="t%3ACaughtMonadIO"
 ></A
 ><B
 >CaughtMonadIO</B
@@ -108,9 +106,7 @@
 ></A
 ><B
 >gcatch</B
-> :: m a -&gt; (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Control-Exception.html#t%3AException"
->Exception</A
-> -&gt; m a) -&gt; m a</TD
+> :: m a -&gt; (Exception -&gt; m a) -&gt; m a</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -122,11 +118,7 @@
 ></A
 ><B
 >gcatchJust</B
-> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Control-Exception.html#t%3AException"
->Exception</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> b) -&gt; m a -&gt; (b -&gt; m a) -&gt; m a</TD
+> :: (Exception -&gt; Maybe b) -&gt; m a -&gt; (b -&gt; m a) -&gt; m a</TD
 ></TR
 ></TABLE
 ></TD
@@ -148,13 +140,11 @@
 ><TD CLASS="decl"
 ><A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
 >CaughtMonadIO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-></TD
+> IO</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3AISession"
+><A HREF="Database-Enumerator.html#t%3AISession"
 >ISession</A
 > si =&gt; <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
 >CaughtMonadIO</A
@@ -168,9 +158,7 @@
 >CaughtMonadIO</A
 > m =&gt; <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
 >CaughtMonadIO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/mtl-1.1.0.0/Control-Monad-Reader.html#t%3AReaderT"
->ReaderT</A
-> a m)</TD
+> (ReaderT a m)</TD
 ></TR
 ></TABLE
 ></DIV
@@ -191,11 +179,7 @@
 >gtry</B
 > :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
 >CaughtMonadIO</A
-> m =&gt; m b -&gt; m (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Either.html#t%3AEither"
->Either</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Control-Exception.html#t%3AException"
->Exception</A
-> b)</TD
+> m =&gt; m b -&gt; m (Either Exception b)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -209,13 +193,7 @@
 >gtryJust</B
 > :: <A HREF="Control-Exception-MonadIO.html#t%3ACaughtMonadIO"
 >CaughtMonadIO</A
-> m =&gt; (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Control-Exception.html#t%3AException"
->Exception</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> b) -&gt; m b1 -&gt; m (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Either.html#t%3AEither"
->Either</A
-> b b1)</TD
+> m =&gt; (Exception -&gt; Maybe b) -&gt; m b1 -&gt; m (Either b b1)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"

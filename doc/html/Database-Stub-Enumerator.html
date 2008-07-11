@@ -19,7 +19,7 @@
 ><IMG SRC="haskell_icon.gif" WIDTH="16" HEIGHT="16" ALT=" "
 ></TD
 ><TD CLASS="title"
->Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
+>Takusen-0.8.2: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
 ><TD CLASS="topbut"
 ><A HREF="index.html"
 >Contents</A
@@ -142,9 +142,7 @@
 >pswd</A
 >, <A HREF="#v%3Adbname"
 >dbname</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> :: String</TD
 ></TR
 ></TABLE
 >}</TD
@@ -159,7 +157,7 @@
 >connect</A
 > :: <A HREF="Database-Stub-Enumerator.html#t%3AConnParm"
 >ConnParm</A
-> -&gt; <A HREF="Database-InternalEnumerator.html#t%3AConnectA"
+> -&gt; <A HREF="Database-Enumerator.html#t%3AConnectA"
 >ConnectA</A
 > <A HREF="Database-Stub-Enumerator.html#t%3ASession"
 >Session</A
@@ -173,9 +171,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3Asql"
 >sql</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; QueryString</TD
+> :: String -&gt; QueryString</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -185,11 +181,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3Aprefetch"
 >prefetch</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; QueryStringTuned</TD
+> :: Int -&gt; String -&gt; QueryStringTuned</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -208,9 +200,7 @@
 ><TD CLASS="recfield"
 ><A HREF="#v%3AprefetchRowCount"
 >prefetchRowCount</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> :: Int</TD
 ></TR
 ></TABLE
 >}</TD
@@ -254,7 +244,7 @@
 ><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3AISession"
+><A HREF="Database-Enumerator.html#t%3AISession"
 >ISession</A
 > <A HREF="Database-Stub-Enumerator.html#t%3ASession"
 >Session</A
@@ -262,7 +252,7 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3ACommand"
+><A HREF="Database-Enumerator.html#t%3ACommand"
 >Command</A
 > QueryString <A HREF="Database-Stub-Enumerator.html#t%3ASession"
 >Session</A
@@ -270,7 +260,7 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3ACommand"
+><A HREF="Database-Enumerator.html#t%3ACommand"
 >Command</A
 > QueryStringTuned <A HREF="Database-Stub-Enumerator.html#t%3ASession"
 >Session</A
@@ -278,7 +268,7 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3AIQuery"
+><A HREF="Database-Enumerator.html#t%3AIQuery"
 >IQuery</A
 > Query <A HREF="Database-Stub-Enumerator.html#t%3ASession"
 >Session</A
@@ -286,7 +276,7 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+><A HREF="Database-Enumerator.html#t%3AStatement"
 >Statement</A
 > QueryString <A HREF="Database-Stub-Enumerator.html#t%3ASession"
 >Session</A
@@ -294,7 +284,7 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+><A HREF="Database-Enumerator.html#t%3AStatement"
 >Statement</A
 > QueryStringTuned <A HREF="Database-Stub-Enumerator.html#t%3ASession"
 >Session</A
@@ -358,9 +348,7 @@
 ></A
 ><B
 >dbname</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> :: String</TD
 ><TD CLASS="rdoc"
 ></TD
 ></TR
@@ -385,7 +373,7 @@
 >connect</B
 > :: <A HREF="Database-Stub-Enumerator.html#t%3AConnParm"
 >ConnParm</A
-> -&gt; <A HREF="Database-InternalEnumerator.html#t%3AConnectA"
+> -&gt; <A HREF="Database-Enumerator.html#t%3AConnectA"
 >ConnectA</A
 > <A HREF="Database-Stub-Enumerator.html#t%3ASession"
 >Session</A
@@ -401,9 +389,7 @@
 ></A
 ><B
 >sql</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; QueryString</TD
+> :: String -&gt; QueryString</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -415,11 +401,7 @@
 ></A
 ><B
 >prefetch</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; QueryStringTuned</TD
+> :: Int -&gt; String -&gt; QueryStringTuned</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -472,9 +454,7 @@
 ></A
 ><B
 >prefetchRowCount</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> :: Int</TD
 ><TD CLASS="rdoc"
 ></TD
 ></TR

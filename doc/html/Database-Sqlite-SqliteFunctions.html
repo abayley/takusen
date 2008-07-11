@@ -19,7 +19,7 @@
 ><IMG SRC="haskell_icon.gif" WIDTH="16" HEIGHT="16" ALT=" "
 ></TD
 ><TD CLASS="title"
->Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
+>Takusen-0.8.2: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
 ><TD CLASS="topbut"
 ><A HREF="index.html"
 >Contents</A
@@ -124,9 +124,7 @@
 >type</SPAN
 > <A HREF="#t%3ADBHandle"
 >DBHandle</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandleStruct"
+> = Ptr <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandleStruct"
 >DBHandleStruct</A
 ></TD
 ></TR
@@ -154,9 +152,7 @@
 >type</SPAN
 > <A HREF="#t%3AStmtHandle"
 >StmtHandle</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtStruct"
+> = Ptr <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtStruct"
 >StmtStruct</A
 ></TD
 ></TR
@@ -170,11 +166,7 @@
 >type</SPAN
 > <A HREF="#t%3ABlob"
 >Blob</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
-></TD
+> = Ptr Word8</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -186,25 +178,7 @@
 >type</SPAN
 > <A HREF="#t%3ASqliteCallback"
 >SqliteCallback</A
-> a = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
->FunPtr</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->)</TD
+> a = FunPtr (Ptr a -&gt; CInt -&gt; Ptr CString -&gt; Ptr CString -&gt; IO Int)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -216,15 +190,7 @@
 >type</SPAN
 > <A HREF="#t%3AFreeFunPtr"
 >FreeFunPtr</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
->FunPtr</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ())</TD
+> = FunPtr (Ptr Word8 -&gt; IO ())</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -238,11 +204,7 @@
 >SqliteException</A
 >  = <A HREF="#v%3ASqliteException"
 >SqliteException</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> Int String</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -252,15 +214,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AcatchSqlite"
 >catchSqlite</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a -&gt; (<A HREF="Database-Sqlite-SqliteFunctions.html#t%3ASqliteException"
+> :: IO a -&gt; (<A HREF="Database-Sqlite-SqliteFunctions.html#t%3ASqliteException"
 >SqliteException</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> -&gt; IO a) -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -282,9 +238,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AsqliteOK"
 >sqliteOK</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> :: CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -294,9 +248,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AsqliteERROR"
 >sqliteERROR</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> :: CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -306,9 +258,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AsqliteROW"
 >sqliteROW</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> :: CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -318,9 +268,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AsqliteDONE"
 >sqliteDONE</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> :: CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -330,11 +278,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AcStr"
 >cStr</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACStringLen"
->CStringLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-></TD
+> :: CStringLen -&gt; CString</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -344,11 +288,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AcStrLen"
 >cStrLen</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACStringLen"
->CStringLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> :: CStringLen -&gt; CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -360,9 +300,7 @@
 >type</SPAN
 > <A HREF="#t%3AUTF16CString"
 >UTF16CString</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-></TD
+> = CString</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -374,9 +312,7 @@
 >type</SPAN
 > <A HREF="#t%3AUTF8CString"
 >UTF8CString</A
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-></TD
+> = CString</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -388,15 +324,9 @@
 >sqliteOpen</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AUTF8CString"
 >UTF8CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
+> -&gt; Ptr <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -408,11 +338,7 @@
 >sqliteClose</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -426,21 +352,9 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AUTF8CString"
 >UTF8CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
+> -&gt; CInt -&gt; Ptr <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; Ptr CString -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -456,17 +370,7 @@
 >UTF8CString</A
 > -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ASqliteCallback"
 >SqliteCallback</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> a -&gt; Ptr a -&gt; Ptr CString -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -478,11 +382,7 @@
 >sqliteColumnCount</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -494,11 +394,7 @@
 >sqliteStep</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -510,11 +406,7 @@
 >sqliteFinalise</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -526,11 +418,7 @@
 >sqliteReset</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -542,11 +430,7 @@
 >sqliteChanges</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -558,11 +442,7 @@
 >sqliteLastInsertRowid</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACLLong"
->CLLong</A
-></TD
+> -&gt; IO CLLong</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -572,11 +452,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AsqliteFree"
 >sqliteFree</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> :: Ptr a -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -588,11 +464,7 @@
 >sqliteErrcode</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -604,9 +476,7 @@
 >sqliteErrmsg</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AUTF8CString"
+> -&gt; IO <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AUTF8CString"
 >UTF8CString</A
 ></TD
 ></TR
@@ -620,13 +490,7 @@
 >sqliteColumnBytes</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> -&gt; CInt -&gt; IO Int</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -638,11 +502,7 @@
 >sqliteColumnBlob</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ABlob"
+> -&gt; CInt -&gt; IO <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ABlob"
 >Blob</A
 ></TD
 ></TR
@@ -656,13 +516,7 @@
 >sqliteColumnDouble</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACDouble"
->CDouble</A
-></TD
+> -&gt; CInt -&gt; IO CDouble</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -674,13 +528,7 @@
 >sqliteColumnInt</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CInt -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -692,13 +540,7 @@
 >sqliteColumnInt64</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACLLong"
->CLLong</A
-></TD
+> -&gt; CInt -&gt; IO CLLong</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -710,11 +552,7 @@
 >sqliteColumnText</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AUTF8CString"
+> -&gt; CInt -&gt; IO <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AUTF8CString"
 >UTF8CString</A
 ></TD
 ></TR
@@ -728,11 +566,7 @@
 >sqliteColumnText16</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AUTF16CString"
+> -&gt; CInt -&gt; IO <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AUTF16CString"
 >UTF16CString</A
 ></TD
 ></TR
@@ -746,19 +580,11 @@
 >sqliteBindBlob</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ABlob"
+> -&gt; CInt -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ABlob"
 >Blob</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AFreeFunPtr"
+> -&gt; CInt -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AFreeFunPtr"
 >FreeFunPtr</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -770,15 +596,7 @@
 >sqliteBindDouble</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACDouble"
->CDouble</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CInt -&gt; CDouble -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -790,15 +608,7 @@
 >sqliteBindInt</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CInt -&gt; CInt -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -810,15 +620,7 @@
 >sqliteBindInt64</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACLLong"
->CLLong</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CInt -&gt; CLLong -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -830,13 +632,7 @@
 >sqliteBindNull</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CInt -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -848,19 +644,11 @@
 >sqliteBindText</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AUTF8CString"
+> -&gt; CInt -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AUTF8CString"
 >UTF8CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AFreeFunPtr"
+> -&gt; CInt -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AFreeFunPtr"
 >FreeFunPtr</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -872,19 +660,11 @@
 >sqliteBindText16</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AUTF16CString"
+> -&gt; CInt -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AUTF16CString"
 >UTF16CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AFreeFunPtr"
+> -&gt; CInt -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AFreeFunPtr"
 >FreeFunPtr</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -896,9 +676,7 @@
 >getError</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ASqliteException"
+> -&gt; IO <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ASqliteException"
 >SqliteException</A
 ></TD
 ></TR
@@ -910,13 +688,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AgetAndRaiseError"
 >getAndRaiseError</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
+> :: Int -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -928,13 +702,7 @@
 >errorTest</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> -&gt; CInt -&gt; IO a -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -946,11 +714,7 @@
 >testForError</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> -&gt; CInt -&gt; a -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -960,17 +724,9 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AtestForErrorWithPtr"
 >testForErrorWithPtr</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Storable.html#t%3AStorable"
->Storable</A
-> a =&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
+> :: Storable a =&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> -&gt; CInt -&gt; Ptr a -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -980,11 +736,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AopenDb"
 >openDb</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
+> :: String -&gt; IO <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
 ></TD
 ></TR
@@ -998,9 +750,7 @@
 >closeDb</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1012,13 +762,7 @@
 >stmtExec</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> -&gt; String -&gt; IO Int</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1030,11 +774,7 @@
 >stmtChanges</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> -&gt; IO Int</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1046,11 +786,7 @@
 >stmtPrepare</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
+> -&gt; String -&gt; IO <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
 ></TD
 ></TR
@@ -1066,11 +802,7 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1084,9 +816,7 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1100,9 +830,7 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1114,11 +842,7 @@
 >checkColumnRange</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; Int -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1130,13 +854,7 @@
 >colValInt</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> -&gt; Int -&gt; IO Int</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1148,13 +866,7 @@
 >colValInt64</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
-></TD
+> -&gt; Int -&gt; IO Int64</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1166,13 +878,7 @@
 >colValDouble</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3ADouble"
->Double</A
-></TD
+> -&gt; Int -&gt; IO Double</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1184,15 +890,7 @@
 >colValString</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->)</TD
+> -&gt; Int -&gt; IO (Maybe String)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1204,13 +902,7 @@
 >colValBlob</A
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-ForeignPtr.html#t%3AForeignPtr"
->ForeignPtr</A
-> <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ABlob"
+> -&gt; Int -&gt; IO (ForeignPtr <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ABlob"
 >Blob</A
 >)</TD
 ></TR
@@ -1226,13 +918,7 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3ADouble"
->Double</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; Int -&gt; Double -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1246,13 +932,7 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; Int -&gt; Int -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1266,13 +946,7 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; Int -&gt; Int64 -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1286,11 +960,7 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; Int -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1304,13 +974,7 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; Int -&gt; String -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -1324,15 +988,9 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ABlob"
+> -&gt; Int -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ABlob"
 >Blob</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; Int -&gt; IO ()</TD
 ></TR
 ></TABLE
 ></TD
@@ -1397,9 +1055,7 @@
 ></A
 ><B
 >DBHandle</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandleStruct"
+> = Ptr <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandleStruct"
 >DBHandleStruct</A
 ></TD
 ></TR
@@ -1455,9 +1111,7 @@
 ></A
 ><B
 >StmtHandle</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtStruct"
+> = Ptr <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtStruct"
 >StmtStruct</A
 ></TD
 ></TR
@@ -1473,11 +1127,7 @@
 ></A
 ><B
 >Blob</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
-></TD
+> = Ptr Word8</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -1491,25 +1141,7 @@
 ></A
 ><B
 >SqliteCallback</B
-> a = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
->FunPtr</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->)</TD
+> a = FunPtr (Ptr a -&gt; CInt -&gt; Ptr CString -&gt; Ptr CString -&gt; IO Int)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -1523,15 +1155,7 @@
 ></A
 ><B
 >FreeFunPtr</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3AFunPtr"
->FunPtr</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Word.html#t%3AWord8"
->Word8</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ())</TD
+> = FunPtr (Ptr Word8 -&gt; IO ())</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -1563,11 +1187,7 @@
 ></A
 ><B
 >SqliteException</B
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> Int String</TD
 ><TD CLASS="rdoc"
 ></TD
 ></TR
@@ -1585,17 +1205,13 @@
 ><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
 ><TR
 ><TD CLASS="decl"
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Text-Show.html#t%3AShow"
->Show</A
-> <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ASqliteException"
+>Show <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ASqliteException"
 >SqliteException</A
 ></TD
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Typeable.html#t%3ATypeable"
->Typeable</A
-> <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ASqliteException"
+>Typeable <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ASqliteException"
 >SqliteException</A
 ></TD
 ></TR
@@ -1616,15 +1232,9 @@
 ></A
 ><B
 >catchSqlite</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a -&gt; (<A HREF="Database-Sqlite-SqliteFunctions.html#t%3ASqliteException"
+> :: IO a -&gt; (<A HREF="Database-Sqlite-SqliteFunctions.html#t%3ASqliteException"
 >SqliteException</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> -&gt; IO a) -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -1650,9 +1260,7 @@
 ></A
 ><B
 >sqliteOK</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> :: CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -1664,9 +1272,7 @@
 ></A
 ><B
 >sqliteERROR</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> :: CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -1678,9 +1284,7 @@
 ></A
 ><B
 >sqliteROW</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> :: CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -1692,9 +1296,7 @@
 ></A
 ><B
 >sqliteDONE</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> :: CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -1706,11 +1308,7 @@
 ></A
 ><B
 >cStr</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACStringLen"
->CStringLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-></TD
+> :: CStringLen -&gt; CString</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -1722,11 +1320,7 @@
 ></A
 ><B
 >cStrLen</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACStringLen"
->CStringLen</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> :: CStringLen -&gt; CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -1740,9 +1334,7 @@
 ></A
 ><B
 >UTF16CString</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-></TD
+> = CString</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -1756,9 +1348,7 @@
 ></A
 ><B
 >UTF8CString</B
-> = <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-></TD
+> = CString</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -1772,15 +1362,9 @@
 >sqliteOpen</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AUTF8CString"
 >UTF8CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
+> -&gt; Ptr <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -1794,11 +1378,7 @@
 >sqliteClose</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -1814,21 +1394,9 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AUTF8CString"
 >UTF8CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
+> -&gt; CInt -&gt; Ptr <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; Ptr CString -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -1846,17 +1414,7 @@
 >UTF8CString</A
 > -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ASqliteCallback"
 >SqliteCallback</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-String.html#t%3ACString"
->CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> a -&gt; Ptr a -&gt; Ptr CString -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -1870,11 +1428,7 @@
 >sqliteColumnCount</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -1888,11 +1442,7 @@
 >sqliteStep</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -1906,11 +1456,7 @@
 >sqliteFinalise</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -1924,11 +1470,7 @@
 >sqliteReset</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -1942,11 +1484,7 @@
 >sqliteChanges</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -1960,11 +1498,7 @@
 >sqliteLastInsertRowid</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACLLong"
->CLLong</A
-></TD
+> -&gt; IO CLLong</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -1976,11 +1510,7 @@
 ></A
 ><B
 >sqliteFree</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> :: Ptr a -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -1994,11 +1524,7 @@
 >sqliteErrcode</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2012,9 +1538,7 @@
 >sqliteErrmsg</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AUTF8CString"
+> -&gt; IO <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AUTF8CString"
 >UTF8CString</A
 ></TD
 ></TR
@@ -2030,13 +1554,7 @@
 >sqliteColumnBytes</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> -&gt; CInt -&gt; IO Int</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2050,11 +1568,7 @@
 >sqliteColumnBlob</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ABlob"
+> -&gt; CInt -&gt; IO <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ABlob"
 >Blob</A
 ></TD
 ></TR
@@ -2070,13 +1584,7 @@
 >sqliteColumnDouble</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACDouble"
->CDouble</A
-></TD
+> -&gt; CInt -&gt; IO CDouble</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2090,13 +1598,7 @@
 >sqliteColumnInt</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CInt -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2110,13 +1612,7 @@
 >sqliteColumnInt64</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACLLong"
->CLLong</A
-></TD
+> -&gt; CInt -&gt; IO CLLong</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2130,11 +1626,7 @@
 >sqliteColumnText</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AUTF8CString"
+> -&gt; CInt -&gt; IO <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AUTF8CString"
 >UTF8CString</A
 ></TD
 ></TR
@@ -2150,11 +1642,7 @@
 >sqliteColumnText16</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AUTF16CString"
+> -&gt; CInt -&gt; IO <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AUTF16CString"
 >UTF16CString</A
 ></TD
 ></TR
@@ -2170,19 +1658,11 @@
 >sqliteBindBlob</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ABlob"
+> -&gt; CInt -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ABlob"
 >Blob</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AFreeFunPtr"
+> -&gt; CInt -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AFreeFunPtr"
 >FreeFunPtr</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2196,15 +1676,7 @@
 >sqliteBindDouble</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACDouble"
->CDouble</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CInt -&gt; CDouble -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2218,15 +1690,7 @@
 >sqliteBindInt</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CInt -&gt; CInt -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2240,15 +1704,7 @@
 >sqliteBindInt64</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACLLong"
->CLLong</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CInt -&gt; CLLong -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2262,13 +1718,7 @@
 >sqliteBindNull</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; CInt -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2282,19 +1732,11 @@
 >sqliteBindText</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AUTF8CString"
+> -&gt; CInt -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AUTF8CString"
 >UTF8CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AFreeFunPtr"
+> -&gt; CInt -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AFreeFunPtr"
 >FreeFunPtr</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2308,19 +1750,11 @@
 >sqliteBindText16</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AUTF16CString"
+> -&gt; CInt -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AUTF16CString"
 >UTF16CString</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AFreeFunPtr"
+> -&gt; CInt -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AFreeFunPtr"
 >FreeFunPtr</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2334,9 +1768,7 @@
 >getError</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ASqliteException"
+> -&gt; IO <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ASqliteException"
 >SqliteException</A
 ></TD
 ></TR
@@ -2350,13 +1782,9 @@
 ></A
 ><B
 >getAndRaiseError</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
+> :: Int -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2370,13 +1798,7 @@
 >errorTest</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> -&gt; CInt -&gt; IO a -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2390,11 +1812,7 @@
 >testForError</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> -&gt; CInt -&gt; a -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2406,17 +1824,9 @@
 ></A
 ><B
 >testForErrorWithPtr</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Storable.html#t%3AStorable"
->Storable</A
-> a =&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
+> :: Storable a =&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-Ptr.html#t%3APtr"
->Ptr</A
-> a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> a</TD
+> -&gt; CInt -&gt; Ptr a -&gt; IO a</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2428,11 +1838,7 @@
 ></A
 ><B
 >openDb</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
+> :: String -&gt; IO <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
 ></TD
 ></TR
@@ -2448,9 +1854,7 @@
 >closeDb</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2464,13 +1868,7 @@
 >stmtExec</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> -&gt; String -&gt; IO Int</TD
 ></TR
 ><TR
 ><TD CLASS="doc"
@@ -2490,11 +1888,7 @@
 >stmtChanges</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> -&gt; IO Int</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2508,11 +1902,7 @@
 >stmtPrepare</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ADBHandle"
 >DBHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
+> -&gt; String -&gt; IO <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
 ></TD
 ></TR
@@ -2530,11 +1920,7 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-C-Types.html#t%3ACInt"
->CInt</A
-></TD
+> -&gt; IO CInt</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2550,9 +1936,7 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2568,9 +1952,7 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2584,11 +1966,7 @@
 >checkColumnRange</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; Int -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2602,13 +1980,7 @@
 >colValInt</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-></TD
+> -&gt; Int -&gt; IO Int</TD
 ></TR
 ><TR
 ><TD CLASS="doc"
@@ -2628,13 +2000,7 @@
 >colValInt64</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
-></TD
+> -&gt; Int -&gt; IO Int64</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2648,13 +2014,7 @@
 >colValDouble</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3ADouble"
->Double</A
-></TD
+> -&gt; Int -&gt; IO Double</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2668,15 +2028,7 @@
 >colValString</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->)</TD
+> -&gt; Int -&gt; IO (Maybe String)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2690,13 +2042,7 @@
 >colValBlob</B
 > :: <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Foreign-ForeignPtr.html#t%3AForeignPtr"
->ForeignPtr</A
-> <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ABlob"
+> -&gt; Int -&gt; IO (ForeignPtr <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ABlob"
 >Blob</A
 >)</TD
 ></TR
@@ -2714,13 +2060,7 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3ADouble"
->Double</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; Int -&gt; Double -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2736,13 +2076,7 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; Int -&gt; Int -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2758,13 +2092,7 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; Int -&gt; Int64 -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2780,11 +2108,7 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; Int -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2800,13 +2124,7 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; Int -&gt; String -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -2822,15 +2140,9 @@
 >DBHandle</A
 > -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3AStmtHandle"
 >StmtHandle</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ABlob"
+> -&gt; Int -&gt; <A HREF="Database-Sqlite-SqliteFunctions.html#t%3ABlob"
 >Blob</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#t%3AIO"
->IO</A
-> ()</TD
+> -&gt; Int -&gt; IO ()</TD
 ></TR
 ><TR
 ><TD CLASS="s15"

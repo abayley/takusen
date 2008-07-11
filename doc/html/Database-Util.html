@@ -19,7 +19,7 @@
 ><IMG SRC="haskell_icon.gif" WIDTH="16" HEIGHT="16" ALT=" "
 ></TD
 ><TD CLASS="title"
->Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
+>Takusen-0.8.2: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
 ><TD CLASS="topbut"
 ><A HREF="index.html"
 >Contents</A
@@ -108,9 +108,7 @@
 ><TD CLASS="decl"
 ><SPAN CLASS="keyword"
 >class</SPAN
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Text-Show.html#t%3AShow"
->Show</A
-> a =&gt; <A HREF="#t%3AMyShow"
+> Show a =&gt; <A HREF="#t%3AMyShow"
 >MyShow</A
 > a  <SPAN CLASS="keyword"
 >where</SPAN
@@ -123,9 +121,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3Ashow_"
 >show_</A
-> :: a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> :: a -&gt; String</TD
 ></TR
 ></TABLE
 ></TD
@@ -138,9 +134,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3Aprint_"
 >print_</A
-> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/mtl-1.1.0.0/Control-Monad-Trans.html#t%3AMonadIO"
->MonadIO</A
-> m, <A HREF="Database-Util.html#t%3AMyShow"
+> :: (MonadIO m, <A HREF="Database-Util.html#t%3AMyShow"
 >MyShow</A
 > a) =&gt; a -&gt; m ()</TD
 ></TR
@@ -152,13 +146,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AmkUTCTime"
 >mkUTCTime</A
-> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
->Integral</A
-> a, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AReal"
->Real</A
-> b) =&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; b -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-></TD
+> :: (Integral a, Real b) =&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; b -&gt; UTCTime</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -168,11 +156,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AmkCalTime"
 >mkCalTime</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
->Integral</A
-> a =&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/old-time-1.0.0.0/System-Time.html#t%3ACalendarTime"
->CalendarTime</A
-></TD
+> :: Integral a =&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; CalendarTime</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -182,21 +166,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3Aint64ToDateParts"
 >int64ToDateParts</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
-> -&gt; (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
->)</TD
+> :: Int64 -&gt; (Int64, Int64, Int64, Int64, Int64, Int64)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -206,21 +176,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AdatePartsToInt64"
 >datePartsToInt64</A
-> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
->Integral</A
-> a1, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
->Integral</A
-> a2, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
->Integral</A
-> a3, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
->Integral</A
-> a4, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
->Integral</A
-> a5, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
->Integral</A
-> a6) =&gt; (a1, a2, a3, a4, a5, a6) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
-></TD
+> :: (Integral a1, Integral a2, Integral a3, Integral a4, Integral a5, Integral a6) =&gt; (a1, a2, a3, a4, a5, a6) -&gt; Int64</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -230,11 +186,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AcalTimeToInt64"
 >calTimeToInt64</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/old-time-1.0.0.0/System-Time.html#t%3ACalendarTime"
->CalendarTime</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
-></TD
+> :: CalendarTime -&gt; Int64</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -244,11 +196,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3Aint64ToCalTime"
 >int64ToCalTime</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/old-time-1.0.0.0/System-Time.html#t%3ACalendarTime"
->CalendarTime</A
-></TD
+> :: Int64 -&gt; CalendarTime</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -258,11 +206,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3Aint64ToUTCTime"
 >int64ToUTCTime</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-></TD
+> :: Int64 -&gt; UTCTime</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -272,15 +216,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AwordsBy"
 >wordsBy</A
-> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AChar"
->Char</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Bool.html#t%3ABool"
->Bool</A
->) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; [<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->]</TD
+> :: (Char -&gt; Bool) -&gt; String -&gt; [String]</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -290,15 +226,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AskipNonMatch"
 >skipNonMatch</A
-> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AChar"
->Char</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Bool.html#t%3ABool"
->Bool</A
->) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; [<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->]</TD
+> :: (Char -&gt; Bool) -&gt; String -&gt; [String]</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -308,11 +236,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3Apositions"
 >positions</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Eq.html#t%3AEq"
->Eq</A
-> a =&gt; [a] -&gt; [a] -&gt; [<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->]</TD
+> :: Eq a =&gt; [a] -&gt; [a] -&gt; [Int]</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -322,11 +246,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3ApgDatetimetoUTCTime"
 >pgDatetimetoUTCTime</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-></TD
+> :: String -&gt; UTCTime</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -336,11 +256,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3ApgDatetimetoCalTime"
 >pgDatetimetoCalTime</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/old-time-1.0.0.0/System-Time.html#t%3ACalendarTime"
->CalendarTime</A
-></TD
+> :: String -&gt; CalendarTime</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -350,23 +266,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3ApgDatetimeToParts"
 >pgDatetimeToParts</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3ADouble"
->Double</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->)</TD
+> :: String -&gt; (Int, Int, Int, Int, Int, Double, Int)</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -376,19 +276,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AutcTimeToIsoString"
 >utcTimeToIsoString</A
-> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
->Integral</A
-> a, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
->Integral</A
-> b) =&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; (a -&gt; a) -&gt; (b -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> :: (Integral a, Integral b) =&gt; UTCTime -&gt; String -&gt; (a -&gt; a) -&gt; (b -&gt; String) -&gt; String</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -398,11 +286,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AutcTimeToPGDatetime"
 >utcTimeToPGDatetime</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> :: UTCTime -&gt; String</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -412,11 +296,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AutcTimeToIsoDatetime"
 >utcTimeToIsoDatetime</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> :: UTCTime -&gt; String</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -426,11 +306,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AutcTimeToOdbcDatetime"
 >utcTimeToOdbcDatetime</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> :: UTCTime -&gt; String</TD
 ></TR
 ><TR
 ><TD CLASS="s8"
@@ -440,11 +316,7 @@
 ><TD CLASS="decl"
 ><A HREF="#v%3AcalTimeToPGDatetime"
 >calTimeToPGDatetime</A
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/old-time-1.0.0.0/System-Time.html#t%3ACalendarTime"
->CalendarTime</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> :: CalendarTime -&gt; String</TD
 ></TR
 ></TABLE
 ></TD
@@ -465,9 +337,7 @@
 ><TD CLASS="decl"
 ><SPAN CLASS="keyword"
 >class</SPAN
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Text-Show.html#t%3AShow"
->Show</A
-> a =&gt; <A NAME="t%3AMyShow"
+> Show a =&gt; <A NAME="t%3AMyShow"
 ></A
 ><B
 >MyShow</B
@@ -495,9 +365,7 @@
 ></A
 ><B
 >show_</B
-> :: a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> :: a -&gt; String</TD
 ></TR
 ></TABLE
 ></TD
@@ -519,15 +387,11 @@
 ><TD CLASS="decl"
 ><A HREF="Database-Util.html#t%3AMyShow"
 >MyShow</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> String</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Text-Show.html#t%3AShow"
->Show</A
-> a =&gt; <A HREF="Database-Util.html#t%3AMyShow"
+>Show a =&gt; <A HREF="Database-Util.html#t%3AMyShow"
 >MyShow</A
 > a</TD
 ></TR
@@ -548,16 +412,14 @@
 ></A
 ><B
 >print_</B
-> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/mtl-1.1.0.0/Control-Monad-Trans.html#t%3AMonadIO"
->MonadIO</A
-> m, <A HREF="Database-Util.html#t%3AMyShow"
+> :: (MonadIO m, <A HREF="Database-Util.html#t%3AMyShow"
 >MyShow</A
 > a) =&gt; a -&gt; m ()</TD
 ></TR
 ><TR
 ><TD CLASS="doc"
 >Like <TT
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/System-IO.html#v%3Aprint"
+><A HREF="System-IO.html#v%3Aprint"
 >print</A
 ></TT
 >, except that Strings are not escaped or quoted.
@@ -573,13 +435,7 @@
 ></A
 ><B
 >mkUTCTime</B
-> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
->Integral</A
-> a, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AReal"
->Real</A
-> b) =&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; b -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-></TD
+> :: (Integral a, Real b) =&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; b -&gt; UTCTime</TD
 ></TR
 ><TR
 ><TD CLASS="doc"
@@ -597,11 +453,7 @@
 ></A
 ><B
 >mkCalTime</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
->Integral</A
-> a =&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/old-time-1.0.0.0/System-Time.html#t%3ACalendarTime"
->CalendarTime</A
-></TD
+> :: Integral a =&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; a -&gt; CalendarTime</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -613,21 +465,7 @@
 ></A
 ><B
 >int64ToDateParts</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
-> -&gt; (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
->)</TD
+> :: Int64 -&gt; (Int64, Int64, Int64, Int64, Int64, Int64)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -639,21 +477,7 @@
 ></A
 ><B
 >datePartsToInt64</B
-> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
->Integral</A
-> a1, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
->Integral</A
-> a2, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
->Integral</A
-> a3, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
->Integral</A
-> a4, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
->Integral</A
-> a5, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
->Integral</A
-> a6) =&gt; (a1, a2, a3, a4, a5, a6) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
-></TD
+> :: (Integral a1, Integral a2, Integral a3, Integral a4, Integral a5, Integral a6) =&gt; (a1, a2, a3, a4, a5, a6) -&gt; Int64</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -665,11 +489,7 @@
 ></A
 ><B
 >calTimeToInt64</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/old-time-1.0.0.0/System-Time.html#t%3ACalendarTime"
->CalendarTime</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
-></TD
+> :: CalendarTime -&gt; Int64</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -681,11 +501,7 @@
 ></A
 ><B
 >int64ToCalTime</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/old-time-1.0.0.0/System-Time.html#t%3ACalendarTime"
->CalendarTime</A
-></TD
+> :: Int64 -&gt; CalendarTime</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -697,11 +513,7 @@
 ></A
 ><B
 >int64ToUTCTime</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt64"
->Int64</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-></TD
+> :: Int64 -&gt; UTCTime</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -713,15 +525,7 @@
 ></A
 ><B
 >wordsBy</B
-> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AChar"
->Char</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Bool.html#t%3ABool"
->Bool</A
->) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; [<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->]</TD
+> :: (Char -&gt; Bool) -&gt; String -&gt; [String]</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -733,15 +537,7 @@
 ></A
 ><B
 >skipNonMatch</B
-> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AChar"
->Char</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Bool.html#t%3ABool"
->Bool</A
->) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; [<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->]</TD
+> :: (Char -&gt; Bool) -&gt; String -&gt; [String]</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -753,11 +549,7 @@
 ></A
 ><B
 >positions</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Eq.html#t%3AEq"
->Eq</A
-> a =&gt; [a] -&gt; [a] -&gt; [<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->]</TD
+> :: Eq a =&gt; [a] -&gt; [a] -&gt; [Int]</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -769,11 +561,7 @@
 ></A
 ><B
 >pgDatetimetoUTCTime</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-></TD
+> :: String -&gt; UTCTime</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -785,11 +573,7 @@
 ></A
 ><B
 >pgDatetimetoCalTime</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/old-time-1.0.0.0/System-Time.html#t%3ACalendarTime"
->CalendarTime</A
-></TD
+> :: String -&gt; CalendarTime</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -801,23 +585,7 @@
 ></A
 ><B
 >pgDatetimeToParts</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3ADouble"
->Double</A
->, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->)</TD
+> :: String -&gt; (Int, Int, Int, Int, Int, Double, Int)</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -829,19 +597,7 @@
 ></A
 ><B
 >utcTimeToIsoString</B
-> :: (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
->Integral</A
-> a, <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3AIntegral"
->Integral</A
-> b) =&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; (a -&gt; a) -&gt; (b -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->) -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> :: (Integral a, Integral b) =&gt; UTCTime -&gt; String -&gt; (a -&gt; a) -&gt; (b -&gt; String) -&gt; String</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -853,11 +609,7 @@
 ></A
 ><B
 >utcTimeToPGDatetime</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> :: UTCTime -&gt; String</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -869,11 +621,7 @@
 ></A
 ><B
 >utcTimeToIsoDatetime</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> :: UTCTime -&gt; String</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -885,11 +633,7 @@
 ></A
 ><B
 >utcTimeToOdbcDatetime</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> :: UTCTime -&gt; String</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -901,11 +645,7 @@
 ></A
 ><B
 >calTimeToPGDatetime</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/old-time-1.0.0.0/System-Time.html#t%3ACalendarTime"
->CalendarTime</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-></TD
+> :: CalendarTime -&gt; String</TD
 ></TR
 ><TR
 ><TD CLASS="doc"

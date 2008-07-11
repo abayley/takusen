@@ -4,7 +4,7 @@
 ><HEAD
 ><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8"
 ><TITLE
->Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC. (Index)</TITLE
+>Takusen-0.8.2: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC. (Index)</TITLE
 ><LINK HREF="haddock.css" REL="stylesheet" TYPE="text/css"
 ></HEAD
 ><BODY
@@ -17,7 +17,7 @@
 ><IMG SRC="haskell_icon.gif" WIDTH="16" HEIGHT="16" ALT=" "
 ></TD
 ><TD CLASS="title"
->Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
+>Takusen-0.8.2: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
 ><TD CLASS="topbut"
 ><A HREF="index.html"
 >Contents</A
@@ -221,9 +221,9 @@
 ><TD CLASS="indexentry"
 >ColNum</TD
 ><TD CLASS="indexlinks"
-><A HREF="Database-InternalEnumerator.html#t%3AColNum"
->Database.InternalEnumerator</A
-></TD
+><A HREF="Database-Enumerator.html#t%3AColNum"
+>Database.Enumerator</A
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexentry"
@@ -245,9 +245,9 @@
 ><TD CLASS="indexentry"
 >Command</TD
 ><TD CLASS="indexlinks"
-><A HREF="Database-InternalEnumerator.html#t%3ACommand"
->Database.InternalEnumerator</A
-></TD
+><A HREF="Database-Enumerator.html#t%3ACommand"
+>Database.Enumerator</A
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexentry" COLSPAN="2"
@@ -263,10 +263,26 @@
 ></TR
 ><TR
 ><TD CLASS="indexannot"
->2 (Type/Class)</TD
+>2 (Data Constructor)</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AConnHandle"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexannot"
+>3 (Type/Class)</TD
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Oracle-OCIFunctions.html#t%3AConnHandle"
 >Database.Oracle.OCIFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>ConnHdl</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#t%3AConnHdl"
+>Database.ODBC.OdbcFunctions</A
 ></TD
 ></TR
 ><TR
@@ -338,24 +354,12 @@
 ></TD
 ></TR
 ><TR
-><TD CLASS="indexentry" COLSPAN="2"
+><TD CLASS="indexentry"
 >ConnectA</TD
-></TR
-><TR
-><TD CLASS="indexannot"
->1 (Type/Class)</TD
 ><TD CLASS="indexlinks"
-><A HREF="Database-InternalEnumerator.html#t%3AConnectA"
->Database.InternalEnumerator</A
-></TD
-></TR
-><TR
-><TD CLASS="indexannot"
->2 (Data Constructor)</TD
-><TD CLASS="indexlinks"
-><A HREF="Database-InternalEnumerator.html#v%3AConnectA"
->Database.InternalEnumerator</A
-></TD
+><A HREF="Database-Enumerator.html#t%3AConnectA"
+>Database.Enumerator</A
+>, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR
 ><TR
 ><TD CLASS="indexentry"
@@ -777,14 +781,6 @@
 ><TD CLASS="indexannot"
 >2 (Function)</TD
 ><TD CLASS="indexlinks"
-><A HREF="Database-InternalEnumerator.html#v%3Acommit"
->Database.InternalEnumerator</A
-></TD
-></TR
-><TR
-><TD CLASS="indexannot"
->3 (Function)</TD
-><TD CLASS="indexlinks"
 ><A HREF="Database-ODBC-OdbcFunctions.html#v%3Acommit"
 >Database.ODBC.OdbcFunctions</A
 ></TD
@@ -795,6 +791,22 @@
 ><TD CLASS="indexlinks"
 ><A HREF="Database-Oracle-OCIFunctions.html#v%3AcommitTrans"
 >Database.Oracle.OCIFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>connDbms</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AconnDbms"
+>Database.ODBC.OdbcFunctions</A
+></TD
+></TR
+><TR
+><TD CLASS="indexentry"
+>connHdl</TD
+><TD CLASS="indexlinks"
+><A HREF="Database-ODBC-OdbcFunctions.html#v%3AconnHdl"
+>Database.ODBC.OdbcFunctions</A
 ></TD
 ></TR
 ><TR
@@ -885,9 +897,7 @@
 ><TD CLASS="indexentry"
 >currentRowNum</TD
 ><TD CLASS="indexlinks"
-><A HREF="Database-InternalEnumerator.html#v%3AcurrentRowNum"
->Database.InternalEnumerator</A
->, <A HREF="Database-Enumerator.html#v%3AcurrentRowNum"
+><A HREF="Database-Enumerator.html#v%3AcurrentRowNum"
 >Database.Enumerator</A
 >, Database.ODBC.Enumerator, Database.Oracle.Enumerator, Database.PostgreSQL.Enumerator, Database.Sqlite.Enumerator</TD
 ></TR

@@ -19,7 +19,7 @@
 ><IMG SRC="haskell_icon.gif" WIDTH="16" HEIGHT="16" ALT=" "
 ></TD
 ><TD CLASS="title"
->Takusen-0.8: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
+>Takusen-0.8.2: Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.</TD
 ><TD CLASS="topbut"
 ><A HREF="index.html"
 >Contents</A
@@ -129,7 +129,7 @@
 ><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3AISession"
+><A HREF="Database-Enumerator.html#t%3AISession"
 >ISession</A
 > <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
@@ -137,15 +137,13 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Typeable.html#t%3ATypeable"
->Typeable</A
-> <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Typeable <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
 ></TD
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3ACommand"
+><A HREF="Database-Enumerator.html#t%3ACommand"
 >Command</A
 > BoundStmt <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
@@ -153,7 +151,7 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3ACommand"
+><A HREF="Database-Enumerator.html#t%3ACommand"
 >Command</A
 > QueryString <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
@@ -161,7 +159,7 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3ACommand"
+><A HREF="Database-Enumerator.html#t%3ACommand"
 >Command</A
 > StmtBind <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
@@ -169,17 +167,15 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3ACommand"
+><A HREF="Database-Enumerator.html#t%3ACommand"
 >Command</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+> String <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
 ></TD
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3AIQuery"
+><A HREF="Database-Enumerator.html#t%3AIQuery"
 >IQuery</A
 > Query <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
@@ -187,7 +183,7 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+><A HREF="Database-Enumerator.html#t%3AStatement"
 >Statement</A
 > BoundStmt <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
@@ -195,7 +191,7 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+><A HREF="Database-Enumerator.html#t%3AStatement"
 >Statement</A
 > PreparedStmtObj <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
@@ -203,7 +199,7 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+><A HREF="Database-Enumerator.html#t%3AStatement"
 >Statement</A
 > QueryString <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
@@ -211,7 +207,7 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+><A HREF="Database-Enumerator.html#t%3AStatement"
 >Statement</A
 > StmtBind <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
@@ -219,23 +215,19 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3AStatement"
+><A HREF="Database-Enumerator.html#t%3AStatement"
 >Statement</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+> String <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
 > Query</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
 >DBBind</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> a) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+> (Maybe a) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
-> PreparedStmtObj BindObj =&gt; <A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+> PreparedStmtObj BindObj =&gt; <A HREF="Database-Enumerator.html#t%3ADBBind"
 >DBBind</A
 > a <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
@@ -243,7 +235,7 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3AIPrepared"
+><A HREF="Database-Enumerator.html#t%3AIPrepared"
 >IPrepared</A
 > PreparedStmtObj <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
@@ -251,60 +243,106 @@
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
 >DBBind</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Prelude.html#t%3ADouble"
->Double</A
->) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+> (Maybe Double) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
 > PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
 >DBBind</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
->) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+> (Maybe Int) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
 > PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
 >DBBind</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
->) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+> (Maybe String) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
 > PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
 >DBBind</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
-> <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/time-1.1.2.0/Data-Time-Clock.html#t%3AUTCTime"
->UTCTime</A
->) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+> (Maybe UTCTime) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
 > PreparedStmtObj BindObj</TD
 ></TR
 ><TR
 ><TD CLASS="decl"
-><A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Text-Show.html#t%3AShow"
->Show</A
-> a =&gt; <A HREF="Database-InternalEnumerator.html#t%3ADBBind"
+>Show a =&gt; <A HREF="Database-Enumerator.html#t%3ADBBind"
 >DBBind</A
-> (<A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Maybe.html#t%3AMaybe"
->Maybe</A
+> (Maybe a) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-ODBC-Enumerator.html#t%3AOut"
+>Out</A
+> (Maybe Double)) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-ODBC-Enumerator.html#t%3AOut"
+>Out</A
+> (Maybe Int)) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-ODBC-Enumerator.html#t%3AOut"
+>Out</A
+> (Maybe String)) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-ODBC-Enumerator.html#t%3AOut"
+>Out</A
+> (Maybe UTCTime)) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+>Show a =&gt; <A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-ODBC-Enumerator.html#t%3AOut"
+>Out</A
+> (Maybe a)) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-ODBC-Enumerator.html#t%3AOut"
+>Out</A
+> (Maybe a)) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj =&gt; <A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-ODBC-Enumerator.html#t%3AOut"
+>Out</A
 > a) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
 > PreparedStmtObj BindObj</TD
@@ -326,9 +364,7 @@
 ></A
 ><B
 >connect</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; <A HREF="Database-InternalEnumerator.html#t%3AConnectA"
+> :: String -&gt; <A HREF="Database-Enumerator.html#t%3AConnectA"
 >ConnectA</A
 > <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
@@ -344,7 +380,7 @@
 ></A
 ><B
 >prepareStmt</B
-> :: QueryString -&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+> :: QueryString -&gt; <A HREF="Database-Enumerator.html#t%3APreparationA"
 >PreparationA</A
 > <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
@@ -360,9 +396,7 @@
 ></A
 ><B
 >preparePrefetch</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; QueryString -&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+> :: Int -&gt; QueryString -&gt; <A HREF="Database-Enumerator.html#t%3APreparationA"
 >PreparationA</A
 > <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
@@ -378,7 +412,7 @@
 ></A
 ><B
 >prepareQuery</B
-> :: QueryString -&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+> :: QueryString -&gt; <A HREF="Database-Enumerator.html#t%3APreparationA"
 >PreparationA</A
 > <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
@@ -394,9 +428,7 @@
 ></A
 ><B
 >prepareLargeQuery</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; QueryString -&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+> :: Int -&gt; QueryString -&gt; <A HREF="Database-Enumerator.html#t%3APreparationA"
 >PreparationA</A
 > <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
@@ -412,7 +444,7 @@
 ></A
 ><B
 >prepareCommand</B
-> :: QueryString -&gt; <A HREF="Database-InternalEnumerator.html#t%3APreparationA"
+> :: QueryString -&gt; <A HREF="Database-Enumerator.html#t%3APreparationA"
 >PreparationA</A
 > <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
@@ -428,9 +460,7 @@
 ></A
 ><B
 >sql</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; QueryString</TD
+> :: String -&gt; QueryString</TD
 ></TR
 ><TR
 ><TD CLASS="s15"
@@ -442,9 +472,7 @@
 ></A
 ><B
 >sqlbind</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; [<A HREF="Database-InternalEnumerator.html#t%3ABindA"
+> :: String -&gt; [<A HREF="Database-Enumerator.html#t%3ABindA"
 >BindA</A
 > <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
@@ -460,11 +488,7 @@
 ></A
 ><B
 >prefetch</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Int.html#t%3AInt"
->Int</A
-> -&gt; <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; [<A HREF="Database-InternalEnumerator.html#t%3ABindA"
+> :: Int -&gt; String -&gt; [<A HREF="Database-Enumerator.html#t%3ABindA"
 >BindA</A
 > <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
@@ -480,13 +504,130 @@
 ></A
 ><B
 >cmdbind</B
-> :: <A HREF="file:///c:/ghc/ghc-6.8.1/doc/libraries/base-3.0.0.0/Data-Char.html#t%3AString"
->String</A
-> -&gt; [<A HREF="Database-InternalEnumerator.html#t%3ABindA"
+> :: String -&gt; [<A HREF="Database-Enumerator.html#t%3ABindA"
 >BindA</A
 > <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
 >Session</A
 > PreparedStmtObj BindObj] -&gt; StmtBind</TD
+></TR
+><TR
+><TD CLASS="s15"
+></TD
+></TR
+><TR
+><TD CLASS="decl"
+><SPAN CLASS="keyword"
+>newtype</SPAN
+> <A NAME="t%3AOut"
+></A
+><B
+>Out</B
+> a</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="0" CELLPADDING="0"
+><TR
+><TD CLASS="section4"
+>Constructors</TD
+></TR
+><TR
+><TD CLASS="body"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="arg"
+><A NAME="v%3AOut"
+></A
+><B
+>Out</B
+> a</TD
+><TD CLASS="rdoc"
+></TD
+></TR
+></TABLE
+></TD
+></TR
+><TR
+><TD CLASS="section4"
+><IMG SRC="minus.gif" CLASS="coll" ONCLICK="toggle(this,'i:Out')" ALT="show/hide"
+> Instances</TD
+></TR
+><TR
+><TD CLASS="body"
+><DIV ID="i:Out" STYLE="display:block;"
+><TABLE CLASS="vanilla" CELLSPACING="1" CELLPADDING="0"
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-ODBC-Enumerator.html#t%3AOut"
+>Out</A
+> (Maybe Double)) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-ODBC-Enumerator.html#t%3AOut"
+>Out</A
+> (Maybe Int)) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-ODBC-Enumerator.html#t%3AOut"
+>Out</A
+> (Maybe String)) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-ODBC-Enumerator.html#t%3AOut"
+>Out</A
+> (Maybe UTCTime)) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+>Show a =&gt; <A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-ODBC-Enumerator.html#t%3AOut"
+>Out</A
+> (Maybe a)) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+><TR
+><TD CLASS="decl"
+><A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-ODBC-Enumerator.html#t%3AOut"
+>Out</A
+> (Maybe a)) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj =&gt; <A HREF="Database-Enumerator.html#t%3ADBBind"
+>DBBind</A
+> (<A HREF="Database-ODBC-Enumerator.html#t%3AOut"
+>Out</A
+> a) <A HREF="Database-ODBC-Enumerator.html#t%3ASession"
+>Session</A
+> PreparedStmtObj BindObj</TD
+></TR
+></TABLE
+></DIV
+></TD
+></TR
+></TABLE
+></TD
 ></TR
 ><TR
 ><TD CLASS="s15"
