@@ -706,7 +706,7 @@ Let's look at some example code:
  > -- non-query actions.
  > otherActions session = do
  >   execDDL (sql "create table blah")
- >   execDML (sql "insert into blah ...")
+ >   execDML (cmdbind "insert into blah (...) values (?, ?, ?, ...)" [bindP "v1", bindP (1::Int), ...])
  >   commit
  >   -- Use withTransaction to delimit a transaction.
  >   -- It will commit at the end, or rollback if an error occurs.
@@ -757,21 +757,21 @@ For example, currently all back-ends have:
 
   * for a select with bind variables:
 
- >      sqlbind "select ..." [bindP ..., bindP ...]
+ >      sqlbind "select ?, ... where col = ? and ..." [bindP ..., bindP ...]
 
   * for a select with bind variables and row caching:
 
- >      prefetch 100 "select ..." [bindP ..., bindP ...]
+ >      prefetch 100 "select ?, ... where col = ? and ..." [bindP ..., bindP ...]
 
   * for a DML command with bind variables:
 
- >      cmdbind "insert into ..." [bindP ..., bindP ...]
+ >      cmdbind "insert into ... values (?, ?, ...)" [bindP ..., bindP ...]
 
   * for a reusable prepared statement: we have to first create the
     prepared statement, and then bind in a separate step.
     This separation lets us re-use prepared statements:
 
- >      let stmt = prepareQuery (sql "select ...")
+ >      let stmt = prepareQuery (sql "select ? ...")
  >      withPreparedStatement stmt $ \pstmt ->
  >        withBoundStatement pstmt [bindP ..., bindP ...] $ \bstmt -> do
  >          result <- doQuery bstmt iter seed
@@ -857,13 +857,13 @@ which doesn't seem so onerous, but for more elaborate seed types
 (think large tuples) it certainly helps e.g.
 
  > iter :: Monad m =>
- >      String -> Double -> CalendarTime -> [(String, Double, CalendarTime)]
- >   -> m (Either [(String, Double, CalendarTime)] [(String, Double, CalendarTime)] )
+ >      String -> Double -> UTCTime -> [(String, Double, UTCTime)]
+ >   -> m (Either [(String, Double, UTCTime)] [(String, Double, UTCTime)] )
 
 reduces to (by using 'IterAct' and 'IterResult'):
 
  > iter :: Monad m =>
- >      String -> Double -> CalendarTime -> IterAct m [(String, Double, CalendarTime)]
+ >      String -> Double -> UTCTime -> IterAct m [(String, Double, UTCTime)]
 
 
 
@@ -1091,9 +1091,8 @@ or you may prefer to delimit your transactions elsewhere (the API supports
 
 You may have noticed that for 'Data.Int.Int' and 'Prelude.Double' literal
 bind values, we have to tell the compiler the type of the literal.
-I assume this is due to interaction (which I don't fully understand and therefore
-cannot explain in any detail) with the numeric literal defaulting mechanism.
-For non-numeric literals the compiler can determine the correct types to use.
+This is due to interaction with the numeric literal defaulting mechanism.
+For non-numeric literals the compiler can (usually) determine the correct types to use.
 
 If you omit type information for numeric literals, from GHC the error
 message looks something like this:
