@@ -288,8 +288,9 @@ satisfactory - and yet better than a segmentation fault.
 >     -> IO (a, IE.ConnectA sess)
 > withContinuedSession (IE.ConnectA connecta) m = 
 >    do conn <- connecta  -- this invalidates connecta
->       r <- runReaderT (unDBM m) conn
->            `Control.Exception.catch` (\e -> IE.disconnect conn >> throw e)
+>       --r <- runReaderT (unDBM m) conn
+>       --     `Control.Exception.catch` (\e -> IE.disconnect conn >> throw e)
+>       r <- bracket (return conn) (IE.disconnect) (runReaderT (unDBM m))
 >       -- make a new, one-shot connecta
 >       hasbeenused <- newIORef False
 >       let connecta = do
@@ -503,18 +504,14 @@ An auxiliary function, not seen by the user.
 
 > doQueryMaker stmt iteratee = do
 >     sess <- ask
->     query <- liftIO $ IE.makeQuery sess stmt
 >     -- if buffer allocation raises an exception
 >     -- (which it might) then we need to clean up the query object.
+>     query <- liftIO (IE.makeQuery sess stmt)
 >     buffers <- gcatch (allocBuffers query iteratee 1)
->       (\e -> do
->         liftIO (IE.destroyQuery query)
->         liftIO (throw e)
->       )
+>       (\e -> liftIO (IE.destroyQuery query >> throw e) )
 >     let
 >       finaliser =
->            liftIO (mapM_ (IE.freeBuffer query) buffers)
->         >> liftIO (IE.destroyQuery query)
+>         liftIO (mapM_ (IE.freeBuffer query) buffers >> IE.destroyQuery query)
 >       hFoldLeft self iteratee initialSeed = do
 >         let
 >           handle seed True = iterApply query buffers seed iteratee
