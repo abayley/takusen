@@ -288,9 +288,12 @@ satisfactory - and yet better than a segmentation fault.
 >     -> IO (a, IE.ConnectA sess)
 > withContinuedSession (IE.ConnectA connecta) m = 
 >    do conn <- connecta  -- this invalidates connecta
->       --r <- runReaderT (unDBM m) conn
->       --     `Control.Exception.catch` (\e -> IE.disconnect conn >> throw e)
->       r <- bracket (return conn) (IE.disconnect) (runReaderT (unDBM m))
+>       -- Note: if there was an error, then disconnect,
+>       -- but don't disconnect in the success case
+>       -- (the connecta action will raise an error if the
+>       -- the connection is re-used).
+>       r <- runReaderT (unDBM m) conn
+>            `Control.Exception.catch` (\e -> IE.disconnect conn >> throw e)
 >       -- make a new, one-shot connecta
 >       hasbeenused <- newIORef False
 >       let connecta = do
