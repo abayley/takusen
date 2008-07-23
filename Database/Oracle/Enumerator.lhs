@@ -439,11 +439,10 @@ so we need some way of distinguishing between queries and commands.
 >   executeCommand sess (QueryString str) = doCommand sess str
 
 > doCommand sess str = do
->   stmt <- getStmt sess
->   stmtPrepare sess stmt str
->   n <- execute sess stmt 1
->   closeStmt sess stmt
->   return (fromIntegral n)
+>   bracket (getStmt sess) (closeStmt sess) (\stmt -> do
+>       stmtPrepare sess stmt str
+>       liftM fromIntegral (execute sess stmt 1)
+>     )
 
 > instance Command String Session where
 >   executeCommand sess str = executeCommand sess (sql str)
@@ -919,7 +918,7 @@ as the column buffers?
 >     else do
 >       if length buffers >= colpos
 >         then return (buffers !! (colpos - 1))
->         else  -- FIXME  use DBError here!
+>         else
 >           throwDB (DBError ("02", "000") (-1) ( "There are " ++ show (length buffers)
 >             ++ " output buffers, but you have asked for buffer " ++ show colpos ))
 
