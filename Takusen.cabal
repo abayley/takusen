@@ -62,12 +62,14 @@ Library
     Exposed-modules:
         Database.ODBC.Enumerator
       , Database.ODBC.OdbcFunctions
-    Build-Tools: odbcconf
     If os(windows)
       extra-libraries: odbc32
       ld-options: --enable-stdcall-fixup
     Else
-      extra-libraries: odbc
+      If os(darwin)
+        extra-libraries: iodbc
+      Else
+        extra-libraries: odbc
 
   If flag(oracle)
     Exposed-modules:
