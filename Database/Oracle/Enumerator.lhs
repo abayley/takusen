@@ -895,14 +895,16 @@ All other instances of Statement make a statement its own parent.
 >       _ -> return ()
 >   fetchOneRow query = do
 >     let pstmt = queryStmt query
->     case stmtType pstmt of
->       SelectType -> do
+>     -- Only call fetchRow if there are no bind output buffers
+>     -- If there are bind output buffers then assume this was a
+>     -- procedure call.
+>     -- In this case you will always get the same row over and over,
+>     -- so you'd better be careful with your iteratees
+>     buffers <- readIORef (stmtBuffers pstmt)
+>     if not (null buffers) then return True
+>       else do
 >         rc <- fetchRow (querySess query) (queryStmt query)
 >         return (rc /= oci_NO_DATA)
->       -- True here means fetch will never terminate;
->       -- it will always give the same row over and over,
->       -- so you'd better be careful with your iteratees
->       _ -> return True
 >   currentRowNum query =
 >     getRowCount (querySess query) (stmtHandle (queryStmt query))
 >   freeBuffer q buffer = return ()
