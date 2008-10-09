@@ -27,6 +27,10 @@ Utility functions. Mostly used in database back-ends, and tests.
 > import Data.List
 > import Data.Char
 > import Data.Time
+> import Data.Word (Word8)
+> import Foreign.Ptr (Ptr, castPtr)
+> import Foreign.Marshal.Array (peekArray)
+> import Numeric (showHex)
 > import Text.Printf
 
 
@@ -142,8 +146,8 @@ so that we get sensible behaviour for -ve numbers.
 > wordsBy pred s = skipNonMatch pred s
 
 2 states:
-skipNonMatch is for when we are looking for the start of our next word
-consumeMatch is for when we are currently scanning a word
+ - skipNonMatch is for when we are looking for the start of our next word
+ - scanWord is for when we are currently scanning a word
 
 > skipNonMatch :: (Char -> Bool) -> String -> [String] 
 > skipNonMatch pred "" = []
@@ -260,3 +264,18 @@ Parses ISO format datetimes, and also the variation that PostgreSQL uses.
 >     ++ ":" ++ zeroPad 2 minute
 >     ++ ":" ++ secs
 >     ++ "+00" ++ suffix
+
+
+> printArrayContents :: Int -> Ptr Word8 -> IO ()
+> printArrayContents sz ptr = do
+>   putStrLn ("printBufferContents: sz = " ++ show sz)
+>   l <- peekArray sz ptr
+>   let
+>     toHex :: Word8 -> String;
+>     toHex i = (if i < 16 then "0" else "") ++ showHex i ""
+>   --let h :: [String]; h = map toHex l
+>   putStrLn (concat (intersperse " " (map toHex l)))
+>   let
+>     toChar :: Word8 -> String
+>     toChar i = if 31 < i && i < 127 then [chr (fromIntegral i)] else " "
+>   putStrLn (concat (intersperse "  " (map toChar l)))
