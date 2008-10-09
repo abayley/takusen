@@ -164,7 +164,7 @@ int64 -4712-01-01 -> 4713-01-01 BC
 
 
 
-> execDDL_ s = catchDB (execDDL s) (\e -> liftIO (reportError s e) >> throwDB e)
+> execDDL_ s = catchDB (execDDL s) reportRethrow
 > execDML_ s = execDDL_ s
 
 Use execDrop when the DDL is likely to raise an error.
@@ -190,8 +190,6 @@ I guess that's a result of PostgreSQL's transactional DDL feature.
 
 > destroyFixture execDDL_ = flip catchDB reportRethrow $ do
 >   execDDL_ sqlDropDual
->   -- This is odd, but seems to keep the Oracle ODBC driver happy.
->   -- Not sure why we need to do DDL in a transaction...
 >   execDDL_ sqlDropTest
 >   commit
 
