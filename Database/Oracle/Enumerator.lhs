@@ -554,6 +554,7 @@ reused for the child cursors.
 > newPreparedStmt lifetime iteration sess stmt = do
 >   c <- newIORef []
 >   b <- newIORef []
+
 >   return (PreparedStmtObj lifetime iteration stmt sess c b)
 
 --------------------------------------------------------------------
@@ -573,15 +574,11 @@ reused for the child cursors.
 >           CommandType -> 1
 >     execute sess (stmtHandle stmt) iteration
 >     writeIORef (stmtCursors stmt) []
->     -- after execute, save any RefCursor Out values...
->     -- or should we save all Out values?
 >     action (BoundStmt stmt)
 >   destroyStmt sess pstmt = closeStmt sess (stmtHandle pstmt)
 
 > instance DBBind (Maybe String) Session PreparedStmtObj BindObj where
 >   bindP = makeBindAction
-
-Disable this for now, as Strings have charset conversion issues for me...
 
 > instance DBBind (Out (Maybe String)) Session PreparedStmtObj BindObj where
 >   bindP (Out v) = makeOutputBindAction v
@@ -652,7 +649,7 @@ Default instances, using generic Show.
 >   => Session -> PreparedStmtObj -> Maybe a -> Int -> IO ()
 > bindMaybe sess stmt v pos =
 >   bindWithValue v $ \ptrv -> do
->     bindByPos sess stmt pos (bindNullInd v) (castPtr ptrv) (bindSize v) (bindType v)
+>     bindByPos sess stmt pos (bindNullInd v) (castPtr ptrv) (bindDataSize v) (bindType v)
 
 Note currying... we don't provide the column-position;
 it's provided when bindRun is invoked.
@@ -669,9 +666,9 @@ it's provided when bindRun is invoked.
 >       withForeignPtr nullind $ \indptr -> do
 >       withForeignPtr sizeind $ \szeptr -> do
 >         poke (castPtr indptr) (bindNullInd v)
->         poke (castPtr szeptr) (bindSize v)
+>         poke (castPtr szeptr) (bindDataSize v)  -- input size
 >         bindWriteBuffer (castPtr bufptr) v
->       bindOutputByPos sess stmt pos (nullind, buffer, sizeind) (bindSize v) (bindType v)
+>       bindOutputByPos sess stmt pos (nullind, buffer, sizeind) (bindBufferSize v) (bindType v)
 >       let
 >         colbuf = ColumnBuffer
 >           { colBufBufferFPtr = buffer
@@ -699,10 +696,13 @@ in the Oracle case, though.
 > class OracleBind a where
 >   bindWithValue :: a -> (Ptr Word8 -> IO ()) -> IO ()
 >   bindWriteBuffer :: Ptr Word8 -> a -> IO ()
->   bindSize :: a -> Int
+>   bindDataSize :: a -> Int
 >   bindBufferSize :: a -> Int
->   bindBufferSize v = bindSize v
+>   bindBufferSize v = bindDataSize v
 >   bindNullInd :: a -> CShort
+>   -- non-Maybe types aren't nullable, so null-ind is always 0
+>   -- for values in these types.
+>   bindNullInd _ = 0
 >   bindType :: a -> CInt
 
 > instance OracleBind a => OracleBind (Maybe a) where
@@ -710,54 +710,53 @@ in the Oracle case, though.
 >   bindWithValue Nothing a = return ()
 >   bindWriteBuffer b (Just v) = bindWriteBuffer b v
 >   bindWriteBuffer b Nothing = return ()
->   bindSize (Just v) = bindSize v
->   bindSize Nothing = 0
+>   bindDataSize (Just v) = bindDataSize v
+>   bindDataSize Nothing = 0
+>   bindBufferSize (Just v) = bindBufferSize v
+>   bindBufferSize x@Nothing =
+>     let (Just v) = (Just undefined) `asTypeOf` x in bindBufferSize v
 >   bindNullInd (Just v) = 0
 >   bindNullInd Nothing = -1
 >   bindType (Just v) = bindType v
 >   bindType Nothing = bindType (undefined :: a)
 
 > instance OracleBind String where
+>   -- FIXME  should these be withUTF8String{Len} ?
 >   bindWithValue v a = withCString v (\p -> a (castPtr p))
->   bindWriteBuffer b s = withCStringLen s (\(p,l) -> copyBytes p (castPtr b) l)
->   bindSize s = fromIntegral (length s)
->   bindBufferSize s = 16000
->   bindNullInd _ = 0
+>   bindWriteBuffer b s = withCStringLen s (\(p,l) -> 
+>     copyBytes (castPtr b) p (1+l))
+>   bindDataSize s = fromIntegral (length s)
+>   bindBufferSize _ = 32000
 >   bindType _ = oci_SQLT_CHR
 
 > instance OracleBind Int where
 >   bindWithValue v a = withBinaryValue toCInt v (\p v -> poke (castPtr p) v) a
 >   bindWriteBuffer b v = poke (castPtr b) v
->   bindSize _ = (sizeOf (toCInt 0))
->   bindNullInd _ = 0
+>   bindDataSize _ = (sizeOf (toCInt 0))
 >   bindType _ = oci_SQLT_INT
 
 > instance OracleBind Double where
 >   bindWithValue v a = withBinaryValue toCDouble v (\p v -> poke (castPtr p) v) a
 >   bindWriteBuffer b v = poke (castPtr b) v
->   bindSize _ = (sizeOf (toCDouble 0.0))
->   bindNullInd _ = 0
+>   bindDataSize _ = (sizeOf (toCDouble 0.0))
 >   bindType _ = oci_SQLT_FLT
 
 > instance OracleBind CalendarTime where
 >   bindWithValue v a = withBinaryValue id v (\p dt -> calTimeToBuffer (castPtr p) dt) a
 >   bindWriteBuffer b v = calTimeToBuffer (castPtr b) v
->   bindSize _ = 7
->   bindNullInd _ = 0
+>   bindDataSize _ = 7
 >   bindType _ = oci_SQLT_DAT
 
 > instance OracleBind UTCTime where
 >   bindWithValue v a = withBinaryValue id v (\p dt -> utcTimeToBuffer (castPtr p) dt) a
 >   bindWriteBuffer b v = utcTimeToBuffer (castPtr b) v
->   bindSize _ = 7
->   bindNullInd _ = 0
+>   bindDataSize _ = 7
 >   bindType _ = oci_SQLT_DAT
 
 > instance OracleBind StmtHandle where
 >   bindWithValue v a = alloca (\p -> poke p v >> a (castPtr p))
 >   bindWriteBuffer b v = poke (castPtr b) v
->   bindSize _ = sizeOf nullPtr
->   bindNullInd _ = 0
+>   bindDataSize _ = sizeOf nullPtr
 >   bindType _ = oci_SQLT_RSET
 
 > withBinaryValue :: (OracleBind b) =>
@@ -767,7 +766,9 @@ in the Oracle case, though.
 >   -> (Ptr Word8 -> IO ())       -- ^ action to run over buffer; buffer will be freed on completion
 >   -> IO ()
 > withBinaryValue fn v pok action =
->   allocaBytes (bindSize v) $ \p -> do
+>   -- FIXME  is bindBufferSize better here?
+>   --allocaBytes (bindBufferSize v) $ \p -> do
+>   allocaBytes (bindDataSize v) $ \p -> do
 >   pok p (fn v)
 >   action (castPtr p)
 
