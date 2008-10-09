@@ -21,7 +21,7 @@
 -- well, you have the original String, so...
 
 
--- This module has been reasonablt optimised. You can check GHC's
+-- This module has been reasonably optimised. You can check GHC's
 -- simplifier output (for unboxing, mainly) with this:
 --   ghc -O2 -c UTF8.hs -ddump-simpl > simpl.txt
 
@@ -251,12 +251,12 @@ This isn't so bad, if we expect reverse to work in constant space
 fromUTF8Ptr0 :: Ptr Word8 -> IO String
 fromUTF8Ptr0 p = do
   len <- lengthArray0 nullByte p
-  --fromUTF8PtrUnboxed (len-1) p ""
   fromUTF8Ptr (len-1) p ""
 
 -- | The bytes parameter should be len-1
--- i.e. if the CString has length 2, then you should pass
--- bytes=1.
+-- i.e. if the CString has length 2, then you should pass bytes=1.
+-- That's because we add bytes to the Ptr p to get the offset
+-- for each byte; byte 1 is at p+0, byte 2 is at p+1, etc.
 fromUTF8Ptr :: Int -> Ptr Word8 -> String -> IO String
 fromUTF8Ptr bytes p acc
   | bytes `seq` p `seq` acc `seq` False = undefined
