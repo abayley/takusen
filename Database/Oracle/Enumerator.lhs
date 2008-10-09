@@ -868,6 +868,16 @@ All other instances of Statement make a statement its own parent.
 >     execute sess (stmtHandle pstmt) 0
 >     return (Query pstmt sess (Just pstmt))
 
+> instance Statement CommandBind Session Query where
+>   makeQuery sess (CommandBind sqltext bas) = do
+>     let
+>      (PreparationA action) =
+>         prepareStmt' 1 sqltext FreeWithQuery CommandType
+>     pstmt <- action sess
+>     sequence_ (zipWith (\i (BindA ba) -> ba sess pstmt i) [1..] bas)
+>     execute sess (stmtHandle pstmt) 1
+>     return (Query pstmt sess (Just pstmt))
+
 
 > data ColumnBuffer = ColumnBuffer 
 >    { colBufBufferFPtr :: OCI.ColumnResultBuffer
