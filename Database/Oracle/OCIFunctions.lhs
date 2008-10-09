@@ -164,9 +164,20 @@ datatype, indicatorPtr, lenArrayPtr, retCodeArrayPtr,
 plsqlArrayMaxLen, plsqlCurrEltPtr, mode
 
 > foreign import ccall "oci.h OCIBindByPos" ociBindByPos ::
->   StmtHandle -> Ptr BindHandle -> ErrorHandle -> CUInt -> BufferPtr -> CInt
->   -> CUShort -> Ptr CShort -> Ptr CUShort -> Ptr CUShort
->   -> CUInt -> Ptr CUInt -> CUInt -> IO CInt
+>   StmtHandle
+>   -> Ptr BindHandle
+>   -> ErrorHandle
+>   -> CUInt  -- ^ position
+>   -> BufferPtr  -- ^ buffer containing data
+>   -> CInt  -- ^ max size of buffer
+>   -> CUShort  -- ^ SQL data type
+>   -> Ptr CShort  -- ^ null indicator ptr
+>   -> Ptr CUShort  -- ^ input + output size, or array of sizes
+>   -> Ptr CUShort  -- ^ array of return codes
+>   -> CUInt  -- ^ max array elements
+>   -> Ptr CUInt  -- ^ number of array elements
+>   -> CUInt  -- ^ mode
+>   -> IO CInt
 
 > foreign import ccall "oci.h OCIBindDynamic" ociBindDynamic ::
 >   BindHandle -> ErrorHandle -> ContextPtr -> FunPtr OCICallbackInBind
@@ -516,7 +527,7 @@ Most other DBMS's use ? as a placeholder,
 so we have this function to substitute ? with :n,
 where n starts at one and increases with each ?.
 
-We don't use this function into this library though;
+We don't use this function in this library though;
 it's used in the higher-level implementation of Enumerator.
 We prefer to retain flexibility at this lower-level,
 and not force arbitrary implementation choices too soon.
@@ -563,8 +574,8 @@ direction.
 >   ErrorHandle
 >   -> StmtHandle
 >   -> Int   -- ^ Position
->   -> BindBuffer  -- ^ triple of (null-ind, payload, output-size)
->   -> Int   -- ^ payload input size in bytes
+>   -> BindBuffer  -- ^ triple of (null-ind, payload, input-size)
+>   -> Int   -- ^ buffer max size in bytes
 >   -> CInt  -- ^ SQL Datatype (from "Database.Oracle.OCIConstants")
 >   -> IO BindHandle
 > bindOutputByPos err stmt pos (nullIndFPtr, bufFPtr, sizeFPtr) sze sqltype =
@@ -669,6 +680,7 @@ Otherwise, run the IO action to extract a value from the buffer and return Just 
 >         withForeignPtr bufFPtr $ \bufferPtr ->
 >           withForeignPtr sizeFPtr $ \retSizePtr -> do
 >             retsize <- liftM cUShort2Int (peek retSizePtr)
+>             --putStrLn ("bufferToString: size = " ++ show retsize)
 >             pokeByteOff (castPtr bufferPtr) retsize nullByte
 >             val <- peekCString (castPtr bufferPtr)
 >             return (Just val)
