@@ -268,13 +268,13 @@ so it should only use functions from there (and "Database.Oracle.OCIConstants").
 >       OCI.stmtPrepare err (castPtr stmt) (OCI.substituteBindPlaceHolders
 >         ("begin if :1 <> 'hello' then "
 >         ++ "raise_application_error(-20001, 'xx-' || :1 || '-xx'); end if; "
->         ++ ":1 := 'abcdefghijk'; :2 := 1026; end;"))
+>         ++ ":1 := 'abcdefg' || substr(:1, 1, 1) || 'ijk'; :2 := 1026; end;"))
 >       nullIndFPtr1 <- mallocForeignPtr
 >       nullIndFPtr2 <- mallocForeignPtr
 >       sizeFPtr1 <- mallocForeignPtr
 >       sizeFPtr2 <- mallocForeignPtr
 >       cintFPtr <- mallocForeignPtrBytes (sizeOf (0::CInt))
->       cstrFPtr <- mallocForeignPtrBytes 16000
+>       cstrFPtr <- mallocForeignPtrBytes 16000  -- size of "hello"
 >       withForeignPtr cstrFPtr $ \p ->
 >         withCStringLen "hello" $ \(cstr, clen) -> copyBytes p (castPtr cstr) (clen+1)
 >       withForeignPtr sizeFPtr1 $ \p -> poke p 5
@@ -292,6 +292,8 @@ so it should only use functions from there (and "Database.Oracle.OCIConstants").
 >       assertEqual "testOutputBind: 4" 11 size
 >       size <- withForeignPtr sizeFPtr2 peek >>= return . fromIntegral
 >       assertEqual "testOutputBind: 5" (sizeOf (0::CInt)) size
+>       s <- OCI.bufferToString (undefined, castForeignPtr cstrFPtr, nullIndFPtr1, sizeFPtr1)
+>       assertEqual "testOutputBind: 6" (Just "abcdefghijk") s
 >       OCI.handleFree oci_HTYPE_STMT (castPtr stmt)
 >     ) (\ociexc -> reportAndIgnore (castPtr err) ociexc nullAction)
 >   logoff (env, err, conn)
@@ -316,8 +318,10 @@ so it should only use functions from there (and "Database.Oracle.OCIConstants").
 >       withForeignPtr cintFPtr2 $ \p -> poke p 3
 >       withForeignPtr sizeFPtr1 $ \p -> poke p (fromIntegral sizeOfCInt)
 >       withForeignPtr sizeFPtr2 $ \p -> poke p (fromIntegral sizeOfCInt)
->       OCI.bindOutputByPos err (castPtr stmt) 1 (nullIndFPtr1, castForeignPtr cintFPtr1, sizeFPtr1) sizeOfCInt oci_SQLT_INT
->       OCI.bindOutputByPos err (castPtr stmt) 2 (nullIndFPtr2, castForeignPtr cintFPtr2, sizeFPtr2) sizeOfCInt oci_SQLT_INT
+>       let buffer1 = (nullIndFPtr1, castForeignPtr cintFPtr1, sizeFPtr1)
+>       let buffer2 = (nullIndFPtr2, castForeignPtr cintFPtr2, sizeFPtr2)
+>       OCI.bindOutputByPos err (castPtr stmt) 1 buffer1 sizeOfCInt oci_SQLT_INT
+>       OCI.bindOutputByPos err (castPtr stmt) 2 buffer2 sizeOfCInt oci_SQLT_INT
 >       OCI.stmtExecute err conn (castPtr stmt) 1
 >       ind <- withForeignPtr nullIndFPtr1 peek
 >       assertEqual "testOutputBind: 0" 0 ind
