@@ -2,16 +2,17 @@
 
 import Distribution.PackageDescription
   ( PackageDescription(..), Library(..), BuildInfo(..), HookedBuildInfo
-  , emptyHookedBuildInfo, writeHookedBuildInfo, emptyBuildInfo
+  , emptyHookedBuildInfo, emptyBuildInfo
   )
+import Distribution.PackageDescription.Parse ( writeHookedBuildInfo ) 
 import Distribution.Package (Dependency(..))
-import Distribution.Simple.Setup ( ConfigFlags(..) )
+import Distribution.Simple.Setup ( ConfigFlags(..), BuildFlags(.. ))
 import Distribution.Simple
   ( defaultMainWithHooks, autoconfUserHooks, UserHooks(..), Args )
 import Distribution.Simple.Program (findProgramOnPath, simpleProgram, Program(..))
 import Distribution.Simple.LocalBuildInfo (LocalBuildInfo)
 import Distribution.Simple.Utils (warn, info, rawSystemStdout)
-import Distribution.Verbosity (Verbosity)
+import Distribution.Verbosity (Verbosity, verbose)
 
 import qualified System.Info (os)
 import System.Directory (canonicalizePath, removeFile)
@@ -54,7 +55,6 @@ main = defaultMainWithHooks autoconfUserHooks
       return emptyHookedBuildInfo
     postConf :: Args -> ConfigFlags -> PackageDescription -> LocalBuildInfo -> IO ()
     postConf args flags pkgdesc localbuildinfo = do
-      let verbose = (configVerbose flags)
       let lbi = libBuildInfo (fromJust (library pkgdesc))
       let buildtools = buildTools lbi
       sqliteBI <- configSqlite3 verbose buildtools 
@@ -95,7 +95,7 @@ guardProg prog tools action = do
   if prog `isElem` tools then action else return Nothing
   where
     isElem program buildtools = or (map (match program) buildtools)
-    match program (Dependency tool _) = (programName program) == tool
+    match program (Dependency tool _) = (programName program) == (show tool)
 
 -- Run the first action to give a Maybe FilePath.
 -- If this is Nothing then emit a warning about library not found.
