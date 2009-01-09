@@ -43,6 +43,9 @@ import Foreign
 import Foreign.C
 import Foreign.C.UTF8
 
+--debugStmt s = putStrLn s
+debugStmt s = return ()
+
 data HandleObj = HandleObj
 type Handle = Ptr HandleObj
 data EnvObj = EnvObj
@@ -340,15 +343,15 @@ getDiagRec retcode htype handle row =
   allocaBytes 1025 $ \cstrMsg -> do
   alloca $ \msgLenPtr -> do
     rc <- sqlGetDiagRec htype handle row cstrState errorNumPtr cstrMsg 1024 msgLenPtr
-    --putStrLn ("getDiagRec: rc=" ++ show rc)
+    --debugStmt ("getDiagRec: rc=" ++ show rc)
     case () of
       _ | rc == sqlRcSuccess -> do
           errnum <- peek errorNumPtr
           state <- myPeekCStringLen (cstrState, 5)
           msglen <- peek msgLenPtr
-          --putStrLn ("getDiagRec: msglen=" ++ show msglen)
+          --debugStmt ("getDiagRec: msglen=" ++ show msglen)
           msg <- myPeekCStringLen (cstrMsg, fromIntegral msglen)
-          --putStrLn ("getDiagRec: msg=" ++ msg)
+          --debugStmt ("getDiagRec: msg=" ++ msg)
           more <- getDiagRec retcode htype handle (row+1)
           return ((OdbcException (fromIntegral errnum) state msg []) : more)
         | rc == sqlRcNoData -> return []
@@ -540,6 +543,9 @@ getNativeSql conn sqltext = do
 -- The OdbcBindBuffer class has a getData function which uses these,
 -- if you'd rather.
 
+-- This function tests the null indicator first.
+-- If the value is null, then there's no need to do the actual marshaling,
+-- which is performed by the action passed in.
 getMaybeFromBuffer :: Storable a => Ptr SqlLen -> Ptr a -> (Ptr a -> SqlLen -> IO b) -> IO (Maybe b)
 getMaybeFromBuffer szptr bptr action = do
   len <- peek szptr
@@ -677,6 +683,7 @@ getStorableFromBuffer buffer =
 
 getCAStringFromBuffer :: BindBuffer -> IO (Maybe String)
 getCAStringFromBuffer buffer =
+  -- FIXME also assume null-termed string?
   testForNull buffer (\ptr len -> peekCAStringLen (castPtr ptr, fromIntegral len))
 
 getCWStringFromBuffer :: BindBuffer -> IO (Maybe String)
@@ -685,7 +692,11 @@ getCWStringFromBuffer buffer =
 
 getUTF8StringFromBuffer :: BindBuffer -> IO (Maybe String)
 getUTF8StringFromBuffer buffer =
-  testForNull buffer (\ptr len -> peekUTF8StringLen (castPtr ptr, fromIntegral len))
+  testForNull buffer (\ptr len ->
+    debugStmt ("getUTF8StringFromBuffer: size " ++ show len) >>
+    --peekUTF8StringLen (castPtr ptr, fromIntegral len))
+    -- assume null-termed string
+    peekUTF8String (castPtr ptr))
 
 getUtcTimeFromBuffer :: BindBuffer -> IO (Maybe UTCTime)
 getUtcTimeFromBuffer bindbuffer = do
@@ -755,7 +766,8 @@ bindParamCStringLen stmt pos direction (Just (cstr, clen)) bufsize = do
   mem <- mallocBytes bufsz
   copyBytes mem cstr (fromIntegral clen)
   pokeByteOff mem (fromIntegral clen) (0 :: Word8)
-  buffer <- wrapSizedBuffer mem (fromIntegral clen) bufsz
+  --buffer <- wrapSizedBuffer mem (fromIntegral clen) bufsz
+  buffer <- wrapSizedBuffer mem sqlNullTermedString bufsz
   bindParam stmt pos direction sqlCTypeString sqlDTypeString (fromIntegral clen) 0 buffer
   return buffer
 
@@ -768,6 +780,7 @@ bindEncodedString stmt pos direction (Just s) withEncoder bufsz =
 
 bindParamUTF8String :: StmtHandle -> Int -> SqlParamDirection -> Maybe String -> Int -> IO BindBuffer
 bindParamUTF8String stmt pos direction val sz =
+  debugStmt ("bindParamUTF8String: " ++ show val ++ ", size " ++ show sz) >>
   bindEncodedString stmt pos direction val withUTF8StringLen sz
 
 bindParamCAString :: StmtHandle -> Int -> SqlParamDirection -> Maybe String -> Int -> IO BindBuffer
@@ -1059,7 +1072,7 @@ foreign import #{CALLCONV} unsafe "sql.h SQLBindParameter" sqlBindParameter ::
   -> SqlSmallInt  -- ^ decimal digits (scale)
   -> Ptr Buffer  -- ^ input+output buffer
   -> SqlLen  -- ^ buffer size
-  -> Ptr SqlLen -- ^ input+output data size, or -1 (SQL_NULL_DATA) for null
+  -> Ptr SqlLen -- ^ input+output data size, SQL_NTS (-3), SQL_NULL_DATA (-1), or SQL_NO_TOTAL (-4)
   -> IO SqlReturn
 
 -- SQLRETURN SQL_API SQLExecute(SQLHSTMT);
