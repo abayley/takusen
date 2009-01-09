@@ -488,7 +488,8 @@ or some sort of command. This influences subsequent behaviour in two ways:
   1. when execute is done, we specify either 0 or 1 iterations,
      for selects or or commands, respectively (see bindRun)
   2. when fetchRow is called by doQuery, for selects we call OCI stmtFetch,
-     but for commands we ignore the call (do nothing).
+     but for commands we ignore the call (do nothing), because the
+     output buffers will already have been filled.
 
 > data StmtType = SelectType | CommandType
 
@@ -505,7 +506,6 @@ or some sort of command. This influences subsequent behaviour in two ways:
 >       , stmtBuffers :: IORef [ColumnBuffer]
 >       }
 
-Shouldn't need this code now:
 
 > beginsWithSelect "" = False
 > beginsWithSelect text = isPrefixOf "select" . map toLower $ text
@@ -935,12 +935,17 @@ as the column buffers?
 >           throwDB (DBError ("02", "000") (-1) ( "There are " ++ show (length buffers)
 >             ++ " output buffers, but you have asked for buffer " ++ show colpos ))
 
-When you allocate a StmtHandle buffer, you have to populate it with
-a valid StmtHandle before you call fetch.
+When you allocate a StmtHandle define buffer (as opposed to a bind buffer)
+you have to populate it with a valid StmtHandle before you call fetch.
+FIXME  when is this freed? When is the StmtHandle destroyed?
 
 > allocStmtBuffer query colpos = do
 >   colbuf <- allocBuffer query (sizeOf nullPtr, oci_SQLT_RSET) colpos
 >   buffers <- readIORef (stmtBuffers (queryStmt query))
+>   -- if buffers is null then assume this is a define buffer,
+>   -- rather than a bind buffer.
+>   -- Bind buffers are stuffed into the stmtBuffers list
+>   -- when they are created.
 >   if null buffers
 >     then do
 >       -- If this is a define buffer (as opposed to bind buffer)
