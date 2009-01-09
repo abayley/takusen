@@ -291,7 +291,7 @@ satisfactory - and yet better than a segmentation fault.
 >       -- Note: if there was an error, then disconnect,
 >       -- but don't disconnect in the success case
 >       -- (the connecta action will raise an error if the
->       -- the connection is re-used).
+>       -- connection is re-used).
 >       r <- runReaderT (unDBM m) conn
 >            `Control.Exception.catch` (\e -> IE.disconnect conn >> throw e)
 >       -- make a new, one-shot connecta
