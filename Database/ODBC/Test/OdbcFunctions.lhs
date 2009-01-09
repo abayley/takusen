@@ -251,6 +251,8 @@ Uses getData, rather than a buffer.
 >   assertEqual "testBindString" (Just expect) s
 >   more <- fetch stmt
 >   assertBool "testBindString: EOD" (not more)
+>   -- test closeCursor can be called if we want to
+>   closeCursor stmt  -- not necessary when done just before freeStmt
 >   freeStmt stmt
 
 > testBindStringUTF8 conn = do
@@ -309,6 +311,8 @@ Uses getData, rather than a buffer.
 >   stmt <- allocStmt conn
 >   prepareStmt stmt "select ? from tdual"
 >   --
+>   --closeCursor stmt  -- can't do this - function sequence error
+>   --
 >   let expect = "abc"
 >   bindParamBuffer stmt 1 (Just expect) 0
 >   executeStmt stmt
@@ -316,8 +320,10 @@ Uses getData, rather than a buffer.
 >   more <- fetch stmt
 >   s <- getUTF8StringFromBuffer buffer
 >   assertEqual "testRebind1" (Just expect) s
+>   more <- fetch stmt
+>   assertBool "testRebind1: EOD" (not more)
 >   --
->   closeCursor stmt
+>   closeCursor stmt  -- reset stmt for rebinding, but do not dealloc
 >   --
 >   let expect = "xyz"
 >   bindParamBuffer stmt 1 (Just expect) 0
@@ -326,9 +332,14 @@ Uses getData, rather than a buffer.
 >   more <- fetch stmt
 >   s <- getUTF8StringFromBuffer buffer
 >   assertEqual "testRebind2" (Just expect) s
->   --
 >   more <- fetch stmt
->   assertBool "testBindString: EOD" (not more)
+>   assertBool "testRebind2: EOD" (not more)
+>   --
+>   closeCursor stmt
+>   bindParamBuffer stmt 1 (Just expect) 0
+>   executeStmt stmt
+>   closeCursor stmt
+>   --
 >   freeStmt stmt
 
 
@@ -357,19 +368,111 @@ Uses getData, rather than a buffer.
 >   (liftM ("driver-ver: " ++) (getInfoDriverVer conn)) >>= putStrLn
 
 
+> dropFixtureMultiResultSet = "DROP PROCEDURE takusenTestProc"
+> makeFixtureMultiResultSet = "CREATE PROCEDURE takusenTestProc"
+>   ++ " AS BEGIN"
+>   ++ " SELECT '1', '2' \n\n"
+>   ++ " SELECT '3', '4' \n\n"
+>   ++ " END;"
+
+> testMultiResultSet conn = do
+>   name <- liftM (map toLower) (getInfoDbmsName conn)
+>   when (name == "microsoft sql server") $ do
+>   stmt <- allocStmt conn
+>   printIgnoreError (prepareStmt stmt dropFixtureMultiResultSet)
+>   printIgnoreError (executeStmt stmt)
+>   printIgnoreError (prepareStmt stmt makeFixtureMultiResultSet)
+>   printIgnoreError (executeStmt stmt)
+>   prepareStmt stmt "{call takusenTestProc}"
+>   executeStmt stmt
+>   --
+>   buffer1 <- bindColBuffer stmt 1 100 (Just "")
+>   buffer2 <- bindColBuffer stmt 2 100 (Just "")
+>   more <- fetch stmt
+>   s1 <- getUTF8StringFromBuffer buffer1
+>   assertEqual "testMultiResultSet1" (Just "1") s1
+>   s2 <- getUTF8StringFromBuffer buffer2
+>   assertEqual "testMultiResultSet2" (Just "2") s2
+>   more <- fetch stmt
+>   assertBool "testMultiResultSet1: EOD" (not more)
+>   --
+>   more <- moreResults stmt
+>   assertBool "testMultiResultSet: more result-sets" more
+>   --
+>   buffer1 <- bindColBuffer stmt 1 100 (Just "")
+>   buffer2 <- bindColBuffer stmt 2 100 (Just "")
+>   more <- fetch stmt
+>   s1 <- getUTF8StringFromBuffer buffer1
+>   assertEqual "testMultiResultSet3" (Just "3") s1
+>   s2 <- getUTF8StringFromBuffer buffer2
+>   assertEqual "testMultiResultSet4" (Just "4") s2
+>   more <- fetch stmt
+>   assertBool "testMultiResultSet3: EOD" (not more)
+>   --
+>   more <- moreResults stmt
+>   assertBool "testMultiResultSet: no more result-sets" (not more)
+>   --
+>   prepareStmt stmt dropFixtureMultiResultSet
+>   executeStmt stmt
+>   freeStmt stmt
+
+
+> dropFixtureBindOutput = "DROP PROCEDURE takusenTestProc"
+> makeFixtureBindOutputSqlServer = "CREATE PROCEDURE takusenTestProc @x int output, @y varchar(200) output"
+>   ++ " AS BEGIN"
+>   ++ " declare @z varchar(200) \n\n"
+>   ++ " select @x = 2 * @x \n\n"
+>   ++ " select @z = 'output ' + @y + ' xxx' \n\n"
+>   ++ " select @y = @z \n\n"
+>   ++ " END;"
+
+> makeFixtureBindOutputOracle = "CREATE or replace PROCEDURE takusenTestProc(x in out number, y in out varchar)"
+>   ++ " AS BEGIN"
+>   ++ " x := x * 2;"
+>   ++ " y := 'output ' || y || ' xxx';"
+>   ++ " END;"
+
+> testBindOutput conn = do
+>   dbmsname <- liftM (map toLower) (getInfoDbmsName conn)
+>   case dbmsname of
+>     "microsoft sql server" -> k makeFixtureBindOutputSqlServer
+>     "oracle" -> k makeFixtureBindOutputOracle
+>     _ -> return ()
+>   where
+>   k makeFixture = do
+>   stmt <- allocStmt conn
+>   printIgnoreError (prepareStmt stmt dropFixtureBindOutput)
+>   printIgnoreError (executeStmt stmt)
+>   printIgnoreError (prepareStmt stmt makeFixture)
+>   printIgnoreError (executeStmt stmt)
+>   --
+>   prepareStmt stmt "{call takusenTestProc(?,?)}"
+>   let input1 :: Int; input1 = 1234
+>   let input2 = "message"
+>   buffer1 <- bindParamBuffer stmt 1 (InOutParam (Just input1)) 0
+>   buffer2 <- bindParamBuffer stmt 2 (InOutParam (Just input2)) 200
+>   executeStmt stmt
+>   --
+>   i <- getFromBuffer buffer1
+>   assertEqual "testBindOutput" (Just (2*input1)) i
+>   s <- getUTF8StringFromBuffer buffer2
+>   assertEqual "testBindOutput" (Just "output message xxx") s
+>   --more <- fetch stmt  -- This will cause error:
+>   --
+>   --more <- moreResults stmt
+>   --assertBool "testBindOutput: more result-sets" (not more)
+>   --
+>   prepareStmt stmt dropFixtureMultiResultSet
+>   executeStmt stmt
+>   freeStmt stmt
+
+
+
 > printBufferContents buffer = do
 >   withForeignPtr (bindBufPtr buffer) $ \bptr -> do
 >   withForeignPtr (bindBufSzPtr buffer) $ \szptr -> do
 >   sz <- peek szptr
->   putStrLn ("printBufferContents: sz = " ++ show sz)
->   l <- peekArray (fromIntegral sz) (castPtr bptr)
->   let
->     toHex :: Word8 -> String;
->     toHex i = (if i < 16 then "0" else "") ++ showHex i ""
->   --let h :: [String]; h = map toHex l
->   putStrLn (concat (intersperse " " (map toHex l)))
->   let toChar :: Word8 -> String; toChar i = if i > 31 && i < 127 then [chr (fromIntegral i)] else " "
->   putStrLn (concat (intersperse "  " (map toChar l)))
+>   printArrayContents (fromIntegral sz) (castPtr bptr)
 
 
 > testlist =
@@ -389,6 +492,12 @@ Uses getData, rather than a buffer.
 >   testUTF8 :
 >   testRebind :
 >   --testDbmsName :
+>   testMultiResultSet :
+>   testBindOutput :
+>   []
+
+> testlist2 =
+>   testBindOutput :
 >   []
 
 > mkTestlist conn testlist = map (\testcase -> printIgnoreError (testcase conn)) testlist
