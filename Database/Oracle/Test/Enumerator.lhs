@@ -169,6 +169,7 @@ from t_natural nat where n < 10 order by n;
 > exceptionRollback _ = actionExceptionRollback sqlInsertTest4 sqlExceptionRollback
 
 
+FIXME  check definitions of whole and natural numbers
 
 > dropFixtureMultiResultSet1 = "DROP VIEW t_whole"
 > makeFixtureMultiResultSet1 = "CREATE OR REPLACE VIEW t_whole as"
