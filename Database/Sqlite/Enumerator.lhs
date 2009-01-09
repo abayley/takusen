@@ -155,11 +155,13 @@ Session objects are created by 'connect'.
 
 > instance Command String Session where
 >   executeCommand sess str = do
->     stmt <- stmtPrepare (dbHandle sess) str
->     fetchRow (dbHandle sess) stmt
->     n <- DBAPI.stmtChanges (dbHandle sess)
->     finaliseStmt (dbHandle sess) stmt
->     return (fromIntegral n)
+>     bracket 
+>       (stmtPrepare (dbHandle sess) str)
+>       (finaliseStmt (dbHandle sess))
+>       (\stmt -> do
+>         fetchRow (dbHandle sess) stmt
+>         liftM fromIntegral (DBAPI.stmtChanges (dbHandle sess))
+>       )
 
 > instance Command BoundStmt Session where
 >   executeCommand sess (BoundStmt pstmt) = do
@@ -171,13 +173,14 @@ Session objects are created by 'connect'.
 
 > instance Command StmtBind Session where
 >   executeCommand sess (StmtBind sqltext bas) = do
->     let (PreparationA action) = prepareStmt' sqltext False
->     pstmt <- action sess
->     sequence_ (zipWith (\i (BindA ba) -> ba sess pstmt i) [1..] bas)
->     fetchRow (dbHandle sess) (stmtHandle pstmt)
->     n <- DBAPI.stmtChanges (dbHandle sess)
->     finaliseStmt (dbHandle sess) (stmtHandle pstmt)
->     return (fromIntegral n)
+>     bracket
+>       (let (PreparationA action) = prepareStmt' sqltext False in action sess)
+>       (finaliseStmt (dbHandle sess) . stmtHandle)
+>       (\pstmt -> do
+>         sequence_ (zipWith (\i (BindA ba) -> ba sess pstmt i) [1..] bas)
+>         fetchRow (dbHandle sess) (stmtHandle pstmt)
+>         liftM fromIntegral (DBAPI.stmtChanges (dbHandle sess))
+>       )
 
 
 > data LastInsertRowid = LastInsertRowid
