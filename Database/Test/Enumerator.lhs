@@ -191,7 +191,7 @@ I guess that's a result of PostgreSQL's transactional DDL feature.
 > destroyFixture execDDL_ = flip catchDB reportRethrow $ do
 >   execDDL_ sqlDropDual
 >   execDDL_ sqlDropTest
->   commit
+>   catchDB commit (const (return ()))
 
 > selectTest query iter expect = do
 >   actual <- doQuery query iter []
