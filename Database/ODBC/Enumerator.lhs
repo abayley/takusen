@@ -10,16 +10,40 @@ Portability :  non-portable
 ODBC implementation of Database.Enumerator.
 
 
+Notes on ODBC query processing:
+Query rebinding (i.e. prepared-stmt reuse) is awkward
+(at least for MS SQL Server):
+
+ * For a normal "select", when you are done fetching,
+   you must call closeCursor before you attempt to rebind.
+
+ * For a procedure call returning result-sets,
+   again (I think) you must call closeCursor before rebinding.
+   Don't call it until you've processed all result-sets,
+   because it will close all of them, including any unprocessed.
+
+ * For a procedure call that does not return a result-set,
+   closeCursor will raise an error.
+
+ * If you call closeCursor after preparing the stmt,
+   but before binding and executing, this will cause an error.
+   This means we can't simply call closeCursor before every bind.
+
+So when do we call closeCursor?
+Before binding, but only if the prepared-stmt object
+indicates that some rows have already been fetched.
+
+
 > {-# OPTIONS -fglasgow-exts #-}
 > {-# OPTIONS -fallow-undecidable-instances #-}
 > {-# OPTIONS -fallow-overlapping-instances #-}
 
 > module Database.ODBC.Enumerator
 >   ( Session, connect
->   , prepareStmt, preparePrefetch
+>   , prepareStmt
 >   , prepareQuery, prepareLargeQuery, prepareCommand
 >   , sql, sqlbind, prefetch, cmdbind
->   , Out(..)
+>   , Out(..), InfoDbmsName(..)
 >   , module Database.Enumerator
 >   )
 > where
@@ -41,10 +65,13 @@ ODBC implementation of Database.Enumerator.
 > import Data.Dynamic
 > import Data.IORef
 > import Data.Int
+> import Data.List (isPrefixOf)
 > import System.Time
 > import Data.Time
 
 
+> --debugStmt s = putStrLn s
+> debugStmt s = return ()
 
 --------------------------------------------------------------------
 -- ** API Wrappers
@@ -86,7 +113,7 @@ because they never throw exceptions.
 > stmtExecute stmt = convertEx (DBAPI.executeStmt stmt)
 
 > closeCursor :: StmtHandle -> IO ()
-> closeCursor stmt = convertEx (DBAPI.closeCursor stmt)
+> closeCursor stmt = debugStmt "closeCursor" >> convertEx (DBAPI.closeCursor stmt)
 
 > fetchRow :: StmtHandle -> IO Bool
 > fetchRow stmt = convertEx (DBAPI.fetch stmt)
@@ -94,7 +121,7 @@ because they never throw exceptions.
 > rowCount :: StmtHandle -> IO Int
 > rowCount stmt = convertEx (DBAPI.rowCount stmt)
 
-> freeStmt stmt = convertEx (DBAPI.freeStmt stmt)
+> freeStmt stmt = debugStmt "freeStmt" >> convertEx (DBAPI.freeStmt stmt)
 > freeConn conn = convertEx (DBAPI.freeConn conn)
 > freeEnv env = convertEx (DBAPI.freeEnv env)
 
@@ -131,43 +158,6 @@ Session objects are created by 'connect'.
 >   (env, conn) <- connectDb connstr
 >   return (Session env conn)
 
---------------------------------------------------------------------
--- Statements and Commands
---------------------------------------------------------------------
-
-> newtype QueryString = QueryString String
-
-> sql :: String -> QueryString
-> sql str = QueryString str
-
-> instance Command QueryString Session where
->   executeCommand sess (QueryString str) = executeCommand sess str
-
-> instance Command String Session where
->   executeCommand sess str = do
->     bracket
->       (stmtPrepare (connHandle sess) str)
->       (freeStmt)
->       ( \stmt -> do
->         stmtExecute stmt
->         liftM fromIntegral (rowCount stmt)
->       )
-
-> instance Command BoundStmt Session where
->   executeCommand sess (BoundStmt pstmt) =
->     rowCount (stmtHandle pstmt)
-
-> instance Command StmtBind Session where
->   executeCommand sess (StmtBind sqltext bas) = do
->     let (PreparationA action) = prepareStmt' sqltext FreeManually
->     bracket
->       (action sess)
->       (freeStmt . stmtHandle)
->       (\pstmt -> do
->         sequence_ (zipWith (\i (BindA ba) -> ba sess pstmt i) [1..] bas)
->         stmtExecute (stmtHandle pstmt)
->         rowCount (stmtHandle pstmt)
->       )
 
 Note: the PostgreSQL ODBC driver only supports ReadCommitted
 and Serializable. It throws an error on other values.
@@ -194,6 +184,52 @@ Presumably the other modes are still supported.
 >   commit sess = commitTrans (connHandle sess)
 >   rollback sess = rollbackTrans (connHandle sess)
 
+--------------------------------------------------------------------
+-- Statements and Commands
+--------------------------------------------------------------------
+
+> newtype QueryString = QueryString String
+
+> sql :: String -> QueryString
+> sql str = QueryString str
+
+> instance Command QueryString Session where
+>   executeCommand sess (QueryString str) = executeCommand sess str
+
+> instance Command String Session where
+>   executeCommand sess str = do
+>     bracket
+>       (stmtPrepare (connHandle sess) str)
+>       (freeStmt)
+>       ( \stmt -> do
+>         stmtExecute stmt
+>         liftM fromIntegral (rowCount stmt)
+>       )
+
+> instance Command StmtBind Session where
+>   executeCommand sess (StmtBind sqltext bas) = do
+>     let (PreparationA action) = prepareStmt' sqltext FreeManually
+>     bracket
+>       (action sess)
+>       (freeStmt . stmtHandle)
+>       (\pstmt -> do
+>         sequence_ (zipWith (\i (BindA ba) -> ba sess pstmt i) [1..] bas)
+>         stmtExecute (stmtHandle pstmt)
+>         rowCount (stmtHandle pstmt)
+>       )
+
+> instance Command BoundStmt Session where
+>   executeCommand sess (BoundStmt pstmt) =
+>     rowCount (stmtHandle pstmt)
+
+
+> data InfoDbmsName = InfoDbmsName
+
+> instance EnvInquiry InfoDbmsName Session String where
+>   inquire InfoDbmsName sess =
+>     liftM (map toLower) (DBAPI.getInfoDbmsName (connHandle sess))
+
+
 About stmtFreeWithQuery:
 
 We need to keep track of the scope of the PreparedStmtObj
@@ -211,36 +247,41 @@ This lifetime distinction should probably be handled by having
 separate types for the two types of prepared statement...
 
 > data StmtLifetime = FreeWithQuery | FreeManually
+>   deriving (Eq)
 
 > data PreparedStmtObj = PreparedStmtObj
 >   { stmtHandle :: StmtHandle
 >   , stmtLifetime :: StmtLifetime
+>   -- stmtBuffers are actually output bind buffers.
+>   -- we package them to look like ColumnBuffers
+>   -- (as created by allocBuffer) so that we can use them
+>   -- like ColumnBuffers.
+>   , stmtBuffers :: IORef [ColumnBuffer]
+>   , stmtFetched :: IORef Bool
 >   }
 
 > prepareStmt :: QueryString -> PreparationA Session PreparedStmtObj
 > prepareStmt (QueryString sqltext) = prepareStmt' sqltext FreeManually
 
 > prepareQuery :: QueryString -> PreparationA Session PreparedStmtObj
-> prepareQuery (QueryString sqltext) = prepareStmt' sqltext FreeManually
+> prepareQuery q = prepareStmt q
 
 > prepareLargeQuery :: Int -> QueryString -> PreparationA Session PreparedStmtObj
-> prepareLargeQuery _ (QueryString sqltext) = prepareStmt' sqltext FreeManually
+> prepareLargeQuery _ q = prepareStmt q
 
 > prepareCommand :: QueryString -> PreparationA Session PreparedStmtObj
-> prepareCommand (QueryString sqltext) = prepareStmt' sqltext FreeManually
+> prepareCommand q = prepareStmt q
 
-
-preparePrefetch is just here for interface consistency
-with Oracle and PostgreSQL.
-
-> preparePrefetch :: Int -> QueryString -> PreparationA Session PreparedStmtObj
-> preparePrefetch count (QueryString sqltext) =
->   prepareStmt' sqltext FreeManually
-
-> prepareStmt' sqltext free =
+> prepareStmt' sqltext lifetime =
 >   PreparationA (\sess -> do
 >     stmt <- stmtPrepare (connHandle sess) sqltext
->     return (PreparedStmtObj stmt free))
+>     newPreparedStmt stmt lifetime
+>     )
+
+> newPreparedStmt stmt lifetime = do
+>   b <- newIORef []
+>   f <- newIORef False
+>   return (PreparedStmtObj stmt lifetime b f)
 
 --------------------------------------------------------------------
 -- ** Binding
@@ -252,38 +293,46 @@ with Oracle and PostgreSQL.
 
 > instance IPrepared PreparedStmtObj Session BoundStmt BindObj where
 >   bindRun sess pstmt bas action = do
+>     fetched <- readIORef (stmtFetched pstmt)
+>     when (fetched)
+>       (closeCursor (stmtHandle pstmt) >> writeIORef (stmtFetched pstmt) False)
 >     sequence_ (zipWith (\i (BindA ba) -> ba sess pstmt i) [1..] bas)
->     let stmt = stmtHandle pstmt
->     stmtExecute stmt
+>     stmtExecute (stmtHandle pstmt)
 >     action (BoundStmt pstmt)
->   destroyStmt sess pstmt = freeStmt (stmtHandle pstmt)
+>   destroyStmt sess pstmt = do
+>     -- Could free output bind buffers where, but for now we don't bother.
+>     -- They are ForeignPtrs, so we expect them to be GC'd.
+>     --buffers <- readIORef (stmtBuffers pstmt)
+>     --sequence_ (map (freeBindBuffer . colBuffer) buffers)
+>     freeStmt (stmtHandle pstmt)
+
 
 > instance DBBind (Maybe String) Session PreparedStmtObj BindObj where
 >   bindP val = makeBindAction val DBAPI.bindParamBuffer 0
 
 > instance DBBind (Out (Maybe String)) Session PreparedStmtObj BindObj where
->   bindP (Out val) = makeBindAction (DBAPI.InOutParam val) DBAPI.bindParamBuffer 16000
+>   bindP (Out val) = makeOutputBindAction (DBAPI.InOutParam val) DBAPI.bindParamBuffer 16000
 
 
 > instance DBBind (Maybe Int) Session PreparedStmtObj BindObj where
 >   bindP val = makeBindAction val DBAPI.bindParamBuffer 0
 
 > instance DBBind (Out (Maybe Int)) Session PreparedStmtObj BindObj where
->   bindP (Out val) = makeBindAction (DBAPI.InOutParam val) DBAPI.bindParamBuffer 0
+>   bindP (Out val) = makeOutputBindAction (DBAPI.InOutParam val) DBAPI.bindParamBuffer 0
 
 
 > instance DBBind (Maybe Double) Session PreparedStmtObj BindObj where
 >   bindP val = makeBindAction val DBAPI.bindParamBuffer 0
 
 > instance DBBind (Out (Maybe Double)) Session PreparedStmtObj BindObj where
->   bindP (Out val) = makeBindAction (DBAPI.InOutParam val) DBAPI.bindParamBuffer 0
+>   bindP (Out val) = makeOutputBindAction (DBAPI.InOutParam val) DBAPI.bindParamBuffer 0
 
 
 > instance DBBind (Maybe UTCTime) Session PreparedStmtObj BindObj where
 >   bindP val = makeBindAction val DBAPI.bindParamBuffer 0
 
 > instance DBBind (Out (Maybe UTCTime)) Session PreparedStmtObj BindObj where
->   bindP (Out val) = makeBindAction (DBAPI.InOutParam val) DBAPI.bindParamBuffer 0
+>   bindP (Out val) = makeOutputBindAction (DBAPI.InOutParam val) DBAPI.bindParamBuffer 0
 
 
 > instance DBBind (Maybe a) Session PreparedStmtObj BindObj
@@ -307,6 +356,15 @@ The default instance, uses generic Show
 
 > makeBindAction val binder size = BindA (\ses st pos -> do
 >   convertEx (binder (stmtHandle st) pos val size >> return ()))
+
+> makeOutputBindAction val binder size = BindA (\ses st pos -> do
+>   convertEx (binder (stmtHandle st) pos val size >>= appendOutputBindBuffer st))
+
+> appendOutputBindBuffer stmt buffer = do
+>   buffers <- readIORef (stmtBuffers stmt)
+>   let colbuf = ColumnBuffer (1 + length buffers) buffer
+>   modifyIORef (stmtBuffers stmt) (++ [colbuf])
+
 
 --------------------------------------------------------------------
 -- ** Queries
@@ -354,33 +412,41 @@ The default instance, uses generic Show
 >   makeQuery sess (QueryString sqltext) = makeQuery sess sqltext
 
 > instance Statement String Session Query where
->   makeQuery sess sqltext = do
->     let (PreparationA action) = prepareStmt' sqltext FreeWithQuery
->     pstmt <- action sess
->     stmtExecute (stmtHandle pstmt)
->     n <- newIORef 0
->     return (Query pstmt sess n)
+>   makeQuery sess sqltext = makeQuery sess (StmtBind sqltext [])
 
+> instance Statement (NextResultSet mark PreparedStmtObj) Session Query where
+>   makeQuery sess (NextResultSet (PreparedStmt pstmt)) = do
+>     -- If stmt buffers are present, then the first doQuery
+>     -- will have processed its results from there.
+>     -- So for tne next query, we want to clear the buffer list
+>     -- and start fetching from the stmt handle.
+>     -- This allows us to call stored procedures that return
+>     -- both output parameters and (multiple) result-sets.
+>     buffers <- readIORef (stmtBuffers pstmt)
+>     if null buffers
+>       then do
+>         more <- DBAPI.moreResults (stmtHandle pstmt)
+>         when (not more) (throwDB (DBError ("02", "000") (-1)
+>           "NextResultSet was used, but there are no more result-sets to process"))
+>         n <- newIORef 0
+>         return (Query pstmt sess n)
+>       else do
+>         writeIORef (stmtBuffers pstmt) []
+>         n <- newIORef 0
+>         return (Query pstmt sess n)
 
 > instance IQuery Query Session ColumnBuffer where
 >   destroyQuery query = do
->     closeCursor (stmtHandle (queryStmt query))
->     case stmtLifetime (queryStmt query) of
->       FreeWithQuery -> freeStmt (stmtHandle (queryStmt query))
->       FreeManually -> return ()
+>     let pstmt = queryStmt query
+>     when (stmtLifetime pstmt == FreeWithQuery)
+>       (freeStmt (stmtHandle pstmt))
 >   fetchOneRow query = do
 >     moreRows <- fetchRow (stmtHandle (queryStmt query))
+>     writeIORef (stmtFetched (queryStmt query)) True
 >     modifyIORef (queryCount query) (+1)
 >     return moreRows
 >   currentRowNum q = readIORef (queryCount q)
 >   freeBuffer q buffer = return ()
-
-
-> nullIf :: Bool -> a -> Maybe a
-> nullIf test v = if test then Nothing else Just v
-
-> --bufferToString buffer =
-> --  convertEx (DBAPI.getUTF8StringFromBuffer (colBuffer buffer))
 
 
 > data ColumnBuffer = ColumnBuffer
@@ -388,9 +454,23 @@ The default instance, uses generic Show
 >   , colBuffer :: DBAPI.BindBuffer
 >   }
 
+In allocBuffer we decide to either
+ - create a new buffer - this is a real column buffer for a query - , or
+ - return an already-allocated output bind-buffer.
+
 > allocBuffer q pos size val = do
->   bindbuffer <- convertEx (DBAPI.bindColBuffer (stmtHandle (queryStmt q)) pos size val)
->   return (ColumnBuffer pos bindbuffer)
+>   let stmt = queryStmt q
+>   buffers <- readIORef (stmtBuffers stmt)
+>   if null buffers
+>     then do
+>       bindbuffer <- convertEx (DBAPI.bindColBuffer (stmtHandle stmt) pos size val)
+>       return (ColumnBuffer pos bindbuffer)
+>     else do
+>       if length buffers >= pos
+>         then return (buffers !! (pos - 1))
+>         else
+>           throwDB (DBError ("02", "000") (-1) ( "There are " ++ show (length buffers)
+>             ++ " output buffers, but you have asked for buffer " ++ show pos ))
 
 > buffer_pos q buffer = do
 >   row <- currentRowNum q
