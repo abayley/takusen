@@ -36,19 +36,18 @@ These functions will typically have the same names and intentions,
 but their specific types and usage may differ between DBMS.
 
 
-Had better keep the old style, for older versions of GHC.
-
-> {-# OPTIONS -cpp #-}
 > {-# OPTIONS -fglasgow-exts #-}
-> {-# OPTIONS -fallow-overlapping-instances #-}
-> {-# OPTIONS -fallow-undecidable-instances #-}
-
-New style extension declarations.
-
 > {-# LANGUAGE CPP #-}
 > {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 > {-# LANGUAGE OverlappingInstances #-}
 > {-# LANGUAGE UndecidableInstances #-}
+
+> {-  LANGUAGE MultiParamTypeClasses #-}
+> {-  LANGUAGE RankNTypes #-}
+> {-  LANGUAGE FunctionalDependencies #-}
+> {-  LANGUAGE FlexibleInstances #-}
+> {-  LANGUAGE FlexibleContexts #-}
+
 
 
 > module Database.Enumerator
@@ -120,9 +119,7 @@ New style extension declarations.
 > import Data.IORef
 > import Data.Time
 > import Control.Monad.Trans (liftIO)
-> import Control.Exception (throw, 
->            dynExceptions, throwDyn, bracket, Exception, finally)
-> import qualified Control.Exception (catch)
+> import Control.Exception
 > import Control.Monad.Fix
 > import Control.Monad.Reader
 > import Control.Exception.MonadIO
@@ -146,8 +143,13 @@ quite unwieldy.
 monad.
 
 > catchDB :: CaughtMonadIO m => m a -> (IE.DBException -> m a) -> m a
-> catchDB action handler = gcatch action $ \e ->
->   maybe (throw e) handler (dynExceptions e >>= fromDynamic)
+> catchDB action handler = gcatch action $
+#ifdef NEW_EXCEPTION
+>   handler
+#else
+>   \e -> maybe (throw e) handler (dynExceptions e >>= fromDynamic)
+#endif
+
 
 
 |This simple handler reports the error to @stdout@ and swallows it
@@ -293,7 +295,11 @@ satisfactory - and yet better than a segmentation fault.
 >       -- (the connecta action will raise an error if the
 >       -- connection is re-used).
 >       r <- runReaderT (unDBM m) conn
->            `Control.Exception.catch` (\e -> IE.disconnect conn >> throw e)
+#ifdef NEW_EXCEPTION
+>            `catch` (\e@(SomeException _) -> IE.disconnect conn >> throw e)
+#else
+>            `catch` (\e -> IE.disconnect conn >> throw e)
+#endif
 >       -- make a new, one-shot connecta
 >       hasbeenused <- newIORef False
 >       let connecta = do
@@ -384,7 +390,11 @@ in Typeable) so the bound statement can't leak either.
 >        v <- action ps
 >        destroyStmt ps
 >        return v
+#ifdef NEW_EXCEPTION
+>     ) (\e@(SomeException _) -> gcatch (destroyStmt ps >> throw e) (\e2@(SomeException _) -> throw e))
+#else
 >     ) (\e -> gcatch (destroyStmt ps >> throw e) (\_ -> throw e))
+#endif
 
 
 Not exported.
@@ -497,7 +507,11 @@ and the cursor has already been closed.
 > doQuery stmt iteratee seed = do
 >   (lFoldLeft, finalizer) <- doQueryMaker stmt iteratee
 >   gcatch (fix lFoldLeft iteratee seed)
+#ifdef NEW_EXCEPTION
+>       (\e@(SomeException _) -> do
+#else
 >       (\e -> do
+#endif
 >         finalizer
 >         liftIO (throw e)
 >       )
@@ -511,7 +525,11 @@ An auxiliary function, not seen by the user.
 >     -- (which it might) then we need to clean up the query object.
 >     query <- liftIO (IE.makeQuery sess stmt)
 >     buffers <- gcatch (allocBuffers query iteratee 1)
+#ifdef NEW_EXCEPTION
+>       (\e@(SomeException _) -> liftIO (IE.destroyQuery query >> throw e) )
+#else
 >       (\e -> liftIO (IE.destroyQuery query >> throw e) )
+#endif
 >     let
 >       finaliser =
 >         liftIO (mapM_ (IE.freeBuffer query) buffers >> IE.destroyQuery query)
@@ -642,7 +660,11 @@ unless there was an exception, in which case rollback.
 >         v <- action
 >         commit
 >         return v
+#ifdef NEW_EXCEPTION
+>       ) (\e@(SomeException _) -> rollback >> throw e )
+#else
 >       ) (\e -> rollback >> throw e )
+#endif
 
 
 --------------------------------------------------------------------
