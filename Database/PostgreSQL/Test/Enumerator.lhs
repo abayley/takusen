@@ -81,8 +81,8 @@ END;
 SELECT n, takusenTestFunc(n) from t_natural where n < 10 order by n;
 
 
-> {-# OPTIONS -fglasgow-exts #-}
-> {-# OPTIONS -fallow-overlapping-instances #-}
+> {-# LANGUAGE OverlappingInstances #-}
+> {-# LANGUAGE PatternSignatures #-}
 
 > module Database.PostgreSQL.Test.Enumerator (runTest) where
 
@@ -91,7 +91,6 @@ SELECT n, takusenTestFunc(n) from t_natural where n < 10 order by n;
 > import Database.Test.Performance as Perf
 > import Database.Test.Enumerator
 > import Control.Monad (when)
-> import Control.Exception (throwDyn)
 > import Test.MiniUnit
 > import Data.Int
 > import Data.List
