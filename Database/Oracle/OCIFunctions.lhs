@@ -22,13 +22,19 @@ The 'OCIException' simply contains the error number returned by
 the OCI call, and some text identifying the wrapper function.
 See 'formatErrorCodeDesc' for the set of possible values for the OCI error numbers.
 
-> {-# OPTIONS -ffi #-}
+> {-# LANGUAGE ForeignFunctionInterface #-}
+> {-# LANGUAGE CPP #-}
+#ifdef PRAGMA_DERIVE_TYPEABLE
+> {-# LANGUAGE DeriveDataTypeable #-}
+#else
 > {-# OPTIONS -fglasgow-exts #-}
+#endif
 
 
 > module Database.Oracle.OCIFunctions where
 
 
+> import Prelude hiding (catch)
 > import Database.Oracle.OCIConstants
 > import Database.Util
 > import Foreign
@@ -98,11 +104,15 @@ If we can't derive Typeable then the following code should do the trick:
 
 
 > catchOCI :: IO a -> (OCIException -> IO a) -> IO a
-> catchOCI = catchDyn
-
 > throwOCI :: OCIException -> a
+#ifdef NEW_EXCEPTION
+> instance Exception OCIException
+> catchOCI = catch
+> throwOCI = throw
+#else
 > throwOCI = throwDyn
-
+> catchOCI = catchDyn
+#endif
 
 
 > mkCInt :: Int -> CInt
