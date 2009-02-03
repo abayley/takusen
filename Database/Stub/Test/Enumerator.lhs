@@ -12,8 +12,8 @@ Stub can't share the tests for \"real\" backends because it
 returns a somewhat contrived result set.
 
 
-> {-# OPTIONS -fglasgow-exts #-}
-> {-# OPTIONS -fallow-overlapping-instances #-}
+> {-# LANGUAGE OverlappingInstances #-}
+> {-# LANGUAGE PatternSignatures #-}
 
 > module Database.Stub.Test.Enumerator (runTest) where
 
