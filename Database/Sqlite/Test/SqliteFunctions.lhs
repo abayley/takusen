@@ -8,8 +8,6 @@ Stability   :  experimental
 Portability :  non-portable
 
 
-> {-# OPTIONS -fglasgow-exts #-}
-
 > module Database.Sqlite.Test.SqliteFunctions (runTest) where
 
 
