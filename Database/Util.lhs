@@ -10,10 +10,7 @@ Portability :  non-portable
 Utility functions. Mostly used in database back-ends, and tests.
 
 
-> {-# OPTIONS -fglasgow-exts #-}
-> {-# OPTIONS -fallow-overlapping-instances #-}
-> {-# OPTIONS -fallow-undecidable-instances #-}
-
+> {-# LANGUAGE TypeSynonymInstances #-}
 > {-# LANGUAGE FlexibleInstances #-}
 > {-# LANGUAGE OverlappingInstances #-}
 > {-# LANGUAGE UndecidableInstances #-}
