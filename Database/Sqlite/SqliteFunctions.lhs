@@ -1,6 +1,4 @@
 
-> {-# OPTIONS -ffi -fglasgow-exts #-}
-
 |
 Module      :  Database.Sqlite.SqliteFunctions
 Copyright   :  (c) 2004 Oleg Kiselyov, Alistair Bayley
@@ -12,8 +10,17 @@ Portability :  non-portable
 Simple wrappers for Sqlite functions (FFI).
 
 
+> {-# LANGUAGE ForeignFunctionInterface #-}
+> {-# LANGUAGE CPP #-}
+#ifdef PRAGMA_DERIVE_TYPEABLE
+> {-# LANGUAGE DeriveDataTypeable #-}
+#else
+> {-# OPTIONS -fglasgow-exts #-}
+#endif
+
 > module Database.Sqlite.SqliteFunctions where
 
+> import Prelude hiding (catch)
 > import Foreign.C.UTF8
 > import Foreign
 > import Foreign.C
@@ -40,10 +47,16 @@ Simple wrappers for Sqlite functions (FFI).
 >   show (SqliteException i s) = "SqliteException " ++ (show i) ++ " " ++ s
 
 > catchSqlite :: IO a -> (SqliteException -> IO a) -> IO a
-> catchSqlite = catchDyn
-
 > throwSqlite :: SqliteException -> a
+#ifdef NEW_EXCEPTION
+> instance Exception SqliteException
+> catchSqlite = catch
+> throwSqlite = throw
+#else
+> catchSqlite = catchDyn
 > throwSqlite = throwDyn
+#endif
+
 
 > sqliteOK :: CInt
 > sqliteOK = 0
