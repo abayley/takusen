@@ -19,8 +19,8 @@ These have to be tied together by a function which uses backend-specific
 functions and types. See the various backend-specific test modules for examples.
 
 
-> {-# OPTIONS -fglasgow-exts #-}
-> {-# OPTIONS -fallow-overlapping-instances #-}
+> {-# LANGUAGE OverlappingInstances #-}
+> {-# LANGUAGE PatternSignatures #-}
 
 > module Database.Test.Enumerator where
 
@@ -451,10 +451,10 @@ values as Strings i.e. we create our own datatype for the test.
 > sqlExceptionRollback = "select count(*) from " ++ testTable
 > iterExceptionRollback (i::Int) acc = result $ i:acc
 > actionExceptionRollback insertStmt selectStmt = do
->   gcatch (
+>   catchDB (
 >     withTransaction Serialisable $ do
 >       execDML insertStmt
->       assertFailure "actionExceptionRollback"
+>       throwDB DBNoData
 >     ) (\e -> return () )
 >   count <- doQuery selectStmt iterExceptionRollback []
 >   assertEqual sqlExceptionRollback [3] count
