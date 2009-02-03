@@ -11,8 +11,8 @@ Oracle OCI implementation of Database.Enumerator.
 
 
 > {-# OPTIONS -fglasgow-exts #-}
-> {-# OPTIONS -fallow-undecidable-instances #-}
-> {-# OPTIONS -fallow-overlapping-instances #-}
+> {-# LANGUAGE OverlappingInstances #-}
+> {-# LANGUAGE UndecidableInstances #-}
 
 > module Database.Oracle.Enumerator
 >   ( Session, connect
