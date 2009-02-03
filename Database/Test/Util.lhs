@@ -1,5 +1,4 @@
 > {-# LANGUAGE CPP #-}
-> {-# OPTIONS -cpp #-}
 
 > module Database.Test.Util where
 
@@ -99,32 +98,32 @@ up to 5-tuples.
 
 > testInt64ToCalTimeMinDate = do
 >   let expect = mkCalTime (-4712) 1 1 0 0 0
->   assertEqual "testCalTimeToInt64MaxDate" expect (int64ToCalTime (-47120101000000))
+>   assertEqual "testInt64ToCalTimeMinDate" expect (int64ToCalTime (-47120101000000))
 
 > testInt64ToCalTimeMaxDate = do
 >   let expect = mkCalTime 999999 12 31 23 59 59
->   assertEqual "testCalTimeToInt64MaxDate" expect (int64ToCalTime 9999991231235959)
+>   assertEqual "testInt64ToCalTimeMaxDate" expect (int64ToCalTime 9999991231235959)
 
 > testPGDatetimeToUTCTimeMinDate = do
 >   let expect = mkUTCTime (-4712) 1 1 0 0 0
->   assertEqual "testCalTimeToInt64MinDate" expect (pgDatetimetoUTCTime "4713-01-01 00:00:00 BC")
+>   assertEqual "testPGDatetimeToUTCTimeMinDate" expect (pgDatetimetoUTCTime "4713-01-01 00:00:00 BC")
 
 > testPGDatetimeToUTCTimeMaxDate = do
 >   let expect = mkUTCTime 999999 1 1 0 0 0
->   assertEqual "testCalTimeToInt64MaxDate" expect (pgDatetimetoUTCTime "999999-01-01 00:00:00+00")
+>   assertEqual "testPGDatetimeToUTCTimeMaxDate" expect (pgDatetimetoUTCTime "999999-01-01 00:00:00+00")
 
 > testPGDatetimeToUTCTimeBCBoundary = do
 >   let expect = mkUTCTime 0 1 1 0 0 0
->   assertEqual "testCalTimeToInt64MinDate" expect (pgDatetimetoUTCTime "0001-01-01 00:00:00 BC")
+>   assertEqual "testPGDatetimeToUTCTimeBCBoundary" expect (pgDatetimetoUTCTime "0001-01-01 00:00:00 BC")
 
 > testPGDatetimeToUTCTimeBCBoundary2 = do
 >   let expect = mkUTCTime 0 12 31 0 0 0
->   assertEqual "testCalTimeToInt64MinDate" expect (pgDatetimetoUTCTime "0001-12-31 00:00:00 BC")
+>   assertEqual "testPGDatetimeToUTCTimeBCBoundary2" expect (pgDatetimetoUTCTime "0001-12-31 00:00:00 BC")
 
 > testUTCTimeToPGDatetimeMinDate = do
->   let expect = "4713-01-01 00:00:00.000000+00 BC"
->   assertEqual "testCalTimeToInt64MinDate" expect (utcTimeToPGDatetime (mkUTCTime (-4712) 1 1 0 0 0))
+>   let expect = "4713-01-01T00:00:00.000000+00 BC"
+>   assertEqual "testUTCTimeToPGDatetimeMinDate" expect (utcTimeToPGDatetime (mkUTCTime (-4712) 1 1 0 0 0))
 
 > testUTCTimeToPGDatetimeMaxDate = do
->   let expect = "999999-01-01 00:00:00.300001+00 AD"
->   assertEqual "testCalTimeToInt64MinDate" expect (utcTimeToPGDatetime (mkUTCTime 999999 1 1 0 0 0.300001))
+>   let expect = "999999-01-01T00:00:00.300001+00 AD"
+>   assertEqual "testUTCTimeToPGDatetimeMaxDate" expect (utcTimeToPGDatetime (mkUTCTime 999999 1 1 0 0 0.300001))
