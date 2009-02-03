@@ -11,8 +11,15 @@ Sqlite implementation of Database.Enumerator.
 
 
 > {-# OPTIONS -fglasgow-exts #-}
-> {-# OPTIONS -fallow-undecidable-instances #-}
-> {-# OPTIONS -fallow-overlapping-instances #-}
+> {-# LANGUAGE OverlappingInstances #-}
+> {-# LANGUAGE UndecidableInstances #-}
+> {-# LANGUAGE IncoherentInstances #-}
+> {-# LANGUAGE FlexibleInstances #-}
+> {-# LANGUAGE MultiParamTypeClasses #-}
+> {-# LANGUAGE TypeSynonymInstances #-}
+#ifdef PRAGMA_DERIVE_TYPEABLE
+> {-# LANGUAGE DeriveDataTypeable #-}
+#endif
 
 > module Database.Sqlite.Enumerator
 >   ( Session, connect
