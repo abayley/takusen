@@ -12,7 +12,15 @@ low-level, Database-specific layer. This file is not exported to the end user.
 
 Only the programmer for a new back-end needs to consult this file.
 
+
+> {-# LANGUAGE CPP #-}
+> {-# LANGUAGE MultiParamTypeClasses #-}
+> {-# LANGUAGE FunctionalDependencies #-}
+#ifdef PRAGMA_DERIVE_TYPEABLE
+> {-# LANGUAGE DeriveDataTypeable #-}
+#else
 > {-# OPTIONS -fglasgow-exts #-}
+#endif
 
 > module Database.InternalEnumerator
 >   (
@@ -35,8 +43,11 @@ Only the programmer for a new back-end needs to consult this file.
 >   ) where
 
 > import Data.Typeable
-> import Control.Exception (throw, catchDyn, 
->		    dynExceptions, throwDyn, throwIO, bracket, Exception)
+#ifdef NEW_EXCEPTION
+> import Control.Exception (throw, Exception)
+#else
+> import Control.Exception (throwDyn)
+#endif
 > import qualified Control.Exception (catch)
 
 > data IsolationLevel =
@@ -87,10 +98,18 @@ Needed for exceptions
 >   | DBNoData
 >   deriving (Typeable, Show)
 
+#ifdef NEW_EXCEPTION
+> instance Exception DBException
+#endif
+
 | Throw a DBException. It's just a type-specific 'Control.Exception.throwDyn'.
 
 > throwDB :: DBException -> a
+#ifdef NEW_EXCEPTION
+> throwDB = throw
+#else
 > throwDB = throwDyn
+#endif
 
 
 --------------------------------------------------------------------
