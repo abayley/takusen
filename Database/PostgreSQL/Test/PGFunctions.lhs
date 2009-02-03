@@ -8,8 +8,6 @@ Stability   :  experimental
 Portability :  non-portable
 
 
-> {-# OPTIONS -fglasgow-exts #-}
-
 > module Database.PostgreSQL.Test.PGFunctions (runTest) where
 
 
