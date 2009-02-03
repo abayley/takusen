@@ -8,8 +8,7 @@ Stability   :  experimental
 Portability :  non-portable
 
 
-> {-# OPTIONS -fglasgow-exts #-}
-> {-# OPTIONS -fallow-overlapping-instances #-}
+> {-# LANGUAGE OverlappingInstances #-}
 
 > module Database.Sqlite.Test.Enumerator (runTest) where
 
@@ -19,7 +18,6 @@ Portability :  non-portable
 > import Database.Test.Enumerator
 > import Control.Monad (when)
 > import Control.Monad.Trans (liftIO)
-> import Control.Exception (throwDyn)
 > import Test.MiniUnit
 > import Data.Int
 > import System.Time
