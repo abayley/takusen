@@ -11,8 +11,8 @@ PostgreSQL implementation of Database.Enumerator.
 
 
 > {-# OPTIONS -fglasgow-exts #-}
-> {-# OPTIONS -fallow-undecidable-instances #-}
-> {-# OPTIONS -fallow-overlapping-instances #-}
+> {-# LANGUAGE OverlappingInstances #-}
+> {-# LANGUAGE UndecidableInstances #-}
 
 > module Database.PostgreSQL.Enumerator
 >   ( Session, connect, ConnectAttr(..)
@@ -29,7 +29,6 @@ PostgreSQL implementation of Database.Enumerator.
 > import Database.InternalEnumerator
 > import Foreign.C
 > import Control.Monad
-> import Control.Exception (catchDyn, throwDyn, throwIO)
 > import qualified Database.PostgreSQL.PGFunctions as DBAPI
 > import Data.Char
 > import Data.Dynamic
