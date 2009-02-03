@@ -12,8 +12,6 @@ This module depends on on "Database.Oracle.OCIFunctions".
 so it should only use functions from there (and "Database.Oracle.OCIConstants").
 
 
-> {-# OPTIONS -fglasgow-exts #-}
-
 > module Database.Oracle.Test.OCIFunctions (runTest) where
 
 > import qualified Database.Oracle.OCIFunctions as OCI
