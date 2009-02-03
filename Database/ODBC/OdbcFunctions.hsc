@@ -1,8 +1,13 @@
 
-{-# OPTIONS -ffi #-}
 {-# OPTIONS -fglasgow-exts #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+#ifdef PRAGMA_DERIVE_TYPEABLE
+{-# LANGUAGE DeriveDataTypeable #-}
+#else
+{-# OPTIONS -fglasgow-exts #-}
+#endif
 
 #ifdef mingw32_HOST_OS
 #include <windows.h>
@@ -34,6 +39,7 @@ http://www.dbmaker.com.tw/reference/manuals/odbc/odbc_chap_04.html
 
 module Database.ODBC.OdbcFunctions where
 
+import Prelude hiding (catch)
 import Control.Exception
 import Control.Monad
 import Data.Dynamic
@@ -323,15 +329,22 @@ data OdbcException = OdbcException Int String String [OdbcException]
 
 instance Show OdbcException where
   show (OdbcException i st s more) = "OdbcException "
-    ++ (show i) ++ " " ++ st ++ " " ++ s -- ++ (concat (map showOdbcExMsg more))
-
--- showOdbcExMsg (OdbcException i st s more) = s
+    ++ (show i) ++ " " ++ st ++ " " ++ s
+    -- Could print the entire chain of diag recs... is this a good idea?
+    -- ++ (concat (map showOdbcExMsg more))
+    --   where showOdbcExMsg (OdbcException i st s more) = s
 
 catchOdbc :: IO a -> (OdbcException -> IO a) -> IO a
-catchOdbc = catchDyn
-
 throwOdbc :: OdbcException -> a
+#ifdef NEW_EXCEPTION
+instance Exception OdbcException
+catchOdbc = catch
+throwOdbc = throw
+#else
+catchOdbc = catchDyn
 throwOdbc = throwDyn
+#endif
+
 
 -- define SQL_SUCCEEDED(rc) (((rc)&(~1))==0)
 sqlSucceeded rc = rc == sqlRcSuccess || rc == sqlRcSuccessWithInfo
@@ -871,6 +884,7 @@ bindParamUtcTime stmt pos direction (Just utc) = do
 -- Binding with class...
 
 sizeOfMaybe :: forall a. Storable a => Maybe a -> Int
+--sizeOfMaybe :: Storable a => Maybe a -> Int
 sizeOfMaybe _ = sizeOf ( undefined :: a )
 -- H98 stylee...
 --sizeOfMaybe v@Nothing = sizeOfMaybe (asTypeOf (Just undefined) v)
