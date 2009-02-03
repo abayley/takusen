@@ -17,7 +17,6 @@ Portability :  non-portable
 > import Database.Util
 > import Control.Monad (liftM, when)
 > import Control.Monad.Trans (liftIO)
-> import Control.Exception (throwDyn)
 > import Data.Char
 > import Test.MiniUnit
 
