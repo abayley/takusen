@@ -12,8 +12,7 @@ database connections to different DBMS products.
 We should add tests to shift data between databases, too.
 
 
-> {-# OPTIONS -fglasgow-exts #-}
-> {-# OPTIONS -fallow-overlapping-instances #-}
+> {-# LANGUAGE OverlappingInstances #-}
 
 > module Database.Test.MultiConnect (runTest) where
 
