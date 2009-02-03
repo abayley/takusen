@@ -16,10 +16,12 @@ Currently last last row of any fetch will have a null in its Int columns
 See fetchIntVal.
 
 
-
 > {-# OPTIONS -fglasgow-exts #-}
-> {-# OPTIONS -fallow-undecidable-instances #-}
-> {-# OPTIONS -fallow-overlapping-instances #-}
+> {-# LANGUAGE OverlappingInstances #-}
+> {-# LANGUAGE UndecidableInstances #-}
+> {-# LANGUAGE MultiParamTypeClasses #-}
+> {-# LANGUAGE FlexibleInstances #-}
+> {-# LANGUAGE IncoherentInstances #-}
 
 > module Database.Stub.Enumerator
 >   -- Only the type constructor of Session is exported
@@ -35,7 +37,6 @@ See fetchIntVal.
 > import Foreign.C
 > import Foreign.C.Types
 > import Control.Monad
-> import Control.Exception (catchDyn, throwDyn, throwIO)
 > import System.Time
 > import Data.IORef
 > import Data.Dynamic
