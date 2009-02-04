@@ -1,5 +1,5 @@
 
-{-# OPTIONS -fno-monomorphism-restriction #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
  
 module Test.MiniUnitTest where
 
@@ -8,39 +8,38 @@ import Data.IORef
 import Control.Exception.MonadIO
 import Control.Monad.Trans (liftIO)
 
-main :: IO ()
-main = tests
-
-
 
 tests = do
+  print_ "MiniUnit tests..."
   test__assertFailure
   test__runSingleTestSuccess
   test__runSingleTestFailure
   test__runSingleTestException
   test__reportResults
+  print_ "Testing runTestTT; ignore following test output."
   test__runTestTT
+  print_ "MiniUnit tests done."
 
 print_ s = liftIO (putStrLn s)
 
 test__assertFailure = catch
   (assertFailure "test__assertFailure"
-    >> error "test__assertFailure: Exception not thrown")
+    >> error "test__assertFailure: failed: exception not thrown.")
   (\e -> print_ "test__assertFailure OK")
 
-test__runSingleTestSuccess = do
-  result <- runSingleTest (return ())
+reportResult name result = do
   case result of
-    TestSuccess -> print_ "test__runSingleTestSuccess OK"
-    TestFailure _ -> print_ "test__runSingleTestSuccess failed"
-    TestException _ -> print_ "test__runSingleTest exception"
+    TestSuccess -> print_ (name ++ " OK")
+    TestFailure _ -> print_ (name ++ " failed")
+    TestException _ -> print_ (name ++ " exception")
 
-test__runSingleTestFailure = do
-  result <- runSingleTest (assertFailure "test__runSingleTestFailure")
-  case result of
-    TestSuccess -> print_ "test__runSingleTestFailure failed"
-    TestFailure _ -> print_ "test__runSingleTestFailure OK"
-    TestException _ -> print_ "test__runSingleTestFailure exception"
+test__runSingleTestSuccess =
+  runSingleTest (return ())
+  >>= reportResult "test__runSingleTestSuccess"
+
+test__runSingleTestFailure =
+  runSingleTest (assertFailure "test__runSingleTestFailure")
+  >>= reportResult "test__runSingleTestFailure"
 
 test__runSingleTestException = do
   result <- runSingleTest (throwUserError "boo")
@@ -52,7 +51,10 @@ test__runSingleTestException = do
 test__reportResults = do
   results <- mapM runSingleTest
     [assertFailure "test__runSingleTest", return (), throwUserError "boo"]
-  print_ ("report results: " ++ reportResults results)
+  let expect = "Test cases: 3  Failures: 1  Errors: 1"
+  if reportResults results == expect
+    then print_ "test__reportResults OK"
+    else print_ "test__reportResults failed!"
 
 
 test__runTestTT = do
