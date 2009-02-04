@@ -1,5 +1,5 @@
 Name:           Takusen
-Version:        0.8.3
+Version:        0.8.4
 License:        BSD3
 License-file:   LICENSE
 Author:         Alistair Bayley, Oleg Kiselyov
@@ -10,7 +10,7 @@ Homepage:       http://darcs.haskell.org/takusen
 Package-url:    http://darcs.haskell.org/takusen
 Category:       Database
 Build-type:     Custom
-Cabal-Version:  >= 1.4
+Cabal-Version:  >= 1.6
 Synopsis:       Database library with left-fold interface, for PostgreSQL, Oracle, SQLite, ODBC.
 Description:   
     Takusen is a DBMS access library. Like HSQL and HDBC, we support
@@ -48,8 +48,41 @@ Flag postgres
 Flag sqlite
   Description: SQLite3 backend
   Default:     False
+Flag buildtests
+  Description: Build test executables
+  Default:     False
+
+
+Executable takusen_tests
+  If !flag(buildtests)
+    Buildable: False
+  else
+    -- If we want to build test exe, then it needs Takusen installed.
+    Build-Depends:  Takusen
+  Main-Is: Main.lhs
+  Build-Depends:  base, mtl, time, QuickCheck
+  -- ghc-6.6 has System.Time in base.
+  -- Later versions has it in a separate package.
+  if impl(ghc >= 6.8)
+    Build-Depends:  old-time
+  Extensions: CPP
+  if impl(ghc >= 6.10)
+    CPP-Options: "-DNEW_EXCEPTION"
+
+Executable miniunit_tests
+  If !flag(buildtests)
+    Buildable: False
+  Main-Is: Test/Main.hs
+  Build-Depends:  base, mtl
+  Extensions: CPP
+  if impl(ghc >= 6.10)
+    CPP-Options: "-DNEW_EXCEPTION"
+
 
 Library
+
+  If flag(buildtests)
+    Buildable: False
 
   Exposed-modules:
         Database.Enumerator
@@ -100,9 +133,19 @@ Library
       Build-Tools: sqlite3
     Extra-Libraries: sqlite3
 
-  Build-Depends:  base, mtl, time, old-time
+  Build-Depends:  base, mtl, time
+  -- ghc-6.6 has System.Time in base.
+  -- Later versions has it in a separate package.
+  if impl(ghc >= 6.8)
+    Build-Depends:  old-time
   -- Database.Enumerator uses CPP to make a deriving clause palatable for Haddock.
   Extensions: CPP
+  if impl(ghc >= 6.10)
+    CPP-Options: "-DNEW_EXCEPTION"
+  if impl(ghc >= 6.8)
+    CPP-Options: "-DPRAGMA_DERIVE_TYPEABLE"
+    -- doesn't work with Data.Time on older ghcs, due to some missing header file
+    Ghc-Options: -O2
   Other-modules: 
       Database.InternalEnumerator
       -- We don't expose the Test modules; the only reason to do so would be so Haddock
@@ -110,4 +153,3 @@ Library
       -- and for that they'd have to be in Exposed-modules.
       -- Modules in Other-modules are passed to Haddock with --hide=<module-name>.
   Ghc-Prof-Options: -prof -auto-all
-  --Ghc-Options: -O2  -- doesn't work with Data.Time, due to some missing header file
