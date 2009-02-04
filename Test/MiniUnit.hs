@@ -1,6 +1,6 @@
 
 -- |
--- Module      :  Database.Enumerator
+-- Module      :  Test.MiniUnit
 -- Copyright   :  (c) 2004 Oleg Kiselyov, Alistair Bayley
 -- License     :  BSD-style
 -- Maintainer  :  oleg@pobox.com, alistair@abayley.org
@@ -14,6 +14,7 @@
 -- (and also because I couldn't convert "Test.HUnit"
 -- to use 'Control.Exception.MonadIO.CaughtMonadIO').
 
+{-# LANGUAGE CPP #-}
 
 module Test.MiniUnit
   (
@@ -46,9 +47,6 @@ data TestResult = TestSuccess | TestFailure String | TestException String
 -- failed assertions are recorded as test errors (as opposed to test failures),
 -- and the testing continues...
 
-throwUserError :: CaughtMonadIO m => String -> m ()
-throwUserError msg = liftIO (throwIO (IOException (userError msg)))
-
 -- When an assertion fails, we throw an IOException with a special
 -- text prefix, which the exception handler will detect.
 assertFailure :: CaughtMonadIO m => String -> m ()
@@ -61,6 +59,28 @@ ghcPrefix = ""  -- We don't use this; it's just documentation...
 
 dropPrefix p s = if isPrefixOf p s then drop (length p) s else s
 trimCompilerPrefixes = dropPrefix hugsPrefix . dropPrefix nhc98Prefix
+
+#ifdef NEW_EXCEPTION
+throwUserError :: CaughtMonadIO m => String -> m ()
+throwUserError msg = liftIO (throwIO (userError msg))
+
+runSingleTest :: CaughtMonadIO m => m () -> m TestResult
+runSingleTest action = do
+  let
+    iohandler :: CaughtMonadIO m =>IOException -> m TestResult
+    iohandler e = 
+          let errText = trimCompilerPrefixes (ioeGetErrorString e) in
+          if isPrefixOf exceptionPrefix errText
+            then return (TestFailure (dropPrefix exceptionPrefix errText))
+            else return (TestException (show e))
+    errhandler :: CaughtMonadIO m => SomeException -> m TestResult
+    errhandler e = return (TestException (show e))
+  (action >> return TestSuccess)
+    `gcatch` iohandler
+    `gcatch` errhandler
+#else
+throwUserError :: CaughtMonadIO m => String -> m ()
+throwUserError msg = liftIO (throwIO (IOException (userError msg)))
 
 runSingleTest :: CaughtMonadIO m => m () -> m TestResult
 runSingleTest action = do
@@ -75,6 +95,7 @@ runSingleTest action = do
           if isPrefixOf exceptionPrefix errText
             then return (TestFailure (dropPrefix exceptionPrefix errText))
             else return (TestException (show e))
+#endif
 
 -- Predicates for list filtering
 isSuccess TestSuccess = True
