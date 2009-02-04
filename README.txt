@@ -1,12 +1,18 @@
 Installing
 ----------
-Prerequisites: GHC >= 6.6, Cabal >= 1.4, filepath
+Prerequisites: GHC >= 6.6, Cabal >= 1.6, filepath
 
-(It's possible to use Takusen with GHC-6.4; see notes in separate section
+Note that on Windows you will require cabal-1.6.0.2 for ghc-6.6,
+as there is a bug in cabal-1.6.0.1 which breaks it on ghc-6.6 on Windows.
+cabal-1.6.0.1, which is bundled with ghc-6.10, is fine for ghc-6.8 and later.
+
+(It was possible to use Takusen with GHC-6.4; see notes in separate section
 below.)
 
 To run or build Setup.hs you will need filepath installed.
 This is only needed by Setup.hs, and is not required by Takusen itself.
+filepath comes with ghc-6.8 and later, but is a separate download and
+install for ghc-6.6.
 
 Ensure that the database libraries for any particular database you plan
 to use are in your path e.g. ensure that %ORACLE_HOME%\bin is in your path.
@@ -39,6 +45,9 @@ puts header files in a different location from normal i.e. not under
 $ORACLE_HOME. In that case you will have to use --extra-include-dirs=...,
 and possibly --extra-lib-dirs=..., in the configure step.
 
+Setup under ghc-6.6 expects the sqlite.h header file to be in the same
+location as sqlite3.exe. You can get sqlite3.h from the sqlite source bundle,
+and rename to sqlite.h.
   
 
 
@@ -126,7 +135,9 @@ If you can control your Oracle client installation then either
 
 GHC-6.4 and Takusen
 -------------------
-It is possible to use Takusen with GHC-6.4.
+It was possible to use Takusen with GHC-6.4.
+We no longer test this configuration, so you may need to do some work
+it you want to go down this path.
 
 You will need to install Data.Time, which is quite a chore on Windows
 because of the dependencies. You will also need MSYS installed in order
