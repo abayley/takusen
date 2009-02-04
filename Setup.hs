@@ -1,24 +1,27 @@
 #!/usr/bin/env runhaskell 
 
+-- setup configure -fodbc -foracle -fpostgres -fsqlite
+
 import Distribution.PackageDescription
   ( PackageDescription(..), Library(..), BuildInfo(..), HookedBuildInfo
   , emptyHookedBuildInfo, emptyBuildInfo
   )
 import Distribution.PackageDescription.Parse ( writeHookedBuildInfo ) 
-import Distribution.Package (Dependency(..))
-import Distribution.Simple.Setup ( ConfigFlags(..), BuildFlags(.. ))
+import Distribution.Package (Dependency(..), PackageName(..))
+import Distribution.Simple.Setup ( ConfigFlags(..), BuildFlags(.. ), fromFlag)
 import Distribution.Simple
   ( defaultMainWithHooks, autoconfUserHooks, UserHooks(..), Args )
 import Distribution.Simple.Program (findProgramOnPath, simpleProgram, Program(..))
 import Distribution.Simple.LocalBuildInfo (LocalBuildInfo)
 import Distribution.Simple.Utils (warn, info, rawSystemStdout)
-import Distribution.Verbosity (Verbosity, verbose)
+import Distribution.Verbosity (Verbosity)
 
 import qualified System.Info (os)
 import System.Directory (canonicalizePath, removeFile)
 import System.Environment (getEnv)
-import System.FilePath (combine, dropFileName, FilePath)
+import System.FilePath (combine, dropFileName, FilePath, pathSeparators)
 import System.IO.Error (try)
+import Data.List (isInfixOf)
 import Data.Maybe (fromJust)
 import Data.Monoid (mconcat)
 
@@ -44,6 +47,7 @@ To-dos for Takusen:
 
 -}
 
+
 main = defaultMainWithHooks autoconfUserHooks
   { preConf=preConf, postConf=postConf
   , hookedPrograms = [pgConfigProgram, odbcConfigProgram, sqlite3Program, sqlplusProgram]
@@ -55,14 +59,15 @@ main = defaultMainWithHooks autoconfUserHooks
       return emptyHookedBuildInfo
     postConf :: Args -> ConfigFlags -> PackageDescription -> LocalBuildInfo -> IO ()
     postConf args flags pkgdesc localbuildinfo = do
+      let verbose = fromFlag (configVerbosity flags)
       let lbi = libBuildInfo (fromJust (library pkgdesc))
       let buildtools = buildTools lbi
       sqliteBI <- configSqlite3 verbose buildtools 
       pgBI <- configPG verbose buildtools
       oraBI <- configOracle verbose buildtools
       odbcBI <- configOdbc verbose buildtools
-      let bi = mconcat [sqliteBI, pgBI, oraBI, odbcBI, Just lbi]
-      writeHookedBuildInfo "Takusen.buildinfo" (bi, [])
+      let bi = mconcat [sqliteBI, pgBI, oraBI, odbcBI, lbi]
+      writeHookedBuildInfo "Takusen.buildinfo" (Just bi, [])
 
 
 -- ODBCConf.exe - MDAC install actions - command line?
@@ -76,35 +81,46 @@ sqlite3Program    = simpleProgram "sqlite3"
 
 isWindows = System.Info.os == "mingw32" || System.Info.os == "windows"
 
+-- ghc-6.6.1 can't cope with a trailing slash or backslash on the end
+-- of the include dir path, so we strip it off.
+-- Not sure why this is; there might be something else causing it to fail
+-- which has gone unnoticed.
+stripTrailingSep :: String -> String
+stripTrailingSep p
+  = reverse
+  . (\s -> if [head s] `isInfixOf` pathSeparators then drop 1 s else s)
+  . reverse
+  $ p
+
 makeConfig path libDir includeDir = do
   libDirs <- canonicalizePath (combine path libDir)
   includeDirs <- canonicalizePath (combine path includeDir)
   return
-    (Just emptyBuildInfo
-      { extraLibDirs = [libDirs], includeDirs = [includeDirs] })
+    (emptyBuildInfo
+      { extraLibDirs = [stripTrailingSep libDirs], includeDirs = [stripTrailingSep includeDirs] })
 
 maybeGetEnv :: String -> IO (Maybe String)
 maybeGetEnv env = do
   catch ( getEnv env >>= return . Just ) ( const (return Nothing) )
 
 -- Check that the program is in the buildtools.
--- If it is, then run the action (which should return Maybe BuildInfo).
+-- If it is, then run the action (which should return BuildInfo).
 -- If not, return Nothing.
-guardProg :: Program -> [Dependency] -> IO (Maybe BuildInfo) -> IO (Maybe BuildInfo)
+guardProg :: Program -> [Dependency] -> IO BuildInfo -> IO BuildInfo
 guardProg prog tools action = do
-  if prog `isElem` tools then action else return Nothing
+  if prog `isElem` tools then action else return emptyBuildInfo
   where
     isElem program buildtools = or (map (match program) buildtools)
-    match program (Dependency tool _) = (programName program) == (show tool)
+    match program (Dependency (PackageName tool) _) = (programName program) == tool
 
 -- Run the first action to give a Maybe FilePath.
 -- If this is Nothing then emit a warning about library not found.
 -- Otherwise, run the second action over the FilePath.
-guardPath :: (IO (Maybe FilePath)) -> String -> Verbosity -> (FilePath -> IO (Maybe BuildInfo)) -> IO (Maybe BuildInfo)
+guardPath :: (IO (Maybe FilePath)) -> String -> Verbosity -> (FilePath -> IO BuildInfo) -> IO BuildInfo
 guardPath pathAction libName verbose resAction = do
   mb <- pathAction
   case mb of
-    Nothing -> warn verbose ("No " ++libName++ " library found") >> return Nothing
+    Nothing -> warn verbose ("No " ++libName++ " library found") >> return emptyBuildInfo
     Just path -> info verbose ("Using " ++libName++ ": " ++ path) >> resAction path
 
 -- From the Oracle 10g manual:
@@ -133,15 +149,15 @@ configSqlite3 verbose buildtools = do
     if isWindows
       then guardPath (programFindLocation sqlite3Program verbose) "Sqlite3" verbose $ \path -> do
         makeConfig (dropFileName path) "" ""
-      else return Nothing
+      else return emptyBuildInfo
 
 configPG verbose buildtools = do
-  guardProg sqlplusProgram buildtools $ do
+  guardProg pgConfigProgram buildtools $ do
   guardPath (programFindLocation pgConfigProgram verbose) "PostgreSQL" verbose $ \pq_config_path -> do
   lib_dirs <- rawSystemStdout verbose pq_config_path ["--libdir"]
   inc_dirs <- rawSystemStdout verbose pq_config_path ["--includedir"]
   inc_dirs_server <- rawSystemStdout verbose pq_config_path ["--includedir-server"]
-  return ( Just emptyBuildInfo
+  return (emptyBuildInfo
     { extraLibDirs = words lib_dirs
     , includeDirs = words inc_dirs ++ words inc_dirs_server
     })
@@ -154,7 +170,7 @@ configPG verbose buildtools = do
 
 configOdbc verbose buildtools | isWindows = do
   info verbose "Using ODBC: <on Windows => lib already in PATH>"
-  return Nothing
+  return emptyBuildInfo
 configOdbc verbose buildtools = do
   --info verbose "Using odbc: <on *nix => assume lib already in PATH>"
-  return Nothing
+  return emptyBuildInfo
