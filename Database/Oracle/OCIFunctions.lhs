@@ -24,11 +24,6 @@ See 'formatErrorCodeDesc' for the set of possible values for the OCI error numbe
 
 > {-# LANGUAGE ForeignFunctionInterface #-}
 > {-# LANGUAGE CPP #-}
-#ifdef PRAGMA_DERIVE_TYPEABLE
-> {-# LANGUAGE DeriveDataTypeable #-}
-#else
-> {-# OPTIONS -fglasgow-exts #-}
-#endif
 
 
 > module Database.Oracle.OCIFunctions where
