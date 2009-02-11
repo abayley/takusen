@@ -3,11 +3,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-#ifdef PRAGMA_DERIVE_TYPEABLE
-{-# LANGUAGE DeriveDataTypeable #-}
-#else
-{-# OPTIONS -fglasgow-exts #-}
-#endif
 
 #ifdef mingw32_HOST_OS
 #include <windows.h>
