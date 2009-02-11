@@ -14,11 +14,6 @@ wrappers (in the second part of this file)
 > {-# OPTIONS -fglasgow-exts #-}
 > {-# LANGUAGE ForeignFunctionInterface #-}
 > {-# LANGUAGE CPP #-}
-#ifdef PRAGMA_DERIVE_TYPEABLE
-> {-# LANGUAGE DeriveDataTypeable #-}
-#else
-> {-# OPTIONS -fglasgow-exts #-}
-#endif
 
 > module Database.PostgreSQL.PGFunctions where
 
