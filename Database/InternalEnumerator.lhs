@@ -16,11 +16,6 @@ Only the programmer for a new back-end needs to consult this file.
 > {-# LANGUAGE CPP #-}
 > {-# LANGUAGE MultiParamTypeClasses #-}
 > {-# LANGUAGE FunctionalDependencies #-}
-#ifdef PRAGMA_DERIVE_TYPEABLE
-> {-# LANGUAGE DeriveDataTypeable #-}
-#else
-> {-# OPTIONS -fglasgow-exts #-}
-#endif
 
 > module Database.InternalEnumerator
 >   (
