@@ -12,11 +12,6 @@ Simple wrappers for Sqlite functions (FFI).
 
 > {-# LANGUAGE ForeignFunctionInterface #-}
 > {-# LANGUAGE CPP #-}
-#ifdef PRAGMA_DERIVE_TYPEABLE
-> {-# LANGUAGE DeriveDataTypeable #-}
-#else
-> {-# OPTIONS -fglasgow-exts #-}
-#endif
 
 > module Database.Sqlite.SqliteFunctions where
 
