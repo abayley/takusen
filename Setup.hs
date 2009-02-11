@@ -105,7 +105,9 @@ maybeGetEnv env = do
 
 -- Check that the program is in the buildtools.
 -- If it is, then run the action (which should return BuildInfo).
--- If not, return Nothing.
+-- If not, return emptyBuildInfo.
+-- Cabal populates the buildtools list depending on which flags
+-- have been passed to "setup configure".
 guardProg :: Program -> [Dependency] -> IO BuildInfo -> IO BuildInfo
 guardProg prog tools action = do
   if prog `isElem` tools then action else return emptyBuildInfo
