@@ -1,3 +1,10 @@
+-- setup configure -fodbc -foracle -fpostgres -fsqlite
+-- setup build
+-- setup install
+--
+-- setup configure -fbuildtests
+-- setup build
+-- setup install
 Name:           Takusen
 Version:        0.8.4
 License:        BSD3
@@ -65,7 +72,7 @@ Executable takusen_tests
   -- Later versions has it in a separate package.
   if impl(ghc >= 6.8)
     Build-Depends:  old-time
-  Extensions: CPP
+  Extensions: CPP DeriveDataTypeable PatternSignatures
   if impl(ghc >= 6.10)
     CPP-Options: "-DNEW_EXCEPTION"
 
@@ -74,7 +81,7 @@ Executable miniunit_tests
     Buildable: False
   Main-Is: Test/Main.hs
   Build-Depends:  base, mtl
-  Extensions: CPP
+  Extensions: CPP DeriveDataTypeable PatternSignatures
   if impl(ghc >= 6.10)
     CPP-Options: "-DNEW_EXCEPTION"
 
@@ -138,12 +145,12 @@ Library
   -- Later versions has it in a separate package.
   if impl(ghc >= 6.8)
     Build-Depends:  old-time
-  -- Database.Enumerator uses CPP to make a deriving clause palatable for Haddock.
-  Extensions: CPP
+  -- Many modules use CPP to switch between new and old exceptions.
+  -- DeriveDataTypeable is because we can't switch it on/off with #define;
+  -- for ghc-6.6 it is rendered as -fglasgow-exts anyway.
+  Extensions: CPP DeriveDataTypeable
   if impl(ghc >= 6.10)
     CPP-Options: "-DNEW_EXCEPTION"
-  if impl(ghc >= 6.8)
-    CPP-Options: "-DPRAGMA_DERIVE_TYPEABLE"
     -- doesn't work with Data.Time on older ghcs, due to some missing header file
     Ghc-Options: -O2
   Other-modules: 
