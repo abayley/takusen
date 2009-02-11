@@ -82,7 +82,6 @@ SELECT n, takusenTestFunc(n) from t_natural where n < 10 order by n;
 
 
 > {-# LANGUAGE OverlappingInstances #-}
-> {-# LANGUAGE PatternSignatures #-}
 
 > module Database.PostgreSQL.Test.Enumerator (runTest) where
 
