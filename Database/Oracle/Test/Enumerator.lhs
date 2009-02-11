@@ -42,7 +42,6 @@ from t_natural nat where n < 10 order by n;
 
 
 > {-# LANGUAGE OverlappingInstances #-}
-> {-# LANGUAGE PatternSignatures #-}
 
 > module Database.Oracle.Test.Enumerator (runTest) where
 
