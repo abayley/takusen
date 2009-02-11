@@ -13,7 +13,6 @@ returns a somewhat contrived result set.
 
 
 > {-# LANGUAGE OverlappingInstances #-}
-> {-# LANGUAGE PatternSignatures #-}
 
 > module Database.Stub.Test.Enumerator (runTest) where
 
