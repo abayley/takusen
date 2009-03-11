@@ -35,7 +35,7 @@ http://www.dbmaker.com.tw/reference/manuals/odbc/odbc_chap_04.html
 module Database.ODBC.OdbcFunctions where
 
 import Prelude hiding (catch)
-import Control.Exception
+import Control.Exception.Extensible
 import Control.Monad
 import Data.Dynamic
 import Data.Time
@@ -331,14 +331,9 @@ instance Show OdbcException where
 
 catchOdbc :: IO a -> (OdbcException -> IO a) -> IO a
 throwOdbc :: OdbcException -> a
-#ifdef NEW_EXCEPTION
 instance Exception OdbcException
 catchOdbc = catch
 throwOdbc = throw
-#else
-catchOdbc = catchDyn
-throwOdbc = throwDyn
-#endif
 
 
 -- define SQL_SUCCEEDED(rc) (((rc)&(~1))==0)
