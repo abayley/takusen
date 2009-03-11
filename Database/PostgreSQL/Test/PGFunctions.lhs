@@ -16,7 +16,7 @@ Portability :  non-portable
 > import Foreign
 > import Foreign.C
 > import Control.Monad
-> import Control.Exception
+> import Control.Exception.Extensible
 > import Data.Dynamic
 > import System.Environment (getArgs)
 > import Test.MiniUnit
