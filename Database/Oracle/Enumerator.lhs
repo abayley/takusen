@@ -35,7 +35,7 @@ Oracle OCI implementation of Database.Enumerator.
 > import Foreign
 > import Foreign.C
 > import Control.Monad
-> import Control.Exception
+> import Control.Exception.Extensible
 > import Control.Monad.Trans
 > import Control.Monad.Reader
 > import Data.Char (toLower)
