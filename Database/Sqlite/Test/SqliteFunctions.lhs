@@ -15,7 +15,7 @@ Portability :  non-portable
 > import Foreign.C
 > import Foreign.C.UTF8
 > import Control.Monad
-> import Control.Exception
+> import Control.Exception.Extensible
 > import Data.Dynamic
 > import Database.Sqlite.SqliteFunctions
 > import System.Environment (getArgs)
