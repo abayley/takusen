@@ -72,18 +72,24 @@ Executable takusen_tests
   -- Later versions has it in a separate package.
   if impl(ghc >= 6.8)
     Build-Depends:  old-time
-  Extensions: CPP DeriveDataTypeable PatternSignatures
-  if impl(ghc >= 6.10)
-    CPP-Options: "-DNEW_EXCEPTION"
+  Extensions: CPP DeriveDataTypeable ScopedTypeVariables
+  if impl(ghc>=6.9)
+    cpp-options: -DUSE_NEW_EXCEPTIONS
+    build-depends: base>=4&&<5
+  else
+    build-depends: base<4
 
 Executable miniunit_tests
   If !flag(buildtests)
     Buildable: False
   Main-Is: Test/Main.hs
   Build-Depends:  base, mtl
-  Extensions: CPP DeriveDataTypeable PatternSignatures
-  if impl(ghc >= 6.10)
-    CPP-Options: "-DNEW_EXCEPTION"
+  Extensions: CPP DeriveDataTypeable ScopedTypeVariables
+  if impl(ghc>=6.9)
+    cpp-options: -DUSE_NEW_EXCEPTIONS
+    build-depends: base>=4&&<5
+  else
+    build-depends: base<4
 
 
 Library
@@ -96,6 +102,7 @@ Library
       , Database.Util
       , Database.Stub.Enumerator
       , Control.Exception.MonadIO
+      , Control.Exception.Extensible
       , Foreign.C.UTF8
 
   If flag(odbc)
@@ -149,8 +156,15 @@ Library
   -- DeriveDataTypeable is because we can't switch it on/off with #define;
   -- for ghc-6.6 it is rendered as -fglasgow-exts anyway.
   Extensions: CPP DeriveDataTypeable
+  -- We need the USE_NEW_EXCEPTIONS flag as this is used in
+  -- Control.Exception.Extensible is choose between defining our own
+  -- extensible exceptions, or re-exporting what's in base-4.
+  if impl(ghc>=6.9)
+    cpp-options: -DUSE_NEW_EXCEPTIONS
+    build-depends: base>=4&&<5
+  else
+    build-depends: base<4
   if impl(ghc >= 6.10)
-    CPP-Options: "-DNEW_EXCEPTION"
     -- doesn't work with Data.Time on older ghcs, due to some missing header file
     Ghc-Options: -O2
   Other-modules: 
