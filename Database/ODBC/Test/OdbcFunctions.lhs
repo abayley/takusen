@@ -13,7 +13,7 @@ Portability :  non-portable
 > module Database.ODBC.Test.OdbcFunctions where
 
 > import Database.ODBC.OdbcFunctions
-> import Control.Exception (finally)
+> import Control.Exception.Extensible (finally)
 > import Control.Monad (liftM, when)
 > import Data.Char
 > import Data.List
