@@ -35,7 +35,7 @@ See 'formatErrorCodeDesc' for the set of possible values for the OCI error numbe
 > import Foreign
 > import Foreign.C
 > import Control.Monad
-> import Control.Exception
+> import Control.Exception.Extensible
 > import Data.Dynamic
 > import System.Time
 > import Data.Time
@@ -100,14 +100,9 @@ If we can't derive Typeable then the following code should do the trick:
 
 > catchOCI :: IO a -> (OCIException -> IO a) -> IO a
 > throwOCI :: OCIException -> a
-#ifdef NEW_EXCEPTION
 > instance Exception OCIException
 > catchOCI = catch
 > throwOCI = throw
-#else
-> throwOCI = throwDyn
-> catchOCI = catchDyn
-#endif
 
 
 > mkCInt :: Int -> CInt
