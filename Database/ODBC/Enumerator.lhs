@@ -55,7 +55,7 @@ indicates that some rows have already been fetched.
 > import Foreign.C
 > import Foreign.Storable (sizeOf)
 > import Control.Monad
-> import Control.Exception
+> import Control.Exception.Extensible (bracket)
 > import Database.ODBC.OdbcFunctions
 >   (EnvHandle, ConnHandle, StmtHandle, OdbcException(..), catchOdbc, throwOdbc)
 > import qualified Database.ODBC.OdbcFunctions as DBAPI
