@@ -9,12 +9,11 @@
 -- 
 -- UTF8 decoder and encoder tests.
 
-{-# LANGUAGE CPP #-}
 
 module Foreign.C.Test.UTF8 where
 
 import Prelude hiding (catch)
-import Control.Exception
+import Control.Exception.Extensible
 import Data.Char
 import Foreign.C.String
 import Foreign.C.UTF8
@@ -97,7 +96,6 @@ utf8StringLenRoundTrip msg codepoints utf8 = do
 
 --testUTF8StringLenRoundTrip = do
 
-#ifdef NEW_EXCEPTION
 testFromUTF8Failure5Bytes = do
   let utf8 = [0xF8, 0x80, 0x80, 0x80, 0x80]
   let handler :: ErrorCall -> IO ()
@@ -115,25 +113,6 @@ testFromUTF8Failure6Bytes = do
     assertEqual "testFromUTF8Failure6Bytes" [chr 0x10FFFF] (fromUTF8 utf8)
     assertBool "testFromUTF8Failure6Bytes: no error raised" False
     ) handler
-#else
-testFromUTF8Failure5Bytes = do
-  let utf8 = [0xF8, 0x80, 0x80, 0x80, 0x80]
-  catchJust errorCalls (do
-    assertEqual "testFromUTF8Failure5Bytes" [chr 0x10FFFF] (fromUTF8 utf8)
-    assertBool "testFromUTF8Failure5Bytes: no error raised" False
-    ) (\msg -> do
-      assertEqual "testFromUTF8Failure5Bytes" "fromUTF8: illegal UTF-8 character 248" msg
-    )
-
-testFromUTF8Failure6Bytes = do
-  let utf8 = [0xFD, 0xBF, 0xBF, 0xBF, 0xBF, 0xBF]
-  catchJust errorCalls (do
-    assertEqual "testFromUTF8Failure6Bytes" [chr 0x10FFFF] (fromUTF8 utf8)
-    assertBool "testFromUTF8Failure6Bytes: no error raised" False
-    ) (\msg -> do
-      assertEqual "testFromUTF8Failure6Bytes" "fromUTF8: illegal UTF-8 character 253" msg
-    )
-#endif
 {-
 testLargeFromUTF8 = do
   let sz = 1000000
