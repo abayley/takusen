@@ -20,7 +20,7 @@ wrappers (in the second part of this file)
 > import Prelude hiding (catch)
 > import Database.Util
 > import Control.Monad
-> import Control.Exception
+> import Control.Exception.Extensible
 > import Data.Dynamic
 > import Data.Int
 > import Data.Time
@@ -52,16 +52,10 @@ wrappers (in the second part of this file)
 > catchPG :: IO a -> (PGException -> IO a) -> IO a
 > throwPG :: Integral i => i -> String -> a
 > rethrowPG :: PGException -> a
-#ifdef NEW_EXCEPTION
 > instance Exception PGException
 > catchPG = catch
 > throwPG rc s = throw (PGException (fromIntegral rc) s)
 > rethrowPG = throw
-#else
-> catchPG = catchDyn
-> throwPG rc s = throwDyn (PGException (fromIntegral rc) s)
-> rethrowPG = throwDyn
-#endif
 
 > cStr :: CStringLen -> CString
 > cStr = fst
