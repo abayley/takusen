@@ -26,7 +26,7 @@ module Test.MiniUnit
 where
 
 import Control.Exception.MonadIO
-import Control.Exception
+import Control.Exception.Extensible
 import Control.Monad
 import Control.Monad.Trans (liftIO)
 import System.IO.Error (ioeGetErrorString)
@@ -60,7 +60,6 @@ ghcPrefix = ""  -- We don't use this; it's just documentation...
 dropPrefix p s = if isPrefixOf p s then drop (length p) s else s
 trimCompilerPrefixes = dropPrefix hugsPrefix . dropPrefix nhc98Prefix
 
-#ifdef NEW_EXCEPTION
 throwUserError :: CaughtMonadIO m => String -> m ()
 throwUserError msg = liftIO (throwIO (userError msg))
 
@@ -78,24 +77,6 @@ runSingleTest action = do
   (action >> return TestSuccess)
     `gcatch` iohandler
     `gcatch` errhandler
-#else
-throwUserError :: CaughtMonadIO m => String -> m ()
-throwUserError msg = liftIO (throwIO (IOException (userError msg)))
-
-runSingleTest :: CaughtMonadIO m => m () -> m TestResult
-runSingleTest action = do
-  result <- gtry action
-  case result of
-    Right _ -> return TestSuccess
-    Left e -> do
-      case ioErrors e of
-        Nothing -> return (TestException (show e))
-        Just ioe -> do
-          let errText = trimCompilerPrefixes (ioeGetErrorString ioe)
-          if isPrefixOf exceptionPrefix errText
-            then return (TestFailure (dropPrefix exceptionPrefix errText))
-            else return (TestException (show e))
-#endif
 
 -- Predicates for list filtering
 isSuccess TestSuccess = True
