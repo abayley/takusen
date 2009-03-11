@@ -21,7 +21,7 @@ Simple wrappers for Sqlite functions (FFI).
 > import Foreign.C
 > import Foreign.Ptr
 > import Control.Monad
-> import Control.Exception
+> import Control.Exception.Extensible
 > import Data.Dynamic
 > import Data.Int
 
@@ -43,14 +43,9 @@ Simple wrappers for Sqlite functions (FFI).
 
 > catchSqlite :: IO a -> (SqliteException -> IO a) -> IO a
 > throwSqlite :: SqliteException -> a
-#ifdef NEW_EXCEPTION
 > instance Exception SqliteException
 > catchSqlite = catch
 > throwSqlite = throw
-#else
-> catchSqlite = catchDyn
-> throwSqlite = throwDyn
-#endif
 
 
 > sqliteOK :: CInt
