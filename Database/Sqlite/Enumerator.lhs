@@ -37,7 +37,7 @@ Sqlite implementation of Database.Enumerator.
 > import Database.Util
 > import Foreign.C
 > import Control.Monad
-> import Control.Exception
+> import Control.Exception.Extensible
 > import Database.Sqlite.SqliteFunctions
 >   (DBHandle, StmtHandle, SqliteException(..), catchSqlite, throwSqlite)
 > import qualified Database.Sqlite.SqliteFunctions as DBAPI
