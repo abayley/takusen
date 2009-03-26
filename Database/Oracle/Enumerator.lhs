@@ -343,12 +343,15 @@ there's no equivalent for ReadUncommitted.
 > closeStmt _ stmt = dispose stmt
 
 
+FIXME stmt should not be closed by these functions,
+because they don't create it.
+stmt should be closed in function that creates it.
+
 > setPrefetchCount :: Session -> StmtHandle -> Int -> IO ()
 > setPrefetchCount session stmt count = inSession session
 >   (\_ err _ -> with count $ \countPtr ->
 >         OCI.setHandleAttr err (castPtr stmt) oci_HTYPE_STMT countPtr oci_ATTR_PREFETCH_ROWS
 >   ) (closeStmt session stmt)
-
 
 
 > stmtPrepare :: Session -> StmtHandle -> String -> IO ()
@@ -440,7 +443,10 @@ so we need some way of distinguishing between queries and commands.
 >   -- stmtPrepare and execute both close the stmt if an exception is thrown,
 >   -- so there should be no need for bracket here.
 >   stmtPrepare sess stmt str
->   liftM fromIntegral (execute sess stmt 1)
+>   rc <- execute sess stmt 1
+>   closeStmt sess stmt
+>   return rc
+
 
 > instance Command String Session where
 >   executeCommand sess str = executeCommand sess (sql str)
