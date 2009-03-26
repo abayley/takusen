@@ -51,6 +51,7 @@ from t_natural nat where n < 10 order by n;
 > import Database.Test.Performance as Perf
 > import Database.Test.Enumerator
 > import Control.Monad (when)
+> import Control.Monad.Trans (liftIO)
 > import Test.MiniUnit
 > import Data.Int
 > import System.Time
@@ -363,9 +364,6 @@ convertCcy ccyFrom valFrom ccyTo onDate = do
 >     iter :: (Monad m) => Double -> Int -> IterAct m (Double, Int)
 >     iter d i _ = return (Left (d, i))
 
-
-> testList2 :: [OracleFunctions -> DBM mark Session ()]
-> testList2 = [bindOutput, bindOutputString]
 
 > testList :: [OracleFunctions -> DBM mark Session ()]
 > testList =
