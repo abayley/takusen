@@ -16,7 +16,6 @@ Oracle OCI implementation of Database.Enumerator.
 
 > module Database.Oracle.Enumerator
 >   ( Session, connect
->   , prepareStmt, preparePrefetch
 >   , prepareQuery, prepareLargeQuery, prepareCommand, prepareLargeCommand
 >   , sql, sqlbind, prefetch, cmdbind
 >   , StmtHandle, Out(..)
@@ -47,8 +46,6 @@ Oracle OCI implementation of Database.Enumerator.
 > import System.Time
 > import System.IO (hPutStrLn, stderr)
 
-> {-# DEPRECATED prepareStmt "Use prepareQuery or prepareCommand instead" #-}
-> {-# DEPRECATED preparePrefetch "Use prepareLargeQuery instead" #-}
 
 --------------------------------------------------------------------
 -- ** Error handling
@@ -439,10 +436,11 @@ so we need some way of distinguishing between queries and commands.
 >   executeCommand sess (QueryString str) = doCommand sess str
 
 > doCommand sess str = do
->   bracket (getStmt sess) (closeStmt sess) (\stmt -> do
->       stmtPrepare sess stmt str
->       liftM fromIntegral (execute sess stmt 1)
->     )
+>   stmt <- getStmt sess
+>   -- stmtPrepare and execute both close the stmt if an exception is thrown,
+>   -- so there should be no need for bracket here.
+>   stmtPrepare sess stmt str
+>   liftM fromIntegral (execute sess stmt 1)
 
 > instance Command String Session where
 >   executeCommand sess str = executeCommand sess (sql str)
@@ -510,14 +508,6 @@ or some sort of command. This influences subsequent behaviour in two ways:
 > beginsWithSelect "" = False
 > beginsWithSelect text = isPrefixOf "select" . map toLower $ text
 > inferStmtType text = if beginsWithSelect text then SelectType else CommandType
-
-> prepareStmt :: QueryString -> PreparationA Session PreparedStmtObj
-> prepareStmt (QueryString sqltext) =
->   prepareStmt' (prefetchRowCount defaultResourceUsage) sqltext FreeManually (inferStmtType sqltext)
-
-> preparePrefetch :: Int -> QueryString -> PreparationA Session PreparedStmtObj
-> preparePrefetch count (QueryString sqltext) =
->   prepareStmt' count sqltext FreeManually (inferStmtType sqltext)
 
 > prepareQuery :: QueryString -> PreparationA Session PreparedStmtObj
 > prepareQuery (QueryString sqltext) =
