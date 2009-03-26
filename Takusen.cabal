@@ -100,7 +100,7 @@ Library
   Exposed-modules:
         Database.Enumerator
       , Database.Util
-      , Database.Stub.Enumerator
+      --, Database.Stub.Enumerator
       , Control.Exception.MonadIO
       , Control.Exception.Extensible
       , Foreign.C.UTF8
