@@ -300,7 +300,7 @@ separate types for the two types of prepared statement...
 >     stmtExecute (stmtHandle pstmt)
 >     action (BoundStmt pstmt)
 >   destroyStmt sess pstmt = do
->     -- Could free output bind buffers where, but for now we don't bother.
+>     -- Could free output bind buffers here, but for now we don't bother.
 >     -- They are ForeignPtrs, so we expect them to be GC'd.
 >     --buffers <- readIORef (stmtBuffers pstmt)
 >     --sequence_ (map (freeBindBuffer . colBuffer) buffers)
