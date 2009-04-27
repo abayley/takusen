@@ -899,7 +899,7 @@ All other instances of Statement make a statement its own parent.
 >     buffers <- readIORef (stmtBuffers pstmt)
 >     if not (null buffers) then return True
 >       else do
->         rc <- fetchRow (querySess query) (queryStmt query)
+>         rc <- fetchRow (querySess query) pstmt
 >         return (rc /= oci_NO_DATA)
 >   currentRowNum query =
 >     getRowCount (querySess query) (stmtHandle (queryStmt query))
