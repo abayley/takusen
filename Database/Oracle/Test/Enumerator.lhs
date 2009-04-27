@@ -90,7 +90,9 @@ from t_natural nat where n < 10 order by n;
 >   execDDL_ makeFixtureMultiResultSet2
 >   execDDL_ makeFixtureMultiResultSet3
 >   execDDL_ makeFixtureMultiResultSet4
+>   execDDL_ makeFixtureBindOutput
 >   runTestTT "Oracle tests" (map (runOneTest fns) testList)
+>   execDDL_ dropFixtureBindOutput
 >   execDDL_ dropFixtureMultiResultSet4
 >   execDDL_ dropFixtureMultiResultSet3
 >   execDDL_ dropFixtureMultiResultSet2
@@ -327,24 +329,20 @@ convertCcy ccyFrom valFrom ccyTo onDate = do
 >       assertEqual "selectNestedMultiResultSet" [9,8,7,6,5,4,3,2,1] (map fst rs)
 >       --print_ ""
 
-> dropFixtureBindOutput = "DROP PROCEDURE takusenTestProc"
+> dropFixtureBindOutput = "DROP PROCEDURE takusenTestBindProc"
 
-> makeFixtureBindOutput = "CREATE or replace PROCEDURE takusenTestProc(x in out number, y in out varchar2)"
+> makeFixtureBindOutput = "CREATE or replace PROCEDURE takusenTestBindProc(x in out number, y in out varchar2)"
 >   ++ " AS BEGIN\n"
 >   ++ " y := 'output ' || y;\n"
 >   ++ " x := x * 2;\n"
->   -- ++ " y := 'output ' || y || ' xxx';"
 >   ++ " END;"
 
 > bindOutputString _ = do
->   execDrop dropFixtureBindOutput
->   execDDL_ makeFixtureBindOutput
->   let sqltext = "begin takusenTestProc(:1,:2); end;"
+>   let sqltext = "begin takusenTestBindProc(:1,:2); end;"
 >   let qry = cmdbind sqltext [bindP (Out (1234::Int)), bindP (Out (Just "message"))]
 >   (x, s) <- doQuery qry iter undefined
->   execDrop dropFixtureBindOutput
->   assertEqual "bindOutput: int " 2468 x
->   assertEqual "bindOutput: string " "output message" s
+>   assertEqual "bindOutputString: int " 2468 x
+>   assertEqual "bindOutputString: string " "output message" s
 >   where
 >     iter :: (Monad m) => Int -> String -> IterAct m (Int, String)
 >     iter i s _ = return (Left (i, s))
@@ -357,7 +355,6 @@ convertCcy ccyFrom valFrom ccyTo onDate = do
 >         ++ "end;"
 >   let qry = cmdbind sqltext [bindP (Out (44.4 :: Double)), bindP (Out (1234::Int))]
 >   (d, i) <- doQuery qry iter undefined
->   execDrop dropFixtureBindOutput
 >   assertEqual "bindOutput: double " 45.4 d
 >   assertEqual "bindOutput: int " 2468 i
 >   where
