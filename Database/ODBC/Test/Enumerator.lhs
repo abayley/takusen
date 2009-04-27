@@ -191,9 +191,9 @@ Portability :  non-portable
 >             ,(7,49,343),(8,64,512),(9,81,729)]
 >       assertEqual "selectMultiResultSet: RS2" expect result2
 >       return ()
->     execDrop dropFixtureMultiResultSet3
->     execDrop dropFixtureMultiResultSet2
->     execDrop dropFixtureMultiResultSet1
+>     execDDL_ dropFixtureMultiResultSet3
+>     execDDL_ dropFixtureMultiResultSet2
+>     execDDL_ dropFixtureMultiResultSet1
 >   where
 >     iterRS1 :: (Monad m) => Int -> IterAct m [Int]
 >     iterRS1 i acc = result (acc ++ [i])
