@@ -441,10 +441,19 @@ The default instance, uses generic Show
 >     when (stmtLifetime pstmt == FreeWithQuery)
 >       (freeStmt (stmtHandle pstmt))
 >   fetchOneRow query = do
->     moreRows <- fetchRow (stmtHandle (queryStmt query))
->     writeIORef (stmtFetched (queryStmt query)) True
->     modifyIORef (queryCount query) (+1)
->     return moreRows
+>     let pstmt = queryStmt query
+>     -- Only call fetchRow if there are no bind output buffers
+>     -- If there are bind output buffers then assume this was a
+>     -- procedure call.
+>     -- In this case you will always get the same row over and over,
+>     -- so you'd better be careful with your iteratees
+>     buffers <- readIORef (stmtBuffers pstmt)
+>     if not (null buffers) then return True
+>       else do
+>         moreRows <- fetchRow (stmtHandle pstmt)
+>         writeIORef (stmtFetched pstmt) True
+>         modifyIORef (queryCount query) (+1)
+>         return moreRows
 >   currentRowNum q = readIORef (queryCount q)
 >   freeBuffer q buffer = return ()
 
