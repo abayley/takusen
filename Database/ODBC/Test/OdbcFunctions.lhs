@@ -264,7 +264,7 @@ Uses getData, rather than a buffer.
 >   buffer <- bindColBuffer stmt 1 1000 (Just expect)
 >   more <- fetch stmt
 >   s <- getUTF8StringFromBuffer buffer
->   assertEqual "testBindStringUTF8 (PostgreSQL fails this one)" (Just expect) s
+>   assertEqual "testBindStringUTF8 (PostgreSQL fails with Unicode driver, succeeds with ANSI)" (Just expect) s
 >   more <- fetch stmt
 >   assertBool "testBindStringUTF8: EOD" (not more)
 >   freeStmt stmt
@@ -380,7 +380,7 @@ Uses getData, rather than a buffer.
 >   when (name == "microsoft sql server") $ do
 >   stmt <- allocStmt conn
 >   printIgnoreError (prepareStmt stmt dropFixtureMultiResultSet)
->   printIgnoreError (executeStmt stmt)
+>   ignoreError (executeStmt stmt)
 >   printIgnoreError (prepareStmt stmt makeFixtureMultiResultSet)
 >   printIgnoreError (executeStmt stmt)
 >   prepareStmt stmt "{call takusenTestProc}"
@@ -441,10 +441,10 @@ Uses getData, rather than a buffer.
 >   where
 >   k makeFixture = do
 >   stmt <- allocStmt conn
->   printIgnoreError (prepareStmt stmt dropFixtureBindOutput)
->   printIgnoreError (executeStmt stmt)
->   printIgnoreError (prepareStmt stmt makeFixture)
->   printIgnoreError (executeStmt stmt)
+>   prepareStmt stmt dropFixtureBindOutput
+>   ignoreError (executeStmt stmt)
+>   prepareStmt stmt makeFixture
+>   executeStmt stmt
 >   --
 >   prepareStmt stmt "{call takusenTestProc(?,?)}"
 >   let input1 :: Int; input1 = 1234
