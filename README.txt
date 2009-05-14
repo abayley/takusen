@@ -62,8 +62,7 @@ create a program that uses Takusen.
 
 Here's a little hello-world test case that uses Sqlite:
 
-{-# OPTIONS -fglasgow-exts #-}
-{-# OPTIONS -fallow-overlapping-instances #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Main where
 import Database.Sqlite.Enumerator
 import Control.Monad.Trans (liftIO)
