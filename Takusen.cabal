@@ -6,11 +6,11 @@
 -- setup build
 -- setup install
 Name:           Takusen
-Version:        0.8.4
+Version:        0.8.5
 License:        BSD3
 License-file:   LICENSE
 Author:         Alistair Bayley, Oleg Kiselyov
-Copyright:      2003-2008, Alistair Bayley, Oleg Kiselyov
+Copyright:      2003-2009, Alistair Bayley, Oleg Kiselyov
 Maintainer:     alistair@abayley.org, oleg@pobox.com
 Stability:      experimental
 Homepage:       http://darcs.haskell.org/takusen
@@ -42,6 +42,8 @@ Extra-tmp-files:
       Database/Oracle/OCIFunctions_stub.h
       Database/PostgreSQL/PGFunctions_stub.c
       Database/PostgreSQL/PGFunctions_stub.h
+Extra-source-files: README.txt
+
 
 Flag odbc
   Description: ODBC backend
@@ -67,6 +69,35 @@ Executable takusen_tests
     -- If we want to build test exe, then it needs Takusen installed.
     Build-Depends:  Takusen
   Main-Is: Main.lhs
+  Other-modules: 
+        Database.Enumerator
+      , Database.InternalEnumerator
+      , Database.Util
+      , Database.Test.Enumerator
+      , Database.Test.Util
+      , Database.Test.Performance
+      , Database.ODBC.Enumerator
+      , Database.ODBC.OdbcFunctions
+      , Database.ODBC.Test.Enumerator
+      , Database.ODBC.Test.OdbcFunctions
+      , Database.Oracle.Enumerator
+      , Database.Oracle.OCIConstants
+      , Database.Oracle.OCIFunctions
+      , Database.Oracle.Test.Enumerator
+      , Database.Oracle.Test.OCIFunctions
+      , Database.PostgreSQL.Enumerator
+      , Database.PostgreSQL.PGFunctions
+      , Database.PostgreSQL.Test.Enumerator
+      , Database.PostgreSQL.Test.PGFunctions
+      , Database.Sqlite.Enumerator
+      , Database.Sqlite.SqliteFunctions
+      , Database.Sqlite.Test.Enumerator
+      , Database.Sqlite.Test.SqliteFunctions
+      , Control.Exception.MonadIO
+      , Control.Exception.Extensible
+      , Foreign.C.UTF8
+      , Foreign.C.Test.UTF8
+      , Test.MiniUnit
   Build-Depends:  base, mtl, time, QuickCheck
   -- ghc-6.6 has System.Time in base.
   -- Later versions has it in a separate package.
@@ -83,6 +114,11 @@ Executable miniunit_tests
   If !flag(buildtests)
     Buildable: False
   Main-Is: Test/Main.hs
+  Other-modules: 
+      Control.Exception.MonadIO
+    , Control.Exception.Extensible
+    , Test.MiniUnit
+    , Test.MiniUnitTest
   Build-Depends:  base, mtl
   Extensions: CPP DeriveDataTypeable ScopedTypeVariables
   if impl(ghc>=6.9)
@@ -102,7 +138,6 @@ Library
       , Database.Util
       --, Database.Stub.Enumerator
       , Control.Exception.MonadIO
-      , Control.Exception.Extensible
       , Foreign.C.UTF8
 
   If flag(odbc)
@@ -168,9 +203,7 @@ Library
     -- doesn't work with Data.Time on older ghcs, due to some missing header file
     Ghc-Options: -O2
   Other-modules: 
-      Database.InternalEnumerator
-      -- We don't expose the Test modules; the only reason to do so would be so Haddock
-      -- can use them (to stop the warnings "could not find link destination for:"),
-      -- and for that they'd have to be in Exposed-modules.
+        Database.InternalEnumerator
+      , Control.Exception.Extensible
       -- Modules in Other-modules are passed to Haddock with --hide=<module-name>.
   Ghc-Prof-Options: -prof -auto-all
