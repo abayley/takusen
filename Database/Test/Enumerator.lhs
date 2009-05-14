@@ -30,7 +30,6 @@ functions and types. See the various backend-specific test modules for examples.
 > import Data.Int
 > import Control.Exception.MonadIO
 > import Control.Monad.Trans (liftIO)
-> --import Test.HUnit
 > import Test.MiniUnit
 
 
@@ -375,11 +374,20 @@ through unmolested.
 > sqlBindDate = sqlSingleValue
 > iterBindDate :: (Monad m) => UTCTime -> IterAct m [UTCTime]
 > iterBindDate c1 acc = result $ c1:acc
-> expectBindDate = [ (int64ToUTCTime 20041224235959) ]
+> expectBindDate = [ int64ToUTCTime 20041224235959 ]
 > actionBindDate stmt = do
 >   withTransaction Serialisable $ do
 >     actual <- doQuery stmt iterBindDate []
 >     assertEqual sqlBindDate expectBindDate actual
+
+> sqlBindBool = "select ?, ? from tdual"
+> iterBindBool :: (Monad m) => Bool -> Bool -> IterAct m [(Bool, Bool)]
+> iterBindBool b1 b2 acc = result $ (b1,b2):acc
+> expectBindBool = [ (True, False) ]
+> actionBindBool stmt = do
+>   withTransaction Serialisable $ do
+>     actual <- doQuery stmt iterBindBool []
+>     assertEqual sqlBindBool expectBindBool actual
 
 > sqlBindBoundaryDates =
 >             "select ? from tdual"
