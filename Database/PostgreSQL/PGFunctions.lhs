@@ -13,7 +13,6 @@ wrappers (in the second part of this file)
 
 > {-# OPTIONS -fglasgow-exts #-}
 > {-# LANGUAGE ForeignFunctionInterface #-}
-> {-# LANGUAGE CPP #-}
 
 > module Database.PostgreSQL.PGFunctions where
 
@@ -343,6 +342,7 @@ We can find the OIDs with this query:
   select oid, typname from pg_type
 
 Types we'll map:
+  16 bool
   18 char
   25 text
   21 int2
@@ -410,6 +410,13 @@ We assume all Strings are UTF8 encoded.
 >   pgNewValue s = newUTF8String s >>= return . castPtr
 >   pgPeek p = peekUTF8String (castPtr p) >>= return
 >   pgSize s = lengthUTF8 s
+
+> instance PGType Bool where
+>   pgTypeOid _ = 16
+>   pgNewValue v = pgNewValue (if v then "t" else "f")
+>   pgPeek p = pgPeek p >>= return . readBool
+>     where readBool s = if s == "t" then True else False
+>   pgSize _ = sizeOf 'a'
 
 > instance PGType Char where
 >   pgTypeOid _ = 18
@@ -657,6 +664,9 @@ So are the row numbers.
 
 > colValString :: ResultSetHandle -> Int -> Int -> IO String
 > colValString = colVal
+
+> colValBool :: ResultSetHandle -> Int -> Int -> IO Bool
+> colValBool = colVal
 
 > colValInt :: ResultSetHandle -> Int -> Int -> IO Int
 > colValInt = colVal
