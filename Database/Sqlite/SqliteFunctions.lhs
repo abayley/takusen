@@ -11,7 +11,6 @@ Simple wrappers for Sqlite functions (FFI).
 
 
 > {-# LANGUAGE ForeignFunctionInterface #-}
-> {-# LANGUAGE CPP #-}
 
 > module Database.Sqlite.SqliteFunctions where
 
