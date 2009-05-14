@@ -340,6 +340,9 @@ which contains just the result-set (and row count).
 > instance DBBind (Maybe Int) Session PreparedStmtObj BindObj where
 >   bindP = makeBindAction
 
+> instance DBBind (Maybe Bool) Session PreparedStmtObj BindObj where
+>   bindP = makeBindAction
+
 > instance DBBind (Maybe Int64) Session PreparedStmtObj BindObj where
 >   bindP = makeBindAction
 
@@ -588,6 +591,10 @@ An auxiliary function: buffer allocation
 > instance DBType (Maybe CalendarTime) Query ColumnBuffer where
 >   allocBufferFor _ q n = allocBuffer q n
 >   fetchCol = bufferToAny DBAPI.colValCalTime
+
+> instance DBType (Maybe Bool) Query ColumnBuffer where
+>   allocBufferFor _ q n = allocBuffer q n
+>   fetchCol = bufferToAny DBAPI.colValBool
 
 > instance DBType (Maybe Int) Query ColumnBuffer where
 >   allocBufferFor _ q n = allocBuffer q n
