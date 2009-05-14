@@ -196,6 +196,9 @@ withPreparedStatement.
 > selectBindDate _ = actionBindDate
 >   (prefetch 1 sqlBindDate (map bindP expectBindDate))
 
+> selectBindBool _ = actionBindBool
+>   (sqlbind sqlBindBool [bindP True, bindP False])
+
 > selectBindBoundaryDates _ = actionBindBoundaryDates
 >   (prefetch 1 sqlBindBoundaryDates (map bindP expectBoundaryDates))
 
@@ -344,8 +347,8 @@ i.e. not enough columns).
 >   , selectNullDate, selectDate, selectCalDate, selectBoundaryDates
 >   , selectCursor, selectExhaustCursor
 >   , selectBindString, selectBindInt, selectBindIntDoubleString
->   , selectBindDate, selectBindBoundaryDates, selectRebindStmt
->   , boundStmtDML, boundStmtDML2
+>   , selectBindDate, selectBindBool, selectBindBoundaryDates
+>   , selectRebindStmt, boundStmtDML, boundStmtDML2
 >   , polymorphicFetchTest, polymorphicFetchTestNull, exceptionRollback
 >   , selectMultiResultSet, selectNestedMultiResultSet
 >   , generateErrorMessageTest, selectUTF8Text, iterateeMatchesResultSet
