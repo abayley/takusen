@@ -40,6 +40,7 @@ If not, it won't work. I have a postgres user and a postgres database.
 > testlist db = map ($ db)
 >   [ testSelectInts
 >   , testSelectDouble
+>   , testSelectBool
 >   , testSelectDate
 >   , testSelectDate2
 >   , testSelectDate3
@@ -52,6 +53,7 @@ If not, it won't work. I have a postgres user and a postgres database.
 >   , testBindString
 >   , testBindInt
 >   , testBindDouble
+>   , testBindBool
 >   , testBindDate
 >   , testCreateDual
 >   , testSelectUTF8Text
@@ -141,6 +143,13 @@ If not, it won't work. I have a postgres user and a postgres database.
 >   (stmt,ntuples) <- stmtExec0t db sn
 >   n <- colValDouble stmt 1 1
 >   assertEqual "testSelectDouble: 1.2" 1.2 n
+>   stmtFinalise stmt
+
+> testSelectBool db = do
+>   sn <- printPropagateError $ stmtPrepare db "" "select true" []
+>   (stmt,ntuples) <- stmtExec0t db sn
+>   n <- colValBool stmt 1 1
+>   assertEqual "testSelectDouble: True" True n
 >   stmtFinalise stmt
 
 > testSelectDate db = do
@@ -355,6 +364,19 @@ Best we can do is marshal/transmist everything as text.
 >   assertEqual "testBindDouble: 2.3" 2.3 n
 >   stmtFinalise rs
 
+> testBindBool db = do
+>   let
+>     v1 = True
+>     v2 = False
+>     bindvals = [newBindVal v1, newBindVal v2]
+>   (rs, ntuples) <- printPropagateError $
+>     prepare'n'exec db "" (substituteBindPlaceHolders "select ?, ?") bindvals
+>   n <- colValBool rs 1 1
+>   assertEqual "testBindDate: 1 " v1 n
+>   n <- colValBool rs 1 2
+>   assertEqual "testBindDate: 2 " v2 n
+>   stmtFinalise rs
+
 > testBindDate db = do
 >   let
 >     v1 :: UTCTime; v1 = UTCTime (fromGregorian 2000 1 1) 0
@@ -380,4 +402,3 @@ Best we can do is marshal/transmist everything as text.
 >   assertEqual "testSelectUTF8Text: ntuples" 1 ntuples
 >   result <- colValString stmt 1 1
 >   assertEqual "testSelectUTF8Text" expect result
-
