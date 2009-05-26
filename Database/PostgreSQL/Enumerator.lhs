@@ -20,6 +20,7 @@ PostgreSQL implementation of Database.Enumerator.
 >   , prepareQuery, prepareLargeQuery, prepareCommand
 >   , sql, sqlbind, prefetch, cmdbind
 >   , bindType
+
 >   , module Database.Enumerator
 >   )
 > where
@@ -36,6 +37,7 @@ PostgreSQL implementation of Database.Enumerator.
 > import Data.Int
 > import Data.List
 > import Data.Time
+> import Data.Word
 > import System.Time
 
 > {-# DEPRECATED prepareStmt "Use prepareQuery or prepareCommand instead" #-}
@@ -352,6 +354,9 @@ which contains just the result-set (and row count).
 > instance DBBind (Maybe Double) Session PreparedStmtObj BindObj where
 >   bindP = makeBindAction
 
+> instance DBBind (Maybe [Word8]) Session PreparedStmtObj BindObj where
+>   bindP = makeBindAction
+
 > instance DBBind (Maybe a) Session PreparedStmtObj BindObj
 >     => DBBind a Session PreparedStmtObj BindObj where
 >   bindP x = bindP (Just x)
@@ -611,6 +616,10 @@ An auxiliary function: buffer allocation
 > instance DBType (Maybe Int64) Query ColumnBuffer where
 >   allocBufferFor _ q n = allocBuffer q n
 >   fetchCol = bufferToAny DBAPI.colValInt64
+
+> instance DBType (Maybe [Word8]) Query ColumnBuffer where
+>   allocBufferFor _ q n = allocBuffer q n
+>   fetchCol = bufferToAny DBAPI.colValBytea
 
 |This single polymorphic instance replaces all of the type-specific non-Maybe instances
 e.g. String, Int, Double, etc.

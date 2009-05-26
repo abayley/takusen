@@ -18,8 +18,10 @@ wrappers (in the second part of this file)
 
 > import Prelude hiding (catch)
 > import Database.Util
+> import Control.Applicative
 > import Control.Monad
 > import Control.Exception.Extensible
+> import Data.Char
 > import Data.Dynamic
 > import Data.Int
 > import Data.Time
@@ -191,7 +193,7 @@ We don't use fPQexec; the docs suggest fPQexecParams is better anyway
 >  = [0..] :: [ExecStatusType]
 
 > (textResultSet:binaryResultSet:_) = [0,1] :: [CInt]
-> (textParameters:__binaryParameters:_) = [0,1] :: [CInt]
+> (textParameters:binaryParameters:_) = [0,1] :: [CInt]
 
 > foreign import ccall "libpq-fe.h PQresultErrorMessage" fPQresultErrorMessage
 >   :: ResultSetHandle -> IO CString
@@ -367,7 +369,7 @@ timestamp (sans time zone) = oid 1114  (8 bytes)
 timestamptz (with time zone) = oid 1184  (8 bytes)
 
 > class PGType a where
->   pgTypeFormat :: a -> Format  -- ^ 1 == binary (default), 0 == text
+>   pgTypeFormat :: a -> Format  -- ^ 0 == text, 1 == binary
 >   pgTypeOid :: a -> Oid
 >   pgNewValue :: a -> IO (Ptr Word8)
 >   pgPeek :: Ptr Word8 -> IO a
@@ -408,7 +410,7 @@ We assume all Strings are UTF8 encoded.
 > instance PGType String where
 >   pgTypeOid _ = 25
 >   pgNewValue s = newUTF8String s >>= return . castPtr
->   pgPeek p = peekUTF8String (castPtr p) >>= return
+>   pgPeek p = peekUTF8String (castPtr p)
 >   pgSize s = lengthUTF8 s
 
 > instance PGType Bool where
@@ -417,6 +419,24 @@ We assume all Strings are UTF8 encoded.
 >   pgPeek p = pgPeek p >>= return . readBool
 >     where readBool s = if s == "t" then True else False
 >   pgSize _ = sizeOf 'a'
+
+> byteaUnesc :: [Word8] -> [Word8]
+> byteaUnesc (s:rest) = 
+>   if fromIntegral s == ord '\\' 
+>     then (fromIntegral $ (f a * 8 + f b) * 8 + f c) : byteaUnesc rest'
+>     else s : byteaUnesc rest
+>   where
+>     f i = fromIntegral i - ord '0'
+>     (a:b:c:rest') = rest
+> byteaUnesc [] = []
+
+> instance PGType [Word8] where
+>   pgTypeOid _ = 17
+>   pgTypeFormat _ = binaryParameters
+>   pgNewValue v = newArray0 0 v
+>   -- byteaUnesc because the result is in bytea escaped format for some reason
+>   pgPeek p = byteaUnesc <$> peekArray0 0 p
+>   pgSize v = length v
 
 > instance PGType Char where
 >   pgTypeOid _ = 18
@@ -679,6 +699,9 @@ So are the row numbers.
 
 > colValFloat :: ResultSetHandle -> Int -> Int -> IO Float
 > colValFloat = colVal
+
+> colValBytea :: ResultSetHandle -> Int -> Int -> IO [Word8]
+> colValBytea = colVal
 
 > colValUTCTime :: ResultSetHandle -> Int -> Int -> IO UTCTime
 > colValUTCTime = colVal
