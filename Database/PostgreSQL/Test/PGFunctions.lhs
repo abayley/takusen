@@ -19,7 +19,9 @@ Portability :  non-portable
 > import Control.Exception.Extensible
 > import Data.Dynamic
 > import System.Environment (getArgs)
+> import System.Random
 > import Test.MiniUnit
+> import qualified Test.QuickCheck as QC
 > import Data.Char
 > import Data.Time
 
@@ -38,9 +40,11 @@ If not, it won't work. I have a postgres user and a postgres database.
 >   closeDb db
 
 > testlist db = map ($ db)
->   [ testSelectInts
+>   [ testByteaEsc
+>   , testSelectInts
 >   , testSelectDouble
 >   , testSelectBool
+>   , testSelectBytea
 >   , testSelectDate
 >   , testSelectDate2
 >   , testSelectDate3
@@ -71,7 +75,21 @@ If not, it won't work. I have a postgres user and a postgres database.
 
 > testOpen connstr = openDb connstr >>= closeDb
 
+Bytea escaping:
+For a single backslash in the value sent to the database,
+we need two in the Haskell string.
+And if we want to send two backslashes (to start an escape)
+then we need to write four here.
+
+> byteaTestValIn = "\\\\\\\\ \\\\000 \\' \\\\377"
+> byteaTestValOut :: [Word8]
+> --byteaTestValOut = [92, 32, 0, 32, 39, 32, 255]
+> byteaTestValOut = str2Word8 "\\ \0 ' \255"
+
+i.e. backslash space zero space quote space 255
+
 > createFixture db = do
+>   -- temp tables - no need to drop
 >   -- ignoreError $ ddlExec db "drop table tdual"
 >   -- ignoreError $ ddlExec db "drop table t_natural"
 >   -- ignoreError $ ddlExec db "drop table t_blob"
@@ -85,7 +103,7 @@ If not, it won't work. I have a postgres user and a postgres database.
 >   printPropagateError $
 >       ddlExec db "create temp table t_blob (b bytea)"
 >   printPropagateError $
->       ddlExec db "insert into t_blob values ('blobtest')"
+>       ddlExec db ("insert into t_blob values ('" ++ byteaTestValIn ++ "')")
 
 > insertNatural db n = do
 >   ddlExec db $ "insert into t_natural values (" ++ (show n) ++ ")"
@@ -100,6 +118,30 @@ If not, it won't work. I have a postgres user and a postgres database.
 >       assertFailure "PGException not thrown when table already exists"
 >     )
 >   printPropagateError $ ddlExec db "insert into tdual values (1)"
+
+
+> instance QC.Arbitrary Word8 where
+>   arbitrary = QC.elements [minBound..maxBound]
+>   coarbitrary = undefined
+
+> instance QC.Arbitrary Char where
+>   --arbitrary = QC.choose (chr 1, chr 0x10FFFF)
+>   arbitrary = QC.choose (chr 32, chr 126)
+>   coarbitrary = undefined
+
+> str2Word8 :: String -> [Word8]
+> str2Word8 s = map (fromIntegral . fromEnum) s
+> word8ToStr :: [Word8] -> String
+> word8ToStr s = map (toEnum . fromIntegral) s
+
+> prop_byteaEscRoundTrip s = s == byteaUnesc (byteaEsc s)
+> prop_byteaEscRoundTripString s = s == word8ToStr (byteaUnesc (byteaEsc (str2Word8 s)))
+
+> testByteaEsc db = do
+>   assertEqual "testByteaEsc" (str2Word8 "\\000\\001\\002") (byteaEsc [0,1,2])
+>   assertEqual "testByteaEsc" (str2Word8 "\\037\\177\\377") (byteaEsc [31,127,255])
+>   QC.test prop_byteaEscRoundTripString
+>   QC.test prop_byteaEscRoundTrip
 
 
 > testSelectStrings db = do
@@ -150,6 +192,13 @@ If not, it won't work. I have a postgres user and a postgres database.
 >   (stmt,ntuples) <- stmtExec0t db sn
 >   n <- colValBool stmt 1 1
 >   assertEqual "testSelectDouble: True" True n
+>   stmtFinalise stmt
+
+> testSelectBytea db = do
+>   sn <- printPropagateError $ stmtPrepare db "" "select b from t_blob" []
+>   (stmt,ntuples) <- stmtExec0t db sn
+>   v <- colValBytea stmt 1 1
+>   assertEqual ("testSelectBytea") byteaTestValOut v
 >   stmtFinalise stmt
 
 > testSelectDate db = do
