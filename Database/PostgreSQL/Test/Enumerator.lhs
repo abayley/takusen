@@ -93,6 +93,7 @@ SELECT n, takusenTestFunc(n) from t_natural where n < 10 order by n;
 > import Test.MiniUnit
 > import Data.Int
 > import Data.List
+> import Data.Word
 > import System.Time
 
 
@@ -198,6 +199,20 @@ withPreparedStatement.
 
 > selectBindBool _ = actionBindBool
 >   (sqlbind sqlBindBool [bindP True, bindP False])
+
+> str2Word8 :: String -> [Word8]
+> str2Word8 s = map (fromIntegral . fromEnum) s
+> word8ToStr :: [Word8] -> String
+> word8ToStr s = map (toEnum . fromIntegral) s
+
+> selectBindBytea _ = do
+>   let input = str2Word8 "\\ \0 ' \255"
+>   let expect = input
+>   let iterBindBytea :: Monad m => [Word8] -> IterAct m [Word8]
+>       iterBindBytea w8 acc = result w8
+>   withTransaction Serialisable $ do
+>     actual <- doQuery (sqlbind sqlSingleValue [bindP input]) iterBindBytea []
+>     assertEqual "selectBindBytea" expect actual
 
 > selectBindBoundaryDates _ = actionBindBoundaryDates
 >   (prefetch 1 sqlBindBoundaryDates (map bindP expectBoundaryDates))
@@ -345,7 +360,7 @@ i.e. not enough columns).
 >   [ selectNoRows, selectTerminatesEarly, selectFloatsAndInts
 >   , selectNullString, selectEmptyString, selectUnhandledNull
 >   , selectNullDate, selectDate, selectCalDate, selectBoundaryDates
->   , selectCursor, selectExhaustCursor
+>   , selectCursor, selectExhaustCursor, selectBindBytea
 >   , selectBindString, selectBindInt, selectBindIntDoubleString
 >   , selectBindDate, selectBindBool, selectBindBoundaryDates
 >   , selectRebindStmt, boundStmtDML, boundStmtDML2
