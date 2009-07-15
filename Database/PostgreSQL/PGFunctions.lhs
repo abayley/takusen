@@ -345,6 +345,7 @@ We can find the OIDs with this query:
 
 Types we'll map:
   16 bool
+  17 bytea
   18 char
   25 text
   21 int2
@@ -421,14 +422,39 @@ We assume all Strings are UTF8 encoded.
 >   pgSize _ = sizeOf 'a'
 
 > byteaUnesc :: [Word8] -> [Word8]
+> byteaUnesc [] = []
 > byteaUnesc (s:rest) = 
->   if fromIntegral s == ord '\\' 
->     then (fromIntegral $ (f a * 8 + f b) * 8 + f c) : byteaUnesc rest'
+>   if fromIntegral s == ord '\\'
+>     then let (w8, rest') = parseEsc rest in w8 : byteaUnesc rest'
 >     else s : byteaUnesc rest
 >   where
->     f i = fromIntegral i - ord '0'
->     (a:b:c:rest') = rest
-> byteaUnesc [] = []
+>     parseEsc :: [Word8] -> (Word8, [Word8])
+>     parseEsc (a:rest)
+>       | a == fromIntegral (ord '\'') = (a, rest)
+>       | a == fromIntegral (ord '\\') = (a, rest)
+>     parseEsc (a:b:c:rest) = (fromIntegral ((f a * 8 + f b) * 8 + f c), rest)
+>       where f i = fromIntegral i - ord '0'
+>     parseEsc s = error ("byteaUnesc: incomplete escape sequence: " ++ map (toEnum . fromIntegral) s)
+
+> word8AsOctet :: Word8 -> [Word8]
+> word8AsOctet w = fromIntegral (ord '\\') : plus0 a : plus0 b : plus0 c : []
+>   where
+>     plus0 x = x + fromIntegral (ord '0')
+>     a = shiftR (w .&. 192) 6  -- 128 + 64
+>     b = shiftR (w .&. 56) 3  -- 32 + 16 + 8
+>     c = w .&. 7  -- 4 + 2 + 1
+
+> byteaEsc :: [Word8] -> [Word8]
+> byteaEsc (c:rest)
+>   | c == backslash = backslash : backslash : byteaEsc rest
+>   | c == quote = backslash : quote : byteaEsc rest
+>   | c >= 0 && c <= 31 = word8AsOctet c ++ byteaEsc rest
+>   | c >= 127 && c <= 255 = word8AsOctet c ++ byteaEsc rest
+>   | otherwise = c : byteaEsc rest
+>   where
+>     backslash = fromIntegral (ord '\\')
+>     quote = fromIntegral (ord '\'')
+> byteaEsc [] = []
 
 > instance PGType [Word8] where
 >   pgTypeOid _ = 17
