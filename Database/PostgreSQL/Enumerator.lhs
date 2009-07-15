@@ -19,7 +19,7 @@ PostgreSQL implementation of Database.Enumerator.
 >   , prepareStmt, preparePrefetch
 >   , prepareQuery, prepareLargeQuery, prepareCommand
 >   , sql, sqlbind, prefetch, cmdbind
->   , bindType
+>   , bindType, DBAPI.byteaEsc, DBAPI.byteaUnesc
 
 >   , module Database.Enumerator
 >   )
