@@ -39,7 +39,7 @@ functions and types. See the various backend-specific test modules for examples.
 > sqlCreateDual = "create table tdual (dummy varchar(1) primary key)"
 > sqlInsertDual = "insert into tdual values ('X')"
 > sqlDropTest = "drop table " ++ testTable
-> sqlCreateTest = "create table " ++ testTable ++ " (id integer, v varchar(1000))"
+> sqlCreateTest = "create table " ++ testTable ++ " (id integer, v varchar(250))"
 
 > sqlInsertTest1 = "insert into " ++ testTable ++ " (id, v) values (1, '2')"
 > sqlInsertTest2 = "insert into " ++ testTable ++ " (id, v) values (2, '2')"
@@ -162,7 +162,7 @@ int64 -4712-01-01 -> 4713-01-01 BC
 
 
 
-> execDDL_ s = catchDB (execDDL s) reportRethrow
+> execDDL_ s = catchDB (execDDL s) (reportRethrowMsg ("sql: " ++ s ++ "\n"))
 > execDML_ s = execDDL_ s
 
 Use execDrop when the DDL is likely to raise an error.
@@ -186,7 +186,7 @@ I guess that's a result of PostgreSQL's transactional DDL feature.
 >     doDDL sqlInsertTest2
 >     doDDL sqlInsertTest3
 
-> destroyFixture execDDL_ = flip catchDB reportRethrow $ do
+> destroyFixture execDDL_ = flip catchDB (reportRethrowMsg "destroyFixture: ") $ do
 >   execDDL_ sqlDropDual
 >   execDDL_ sqlDropTest
 >   catchDB commit (const (return ()))
@@ -226,11 +226,13 @@ This is used in a few tests...
 > iterNullString c1 c2 c3 acc = result $ (c1, c2, c3):acc
 > expectNullString = [ ("hello1", "hello2", Nothing) ]
 
-> sqlEmptyString = "select 'hello1', 'hello2', '' from tdual /* Oracle always fails this test */"
+Access can't handle SQL comments (-- or /* */).
+
+> sqlEmptyString = "select 'hello1', 'Oracle always fails this test', '' from tdual"
 > iterEmptyString :: (Monad m) => String -> String -> Maybe String
 >                          -> IterAct m [(String, String, Maybe String)]
 > iterEmptyString c1 c2 c3 acc = result $ (c1, c2, c3):acc
-> expectEmptyString = [ ("hello1", "hello2", Just "") ]
+> expectEmptyString = [ ("hello1", "Oracle always fails this test", Just "") ]
 
 > sqlUnhandledNull = "select 'hello1', 'hello2', null from tdual"
 > iterUnhandledNull :: (Monad m) => String -> String -> UTCTime
