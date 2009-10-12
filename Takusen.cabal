@@ -98,7 +98,7 @@ Executable takusen_tests
       , Foreign.C.UTF8
       , Foreign.C.Test.UTF8
       , Test.MiniUnit
-  Build-Depends:  base, mtl, time, QuickCheck
+  Build-Depends:  base, mtl, time, QuickCheck, random
   -- ghc-6.6 has System.Time in base.
   -- Later versions has it in a separate package.
   if impl(ghc >= 6.8)
