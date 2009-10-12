@@ -18,6 +18,7 @@ Portability :  non-portable
 > import Control.Monad (liftM, when)
 > import Control.Monad.Trans (liftIO)
 > import Data.Char
+> import Data.Time
 > import Test.MiniUnit
 
 
@@ -106,20 +107,26 @@ Portability :  non-portable
 > selectBindDate _ = actionBindDate
 >   (prefetch 1 sqlBindDate (map bindP expectBindDate))
 
-> selectBindBoundaryDates _ = actionBindBoundaryDatesLocal
->   (prefetch 1 sqlBindBoundaryDates (map bindP expectBoundaryDatesLocal))
+Access doesn't seem to like bind variables with union; get:
+  22018 39: [Microsoft][ODBC Microsoft Access Driver]Invalid character value for cast specification on column number 1
+So we have our own local variation on the boundary dates test,
+where we select one row with three columns, rather than three rows with one column.
 
-> expectBoundaryDatesLocal =
->   -- 1753 seems to be about the earliest year MS SQL Server supports.
->   [ int64ToUTCTime   17530101000000
->   , int64ToUTCTime   20010102000000
->   , int64ToUTCTime   20010103000000
->   , int64ToUTCTime   99991231000000
->   ]
+> sqlBindBoundaryDatesLocal = "select ?, ?, ? from tdual"
+> iterBindBoundaryDatesLocal :: (Monad m) => UTCTime -> UTCTime -> UTCTime -> IterAct m [(UTCTime, UTCTime, UTCTime)]
+> iterBindBoundaryDatesLocal d1 d2 d3 acc = result $ (d1,d2,d3):acc
+> -- 1753 seems to be about the earliest year MS SQL Server supports.
+> expectBoundaryDatesLocal = [(int64ToUTCTime 17530101000000, int64ToUTCTime 19990102000000, int64ToUTCTime 99991231000000)]
 > actionBindBoundaryDatesLocal stmt = do
 >   withTransaction Serialisable $ do
->     actual <- doQuery stmt iterBindDate []
->     assertEqual sqlBindBoundaryDates expectBoundaryDatesLocal actual
+>     actual <- doQuery stmt iterBindBoundaryDatesLocal []
+>     assertEqual sqlBindBoundaryDatesLocal expectBoundaryDatesLocal actual
+> selectBindBoundaryDates _ = actionBindBoundaryDatesLocal
+>   (prefetch 1 sqlBindBoundaryDatesLocal
+>     [ bindP (int64ToUTCTime 17530101000000)
+>     , bindP (int64ToUTCTime 19990102000000)
+>     , bindP (int64ToUTCTime 99991231000000)
+>     ])
 
 
 > selectRebindStmt _ = actionRebind (prepareQuery (sql sqlRebind))
