@@ -177,7 +177,9 @@ Presumably the other modes are still supported.
 >     disconnectDb (connHandle sess)
 >     freeConn (connHandle sess)
 >     freeEnv (envHandle sess)
->   -- With ODBC, transactions are implicitly started.
+>   -- With ODBC, transactions are implicitly started,
+>   -- so all we do is commit the previous transaction
+>   -- (probably done already) and set isolation level.
 >   beginTransaction sess isolation = do
 >     commitTrans (connHandle sess)
 >     setTransLevel (connHandle sess) (isolationLevel isolation)
