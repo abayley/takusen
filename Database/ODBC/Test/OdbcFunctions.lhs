@@ -69,6 +69,7 @@ Portability :  non-portable
 >   setOdbcVer env
 >   conn <- allocConn env
 >   connstr <- connect conn connstr
+>   setConnEncoding conn EncUTF8
 >   dbms <- getInfoDbmsName conn
 >   return (env, conn { connDbms = map toLower dbms } )
 
@@ -101,15 +102,10 @@ Portability :  non-portable
 
 
 > testIsolationLevel conn = do
->   -- For PostgreSQL this fails with:
->   -- 206 HY009 Illegal parameter value for SQL_TXN_ISOLATION
->   --setTxnIsolation conn sqlTxnReadUncommitted
->   setTxnIsolation conn sqlTxnReadCommitted  -- This is OK
->   -- For PostgreSQL this fails with:
->   -- 206 HY009 Illegal parameter value for SQL_TXN_ISOLATION
->   --setTxnIsolation conn sqlTxnRepeatableRead
->   setTxnIsolation conn sqlTxnSerializable  -- This is OK
-
+>   setTxnIsolation conn sqlTxnReadUncommitted
+>   setTxnIsolation conn sqlTxnReadCommitted
+>   setTxnIsolation conn sqlTxnRepeatableRead
+>   setTxnIsolation conn sqlTxnSerializable
 
 Uses getData, rather than a buffer.
 
@@ -121,10 +117,10 @@ Uses getData, rather than a buffer.
 >     ++ "' from tdual union select '" ++ string2 ++ "' from tdual order by 1")
 >   executeStmt stmt
 >   more <- fetch stmt
->   s <- getDataUTF8String stmt 1
+>   s <- getDataString stmt 1
 >   assertEqual "testFetchString" (Just string1) s
 >   more <- fetch stmt
->   s <- getDataUTF8String stmt 1
+>   s <- getDataString stmt 1
 >   assertEqual "testFetchString" (Just string2) s
 >   more <- fetch stmt
 >   assertBool "testFetchString: EOD" (not more)
@@ -139,10 +135,10 @@ Uses getData, rather than a buffer.
 >   executeStmt stmt
 >   buffer <- bindColBuffer stmt 1 100 (Just "")
 >   more <- fetch stmt
->   s <- getUTF8StringFromBuffer buffer
+>   s <- getStringFromBuffer buffer
 >   assertEqual "testFetchStringWithBuffer" (Just string1) s
 >   more <- fetch stmt
->   s <- getUTF8StringFromBuffer buffer
+>   s <- getStringFromBuffer buffer
 >   assertEqual "testFetchStringWithBuffer" (Just string2) s
 >   more <- fetch stmt
 >   assertBool "testFetchStringWithBuffer: EOD" (not more)
@@ -190,6 +186,7 @@ Uses getData, rather than a buffer.
 > testFetchDatetime conn = do
 >   stmt <- allocStmt conn
 >   dbmsname <- liftM (map toLower) (getInfoDbmsName conn)
+>   --putStrLn ("testFetchDatetime: dbmsname = " ++ dbmsname)
 >   flip finally (freeStmt stmt) ( do
 >     -- There is no common SQL standard for datetime literal text.
 >     -- Well, there is (timestamp), but MS SQL Server doesn't support it. Pah.
@@ -202,12 +199,25 @@ Uses getData, rather than a buffer.
 >     --
 >     -- PostgreSQL doesn't appear to support the {fn ...} escape sequences;
 >     -- the text seems to be passed through unchanged (according to SQLNativeSql, anyway).
+>     --getNativeSql conn "select {fn CONVERT('1916-10-01 02:25:21', SQL_TIMESTAMP)}, {fn CONVERT('2005-10-01 00:00:00', SQL_TIMESTAMP)} from tdual"
+>     --
 >     -- THe MS SQL Server ODBC driver's SQLNativeSql also returns the text unchanged,
 >     -- but it doesn't seem to cause any grief on the server.
->     --getNativeSql conn "select {fn CONVERT('1916-10-01 02:25:21', SQL_TIMESTAMP)}, {fn CONVERT('2005-10-01 00:00:00', SQL_TIMESTAMP)} from tdual" >>= putStrLn
+>     --getNativeSql conn "select {fn CONVERT('1916-10-01 02:25:21', SQL_DATETIME)}, {fn CONVERT('2005-10-01 00:00:00', SQL_DATETIME)}"
+>     --
+>     -- Access doesn't seem to like the {fn ...} escape sequences either,
+>     -- so we have to use VBA function CDate to convert tets to datetime.
+>     --getNativeSql conn "select cdate('1916-10-01 02:25:21'), cdate('2005-10-01 00:00:00')"
+>     --  >>= putStrLn
+>     --getNativeSql conn "select {fn convert('1916-10-01 02:25:21', SQL_DATETIME)}"
+>     --  >>= putStrLn
 >     case dbmsname of
 >       "postgresql" -> 
->         prepareStmt stmt "select cast ('1916-10-01 02:25:21' as timestamp), cast ('2005-10-01 00:00:00' as timestamp) from tdual"
+>         prepareStmt stmt "select cast ('1916-10-01 02:25:21' as timestamp), cast ('2005-10-01 00:00:00' as timestamp)"
+>       -- MS Access doesn't like SQL_TIMESTAMP datatype, but accepts SQL_DATETIME.
+>       "access" ->
+>         prepareStmt stmt "select cdate('1916-10-01 02:25:21'), cdate('2005-10-01 00:00:00')"
+>         --prepareStmt stmt "select {fn CONVERT('1916-10-01 02:25:21', SQL_DATETIME)}, {fn CONVERT('2005-10-01 00:00:00', SQL_DATETIME)}"
 >       otherwise ->
 >         prepareStmt stmt "select {fn CONVERT('1916-10-01 02:25:21', SQL_TIMESTAMP)}, {fn CONVERT('2005-10-01 00:00:00', SQL_TIMESTAMP)} from tdual"
 >     executeStmt stmt
@@ -247,7 +257,7 @@ Uses getData, rather than a buffer.
 >   executeStmt stmt
 >   buffer <- bindColBuffer stmt 1 1000 (Just expect)
 >   more <- fetch stmt
->   s <- getUTF8StringFromBuffer buffer
+>   s <- getStringFromBuffer buffer
 >   assertEqual "testBindString" (Just expect) s
 >   more <- fetch stmt
 >   assertBool "testBindString: EOD" (not more)
@@ -257,13 +267,14 @@ Uses getData, rather than a buffer.
 
 > testBindStringUTF8 conn = do
 >   stmt <- allocStmt conn
+>   setStmtEncoding stmt EncUTF8  -- just in case UTF8 is not default
 >   prepareStmt stmt "select ? from tdual"
 >   let expect = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
 >   bindParamBuffer stmt 1 (Just expect) 0
 >   executeStmt stmt
 >   buffer <- bindColBuffer stmt 1 1000 (Just expect)
 >   more <- fetch stmt
->   s <- getUTF8StringFromBuffer buffer
+>   s <- getStringFromBuffer buffer
 >   assertEqual "testBindStringUTF8 (PostgreSQL fails with Unicode driver, succeeds with ANSI)" (Just expect) s
 >   more <- fetch stmt
 >   assertBool "testBindStringUTF8: EOD" (not more)
@@ -318,7 +329,7 @@ Uses getData, rather than a buffer.
 >   executeStmt stmt
 >   buffer <- bindColBuffer stmt 1 100 (Just "")
 >   more <- fetch stmt
->   s <- getUTF8StringFromBuffer buffer
+>   s <- getStringFromBuffer buffer
 >   assertEqual "testRebind1" (Just expect) s
 >   more <- fetch stmt
 >   assertBool "testRebind1: EOD" (not more)
@@ -330,7 +341,7 @@ Uses getData, rather than a buffer.
 >   executeStmt stmt
 >   buffer <- bindColBuffer stmt 1 100 (Just "")
 >   more <- fetch stmt
->   s <- getUTF8StringFromBuffer buffer
+>   s <- getStringFromBuffer buffer
 >   assertEqual "testRebind2" (Just expect) s
 >   more <- fetch stmt
 >   assertBool "testRebind2: EOD" (not more)
@@ -345,6 +356,7 @@ Uses getData, rather than a buffer.
 
 > testUTF8 conn = do
 >   stmt <- allocStmt conn
+>   setStmtEncoding stmt EncUTF8  -- just in case UTF8 is not default
 >   prepareStmt stmt "drop table t_utf8"
 >   ignoreError (executeStmt stmt)
 >   prepareStmt stmt "create table t_utf8(s varchar(50))"
@@ -356,7 +368,7 @@ Uses getData, rather than a buffer.
 >   executeStmt stmt
 >   buffer <- bindColBuffer stmt 1 100 (Just expect)
 >   more <- fetch stmt
->   s <- getUTF8StringFromBuffer buffer
+>   s <- getStringFromBuffer buffer
 >   assertEqual "testUTF8" (Just expect) s
 >   freeStmt stmt
 
@@ -389,9 +401,9 @@ Uses getData, rather than a buffer.
 >   buffer1 <- bindColBuffer stmt 1 100 (Just "")
 >   buffer2 <- bindColBuffer stmt 2 100 (Just "")
 >   more <- fetch stmt
->   s1 <- getUTF8StringFromBuffer buffer1
+>   s1 <- getStringFromBuffer buffer1
 >   assertEqual "testMultiResultSet1" (Just "1") s1
->   s2 <- getUTF8StringFromBuffer buffer2
+>   s2 <- getStringFromBuffer buffer2
 >   assertEqual "testMultiResultSet2" (Just "2") s2
 >   more <- fetch stmt
 >   assertBool "testMultiResultSet1: EOD" (not more)
@@ -402,9 +414,9 @@ Uses getData, rather than a buffer.
 >   buffer1 <- bindColBuffer stmt 1 100 (Just "")
 >   buffer2 <- bindColBuffer stmt 2 100 (Just "")
 >   more <- fetch stmt
->   s1 <- getUTF8StringFromBuffer buffer1
+>   s1 <- getStringFromBuffer buffer1
 >   assertEqual "testMultiResultSet3" (Just "3") s1
->   s2 <- getUTF8StringFromBuffer buffer2
+>   s2 <- getStringFromBuffer buffer2
 >   assertEqual "testMultiResultSet4" (Just "4") s2
 >   more <- fetch stmt
 >   assertBool "testMultiResultSet3: EOD" (not more)
@@ -455,7 +467,7 @@ Uses getData, rather than a buffer.
 >   --
 >   i <- getFromBuffer buffer1
 >   assertEqual "testBindOutput" (Just (2*input1)) i
->   s <- getUTF8StringFromBuffer buffer2
+>   s <- getStringFromBuffer buffer2
 >   assertEqual "testBindOutput" (Just "output message xxx") s
 >   --more <- fetch stmt  -- This will cause error:
 >   --
