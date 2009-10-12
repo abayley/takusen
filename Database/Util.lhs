@@ -265,12 +265,11 @@ Parses ISO format datetimes, and also the variation that PostgreSQL uses.
 
 > printArrayContents :: Int -> Ptr Word8 -> IO ()
 > printArrayContents sz ptr = do
->   putStrLn ("printBufferContents: sz = " ++ show sz)
+>   putStrLn ("printArrayContents: sz = " ++ show sz)
 >   l <- peekArray sz ptr
 >   let
 >     toHex :: Word8 -> String;
 >     toHex i = (if i < 16 then "0" else "") ++ showHex i ""
->   --let h :: [String]; h = map toHex l
 >   putStrLn (concat (intersperse " " (map toHex l)))
 >   let
 >     toChar :: Word8 -> String
