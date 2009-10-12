@@ -38,6 +38,7 @@ import Prelude hiding (catch)
 import Control.Exception.Extensible
 import Control.Monad
 import Data.Dynamic
+import Data.IORef
 import Data.Time
 import Database.Util
 import Foreign
@@ -57,28 +58,53 @@ type EnvHandle = Ptr EnvObj
 -- parameters for MS SQL Server.
 data ConnObj = ConnObj
 type ConnHdl = Ptr ConnObj
-data ConnHandle = ConnHandle { connHdl :: ConnHdl, connDbms :: String }
+data ConnHandle = ConnHandle { connHdl :: ConnHdl, connDbms :: String, connCharEnc :: IORef CharEncoding }
 data StmtObj = StmtObj
 type StmtHdl = Ptr StmtObj
-data StmtHandle = StmtHandle { stmtHdl :: StmtHdl, stmtDbms :: String }
+data StmtHandle = StmtHandle { stmtHdl :: StmtHdl, stmtDbms :: String, stmtCharEnc :: IORef CharEncoding }
 type WindowHandle = Ptr ()
 data Buffer = Buffer
 type BufferFPtr = ForeignPtr Buffer
 type SizeFPtr = ForeignPtr SqlLen
 
-type MyCString = CString
-type MyCStringLen = CStringLen
-myPeekCStringLen p = peekUTF8StringLen p
-myWithCString s = withUTF8String s
-myWithCStringLen s = withUTF8StringLen s
---myPeekCStringLen p = peekCStringLen p
---myWithCString s = withCString s
---myWithCStringLen s = withCStringLen s
+
+-- We need a way for user code to specify what charset is expected.
+-- A bit limited, but it works for most DBMSs...
+data CharEncoding = EncLatin1 | EncUTF8 | EncUTF16
+
+-- Helper functions for String marshalling
+
+withEncStringLen :: CharEncoding -> String -> (CStringLen -> IO a) -> IO a
+withEncStringLen charenc str action = do
+  case charenc of
+    EncLatin1 -> withCAStringLen str action
+    EncUTF8   -> withUTF8StringLen str action
+    EncUTF16  -> withCWStringLen str (\(cwstr, clen) -> action (castPtr cwstr, clen))
+
+peekEncString :: CharEncoding -> CString -> IO String
+peekEncString charenc cstr = do
+  case charenc of
+    EncLatin1 -> peekCAString cstr
+    EncUTF8   -> peekUTF8String cstr
+    EncUTF16  -> peekCWString (castPtr cstr)
+
+peekEncStringLen :: CharEncoding -> CStringLen -> IO String
+peekEncStringLen charenc cstrlen = do
+  case charenc of
+    EncLatin1 -> peekCAStringLen cstrlen
+    EncUTF8   -> peekUTF8StringLen cstrlen
+    EncUTF16  -> peekCWStringLen (cstr2cwstr cstrlen)
+  where
+    cstr2cwstr :: CStringLen -> CWStringLen
+    cstr2cwstr (cstr, clen) = (castPtr cstr, clen)
+
+
 
 data BindBuffer = BindBuffer
   { bindBufPtr :: BufferFPtr
   , bindBufSzPtr :: SizeFPtr
   , bindBufSize :: SqlLen
+  , bindBufCharEnc :: CharEncoding
   }
 
 type SqlInteger = #{type SQLINTEGER}
@@ -350,10 +376,10 @@ getDiagRec retcode htype handle row =
     case () of
       _ | rc == sqlRcSuccess -> do
           errnum <- peek errorNumPtr
-          state <- myPeekCStringLen (cstrState, 5)
+          state <- peekCStringLen (cstrState, 5)
           msglen <- peek msgLenPtr
           --debugStmt ("getDiagRec: msglen=" ++ show msglen)
-          msg <- myPeekCStringLen (cstrMsg, fromIntegral msglen)
+          msg <- peekCStringLen (cstrMsg, fromIntegral msglen)
           --debugStmt ("getDiagRec: msg=" ++ msg)
           more <- getDiagRec retcode htype handle (row+1)
           return ((OdbcException (fromIntegral errnum) state msg []) : more)
@@ -386,13 +412,23 @@ allocEnv = allocHdl nullPtr sqlHTypeEnv
 allocConn :: EnvHandle -> IO ConnHandle
 allocConn env = do
   c <- allocHdl (castPtr env) sqlHTypeConn
-  return (ConnHandle c "")
+  -- default char encoding is UTF8; change with setCharEncoding
+  ior <- newIORef EncUTF8
+  return (ConnHandle c "" ior)
+
+setConnEncoding :: ConnHandle -> CharEncoding -> IO ()
+setConnEncoding conn enc = writeIORef (connCharEnc conn) enc
+
+setStmtEncoding :: StmtHandle -> CharEncoding -> IO ()
+setStmtEncoding stmt enc = writeIORef (stmtCharEnc stmt) enc
 
 allocStmt :: ConnHandle -> IO StmtHandle
 allocStmt conn = do
   s <- allocHdl (castPtr (connHdl conn)) sqlHTypeStmt
-  -- copy dbms name from connection object
-  return (StmtHandle s (connDbms conn))
+  -- copy dbms name and char encoding from connection object
+  enc <- readIORef (connCharEnc conn)
+  ior <- newIORef enc
+  return (StmtHandle s (connDbms conn) ior)
 
 freeHandle :: SqlHandleType -> Handle -> IO ()
 freeHandle htype h = do
@@ -418,14 +454,14 @@ setOdbcVer env = do
 
 connect :: ConnHandle -> String -> IO String
 connect conn connstr = do
-  myWithCStringLen connstr $ \(cstr, clen) -> do
+  withCStringLen connstr $ \(cstr, clen) -> do
   allocaBytes 1000 $ \outConnStr -> do
   alloca $ \ptrOutLen -> do
   rc <- sqlDriverConnect (connHdl conn) nullPtr cstr (fromIntegral clen)
     outConnStr 1000 ptrOutLen sqlDriverNoPrompt
   checkError rc sqlHTypeConn (castPtr (connHdl conn))
   outLen <- peek ptrOutLen
-  myPeekCStringLen (outConnStr, fromIntegral outLen)
+  peekCStringLen (outConnStr, fromIntegral outLen)
 
 disconnect :: ConnHandle -> IO ()
 disconnect conn = do
@@ -435,9 +471,11 @@ disconnect conn = do
 
 prepareStmt :: StmtHandle -> String -> IO ()
 prepareStmt stmt sqltext = do
-  myWithCString sqltext $ \cstr -> do
-  rc <- sqlPrepare (stmtHdl stmt) cstr sqlNullTermedString
-  checkError rc sqlHTypeStmt (castPtr (stmtHdl stmt))
+  charenc <- readIORef (stmtCharEnc stmt)
+  withEncStringLen charenc sqltext (\(cstr, clen) -> do
+      rc <- sqlPrepare (stmtHdl stmt) cstr (fromIntegral clen)
+      checkError rc sqlHTypeStmt (castPtr (stmtHdl stmt))
+    )
 
 executeStmt :: StmtHandle -> IO ()
 executeStmt stmt = do
@@ -497,8 +535,16 @@ setAutoCommitOff conn = do
 
 setTxnIsolation :: ConnHandle -> SqlInteger -> IO ()
 setTxnIsolation conn level = do
-  rc <- sqlSetConnectAttr (connHdl conn) sqlAttrTxnIsolation (int2Ptr level) 0
-  checkError rc sqlHTypeConn (castPtr (connHdl conn))
+  -- MS Access has transactions, but not isolation levels.
+  -- PostgreSQL doesn't do sqlTxnReadUncommitted or sqlTxnRepeatableRead;
+  -- we get error: 206 HY009 Illegal parameter value for SQL_TXN_ISOLATION
+  let doNothing = ("access" == connDbms conn)
+        || (("postgresql" == connDbms conn)
+          && (level == sqlTxnReadUncommitted || level == sqlTxnRepeatableRead) )
+  unless doNothing ( do
+      rc <- sqlSetConnectAttr (connHdl conn) sqlAttrTxnIsolation (int2Ptr level) 0
+      checkError rc sqlHTypeConn (castPtr (connHdl conn))
+    )
 
 getInfoString :: ConnHandle -> SqlInfoType -> IO String
 getInfoString conn infotype = do
@@ -508,7 +554,7 @@ getInfoString conn infotype = do
   rc <- sqlGetInfo (connHdl conn) infotype buffer (fromIntegral bufsize) outsizeptr
   checkError rc sqlHTypeConn (castPtr (connHdl conn))
   outsize <- peek outsizeptr
-  myPeekCStringLen (castPtr buffer, fromIntegral outsize)
+  peekCStringLen (castPtr buffer, fromIntegral outsize)
 
 getInfoDbmsName :: ConnHandle -> IO String
 getInfoDbmsName conn = getInfoString conn sqlInfoDbmsName
@@ -525,16 +571,24 @@ getInfoDriverName conn = getInfoString conn sqlInfoDriverName
 getInfoDriverVer :: ConnHandle -> IO String
 getInfoDriverVer conn = getInfoString conn sqlInfoDriverVer
 
+-- The ODBC spec allows you to use escape sequences
+-- for product-specific functions i.e. stuff not in the SQL specs.
+-- That is, it provides an abstraction over various SQL extensions.
+-- getNativeSql shows you how these get translated into product-specific SQL.
+-- Note that the MS Access, MS SQL Server, and PostgreSQL drivers seem to
+-- return the original SQL text unchanged i.e. the ODBC escape sequences
+-- are not translated, and are passed to the DBMS unchanged.
 getNativeSql :: ConnHandle -> String -> IO String
 getNativeSql conn sqltext = do
   let bufsize = 100000
   alloca $ \outsizeptr -> do
   allocaBytes bufsize $ \buffer -> do
-  myWithCStringLen sqltext $ \(cstr,clen) -> do
+  charenc <- readIORef (connCharEnc conn)
+  withEncStringLen charenc sqltext $ \(cstr,clen) -> do
   rc <- sqlNativeSql (connHdl conn) cstr (fromIntegral clen) buffer (fromIntegral bufsize) outsizeptr
   checkError rc sqlHTypeConn (castPtr (connHdl conn))
   outsize <- peek outsizeptr
-  myPeekCStringLen (castPtr buffer, fromIntegral outsize)
+  peekEncStringLen charenc (castPtr buffer, fromIntegral outsize)
   
 
 
@@ -589,19 +643,14 @@ getDataCStringLen stmt pos = do
   if len < 0 then return Nothing
     else return (Just (castPtr bptr, fromIntegral len))
 
-getDataUTF8String :: StmtHandle -> Int -> IO (Maybe String)
-getDataUTF8String stmt pos = do
+getDataString :: StmtHandle -> Int -> IO (Maybe String)
+getDataString stmt pos = do
   mbcstrlen <- getDataCStringLen stmt pos
   case mbcstrlen of
     Nothing -> return Nothing
-    Just cstrlen -> peekUTF8StringLen cstrlen >>= return . Just
-
-getDataCString :: StmtHandle -> Int -> IO (Maybe String)
-getDataCString stmt pos = do
-  mbcstrlen <- getDataCStringLen stmt pos
-  case mbcstrlen of
-    Nothing -> return Nothing
-    Just cstrlen -> peekCStringLen cstrlen >>= return . Just
+    Just cstrlen -> do
+      charenc <- readIORef (stmtCharEnc stmt)
+      peekEncStringLen charenc cstrlen >>= return . Just
 
 {- from sqltypes.h. Struct size depends on size of SmallInt etc,
 but is 16 bytes on a 32-bit platform. 32 bytes on 64-bit?
@@ -642,13 +691,13 @@ readUtcTimeFromMemory buffer = do
 ---------------------------------------------------------------------
 -- Return-set column binding.
 -- Apparently this is faster than SQLGetData for larger result-sets,
--- because the output buffers do not need to be rebound with
--- every call.
+-- because the output buffers do not need to be rebound with every call.
 -- Dunno how much difference this'll make in practice. Suck 'n' see.
 
 bindColumnBuffer :: StmtHandle -> Int -> SqlDataType -> SqlLen -> IO BindBuffer
 bindColumnBuffer stmt pos dtype size = do
   alloca $ \colPtr -> do
+  charenc <- readIORef (stmtCharEnc stmt)
   rc <- sqlNumResultCols (stmtHdl stmt) colPtr
   checkError rc sqlHTypeStmt (castPtr (stmtHdl stmt))
   nc <- peek colPtr
@@ -656,18 +705,18 @@ bindColumnBuffer stmt pos dtype size = do
     then throwOdbc (OdbcException (-1) "01000"
       ("Attempted fetch from invalid column number " ++ show pos) [])
     else do
-      buffer <- createEmptyBuffer (fromIntegral size)
+      buffer <- createEmptyBuffer (fromIntegral size) charenc
       withForeignPtr (bindBufPtr buffer) $ \bptr -> do
       withForeignPtr (bindBufSzPtr buffer) $ \szptr -> do
       rc <- sqlBindCol (stmtHdl stmt) (fromIntegral pos) dtype bptr size szptr
       checkError rc sqlHTypeStmt (castPtr (stmtHdl stmt))
       return buffer
 
-createEmptyBuffer :: SqlLen -> IO BindBuffer
-createEmptyBuffer size = do
+createEmptyBuffer :: SqlLen -> CharEncoding -> IO BindBuffer
+createEmptyBuffer size charenc = do
   szfptr <- mallocForeignPtr
   bfptr <- mallocForeignPtrBytes (fromIntegral size)
-  return (BindBuffer bfptr szfptr size)
+  return (BindBuffer bfptr szfptr size charenc)
 
 
 testForNull :: BindBuffer -> (Ptr Buffer -> SqlLen -> IO a) -> IO (Maybe a)
@@ -684,54 +733,52 @@ getStorableFromBuffer :: Storable a => BindBuffer -> IO (Maybe a)
 getStorableFromBuffer buffer =
   testForNull buffer (\bptr _ -> peek (castPtr bptr))
 
-getCAStringFromBuffer :: BindBuffer -> IO (Maybe String)
-getCAStringFromBuffer buffer =
-  -- FIXME also assume null-termed string?
-  testForNull buffer (\ptr len -> peekCAStringLen (castPtr ptr, fromIntegral len))
-
-getCWStringFromBuffer :: BindBuffer -> IO (Maybe String)
-getCWStringFromBuffer buffer =
-  testForNull buffer (\ptr len -> peekCWStringLen (castPtr ptr, fromIntegral len))
-
-getUTF8StringFromBuffer :: BindBuffer -> IO (Maybe String)
-getUTF8StringFromBuffer buffer =
-  testForNull buffer (\ptr len ->
-    debugStmt ("getUTF8StringFromBuffer: size " ++ show len) >>
-    --peekUTF8StringLen (castPtr ptr, fromIntegral len))
-    -- assume null-termed string
-    peekUTF8String (castPtr ptr))
+getStringFromBuffer :: BindBuffer -> IO (Maybe String)
+getStringFromBuffer buffer =
+  testForNull buffer (\ptr len -> peekEncStringLen (bindBufCharEnc buffer) (castPtr ptr, fromIntegral len))
 
 getUtcTimeFromBuffer :: BindBuffer -> IO (Maybe UTCTime)
-getUtcTimeFromBuffer bindbuffer = do
-  testForNull bindbuffer $ \buffer _ -> do
-  readUtcTimeFromMemory (castPtr buffer)
+getUtcTimeFromBuffer bindbuffer =
+  testForNull bindbuffer (\b _ -> readUtcTimeFromMemory (castPtr b))
 
 
 ---------------------------------------------------------------------
 -- Parameter binding
 
-createBufferForStorable :: Storable a => Maybe a -> IO BindBuffer
-createBufferForStorable Nothing =
-  let zero :: Int; zero = 0; in createBufferHelper zero (fromIntegral (sizeOf zero)) (sizeOf zero)
-createBufferForStorable (Just val) = createBufferHelper val (fromIntegral (sizeOf val)) (sizeOf val)
+-----------------------------------
+-- First some helper functions...
+-----------------------------------
 
-createBufferHelper :: Storable a => a -> SqlLen -> Int -> IO BindBuffer
-createBufferHelper val valsize bufsize = do
-  -- alloc space for size parameter
-  szfptr <- mallocForeignPtr
-  withForeignPtr szfptr (\szptr -> poke szptr valsize)
-  -- alloc buffer for storable value
-  bfptr <- mallocForeignPtr
-  withForeignPtr bfptr (\bptr -> poke bptr val)
-  return (BindBuffer (castForeignPtr bfptr) szfptr (fromIntegral bufsize))
+-- create a Bind Buffer for a value in the Storable class
+-- e.g. Int, Double, Char
+mkBindBufferForStorable :: Storable a => Maybe a -> IO BindBuffer
+mkBindBufferForStorable mbv =
+  case mbv of
+    Nothing -> let zero :: Int; zero = 0; in mkBindBufferHelper zero (fromIntegral (sizeOf zero)) (sizeOf zero)
+    Just val -> mkBindBufferHelper val (fromIntegral (sizeOf val)) (sizeOf val)
+  where 
+    mkBindBufferHelper :: Storable a => a -> SqlLen -> Int -> IO BindBuffer
+    mkBindBufferHelper val valsize bufsize = do
+      -- alloc space for size parameter
+      szfptr <- mallocForeignPtr
+      withForeignPtr szfptr (\szptr -> poke szptr valsize)
+      -- alloc buffer for storable value
+      bfptr <- mallocForeignPtr
+      withForeignPtr bfptr (\bptr -> poke bptr val)
+      return (BindBuffer (castForeignPtr bfptr) szfptr (fromIntegral bufsize) EncUTF8)
 
-wrapSizedBuffer :: Ptr a -> SqlLen -> Int -> IO BindBuffer
-wrapSizedBuffer valptr valsize bufsize = do
+-- Given:
+--   * a Ptr to a buffer (already allocated)
+--   * the size (SqlLen) of the data in the buffer (not necessarily the same as the buffer size)
+--   * the size of the buffer
+-- create a BindBuffer object
+mkBindBuffer :: Ptr a -> SqlLen -> Int -> CharEncoding -> IO BindBuffer
+mkBindBuffer valptr valsize bufsize charenc = do
   szfptr <- mallocForeignPtr
   withForeignPtr szfptr (\szptr -> poke szptr valsize)
   bfptr <- newForeignPtr finalizerFree valptr
   let size2 = if valsize > (fromIntegral bufsize) then valsize else (fromIntegral bufsize)
-  return (BindBuffer (castForeignPtr bfptr) szfptr size2)
+  return (BindBuffer (castForeignPtr bfptr) szfptr size2 charenc)
 
 bindParam ::
   StmtHandle
@@ -750,49 +797,48 @@ bindParam stmt pos direction ctype sqltype precision scale buffer =
   rc <- sqlBindParameter (stmtHdl stmt) (fromIntegral pos) direction ctype sqltype precision scale bptr bufsize valszptr
   checkError rc sqlHTypeStmt (castPtr (stmtHdl stmt))
 
+
+------------------------------------------------------
+-- Now type-specific functions to bind values.
+-- Each of these creates and returns a BindBuffer.
+------------------------------------------------------
+
 bindNull :: StmtHandle -> Int -> SqlParamDirection -> SqlCDataType -> SqlDataType -> IO BindBuffer
 bindNull stmt pos direction ctype dtype = do
   let val :: Maybe Int; val = Nothing
-  buffer <- createBufferForStorable val
+  buffer <- mkBindBufferForStorable val
   bindParam stmt pos direction ctype dtype 0 0 buffer
   return buffer
 
-bindParamCStringLen :: StmtHandle -> Int -> SqlParamDirection -> Maybe CStringLen -> Int -> IO BindBuffer
-bindParamCStringLen stmt pos direction Nothing bufsize = do
+bindParamString :: StmtHandle -> Int -> SqlParamDirection -> Maybe String -> Int -> IO BindBuffer
+bindParamString stmt pos direction Nothing bufsize = do
+  charenc <- readIORef (stmtCharEnc stmt)
   let bufsz = if bufsize < 8 then 8 else (fromIntegral bufsize)
   ptr <- mallocBytes bufsz
-  buffer <- wrapSizedBuffer ptr (-1) bufsz
+  buffer <- mkBindBuffer ptr (-1) bufsz charenc
   bindParam stmt pos direction sqlCTypeString sqlDTypeString 0 0 buffer
   return buffer
-bindParamCStringLen stmt pos direction (Just (cstr, clen)) bufsize = do
-  let bufsz = 1 + if clen > bufsize then (fromIntegral clen) else (fromIntegral bufsize)
-  mem <- mallocBytes bufsz
-  copyBytes mem cstr (fromIntegral clen)
-  pokeByteOff mem (fromIntegral clen) (0 :: Word8)
-  --buffer <- wrapSizedBuffer mem (fromIntegral clen) bufsz
-  buffer <- wrapSizedBuffer mem sqlNullTermedString bufsz
+bindParamString stmt pos direction (Just s) bufsize = do
+  charenc <- readIORef (stmtCharEnc stmt)
+  (mem, clen, bufsz) <- withEncStringLen charenc s makeStringBuffer
+  -- Now wrap the malloc'd area wth a ForeignPtr, which should ensure
+  -- it is GC'd when no longer used.
+  buffer <- mkBindBuffer mem (fromIntegral clen) bufsz charenc
   bindParam stmt pos direction sqlCTypeString sqlDTypeString (fromIntegral clen) 0 buffer
   return buffer
+  where
+    makeStringBuffer :: CStringLen -> IO (CString, Int, Int)
+    makeStringBuffer (cstr, clen) = do
+      -- The size we pass to bindParam is the max of string-length and buffer-size.
+      -- This lets us be lazy and pass 0 as the buffer size in the input-only case.
+      let bufsz = 1 + maximum [clen, bufsize]
+      mem <- mallocBytes bufsz
+      copyBytes mem cstr clen
+      pokeByteOff mem clen (0 :: CChar)
+      return (mem, clen, bufsz)
 
-bindEncodedString :: StmtHandle -> Int -> SqlParamDirection -> Maybe String -> (String -> ((Ptr a, Int) -> IO BindBuffer) -> IO BindBuffer) -> Int -> IO BindBuffer
-bindEncodedString stmt pos direction Nothing withEncoder bufsz =
-  --bindNull stmt pos direction sqlCTypeString sqlDTypeString
-  bindParamCStringLen stmt pos direction Nothing bufsz
-bindEncodedString stmt pos direction (Just s) withEncoder bufsz =
-  withEncoder s (\(cs, cl) -> bindParamCStringLen stmt pos direction (Just (castPtr cs, cl)) bufsz)
 
-bindParamUTF8String :: StmtHandle -> Int -> SqlParamDirection -> Maybe String -> Int -> IO BindBuffer
-bindParamUTF8String stmt pos direction val sz =
-  debugStmt ("bindParamUTF8String: " ++ show val ++ ", size " ++ show sz) >>
-  bindEncodedString stmt pos direction val withUTF8StringLen sz
-
-bindParamCAString :: StmtHandle -> Int -> SqlParamDirection -> Maybe String -> Int -> IO BindBuffer
-bindParamCAString stmt pos direction val sz =
-  bindEncodedString stmt pos direction val withCAStringLen sz
-
-bindParamCWString :: StmtHandle -> Int -> SqlParamDirection -> Maybe String -> Int -> IO BindBuffer
-bindParamCWString stmt pos direction val sz =
-  bindEncodedString stmt pos direction val withCWStringLen sz
+-- Fun with dates+times...
 
 pokeSmallInt :: Ptr a -> Int -> SqlSmallInt -> IO ()
 pokeSmallInt buffer offset val = pokeByteOff buffer offset val
@@ -828,7 +874,7 @@ makeUtcTimeBuffer :: UTCTime -> IO BindBuffer
 makeUtcTimeBuffer utc = do
   mem <- mallocBytes #{size TIMESTAMP_STRUCT}
   writeUTCTimeToMemory (castPtr mem) utc
-  wrapSizedBuffer mem #{size TIMESTAMP_STRUCT} (-1)
+  mkBindBuffer mem #{size TIMESTAMP_STRUCT} (-1) EncUTF8
 
 -- Marshal via String, for MS SQL Server.
 -- We have to drop the last 6 chars (nnn+nn) from the ISO datetime,
@@ -842,7 +888,7 @@ makeUtcTimeStringBuffer utc = do
   withCStringLen s $ \(cstr, clen) -> do
     copyBytes mem cstr (fromIntegral clen)
     pokeByteOff mem (fromIntegral clen) (0 :: Word8)
-    wrapSizedBuffer mem (fromIntegral clen) buffersize
+    mkBindBuffer mem (fromIntegral clen) buffersize EncUTF8
 
 bindParamUtcTime :: StmtHandle -> Int -> SqlParamDirection -> Maybe UTCTime -> IO BindBuffer
 bindParamUtcTime stmt pos direction Nothing = do
@@ -864,7 +910,8 @@ bindParamUtcTime stmt pos direction (Just utc) = do
       -- For TimeStamp:
       --   Size/Length should be 16 bytes.
       --   Precision should be 8 (or 16?).
-      --   Scale is the number of digits in the fraction component (SQL Server only allows 0-3).
+      --   Scale is the number of digits in the fraction component
+      --     (normally 9; SQL Server only allows 0-3).
       buffer <- makeUtcTimeBuffer utc
       bindParam stmt pos direction sqlCTypeTimestamp sqlDTypeTimestamp #{size TIMESTAMP_STRUCT} 9 buffer
       return buffer
@@ -879,6 +926,7 @@ sizeOfMaybe _ = sizeOf ( undefined :: a )
 -- H98 stylee...
 --sizeOfMaybe v@Nothing = sizeOfMaybe (asTypeOf (Just undefined) v)
 --sizeOfMaybe (Just v) = sizeOf v
+
 
 newtype OutParam a = OutParam a
 newtype InOutParam a = InOutParam a
@@ -932,8 +980,8 @@ instance OdbcBindBuffer (Maybe Double) where
 
 instance OdbcBindBuffer (Maybe String) where
   bindColBuffer stmt pos size val = bindColumnBuffer stmt pos sqlDTypeString (fromIntegral size)
-  getFromBuffer buffer = getUTF8StringFromBuffer buffer
-  getData stmt pos = getDataUTF8String stmt pos
+  getFromBuffer buffer = getStringFromBuffer buffer
+  getData stmt pos = getDataString stmt pos
 
 instance OdbcBindBuffer (Maybe UTCTime) where
   bindColBuffer stmt pos size val = bindColumnBuffer stmt pos sqlDTypeTimestamp #{size TIMESTAMP_STRUCT}
@@ -952,7 +1000,7 @@ class OdbcBindParam a where
     -> IO BindBuffer  -- ^ returns a 'BindBuffer' object
 
 bindParamStorable stmt pos val dir ctype dtype precn scale = do
-  buffer <- createBufferForStorable val
+  buffer <- mkBindBufferForStorable val
   bindParam stmt pos dir ctype dtype precn scale buffer
   return buffer
 
@@ -982,15 +1030,15 @@ instance OdbcBindParam (InOutParam (Maybe Double)) where
 
 instance OdbcBindParam (Maybe String) where
   bindParamBuffer stmt pos val sz =
-    bindParamUTF8String stmt pos sqlParamInput val 0
+    bindParamString stmt pos sqlParamInput val 0
 
 instance OdbcBindParam (OutParam (Maybe String)) where
   bindParamBuffer stmt pos (OutParam val) sz =
-    bindParamUTF8String stmt pos sqlParamOutput val sz
+    bindParamString stmt pos sqlParamOutput val sz
 
 instance OdbcBindParam (InOutParam (Maybe String)) where
   bindParamBuffer stmt pos (InOutParam val) sz =
-    bindParamUTF8String stmt pos sqlParamInputOutput val sz
+    bindParamString stmt pos sqlParamInputOutput val sz
 
 instance OdbcBindParam (Maybe UTCTime) where
   bindParamBuffer stmt pos val _ =
@@ -1022,9 +1070,9 @@ foreign import #{CALLCONV} unsafe "sql.h SQLGetDiagRec" sqlGetDiagRec ::
   SqlHandleType  -- ^ enum: which handle type is the next parameter?
   -> Handle  -- ^ generic handle ptr
   -> SqlSmallInt  -- ^ row (or message) number
-  -> MyCString  -- ^ OUT: state
+  -> CString  -- ^ OUT: state
   -> Ptr SqlInteger  -- ^ OUT: error number
-  -> MyCString  -- ^ OUT: error message
+  -> CString  -- ^ OUT: error message
   -> SqlSmallInt  -- ^ IN: message buffer size
   -> Ptr SqlSmallInt  -- ^ OUT: message length
   -> IO SqlReturn
@@ -1033,9 +1081,9 @@ foreign import #{CALLCONV} unsafe "sql.h SQLGetDiagRec" sqlGetDiagRec ::
 foreign import #{CALLCONV} unsafe "sql.h SQLDriverConnect" sqlDriverConnect ::
   ConnHdl
   -> WindowHandle  -- ^ just pass nullPtr
-  -> MyCString  -- ^ connection string
+  -> CString  -- ^ connection string
   -> SqlSmallInt  -- ^ connection string size
-  -> MyCString  -- ^ OUT: buffer for normalised connection string
+  -> CString  -- ^ OUT: buffer for normalised connection string
   -> SqlSmallInt  -- ^ buffer size
   -> Ptr SqlSmallInt  -- ^ OUT: length of returned string
   -> SqlUSmallInt  -- ^ enum: should driver prompt user for missing info?
@@ -1063,7 +1111,7 @@ foreign import #{CALLCONV} unsafe "sql.h SQLSetConnectAttr" sqlSetConnectAttr ::
 
 -- SQLRETURN SQL_API SQLPrepare(SQLHSTMT,SQLCHAR*,SQLINTEGER);
 foreign import #{CALLCONV} unsafe "sql.h SQLPrepare" sqlPrepare ::
-  StmtHdl -> MyCString -> SqlInteger -> IO SqlReturn
+  StmtHdl -> CString -> SqlInteger -> IO SqlReturn
 
 -- SQLRETURN SQL_API SQLBindParameter(SQLHSTMT,SQLUSMALLINT,SQLSMALLINT,SQLSMALLINT,SQLSMALLINT,SQLULEN,SQLSMALLINT,SQLPOINTER,SQLLEN,SQLLEN*);
 foreign import #{CALLCONV} unsafe "sql.h SQLBindParameter" sqlBindParameter ::
@@ -1095,7 +1143,7 @@ foreign import #{CALLCONV} unsafe "sql.h SQLRowCount" sqlRowCount ::
 foreign import #{CALLCONV} unsafe "sql.h SQLDescribeCol" sqlDescribeCol ::
   StmtHdl
   -> SqlUSmallInt  -- ^ position, 1-indexed
-  -> MyCString  -- ^ buffer for column name
+  -> CString  -- ^ buffer for column name
   -> SqlSmallInt  -- ^ size of column name buffer
   -> Ptr SqlSmallInt  -- ^ size of column name output string
   -> Ptr SqlDataType  -- ^ SQL data type: string, int, long, date, etc
@@ -1153,9 +1201,9 @@ foreign import #{CALLCONV} unsafe "sql.h SQLGetInfo" sqlGetInfo ::
 -- SQLRETURN SQL_API SQLNativeSql(SQLHDBC,SQLCHAR*,SQLINTEGER,SQLCHAR*,SQLINTEGER,SQLINTEGER*);
 foreign import #{CALLCONV} unsafe "sql.h SQLNativeSql" sqlNativeSql ::
   ConnHdl
-  -> MyCString  -- ^ sql text in
+  -> CString  -- ^ sql text in
   -> SqlInteger  -- ^ size of sql text
-  -> MyCString  -- ^ buffer for output text
+  -> CString  -- ^ buffer for output text
   -> SqlInteger  -- ^ size of output buffer
   -> Ptr SqlInteger  -- ^ size of text in output buffer
   -> IO SqlReturn
