@@ -42,6 +42,9 @@ Portability :  non-portable
 
 > runFixture :: DBLiteralValue a => a -> DBM mark Session ()
 > runFixture fns = do
+>   setStringEnc EncUTF8
+>   --dbmsname <- inquire InfoDbmsName
+>   --when (dbmsname == "postgres") (execDDL_ "set client_encoding = 'UTF8'")
 >   makeFixture execDrop execDDL_
 >   runTestTT "ODBC tests" (map (runOneTest fns) testList)
 >   destroyFixture execDDL_
@@ -53,7 +56,7 @@ Portability :  non-portable
 >   makeFixture execDrop execDDL_
 >   beginTransaction ReadCommitted
 >   runTestTT "ODBC performance tests" (map (flip catchDB reportRethrow)
->     -- The PostgreSQL ODBC driver has genetric query optimisation disabled
+>     -- The PostgreSQL ODBC driver has genetic query optimisation disabled
 >     -- by default. This makes it really struggle with the query we use
 >     -- for performance testing - the memory used by the server process
 >     -- goes through the roof.
@@ -181,7 +184,7 @@ where we select one row with three columns, rather than three rows with one colu
 
 
 > selectMultiResultSet _ = do
->   dbmsname <- liftM (map toLower) (inquire InfoDbmsName)
+>   dbmsname <- inquire InfoDbmsName
 >   when (dbmsname == "microsoft sql server") $ do
 >     execDrop dropFixtureMultiResultSet3
 >     execDrop dropFixtureMultiResultSet2
