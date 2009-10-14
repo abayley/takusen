@@ -44,6 +44,7 @@ indicates that some rows have already been fetched.
 >   , prepareQuery, prepareLargeQuery, prepareCommand
 >   , sql, sqlbind, prefetch, cmdbind
 >   , Out(..), InfoDbmsName(..)
+>   , CharEncoding(..), setStringEnc
 >   , module Database.Enumerator
 >   )
 > where
@@ -57,7 +58,7 @@ indicates that some rows have already been fetched.
 > import Control.Monad
 > import Control.Exception.Extensible (bracket)
 > import Database.ODBC.OdbcFunctions
->   (EnvHandle, ConnHandle, StmtHandle, OdbcException(..), catchOdbc, throwOdbc)
+>   (EnvHandle, ConnHandle, StmtHandle, CharEncoding(..), OdbcException(..), catchOdbc, throwOdbc)
 > import qualified Database.ODBC.OdbcFunctions as DBAPI
 > import Control.Monad.Trans
 > import Control.Monad.Reader
@@ -159,6 +160,18 @@ Session objects are created by 'connect'.
 >   return (Session env conn)
 
 
+We need a way to set the char encoding for String marshaling.
+EnvInquiry.inquire gives us a way to run arbitrary actions
+in the DBM monad, so make an instance for it.
+
+> instance EnvInquiry CharEncoding Session () where
+>   inquire charenc sess = DBAPI.setConnEncoding (connHandle sess) charenc
+
+Also make a synonym for inquire, because "inquire EncUTF8" will look odd,
+and non-obvious.
+
+> setStringEnc enc = Database.Enumerator.inquire enc
+
 Note: the PostgreSQL ODBC driver only supports ReadCommitted
 and Serializable. It throws an error on other values.
 It'd be nicer if it just silently upgraded, but c'est la vie...
@@ -229,7 +242,8 @@ Presumably the other modes are still supported.
 
 > instance EnvInquiry InfoDbmsName Session String where
 >   inquire InfoDbmsName sess =
->     liftM (map toLower) (DBAPI.getInfoDbmsName (connHandle sess))
+>     --liftM (map toLower) (DBAPI.getInfoDbmsName (connHandle sess))
+>     return (DBAPI.connDbms (connHandle sess))
 
 
 About stmtFreeWithQuery:
@@ -420,7 +434,7 @@ The default instance, uses generic Show
 >   makeQuery sess (NextResultSet (PreparedStmt pstmt)) = do
 >     -- If stmt buffers are present, then the first doQuery
 >     -- will have processed its results from there.
->     -- So for tne next query, we want to clear the buffer list
+>     -- So for the next query, we want to clear the buffer list
 >     -- and start fetching from the stmt handle.
 >     -- This allows us to call stored procedures that return
 >     -- both output parameters and (multiple) result-sets.
