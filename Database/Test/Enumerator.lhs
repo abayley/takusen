@@ -207,14 +207,14 @@ This is used in a few tests...
 > iterNoRows (c1::String) acc = result $ c1:acc
 > expectNoRows = []::[String]
 
-> sqlTermEarly = "select 'hello1' from tdual union select 'hello2' from tdual union select 'hello3' from tdual"
+> sqlTermEarly = "select 'hello1' from tdual union select 'hello2' from tdual union select 'hello3' from tdual order by 1"
 > iterTermEarly c1 acc = if c1 == "hello2"
 >       then return (Left (c1:acc))
 >       else result (c1:acc)
 > expectTermEarly = ["hello2", "hello1"]
 
 > sqlFloatsAndInts fns = "select " ++ (literalDouble fns 4841.3403490431) ++ ", "
->   ++ (literalInt fns (-22340234)) ++ " from tdual union select 33311.32332, 23789234 from tdual"
+>   ++ (literalInt fns (-22340234)) ++ " from tdual union select 33311.32332, 23789234 from tdual order by 1"
 > --iterFloatsAndInts :: (Monad m) => Double -> Int -> IterAct m [(Double, Int)]
 > iterFloatsAndInts (c1::Double) (c2::Int) acc = result $ (c1, c2):acc
 > expectFloatsAndInts :: [(Double, Int)]
