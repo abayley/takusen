@@ -64,41 +64,35 @@ Portability :  non-portable
 >   freeConn conn
 >   freeEnv env
 
+> execSql conn sql = do
+>   stmt <- allocStmt conn
+>   prepareStmt stmt sql
+>   executeStmt stmt
+>   freeStmt stmt
+
 > createConn connstr = do
 >   env <- allocEnv
 >   setOdbcVer env
 >   conn <- allocConn env
 >   connstr <- connect conn connstr
 >   setConnEncoding conn EncUTF8
->   dbms <- getInfoDbmsName conn
->   return (env, conn { connDbms = map toLower dbms } )
+>   dbmsname <- liftM (map toLower) (getInfoDbmsName conn)
+>   when (dbmsname == "postgresql") (execSql conn "set client_encoding = 'UTF8'")
+>   return (env, conn { connDbms = map toLower dbmsname } )
 
 > closeConn (env, conn) = do
 >   disconnect conn
 >   freeConn conn
 >   freeEnv env
 
-
 > createDual conn = do
->   stmt <- allocStmt conn
->   prepareStmt stmt "create table tdual (dummy varchar(1) primary key)"
->   executeStmt stmt
->   prepareStmt stmt "insert into tdual values ('X')"
->   executeStmt stmt
->   freeStmt stmt
+>   execSql conn "create table tdual (dummy varchar(1) primary key)"
+>   execSql conn "insert into tdual values ('X')"
+>   commit conn
 
-> dropDual conn = do
->   stmt <- allocStmt conn
->   prepareStmt stmt "drop table tdual"
->   executeStmt stmt
->   freeStmt stmt
+> dropDual conn = execSql conn "drop table tdual"
 
-
-> testCreateStmt conn = do
->   stmt <- allocStmt conn
->   prepareStmt stmt "select 'x' from tdual"
->   executeStmt stmt
->   freeStmt stmt
+> testCreateStmt conn = execSql conn "select 'x' from tdual"
 
 
 > testIsolationLevel conn = do
