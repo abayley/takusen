@@ -330,7 +330,7 @@ Best we can do is marshal/transmist everything as text.
 
 > testUnion db = do
 >   (stmt,ntuples) <- printPropagateError $
->     stmtExecImm db "select 'h1' from tdual union select 'h2' from tdual union select 'h3' from tdual" []
+>     stmtExecImm db "select 'h1' from tdual union select 'h2' from tdual union select 'h3' from tdual order by 1" []
 >   assertEqual "testUnion: ntuples" 3 ntuples
 >   s <- colValString stmt 1 1
 >   assertEqual "testUnion: h1" "h1" s
