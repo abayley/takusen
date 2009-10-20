@@ -45,6 +45,7 @@ If not, it won't work. I have a postgres user and a postgres database.
 >   , testSelectDouble
 >   , testSelectBool
 >   , testSelectBytea
+>   , testSelectUUID
 >   , testSelectDate
 >   , testSelectDate2
 >   , testSelectDate3
@@ -199,6 +200,14 @@ i.e. backslash space zero space quote space 255
 >   (stmt,ntuples) <- stmtExec0t db sn
 >   v <- colValBytea stmt 1 1
 >   assertEqual ("testSelectBytea") byteaTestValOut v
+>   stmtFinalise stmt
+
+> testSelectUUID db = do
+>   sn <- printPropagateError $ stmtPrepare db "" "select cast('{00112233-4455-6677-8899-aabbCCDDeEFF}' as uuid)" []
+>   (stmt,ntuples) <- stmtExec0t db sn
+>   v <- colValUUID stmt 1 1
+>   let expect = UUID (0x0011223344556677, 0x8899AABBCCDDEEFF)
+>   assertEqual ("testSelectUUID") expect v
 >   stmtFinalise stmt
 
 > testSelectDate db = do
