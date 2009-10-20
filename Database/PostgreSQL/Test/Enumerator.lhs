@@ -214,6 +214,15 @@ withPreparedStatement.
 >     actual <- doQuery (sqlbind sqlSingleValue [bindP input]) iterBindBytea []
 >     assertEqual "selectBindBytea" expect actual
 
+> selectBindUUID _ = do
+>   let input = string2uuid "11112222-3333-4444-5555-666677778888"
+>   let expect = input
+>   let iterBindUUID :: Monad m => UUID -> IterAct m UUID
+>       iterBindUUID uuid acc = result uuid
+>   withTransaction Serialisable $ do
+>     actual <- doQuery (sqlbind sqlSingleValue [bindP input]) iterBindUUID input
+>     assertEqual "selectBindUUID" expect actual
+
 > selectBindBoundaryDates _ = actionBindBoundaryDates
 >   (prefetch 1 sqlBindBoundaryDates (map bindP expectBoundaryDates))
 
@@ -360,7 +369,7 @@ i.e. not enough columns).
 >   [ selectNoRows, selectTerminatesEarly, selectFloatsAndInts
 >   , selectNullString, selectEmptyString, selectUnhandledNull
 >   , selectNullDate, selectDate, selectCalDate, selectBoundaryDates
->   , selectCursor, selectExhaustCursor, selectBindBytea
+>   , selectCursor, selectExhaustCursor, selectBindBytea, selectBindUUID
 >   , selectBindString, selectBindInt, selectBindIntDoubleString
 >   , selectBindDate, selectBindBool, selectBindBoundaryDates
 >   , selectRebindStmt, boundStmtDML, boundStmtDML2
