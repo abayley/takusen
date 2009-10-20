@@ -31,6 +31,7 @@ wrappers (in the second part of this file)
 > import Foreign.Ptr
 > import System.IO
 > import System.Time
+> import Text.Printf
 
 
 > data DBHandleStruct = PGconn
@@ -356,7 +357,10 @@ Types we'll map:
 1114 timestamp
 1184 timestamptz
 1700 numeric
+2950 uuid
 
+We are marshalling everything to and from Strings,
+so internal representations are irrelevant.
 
 For ints and doubles/floats, we need to check what size they are
 and choose the appropriate oid.
@@ -368,6 +372,40 @@ time = oid 1083  (8 bytes)
 timetz = oid 1266  (12 bytes)
 timestamp (sans time zone) = oid 1114  (8 bytes)
 timestamptz (with time zone) = oid 1184  (8 bytes)
+
+UUIDs are 128-bit values, with the pattern 8-4-4-4-12 e.g.
+  a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+Apparently Postgres will take any old crap as input
+i.e. surrounding braces optional, hyphens optional and anywhere.
+We'll take a sequence of 32 hex digits, interspersed with
+anything that's not a hex digit (we just strip them).
+
+We should have a newtype for UUID:
+
+> newtype UUID = UUID (Word64, Word64)
+>   deriving (Eq, Ord)
+
+> instance Show UUID where
+>   --show uuid = uuid2string uuid
+>   show (UUID (w1, w2)) = printf "UUID (%16x, %16x)" w1 w2
+
+> uuid2string :: UUID -> String
+> uuid2string (UUID (w1, w2)) =
+>   tail (sub 0 8 ++ sub 8 4 ++ sub 12 4 ++ sub 16 4 ++ sub 20 12)
+>   where
+>     g = printf "%016x%016x" w1 w2
+>     sub i j = "-" ++ take j (drop i g)
+
+> string2uuid :: String -> UUID
+> string2uuid s =
+>   if length stripped /= 32
+>   then error "string2uuid: malformed UUID - not 32 digits"
+>   else UUID (read w1, read w2)
+>   where
+>     stripped = filter isHexDigit s
+>     w1 = "0x" ++ take 16 stripped
+>     w2 = "0x" ++ drop 16 stripped
+
 
 > class PGType a where
 >   pgTypeFormat :: a -> Format  -- ^ 0 == text, 1 == binary
@@ -463,6 +501,12 @@ We assume all Strings are UTF8 encoded.
 >   -- byteaUnesc because the result is in bytea escaped format for some reason
 >   pgPeek p = byteaUnesc <$> peekArray0 0 p
 >   pgSize v = length v
+
+> instance PGType UUID where
+>   pgTypeOid _ = 2950
+>   pgNewValue v = pgNewValue (uuid2string v)
+>   pgPeek p = pgPeek p >>= return . string2uuid
+>   pgSize v = pgSize (uuid2string v)
 
 > instance PGType Char where
 >   pgTypeOid _ = 18
@@ -728,6 +772,9 @@ So are the row numbers.
 
 > colValBytea :: ResultSetHandle -> Int -> Int -> IO [Word8]
 > colValBytea = colVal
+
+> colValUUID :: ResultSetHandle -> Int -> Int -> IO UUID
+> colValUUID = colVal
 
 > colValUTCTime :: ResultSetHandle -> Int -> Int -> IO UTCTime
 > colValUTCTime = colVal
