@@ -41,6 +41,7 @@ If not, it won't work. I have a postgres user and a postgres database.
 
 > testlist db = map ($ db)
 >   [ testByteaEsc
+>   , testUUIDMarshal
 >   , testSelectInts
 >   , testSelectDouble
 >   , testSelectBool
@@ -143,6 +144,19 @@ i.e. backslash space zero space quote space 255
 >   assertEqual "testByteaEsc" (str2Word8 "\\037\\177\\377") (byteaEsc [31,127,255])
 >   QC.test prop_byteaEscRoundTripString
 >   QC.test prop_byteaEscRoundTrip
+
+> prop_uuidRoundTrip :: (Int, Int) -> Bool
+> prop_uuidRoundTrip (w1, w2) = uuid == string2uuid (uuid2string uuid)
+>   where uuid = UUID (fromIntegral w1, fromIntegral w2)
+
+> testUUIDMarshal db = do
+>   assertEqual "testUUIDMarshal"
+>     (UUID (0x0011223344556677, 0x8899AABBCCDDEEFF))
+>     (string2uuid "{00112233-44-55-66-778899aabbCCDDeEFF}")
+>   assertEqual "testUUIDMarshal"
+>     (UUID (0x1000000010000000, 0x1000000010000000))
+>     (string2uuid "{10000000-10000000-10000000-10000000}")
+>   QC.test prop_uuidRoundTrip
 
 
 > testSelectStrings db = do
@@ -323,7 +337,7 @@ ISO8601 uses astronomical years, so we ought to be able to write
 If we don't specify the type, Postgres gives the number the NUMERIC type.
 I don't yet know what the internal binary rep is, nor how to
 convert it to an appropriate Haskell type.
-Best we can do is marshal/transmist everything as text.
+Best we can do is marshal/transmit everything as text.
 
 > testSelectNumeric db = do
 >   sn <- printPropagateError $ stmtPrepare db "" "select 1.2" []
