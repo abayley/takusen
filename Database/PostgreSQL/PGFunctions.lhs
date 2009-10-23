@@ -386,8 +386,7 @@ We should have a newtype for UUID:
 >   deriving (Eq, Ord)
 
 > instance Show UUID where
->   --show uuid = uuid2string uuid
->   show (UUID (w1, w2)) = printf "UUID (%16x, %16x)" w1 w2
+>   show (UUID (w1, w2)) = printf "UUID (0x%016x, 0x%016x)" w1 w2
 
 > uuid2string :: UUID -> String
 > uuid2string (UUID (w1, w2)) =
