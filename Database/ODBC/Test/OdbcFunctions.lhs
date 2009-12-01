@@ -95,18 +95,18 @@ Portability :  non-portable
 > testCreateStmt conn = execSql conn "select 'x' from tdual"
 
 
-> testIsolationLevel conn = do
->   setTxnIsolation conn sqlTxnReadUncommitted
->   setTxnIsolation conn sqlTxnReadCommitted
->   setTxnIsolation conn sqlTxnRepeatableRead
->   setTxnIsolation conn sqlTxnSerializable
+> testIsolationLevelReadUncommitted conn = setTxnIsolation conn sqlTxnReadUncommitted
+> testIsolationLevelReadCommitted conn = setTxnIsolation conn sqlTxnReadCommitted
+> testIsolationLevelRepeatableRead conn = setTxnIsolation conn sqlTxnRepeatableRead
+> testIsolationLevelSerializable conn = setTxnIsolation conn sqlTxnSerializable
 
 Uses getData, rather than a buffer.
 
 > testFetchString conn = do
 >   stmt <- allocStmt conn
->   let string1 = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
->   let string2 = "xyz" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
+>   -- Oracle doesn't like codepoints > 0x10FF40; perhaps this is special in Unicode?
+>   let string1 = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FF40]
+>   let string2 = "xyz" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FF40]
 >   prepareStmt stmt ("select '" ++ string1
 >     ++ "' from tdual union select '" ++ string2 ++ "' from tdual order by 1")
 >   executeStmt stmt
@@ -122,8 +122,9 @@ Uses getData, rather than a buffer.
 
 > testFetchStringWithBuffer conn = do
 >   stmt <- allocStmt conn
->   let string1 = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
->   let string2 = "xyz" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
+>   -- Oracle doesn't like codepoints > 0x10FF40; perhaps this is special in Unicode?
+>   let string1 = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FF40]
+>   let string2 = "xyz" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FF40]
 >   prepareStmt stmt ("select '" ++ string1
 >     ++ "' from tdual union select '" ++ string2 ++ "' from tdual order by 1")
 >   executeStmt stmt
@@ -200,7 +201,7 @@ Uses getData, rather than a buffer.
 >     --getNativeSql conn "select {fn CONVERT('1916-10-01 02:25:21', SQL_DATETIME)}, {fn CONVERT('2005-10-01 00:00:00', SQL_DATETIME)}"
 >     --
 >     -- Access doesn't seem to like the {fn ...} escape sequences either,
->     -- so we have to use VBA function CDate to convert tets to datetime.
+>     -- so we have to use VBA function CDate to convert text to datetime.
 >     --getNativeSql conn "select cdate('1916-10-01 02:25:21'), cdate('2005-10-01 00:00:00')"
 >     --  >>= putStrLn
 >     --getNativeSql conn "select {fn convert('1916-10-01 02:25:21', SQL_DATETIME)}"
@@ -263,7 +264,9 @@ Uses getData, rather than a buffer.
 >   stmt <- allocStmt conn
 >   setStmtEncoding stmt EncUTF8  -- just in case UTF8 is not default
 >   prepareStmt stmt "select ? from tdual"
->   let expect = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
+>   -- Oracle doesn't like codepoints > 0x10FF40; perhaps this is special in Unicode?
+>   --let expect = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
+>   let expect = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FF40]
 >   bindParamBuffer stmt 1 (Just expect) 0
 >   executeStmt stmt
 >   buffer <- bindColBuffer stmt 1 1000 (Just expect)
@@ -355,7 +358,9 @@ Uses getData, rather than a buffer.
 >   ignoreError (executeStmt stmt)
 >   prepareStmt stmt "create table t_utf8(s varchar(50))"
 >   executeStmt stmt
->   let expect = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
+>   --let expect = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FFFF]
+>   -- Oracle doesn't like codepoints > 0x10FF40; perhaps this is special in Unicode?
+>   let expect = "abc" ++ map chr [0x000080, 0x0007FF, 0x00FFFF, 0x10FF40]
 >   prepareStmt stmt ("insert into t_utf8 values ( '" ++ expect ++ "' )")
 >   executeStmt stmt
 >   prepareStmt stmt "select s from t_utf8"
@@ -456,7 +461,9 @@ Uses getData, rather than a buffer.
 >   let input1 :: Int; input1 = 1234
 >   let input2 = "message"
 >   buffer1 <- bindParamBuffer stmt 1 (InOutParam (Just input1)) 0
->   buffer2 <- bindParamBuffer stmt 2 (InOutParam (Just input2)) 200
+>   -- max size for string out parameter is 8000 - SQL Server errors on anything >8000.
+>   -- bindParamString adds 1 to the size, so we can pass 7999 max.
+>   buffer2 <- bindParamBuffer stmt 2 (InOutParam (Just input2)) 7999
 >   executeStmt stmt
 >   --
 >   i <- getFromBuffer buffer1
@@ -468,7 +475,7 @@ Uses getData, rather than a buffer.
 >   --more <- moreResults stmt
 >   --assertBool "testBindOutput: more result-sets" (not more)
 >   --
->   prepareStmt stmt dropFixtureMultiResultSet
+>   prepareStmt stmt dropFixtureBindOutput
 >   executeStmt stmt
 >   freeStmt stmt
 
@@ -483,7 +490,10 @@ Uses getData, rather than a buffer.
 
 > testlist =
 >   testCreateStmt :
->   testIsolationLevel :
+>   testIsolationLevelReadUncommitted :
+>   testIsolationLevelReadCommitted :
+>   testIsolationLevelRepeatableRead :
+>   testIsolationLevelSerializable :
 >   testFetchString :
 >   testFetchStringWithBuffer :
 >   testFetchInt :
@@ -497,16 +507,13 @@ Uses getData, rather than a buffer.
 >   testBindUTCTimeBoundary :
 >   testUTF8 :
 >   testRebind :
->   --testDbmsName :
 >   testMultiResultSet :
 >   testBindOutput :
+>   --testDbmsName :
 >   []
 
-> testlist2 =
->   testBindOutput :
->   []
 
-> mkTestlist conn testlist = map (\testcase -> printIgnoreError (testcase conn)) testlist
+> mkTestlist conn testlist = map (\testcase -> printPropagateError (testcase conn)) testlist
 
 > parseArgs :: [String] -> IO String
 > parseArgs args = do
