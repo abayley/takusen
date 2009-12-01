@@ -229,7 +229,8 @@ sqlAutoCommitOff = #{const SQL_AUTOCOMMIT_OFF}
 
 -- ODBC SQL data types
 (
-  sqlDTypeString :
+  sqlDTypeChar :
+  sqlDTypeVarchar :
   sqlDTypeInt :
   sqlDTypeBinary :
   sqlDTypeDouble :
@@ -239,7 +240,8 @@ sqlAutoCommitOff = #{const SQL_AUTOCOMMIT_OFF}
   sqlDTypeCursor :
   []) =
   (
-  #{const SQL_CHAR} :  -- 1
+  #{const SQL_CHAR} :  -- CHAR = 1, VARCHAR = 12, LONGVARCHAR = -1
+  #{const SQL_VARCHAR} :  -- CHAR = 1, VARCHAR = 12, LONGVARCHAR = -1
   #{const SQL_INTEGER} :  -- 4
   #{const SQL_BINARY} :  -- -2
   #{const SQL_DOUBLE} :  -- 8
@@ -536,10 +538,13 @@ setAutoCommitOff conn = do
 setTxnIsolation :: ConnHandle -> SqlInteger -> IO ()
 setTxnIsolation conn level = do
   -- MS Access has transactions, but not isolation levels.
-  -- PostgreSQL doesn't do sqlTxnReadUncommitted or sqlTxnRepeatableRead;
-  -- we get error: 206 HY009 Illegal parameter value for SQL_TXN_ISOLATION
+  -- Oracle & PostgreSQL don't do sqlTxnReadUncommitted or sqlTxnRepeatableRead;
+  -- we get: "206 HY009 Illegal parameter value for SQL_TXN_ISOLATION"
+  --     or: "  0 HYC00 [Oracle][ODBC]Optional feature not implemented."
   let doNothing = ("access" == connDbms conn)
         || (("postgresql" == connDbms conn)
+          && (level == sqlTxnReadUncommitted || level == sqlTxnRepeatableRead) )
+	|| (("oracle" == connDbms conn)
           && (level == sqlTxnReadUncommitted || level == sqlTxnRepeatableRead) )
   unless doNothing ( do
       rc <- sqlSetConnectAttr (connHdl conn) sqlAttrTxnIsolation (int2Ptr level) 0
@@ -630,14 +635,16 @@ getDataCStringLen stmt pos = do
   alloca $ \szptr -> do
   allocaBytes 16 $ \dummyptr -> do
   -- Call GetData with 0-sized buffer to get size information.
-  rc <- sqlGetData (stmtHdl stmt) (fromIntegral pos) sqlDTypeString (castPtr dummyptr) 0 szptr
+  -- We have to use sqlDTypeChar; sqlDTypeVarchar causes error "Program type out of range".
+  rc <- sqlGetData (stmtHdl stmt) (fromIntegral pos) sqlDTypeChar (castPtr dummyptr) 0 szptr
   when (rc /= sqlRcSuccessWithInfo)
     (checkError rc sqlHTypeStmt (castPtr (stmtHdl stmt)))
   bufSize <- peek szptr
   let bufSize' = 1 + if bufSize < 0 then 0 else bufSize
   -- Use size information to allocate perfectly-sized buffer.
+  -- We have to use sqlDTypeChar; sqlDTypeVarchar causes error "Program type out of range".
   allocaBytes (fromIntegral bufSize') $ \bptr -> do
-  rc <- sqlGetData (stmtHdl stmt) (fromIntegral pos) sqlDTypeString (castPtr bptr) bufSize' szptr
+  rc <- sqlGetData (stmtHdl stmt) (fromIntegral pos) sqlDTypeChar (castPtr bptr) bufSize' szptr
   checkError rc sqlHTypeStmt (castPtr (stmtHdl stmt))
   len <- peek szptr
   if len < 0 then return Nothing
@@ -749,7 +756,7 @@ getUtcTimeFromBuffer bindbuffer =
 -- First some helper functions...
 -----------------------------------
 
--- create a Bind Buffer for a value in the Storable class
+-- Create a Bind Buffer for a value in the Storable class
 -- e.g. Int, Double, Char
 mkBindBufferForStorable :: Storable a => Maybe a -> IO BindBuffer
 mkBindBufferForStorable mbv =
@@ -767,11 +774,15 @@ mkBindBufferForStorable mbv =
       withForeignPtr bfptr (\bptr -> poke bptr val)
       return (BindBuffer (castForeignPtr bfptr) szfptr (fromIntegral bufsize) EncUTF8)
 
+-- Create a Bind Buffer for a chunk of memory (so, anything at all).
 -- Given:
 --   * a Ptr to a buffer (already allocated)
 --   * the size (SqlLen) of the data in the buffer (not necessarily the same as the buffer size)
 --   * the size of the buffer
--- create a BindBuffer object
+--   * a character encoding for Strings
+-- create a BindBuffer object.
+-- The buffer is wrapped with a ForeignPtr so it will be freed when the buffer
+-- is no longer required.
 mkBindBuffer :: Ptr a -> SqlLen -> Int -> CharEncoding -> IO BindBuffer
 mkBindBuffer valptr valsize bufsize charenc = do
   szfptr <- mallocForeignPtr
@@ -816,7 +827,9 @@ bindParamString stmt pos direction Nothing bufsize = do
   let bufsz = if bufsize < 8 then 8 else (fromIntegral bufsize)
   ptr <- mallocBytes bufsz
   buffer <- mkBindBuffer ptr (-1) bufsz charenc
-  bindParam stmt pos direction sqlCTypeString sqlDTypeString 0 0 buffer
+  -- We have to use sqlDTypeVarchar; sqlDTypeChar doesn't marshal output values (fixed size).
+  -- MS Access and SQL Server require buffer size in precision.
+  bindParam stmt pos direction sqlCTypeString sqlDTypeVarchar (fromIntegral bufsz) 0 buffer
   return buffer
 bindParamString stmt pos direction (Just s) bufsize = do
   charenc <- readIORef (stmtCharEnc stmt)
@@ -824,7 +837,9 @@ bindParamString stmt pos direction (Just s) bufsize = do
   -- Now wrap the malloc'd area wth a ForeignPtr, which should ensure
   -- it is GC'd when no longer used.
   buffer <- mkBindBuffer mem (fromIntegral clen) bufsz charenc
-  bindParam stmt pos direction sqlCTypeString sqlDTypeString (fromIntegral clen) 0 buffer
+  -- We have to use sqlDTypeVarchar; sqlDTypeChar doesn't marshal output values (fixed size).
+  -- MS Access and SQL Server require buffer size in precision.
+  bindParam stmt pos direction sqlCTypeString sqlDTypeVarchar (fromIntegral bufsz) 0 buffer
   return buffer
   where
     makeStringBuffer :: CStringLen -> IO (CString, Int, Int)
@@ -979,7 +994,8 @@ instance OdbcBindBuffer (Maybe Double) where
           cdbl :: CDouble; cdbl = 0
 
 instance OdbcBindBuffer (Maybe String) where
-  bindColBuffer stmt pos size val = bindColumnBuffer stmt pos sqlDTypeString (fromIntegral size)
+  -- We have to use sqlDTypeChar; sqlDTypeVarchar causes error "Program type out of range".
+  bindColBuffer stmt pos size val = bindColumnBuffer stmt pos sqlDTypeChar (fromIntegral size)
   getFromBuffer buffer = getStringFromBuffer buffer
   getData stmt pos = getDataString stmt pos
 
