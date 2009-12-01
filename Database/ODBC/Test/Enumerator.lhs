@@ -240,7 +240,7 @@ where we select one row with three columns, rather than three rows with one colu
 >     (x, s) <- doQuery qry iter undefined
 >     execDrop dropFixtureBindOutput
 >     assertEqual "bindOutput: int " 2468 x
->     assertEqual "bindOutput: string " "output message" s
+>     assertEqual "bindOutput: string " "output message xxx" s
 >   iter :: (Monad m) => Int -> String -> IterAct m (Int, String)
 >   iter i s _ = return (Left (i, s))
 
