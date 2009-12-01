@@ -172,9 +172,9 @@ and non-obvious.
 
 > setStringEnc enc = Database.Enumerator.inquire enc
 
-Note: the PostgreSQL ODBC driver only supports ReadCommitted
-and Serializable. It throws an error on other values.
-It'd be nicer if it just silently upgraded, but c'est la vie...
+Note: the PostgreSQL and Oracle ODBC drivers only support ReadCommitted
+and Serializable. You get an error on other values.
+It'd be nicer if they just silently upgraded, but c'est la vie...
 
 Apparently MS SQL Server upgrades RepeatableRead to Serializable.
 Presumably the other modes are still supported.
@@ -327,7 +327,8 @@ separate types for the two types of prepared statement...
 >   bindP val = makeBindAction val DBAPI.bindParamBuffer 0
 
 > instance DBBind (Out (Maybe String)) Session PreparedStmtObj BindObj where
->   bindP (Out val) = makeOutputBindAction (DBAPI.InOutParam val) DBAPI.bindParamBuffer 16000
+>   -- SQL Server will raise an error if buffer size > 7999
+>   bindP (Out val) = makeOutputBindAction (DBAPI.InOutParam val) DBAPI.bindParamBuffer 7999
 
 
 > instance DBBind (Maybe Int) Session PreparedStmtObj BindObj where
