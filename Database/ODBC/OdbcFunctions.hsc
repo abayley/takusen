@@ -761,7 +761,7 @@ getUtcTimeFromBuffer bindbuffer =
 mkBindBufferForStorable :: Storable a => Maybe a -> IO BindBuffer
 mkBindBufferForStorable mbv =
   case mbv of
-    Nothing -> let zero :: Int; zero = 0; in mkBindBufferHelper zero (fromIntegral (sizeOf zero)) (sizeOf zero)
+    Nothing -> let zero :: Int; zero = 0; in mkBindBufferHelper zero sqlNullData (sizeOf zero)
     Just val -> mkBindBufferHelper val (fromIntegral (sizeOf val)) (sizeOf val)
   where 
     mkBindBufferHelper :: Storable a => a -> SqlLen -> Int -> IO BindBuffer
