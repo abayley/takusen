@@ -885,7 +885,7 @@ makeUtcTimeBuffer :: UTCTime -> IO BindBuffer
 makeUtcTimeBuffer utc = do
   mem <- mallocBytes #{size TIMESTAMP_STRUCT}
   writeUTCTimeToMemory (castPtr mem) utc
-  mkBindBuffer mem #{size TIMESTAMP_STRUCT} (-1) EncUTF8
+  mkBindBuffer mem #{size TIMESTAMP_STRUCT} #{size TIMESTAMP_STRUCT} EncUTF8
 
 -- Marshal via String, for MS SQL Server.
 -- We have to drop the last 6 chars (nnn+nn) from the ISO datetime,
