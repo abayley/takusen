@@ -822,7 +822,7 @@ bindParamString stmt pos direction Nothing bufsize = do
   charenc <- readIORef (stmtCharEnc stmt)
   let bufsz = if bufsize < 8 then 8 else (fromIntegral bufsize)
   ptr <- mallocBytes bufsz
-  buffer <- mkBindBuffer ptr (-1) bufsz charenc
+  buffer <- mkBindBuffer ptr sqlNullData bufsz charenc
   -- We have to use sqlDTypeVarchar; sqlDTypeChar doesn't marshal output values (fixed size).
   -- MS Access and SQL Server require buffer size in precision.
   bindParam stmt pos direction sqlCTypeString sqlDTypeVarchar (fromIntegral bufsz) 0 buffer
