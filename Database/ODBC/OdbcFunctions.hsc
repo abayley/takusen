@@ -766,17 +766,13 @@ mkBindBufferForStorable mbv =
   where 
     mkBindBufferHelper :: Storable a => a -> SqlLen -> Int -> IO BindBuffer
     mkBindBufferHelper val valsize bufsize = do
-      -- alloc space for size parameter
-      szfptr <- mallocForeignPtr
-      withForeignPtr szfptr (\szptr -> poke szptr valsize)
-      -- alloc buffer for storable value
-      bfptr <- mallocForeignPtr
-      withForeignPtr bfptr (\bptr -> poke bptr val)
-      return (BindBuffer (castForeignPtr bfptr) szfptr (fromIntegral bufsize) EncUTF8)
+      bptr <- malloc
+      poke bptr val
+      mkBindBuffer bptr valsize bufsize EncUTF8
 
 -- Create a Bind Buffer for a chunk of memory (so, anything at all).
 -- Given:
---   * a Ptr to a buffer (already allocated)
+--   * a Ptr to a buffer (already allocated and filled)
 --   * the size (SqlLen) of the data in the buffer (not necessarily the same as the buffer size)
 --   * the size of the buffer
 --   * a character encoding for Strings
