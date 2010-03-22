@@ -228,6 +228,7 @@ Presumably the other modes are still supported.
 >       (action sess)
 >       (freeStmt . stmtHandle)
 >       (\pstmt -> do
+>         freeBindBuffers pstmt
 >         sequence_ (zipWith (\i (BindA ba) -> ba sess pstmt i) [1..] bas)
 >         stmtExecute (stmtHandle pstmt)
 >         rowCount (stmtHandle pstmt)
@@ -268,11 +269,11 @@ separate types for the two types of prepared statement...
 > data PreparedStmtObj = PreparedStmtObj
 >   { stmtHandle :: StmtHandle
 >   , stmtLifetime :: StmtLifetime
->   -- stmtBuffers are actually output bind buffers.
->   -- we package them to look like ColumnBuffers
+>   , stmtBuffers :: IORef [ColumnBuffer]
+>   -- We package output bind buffers to look like ColumnBuffers
 >   -- (as created by allocBuffer) so that we can use them
 >   -- like ColumnBuffers.
->   , stmtBuffers :: IORef [ColumnBuffer]
+>   , stmtOutputBuffers :: IORef [ColumnBuffer]
 >   , stmtFetched :: IORef Bool
 >   }
 
@@ -296,15 +297,20 @@ separate types for the two types of prepared statement...
 
 > newPreparedStmt stmt lifetime = do
 >   b <- newIORef []
+>   ob <- newIORef []
 >   f <- newIORef False
->   return (PreparedStmtObj stmt lifetime b f)
+>   return (PreparedStmtObj stmt lifetime b ob f)
+
+> freeBindBuffers stmt = do
+>   writeIORef (stmtBuffers stmt) []
+>   writeIORef (stmtOutputBuffers stmt) []
 
 --------------------------------------------------------------------
 -- ** Binding
 --------------------------------------------------------------------
 
 > newtype BoundStmt = BoundStmt { boundStmt :: PreparedStmtObj }
-> type BindObj = Int -> IO ()
+> type BindObj = Int -> IO DBAPI.BindBuffer
 > newtype Out a = Out a
 
 > instance IPrepared PreparedStmtObj Session BoundStmt BindObj where
@@ -312,14 +318,13 @@ separate types for the two types of prepared statement...
 >     fetched <- readIORef (stmtFetched pstmt)
 >     when (fetched)
 >       (closeCursor (stmtHandle pstmt) >> writeIORef (stmtFetched pstmt) False)
+>     freeBindBuffers pstmt
 >     sequence_ (zipWith (\i (BindA ba) -> ba sess pstmt i) [1..] bas)
 >     stmtExecute (stmtHandle pstmt)
 >     action (BoundStmt pstmt)
 >   destroyStmt sess pstmt = do
 >     -- Could free output bind buffers here, but for now we don't bother.
 >     -- They are ForeignPtrs, so we expect them to be GC'd.
->     --buffers <- readIORef (stmtBuffers pstmt)
->     --sequence_ (map (freeBindBuffer . colBuffer) buffers)
 >     freeStmt (stmtHandle pstmt)
 
 
@@ -371,16 +376,30 @@ The default instance, uses generic Show
 >   bindP (Out (Just x)) = bindP (Out (Just (show x)))
 >   bindP (Out Nothing) = bindP (Out (Nothing `asTypeOf` Just ""))
 
-> makeBindAction val binder size = BindA (\ses st pos -> do
->   convertEx (binder (stmtHandle st) pos val size >> return ()))
+> makeBindAction val binder size = BindA (\sess stmt pos -> do
+>   convertEx (do
+>     buf <- binder (stmtHandle stmt) pos val size
+>     appendBindBuffer stmt buf
+>     ))
 
-> makeOutputBindAction val binder size = BindA (\ses st pos -> do
->   convertEx (binder (stmtHandle st) pos val size >>= appendOutputBindBuffer st))
+> makeOutputBindAction val binder size = BindA (\sess stmt pos -> do
+>   convertEx (do
+>     buf <- binder (stmtHandle stmt) pos val size
+>     appendBindBuffer stmt buf
+>     appendOutputBindBuffer stmt buf
+>     ))
 
-> appendOutputBindBuffer stmt buffer = do
+> appendBindBuffer stmt buffer = do
 >   buffers <- readIORef (stmtBuffers stmt)
 >   let colbuf = ColumnBuffer (1 + length buffers) buffer
 >   modifyIORef (stmtBuffers stmt) (++ [colbuf])
+>   return buffer
+
+> appendOutputBindBuffer stmt buffer = do
+>   buffers <- readIORef (stmtOutputBuffers stmt)
+>   let colbuf = ColumnBuffer (1 + length buffers) buffer
+>   modifyIORef (stmtOutputBuffers stmt) (++ [colbuf])
+>   return buffer
 
 
 --------------------------------------------------------------------
@@ -420,6 +439,7 @@ The default instance, uses generic Show
 >   makeQuery sess (StmtBind sqltext bas) = do
 >     let (PreparationA action) = prepareStmt' sqltext FreeWithQuery
 >     pstmt <- action sess
+>     freeBindBuffers pstmt
 >     sequence_ (zipWith (\i (BindA ba) -> ba sess pstmt i) [1..] bas)
 >     stmtExecute (stmtHandle pstmt)
 >     n <- newIORef 0
@@ -439,7 +459,7 @@ The default instance, uses generic Show
 >     -- and start fetching from the stmt handle.
 >     -- This allows us to call stored procedures that return
 >     -- both output parameters and (multiple) result-sets.
->     buffers <- readIORef (stmtBuffers pstmt)
+>     buffers <- readIORef (stmtOutputBuffers pstmt)
 >     if null buffers
 >       then do
 >         more <- DBAPI.moreResults (stmtHandle pstmt)
@@ -456,7 +476,7 @@ The default instance, uses generic Show
 >   destroyQuery query = do
 >     let pstmt = queryStmt query
 >     when (stmtLifetime pstmt == FreeWithQuery)
->       (freeStmt (stmtHandle pstmt))
+>       (freeBindBuffers pstmt >> freeStmt (stmtHandle pstmt))
 >   fetchOneRow query = do
 >     let pstmt = queryStmt query
 >     -- Only call fetchRow if there are no bind output buffers
@@ -464,7 +484,7 @@ The default instance, uses generic Show
 >     -- procedure call.
 >     -- In this case you will always get the same row over and over,
 >     -- so you'd better be careful with your iteratees
->     buffers <- readIORef (stmtBuffers pstmt)
+>     buffers <- readIORef (stmtOutputBuffers pstmt)
 >     if not (null buffers) then return True
 >       else do
 >         moreRows <- fetchRow (stmtHandle pstmt)
@@ -486,7 +506,7 @@ In allocBuffer we decide to either
 
 > allocBuffer q pos size val = do
 >   let stmt = queryStmt q
->   buffers <- readIORef (stmtBuffers stmt)
+>   buffers <- readIORef (stmtOutputBuffers stmt)
 >   if null buffers
 >     then do
 >       bindbuffer <- convertEx (DBAPI.bindColBuffer (stmtHandle stmt) pos size val)
