@@ -144,8 +144,10 @@ Uses getData, rather than a buffer.
 >   prepareStmt stmt "select 101 from tdual"
 >   executeStmt stmt
 >   more <- fetch stmt
+>   putStrLn "testFetchInt: call getData"
 >   s <- getData stmt 1
 >   let expect :: Int; expect = 101
+>   putStrLn "testFetchInt: assert"
 >   assertEqual "testFetchInt" (Just expect) s
 >   more <- fetch stmt
 >   assertBool "testFetchInt: EOD" (not more)
@@ -168,10 +170,10 @@ Uses getData, rather than a buffer.
 >   stmt <- allocStmt conn
 >   prepareStmt stmt "select 123.456789 from tdual"
 >   executeStmt stmt
->   --buffer <- bindColBuffer stmt 1 sqlDTypeDouble 16
+>   buffer <- bindColBuffer stmt 1 0 (Just (0::Double))
 >   more <- fetch stmt
->   --s <- getFromBuffer buffer
->   s <- getData stmt 1
+>   s <- getFromBuffer buffer
+>   --s <- getData stmt 1
 >   let expect :: Double; expect = 123.456789
 >   assertEqual "testFetchDouble" (Just expect) s
 >   more <- fetch stmt
@@ -242,6 +244,31 @@ Uses getData, rather than a buffer.
 >   assertEqual "testFetchInt" (Just expect) s
 >   more <- fetch stmt
 >   assertBool "testFetchInt: EOD" (not more)
+>   freeStmt stmt
+
+> testBindDouble conn = do
+>   stmt <- allocStmt conn
+>   prepareStmt stmt "select ? from tdual"
+>   -- null value first
+>   bindParamBuffer stmt 1 (Nothing :: Maybe Double) 0
+>   executeStmt stmt
+>   buffer <- bindColBuffer stmt 1 0 (Just (0::Double))
+>   more <- fetch stmt
+>   s <- getFromBuffer buffer
+>   assertEqual "testBindDouble" (Nothing :: Maybe Double) s
+>   -- non-null value
+>   closeCursor stmt
+>   bindParamBuffer stmt 1 (Just 101.101 :: Maybe Double) 0
+>   executeStmt stmt
+>   buffer <- bindColBuffer stmt 1 0 (Just (0::Double))
+>   more <- fetch stmt
+>   s <- getFromBuffer buffer
+>   let d :: Double; d = 101.101;
+>   assertEqual "testBindDouble" (Just d) s
+>   --
+>   more <- fetch stmt
+>   assertBool "testBindDouble: EOD" (not more)
+>   --
 >   freeStmt stmt
 
 > testBindString conn = do
@@ -495,12 +522,13 @@ Uses getData, rather than a buffer.
 >   testIsolationLevelRepeatableRead :
 >   testIsolationLevelSerializable :
 >   testFetchString :
->   testFetchStringWithBuffer :
 >   testFetchInt :
+>   testFetchStringWithBuffer :
 >   testFetchIntWithBuffer :
 >   testFetchDouble :
 >   testFetchDatetime :
 >   testBindInt :
+>   testBindDouble :
 >   testBindString :
 >   testBindStringUTF8 :
 >   testBindUTCTime :
