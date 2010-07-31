@@ -13,8 +13,8 @@ Author:         Alistair Bayley, Oleg Kiselyov
 Copyright:      2003-2009, Alistair Bayley, Oleg Kiselyov
 Maintainer:     alistair@abayley.org, oleg@pobox.com
 Stability:      experimental
-Homepage:       http://darcs.haskell.org/takusen
-Package-url:    http://darcs.haskell.org/takusen
+Homepage:       http://code.haskell.org/takusen
+Package-url:    http://code.haskell.org/takusen
 Category:       Database
 Build-type:     Custom
 Cabal-Version:  >= 1.6
