@@ -55,7 +55,8 @@ Using i.e. Writing data access code
 -----------------------------------
 There are extensive instructions and examples in the Haddock docs
 for module Database.Enumerator:
- http://darcs.haskell.org/takusen/doc/html/Database-Enumerator.html
+
+http://hackage.haskell.org/packages/archive/Takusen/0.8.6/doc/html/Database-Enumerator.html
 
 This should give you most, if not all, of the information you need to
 create a program that uses Takusen.
